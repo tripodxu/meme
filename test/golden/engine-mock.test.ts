@@ -137,7 +137,7 @@ function mortality3650(mode: 'uniform' | 'newborn'): number {
   return deathsAtEnd / state.society.agents.length;
 }
 
-describe('golden: 40 人默认 mock 运行（rules-v3）', () => {
+describe('golden: 40 人默认 mock 运行（rules-v4）', () => {
   const fixture = loadFixture();
 
   if (fixture === null || UPDATE) {

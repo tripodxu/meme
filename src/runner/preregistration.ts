@@ -54,6 +54,8 @@ export interface PreregManifest {
   readonly clustering: {
     readonly algorithm: 'ward+euclidean';
     readonly standardization: 'z-score(pooled)';
+    /** 聚类特征窗口（07 §8.1 特征向量来源）；双窗口 pooling 检验时间稳定性。 */
+    readonly featureWindows: readonly ('w1' | 'w3')[];
     readonly kRange: readonly [2, 5];
     readonly stabilityMinAri: 0.7;
     readonly minClusterRuns: number;
@@ -181,6 +183,27 @@ export function buildPreregCells(): readonly PreregCell[] {
       hypothesis: 'v3 值 θM=8 对照（预期 O 钉在高位）',
       overrides: { openness: { mobilityWeight: 8 } },
     },
+    // v4 第二轮：中位生产力平衡轴（rule.md 45 双路径的机制旋钮）
+    {
+      cellKey: 'v4:geMedian=0.8',
+      hypothesis: '中位生产力轻度低于持有标准（G 上升、O 下降）',
+      overrides: { attributes: { ge: { median: 0.8 } } },
+    },
+    {
+      cellKey: 'v4:geMedian=0.7',
+      hypothesis: '中位生产力进一步下降（中间层重心、高 G）',
+      overrides: { attributes: { ge: { median: 0.7 } } },
+    },
+    {
+      cellKey: 'v4:geMedian=0.6',
+      hypothesis: '强生产力约束（橄榄型倾向、O 低位）',
+      overrides: { attributes: { ge: { median: 0.6 } } },
+    },
+    {
+      cellKey: 'v4:envExponent=2',
+      hypothesis: '极强环境持有成本（顶部快速流失）',
+      overrides: { need: { envExponent: 2 } },
+    },
   ];
   return cells;
 }
@@ -258,6 +281,9 @@ export function buildPreregManifest(): PreregManifest {
     clustering: {
       algorithm: 'ward+euclidean',
       standardization: 'z-score(pooled)',
+      // 特征点：每个 run 贡献 w1 与 w3 两个特征点（07 §8.1 特征向量；
+      // 双窗口 pooling 同时检验结构的时间稳定性——同 run 两窗应落入同一簇）。
+      featureWindows: ['w1', 'w3'],
       kRange: [2, 5],
       stabilityMinAri: 0.7,
       minClusterRuns: 5,
@@ -266,7 +292,7 @@ export function buildPreregManifest(): PreregManifest {
     },
     differenceThresholds: { gini: 0.03, tv: 0.1, mUp: 0.05, segregation: 0.05, openness: 0.05 },
     // 本机预研护栏（07 §3：budgets 示例为占位值；D-04 的正式 P6 预算另行冻结）。
-    budgets: { maxRuns: 20 * 30, maxWallMinutes: 300, maxStorageBytes: 2_000_000_000 },
+    budgets: { maxRuns: 24 * 30, maxWallMinutes: 360, maxStorageBytes: 2_000_000_000 },
     cells: buildPreregCells(),
   };
 }
