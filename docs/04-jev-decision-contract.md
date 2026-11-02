@@ -13,10 +13,13 @@ type DecisionSource = 'mock' | 'random' | 'jev_live' | 'jev_replay' | 'fallback'
 
 interface DecisionRecord {
   schemaVersion: string;
-  runId: string; tick: number; agentId: string;
+  runId: string;                  // 服务器 run 或 local-<ulid>；离线 run 不得伪装 server run
+  tick: number; agentId: string;
   stateHash: string; actionSetHash: string;
   legalActions: string[];
   policyVersion: string;
+  promptVersion: string | null;
+  promptStyle: 'neutral' | 'survival_hint' | null;
   requestedAction: string | null; // 模型原始首选；mock/random为null
   selectedAction: string;         // 决策层校验/topK/回退后的最终选择，核心仍可能stale_invalid
   source: DecisionSource;
@@ -125,7 +128,7 @@ interface ExecutionRecord {
   "questions": {
     "action": {
       "type": "choice",
-      "instructions": "Choose exactly one action for this agent for the next decision cycle. Prefer long-term survival and sustainable class mobility. Competition destroys some total wealth. Use only the supplied state; do not calculate outcomes.",
+      "instructions": "Choose exactly one action for this agent for the next decision cycle. Use only the supplied state; do not calculate outcomes. Facts: competition moves value between agents and may destroy part of the transferred value; the engine determines the result.",
       "criteria": {
         "accumulate": "Take no active class or competition action; receive normal daily accumulation.",
         "ascend": "Pay 140.5 value to move one class upward if still affordable.",
@@ -138,6 +141,8 @@ interface ExecutionRecord {
 ```
 
 实际 state 必须包含 3.2 的完整内容，上例为请求结构缩写。模型名通过配置和 Worker 允许列表管理；`jev-1.13.0` 是当前基线，不得假设永远最新。请求前复核官方模型文档，响应中的真实 model 必须落日志。
+
+`promptStyle` 是实验处理变量：默认 `neutral` 只描述任务与事实，不提供“偏好长期生存/可持续流动”等规范性建议；`survival_hint` 才加入该建议，用于对照。`instructions` 中的事实必须由当前 config 生成：当 `baseTransferEfficiency×directionMultiplier<1` 时才说“会损耗”，等于 1 时必须说“总财富守恒”。`promptVersion` 覆盖 `promptStyle`、事实生成器和选项排序语义；任何变化都升级版本，不得在同一 `promptVersion` 下静默改变提示。
 
 ## 4. 响应校验与选择
 
@@ -194,12 +199,12 @@ Worker `/api/jev` 不在服务端再次重试上游，避免客户端重试叠�
 启动前区分到期决策与 HTTP 调用：
 
 ```text
-maxDueDecisions = initialPopulation × ceil(totalTicks / decisionInterval)
-maxHttpAttempts = maxDueDecisions × 4       # 使用本节全局重试上限时的静态上界
-实际到期决策数 = Σ各决策tick期初存活人数     # 早死/提前结束会降低
+maxDueDecisions    = initialPopulation × ceil(totalTicks / decisionInterval)   # 预算上界
+expectedDueDecisions = Σ各决策tick期初存活人数                                  # 实际值；早死/提前结束会降低
+maxHttpAttempts    = maxDueDecisions × 4                                      # 静态预算上界
 ```
 
-真实 live run 必须设置：`maxCalls`（按 HTTP attempt 计，含重试）、`maxInputTokens`、`maxRunMinutes`；VPS 另设批次级 `maxCostUsd`（若上游返回可靠成本）和 `maxRuns`。
+`maxDueDecisions` 只用于预算和完成前上界检查；`expectedDueDecisions` 用于 complete 的记录数核对，二者不得混用。真实 live run 必须设置：`maxCalls`（按 HTTP attempt 计，含重试）、`maxInputTokens`、`maxRunMinutes`；VPS 另设批次级 `maxCostUsd`（若上游返回可靠成本）和 `maxRuns`。
 
 共享 BudgetManager 在**每次 HTTP attempt 前**原子预留 1 call 和本请求估算 input tokens；估算器使用版本化 `tokenEstimatorVersion`，输入为完整上游 body。无官方 tokenizer 时使用保守估算 `max(1,ceil(UTF8(body).byteLength/2))`，该值用于调度预算，不冒充上游账单。成功响应按实际 usage 做 `actual-reserved` 核销；失败/abort 保留预留以覆盖可能的上游消耗。usage 缺失按预留量结算、增加 usageUnknownCount，并暂停正式 live run（`usage_missing`），不伪报 0。
 

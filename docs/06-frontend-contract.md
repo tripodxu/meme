@@ -20,21 +20,22 @@
 
 ### 3.1 分组
 
-- 基础：人口、总 tick、决策间隔、seed、初始阶级分布。
-- 个体：ge/hard/寿命分布与截断。
-- 阶级：env0、decay、crossDays、需求阈值/缓冲/连续跌落日数。
+- 基础：人口、总 tick、决策间隔、seed、初始阶级分布、`initialAgeMode`（uniform/newborn）。
+- 个体：ge/hard/寿命分布与截断、`hardLifeFactor`。
+- 阶级：env0、decay、crossDays、`needMultiplier`、需求阈值/缓冲/连续跌落日数/主动降阶天数。
 - 竞争：损失率、传递效率、方向系数、候选数、局部/全局比例。
-- 网络与反馈：β/η/κ/H/λO/rewireProb/O 固定开关等。
-- 决策：mock/random/Jev/replay、模型、topK、并发、超时。
+- 网络与反馈：β/η/κ/H/λO/rewireProb、Congestion/Polarization 上下限、O 固定开关、`flowWindowDays`、`MupWindowDays`。
+- 决策：mock/random/Jev/replay、promptStyle（neutral/survival_hint）、模型、topK、并发、超时。
 - 预算：maxCalls/maxInputTokens/maxRunMinutes；live 必填。
 
-预设分“演示未校准”和“已校准”两类；只有满足 07 证据要求的预设可进入后者。修改已校准预设任何字段后显示“自定义，未校准”。
+预设分“演示未校准”和“已校准”两类；只有满足 07 证据要求的预设可进入后者。修改已校准预设任何字段后显示“自定义，未校准”。结构实验默认提示人口 1000、3650 tick；浏览器 live 默认限制 40 人、730 tick、`decisionInterval=30`，超出需明确确认并显示请求/费用估算。
 
 ### 3.2 启动检查
 
 - 字段级错误定位，禁止 NaN/Infinity/越界/数组长度错误进入核心。
-- live 启动前显示静态调用上界、并发和预算；超建议规模需再次确认。
+- live 启动前显示静态调用上界、并发和预算；超建议规模需再次确认。按 40 人×365 决策×30 种子估算，live 请求量可达数十万，必须显示工时/费用，不得只显示 token 上界。
 - 真实 Key 只保存在当前内存，不预填、不进 localStorage；刷新后需重新输入。
+- 非 V8 浏览器（Safari/Firefox）启动时显示 `nonAuthoritativeRuntime`：可运行，但哈希/回放不承诺与 Chromium/Node/workerd 一致。
 - 启动时冻结配置快照；运行中的设置变化只能用于“下一场”，不得偷偷改变当前规则。
 
 ## 4. 控制条与状态反馈
@@ -57,8 +58,8 @@
 |---|---|
 | 阶级结构 | 各阶级存活人口堆叠面积/比例，另显示存活总数，避免死亡被误读为流动 |
 | 财富 | Gini、中位数、前10%占比；可用对数坐标并明确标注 |
-| 流动 | Mup/Mdown 分开，转移矩阵使用同一窗口 |
-| 网络 | S、平均度、跨层边、连通分量；小人口网络图仅作辅助，不替代指标 |
+| 流动 | Mup/Mdown 是 365 日参与率（不是年化事件率），二者分开；转移矩阵使用 `flowWindowDays` 同一窗口 |
+| 网络 | 调整后 S（`[-1,1]`）、edgeCount、平均度、跨层边、连通分量；无网络时显示 `edgeCount=0` 而不是 S=1；小人口网络图仅作辅助，不替代指标 |
 | 制度 | O、动态 E、跨越成本乘子，显示慢变量更新时间 |
 | 竞争 | 发起/胜率、损失、获得、净损耗，按原发起方向分组 |
 | 寿命 | 剩余寿命分布、死亡数、按阶级死亡统计 |
@@ -70,8 +71,8 @@
 ## 6. 个体检查器
 
 - 支持按 ID、阶级、存活状态筛选；人口大时虚拟列表/分页，不一次渲染全部卡片。
-- 属性卡：value/ge/hard/remainingLife/classIndex/maxClassIndex/classAge/baselineSum/need/belowNeedStreak。
-- 决策卡：legal actions、模型概率、topK、requested/selected action、核心实际执行结果、policyVersion、source、fallback/stale 原因、模型与 prompt 版本。
+- 属性卡：value/ge/hard/remainingLife/derived age/classIndex/maxClassIndex/classAge/baselineSum/need/needMultiplier/belowNeedStreak/lastAscentTick/lastDescentTick。
+- 决策卡：legal actions、模型概率、topK、requested/selected action、核心实际执行结果、policyVersion、promptVersion/promptStyle、source、fallback/stale 原因。
 - 账本：每次 Value before/delta/after/cause/referenceId；可跳到关联竞争/阶级事件。
 - 关系：当前 ties 和本 tick 重构事件；不允许多手编辑权威状态。微扰通过专门 fork 操作完成并记录字段。
 - rawResponse 默认折叠，下载时遵循 artifact 保留说明；绝不显示请求 Key。
@@ -94,7 +95,9 @@ stratify.lastConfig.v1     最近配置，不含Key
 stratify.recentRuns.v1     runId、时间、状态和小摘要
 ```
 
-大快照/日志使用 IndexedDB（实现后）或导出文件，不塞 localStorage。存储配额不足要显式提示并停止无界增长。提供“清除本地实验”二次确认，不影响服务器数据。
+writeToken 只存当前标签页的 `sessionStorage`（`stratify.runToken.<runId>`），不进 localStorage；刷新可续传同一 run，关闭标签页后上传停止，服务器 run 由静默超时清理。离线 mock run 使用 `local-<ulid>` 作为 runId，只支持导出/回放，MVP 不支持直接采纳为服务器 run；UI 必须明确显示“仅本地，未上传”。
+
+运行中的权威状态、决策日志和周期快照必须分块写入 IndexedDB（P3-05 必须实现），不能只放内存；刷新后从最近完整块恢复。若 IndexedDB 不可用，启动前必须警告“刷新将丢失当前 run”，并提供导出。存储配额不足要显式提示并停止无界增长。提供“清除本地实验”二次确认，不影响服务器数据。
 
 导出至少包含 manifest、config、identity、stats、初始/最终 state、完整决策/事件 artifact 及清单；声称“完整可回放”时必须实际包含全部到期决策和必要初始状态，而不是只有图表 CSV。云端 completed 仅显示“上传完整”，独立验证器通过后才显示“已验证/可正式采用”。
 
@@ -122,5 +125,9 @@ stratify.recentRuns.v1     runId、时间、状态和小摘要
 4. 导入完整 live：无网络可回放，非法行动有 replay_invalid 记录。
 5. 导入损坏/未知版本：当前实验不受影响，显示字段/版本错误。
 6. 长实验：图表降采样，内存有界，浏览器可继续交互。
-7. 全零财富、空网络、空阶级、全死亡：图表无 NaN，空态解释正确。
+7. 全零财富、空网络、空阶级、全死亡：图表无 NaN，空态解释正确；无网络显示 `edgeCount=0` 而非 S=1。
 8. 键盘和移动端：完成配置、运行、检查个体、回放和导出全流程。
+9. 运行中刷新：同标签页从 IndexedDB 最近完整块恢复；没有完整块时明确警告并保留导出，不得假装恢复成功。
+10. 离线 run：显示 `local-<ulid>` 和“仅本地，未上传”；尝试上传时给出明确限制，不创建虚假服务器记录。
+11. 非 V8 浏览器：显示 `nonAuthoritativeRuntime` 警告，哈希/回放结果不标记为权威。
+12. live 规模超限：40 人/730 tick/interval 30 以上时显示请求、token、工时和费用估算，并要求二次确认。

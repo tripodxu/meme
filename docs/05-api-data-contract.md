@@ -24,6 +24,7 @@
 
 - `POST /api/runs`：浏览器来源可匿名创建 `source=browser`，受 IP 配额；正式 runner 必须 `Authorization: Bearer <RUNNER_TOKEN>`，服务端强制 `source=runner`。
 - 创建成功返回 32 字节以上随机 `writeToken`，仅此一次显示；数据库只存 SHA-256 hash 和可识别前缀。
+- 浏览器只把 `writeToken` 存在当前标签页的 `sessionStorage`（键 `stratify.runToken.<runId>`），不写 localStorage；标签页关闭后不再续传，服务器 run 由静默超时清理。刷新后可续传同一 run；关闭标签页后需要重新创建 run。
 - 后续 run 写接口：`Authorization: Bearer <writeToken>`。writeToken 仅属于一个 run，不可创建其他 run。
 - `/api/jev`：`X-Api-Key: <用户TypeSafeKey>`，Worker 转发为上游 Bearer；不使用 run writeToken。
 - 日志不得记录 Authorization、X-Api-Key 或 writeToken；Runner token 只放 Worker secret/VPS 环境。
@@ -68,11 +69,11 @@ running -> completed | failed | cancelled
   "experiment": null,
   "config": {},
   "identity": {
-    "rulesVersion": "rules-v2",
+    "rulesVersion": "rules-v3",
     "engineVersion": "0.1.0",
     "decisionSchemaVersion": "stratify-decision-v1",
     "policyVersion": "mock-weighted-v1",
-    "promptVersion": "prompt-v1",
+    "promptVersion": "prompt-v2",
     "requestedModel": "jev-1.13.0",
     "seed": "seed-001",
     "configHash": "sha256:...",
@@ -83,9 +84,11 @@ running -> completed | failed | cancelled
 }
 ```
 
-服务端按 02 第 8 节校验 configHash，返回 201 `{runId,writeToken,status:"running"}`。source 由服务端根据认证确定，不能由 runner 伪造 browser 或反之。
+服务端按 02 第 8 节校验 `configHash`，并用 `(config, seed)` 重算 `initialPopulationHash`；不一致返回 422，防止客户端自报 roster 破坏配对。返回 201 `{runId,writeToken,status:"running"}`。source 由服务端根据认证确定，不能由 runner 伪造 browser 或反之。
 
-调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 RunConfig（见 03 第 3.1 节），`configHash` 必须覆盖它们。顶层 `schedule` 仅是服务端建索引用的镜像，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。
+离线 run 不属于该接口：MVP 中离线 mock run 使用本地 `runId=local-<ulid>`，只支持导出/回放，不支持直接采纳为服务器 run；需要云端归档时，用同一 `config+seed` 新建服务器 run 并重新执行。该限制必须在前端明确显示，不得让用户误以为离线 run 已上传。
+
+调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`flowWindowDays/MupWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。
 
 `GET /api/runs/:id`：返回元数据、状态、endReason、进度、版本、预算用量、逐决策观测去重后的 responseModels、verificationStatus 和 artifact manifest，不返回 writeTokenHash 完整值。
 
@@ -114,7 +117,8 @@ statsTicks = {0<=t<totalTicks 且 t%statsStride==0} ∪ {totalTicks-1}
     "top10Share": 0.42,
     "mUp": 0,
     "mDown": 0,
-    "segregation": 1,
+    "segregation": 0,
+    "edgeCount": 0,
     "openness": 0.5,
     "deathCount": 0,
     "competitionLoss": 0,
@@ -125,6 +129,7 @@ statsTicks = {0<=t<totalTicks 且 t%statsStride==0} ∪ {totalTicks-1}
 }
 ```
 
+- `mUp/mDown` 是 365 日参与率（过去 `MupWindowDays` 日内至少一次上升/下降的存活者占比），不是年化事件率，也不是 EMA；`segregation` 是调整后同层边占比 `S∈[-1,1]`，无网络时 `S=0` 且必须同时写 `edgeCount=0`。
 - 1–100 条/run 请求，tick 严格属于计划 stats 序列，单请求内不重复。
 - `(runId,tick)` 幂等：同 payloadHash 返回已接受；不同内容返回 409，不覆盖。
 - 每 tick 可带完整结构指纹/转移矩阵 JSON，但有单行大小上限 64 KiB；大矩阵/完整事件进 R2。
@@ -165,7 +170,7 @@ X-Start-Tick / X-End-Tick: 可选范围
 {
   "finalTick": 3649,
   "endReason": "scheduled",
-  "finalAliveCount": 32,
+  "finalAliveCount": 40,
   "finalStateHash": "sha256:...",
   "summaryHash": "sha256:...",
   "expectedTickRows": 366,
@@ -175,9 +180,9 @@ X-Start-Tick / X-End-Tick: 可选范围
 }
 ```
 
-所有 run 的 manifest 必须列出 config/identity、初始权威快照、最终 final_state、完整 decisions 和 events 范围块；仅声明 `replayable=true` 还要求初始快照加全部到期决策能够逐 `(tick,agentId)` 覆盖，expectedDueDecisions 与记录数一致。同类范围块不得重叠，决策/事件按 tick/seq 连续；快照必须含 initial/final，周期快照按 schedule 覆盖。
+所有 run 的 manifest 必须列出 config/identity、初始权威快照、最终 final_state、完整 decisions 和 events 范围块；仅声明 `replayable=true` 还要求初始快照加全部到期决策能够逐 `(tick,agentId)` 覆盖。`expectedDueDecisions` 是实际到期决策数 `Σ_{t%decisionInterval=0} aliveAtTickStart(t)`，不是 `initialPopulation×ceil(totalTicks/decisionInterval)` 的理论上界；出现死亡或提前 extinct 时必须用实际值，理论上界只用于预算（04 §7 的 `maxDueDecisions`）。同类范围块不得重叠，决策/事件按 tick/seq 连续；快照必须含 initial/final，周期快照按 schedule 覆盖。
 
-服务端核对 run 状态、stats 计划、agent 数、必需 artifact 类型/范围、上传计数和 manifest hash 后原子完成；相同 complete 重试返回 200，不同摘要 409。`endReason=scheduled|extinct`：`extinct` 要求 finalTick 严格小于 `totalTicks-1` 且 finalAliveCount=0；若全死亡恰好发生在最后一个计划 tick，则记 `scheduled`，但 finalAliveCount 必须为 0 并置 `structurallyUsable=false`，该类 run 不参与结构判异。
+服务端核对 run 状态、stats 计划、agent 数、必需 artifact 类型/范围、上传计数和清单自洽性后原子完成；`manifest hash` 只证明清单未被篡改，不证明内容已由服务端认证，内容认证由独立验证器完成。相同 complete 重试返回 200，不同摘要 409。`endReason=scheduled|extinct`：`extinct` 要求 finalTick 严格小于 `totalTicks-1` 且 finalAliveCount=0；若全死亡恰好发生在最后一个计划 tick，则记 `scheduled`，但 finalAliveCount 必须为 0 并置 `structurallyUsable=false`，该类 run 不参与结构判异。
 
 complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验证器下载、核对压缩/未压缩 hash、NDJSON schema、连续性和实际回放后，才可把 `verificationStatus` 改为 `verified|rejected` 及报告 hash。正式实验只接受 verified，不能把空 manifest 或未验内容当成可回放证据。
 
@@ -205,7 +210,7 @@ complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验
 
 ## 6. R2 NDJSON 类型
 
-- `decision-v1`：一行一次到期决策，形如 `{schemaVersion,runId,tick,agentId,decision:DecisionRecord,execution:ExecutionRecord|null}`；`execution` 只在该 tick 结算完成后写入，未结算或取消中断的 tick 保持 null，不得补造。
+- `decision-v1`：一行一次到期决策，形如 `{schemaVersion,runId,tick,agentId,decision:DecisionRecord,execution:ExecutionRecord|null}`。生产者必须先缓冲该 tick 的全部决策，待 tick 结算完成后整批写出；不得先追加 `execution=null` 的行再原地改写 append-only 文件。取消/崩溃导致未结算的 tick 可以写 `execution=null`，但必须标记 `tickSettled=false`；不得补造执行记录。
 - `event-v1`：03 的事件，一行一事件。
 - `snapshot-v1`：一行一个完整权威快照及 hash。
 - `final-state-v1`：最终状态与结构指纹。
@@ -223,6 +228,7 @@ complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验
 ## 8. 保留与删除
 
 - browser run 默认短保留（建议 7 天），正式 runner run 默认较长（建议 90 天），具体值由环境配置并公开。
+- `running` run 必须有心跳/静默超时：超过配置窗口无写入的 browser run 由维护任务标 `failed(reason=abandoned_timeout)`，避免永久占用；runner run 的超时阈值更宽，但同样不得静默删除。
 - 到期先删 R2 大块，再删 D1 元数据，或同事务不可用时记录待清理清单；定期扫描孤儿。
 - 删除接口不属于公开 MVP；由受控维护任务执行。任何法律/隐私删除请求需要运维手册记录。
 - 备份不能依赖 R2 清单 alone；D1 导出与 R2 manifest 必须可交叉校验。
