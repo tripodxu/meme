@@ -108,34 +108,34 @@
     },
     {
       "tick": 120,
-      "finalStateHash": "sha256:3a5efa4e8fdb447ca0a5165237fc28e7e35fa4330659136b1341cec12d92768e",
+      "finalStateHash": "sha256:1b7d9d808a17b448dde07c4e18e40bad3eb36fef6a6f60db4899d59f6f7e98de",
       "stats": {
         "tick": 120,
         "aliveCount": 40,
-        "classCounts": [12, 23, 4, 1, 0],
-        "gini": 0.372680297466305,
-        "medianValue": 183.5440203738188,
-        "topWealthShare": 0.2485065208891649,
+        "classCounts": [12, 22, 5, 1, 0],
+        "gini": 0.3807267333563324,
+        "medianValue": 176.84802225214415,
+        "topWealthShare": 0.25373266010037976,
         "mUp": 0.375,
         "mDown": 0.35,
-        "segregation": 0.19921662495919942,
+        "segregation": 0.21294455026898035,
         "edgeCount": 101,
-        "openness": 0.3332954701674459,
+        "openness": 0.33659220231067655,
         "deathCount": 0,
-        "competitionLoss": 260.83514408930364,
-        "competitionGain": 193.14954642224274,
+        "competitionLoss": 253.96102683794896,
+        "competitionGain": 187.74127339584598,
         "fallbackRate": 0,
         "eByClass": [
-          0.9251199183871535, 1.2289789566065008, 2.5963156649200085, 3.982326054140072,
-          5.318890807465838
+          0.9227807054237742, 1.2421816537028287, 2.5582771097810633, 3.9862009996089496,
+          5.332235837076247
         ],
-        "crossClassEdgeShare": 0.45544554455445546,
+        "crossClassEdgeShare": 0.46534653465346537,
         "avgDegree": 5.05,
         "connectedComponents": 1,
         "flowMatrix": [
           [0, 10, 0, 0, 0],
           [4, 0, 4, 0, 0],
-          [0, 9, 0, 1, 0],
+          [0, 8, 0, 1, 0],
           [0, 0, 4, 0, 0],
           [0, 0, 0, 1, 0]
         ]
@@ -143,36 +143,36 @@
     },
     {
       "tick": 400,
-      "finalStateHash": "sha256:b0ae283834747cfbe4b2bbf02f3758be6d81555d8f140d07a53c47096e9f141c",
+      "finalStateHash": "sha256:5948b6c5a802a5c35521f9e9c6244880d9a9baaddeea8e3e752e25536b14b76c",
       "stats": {
         "tick": 400,
         "aliveCount": 39,
-        "classCounts": [1, 2, 5, 9, 22],
-        "gini": 0.4821367926420196,
-        "medianValue": 731.7173577588776,
-        "topWealthShare": 0.35230157559309516,
+        "classCounts": [0, 4, 7, 9, 19],
+        "gini": 0.4658085135439977,
+        "medianValue": 576.7097219375304,
+        "topWealthShare": 0.3217601590729978,
         "mUp": 1,
         "mDown": 1,
-        "segregation": 0.08363078322155272,
+        "segregation": 0.005263157894736775,
         "edgeCount": 95,
-        "openness": 0.9255150649146944,
+        "openness": 0.9268291935035378,
         "deathCount": 0,
-        "competitionLoss": 897.1181491647733,
-        "competitionGain": 620.2912082430553,
+        "competitionLoss": 979.2282328267415,
+        "competitionGain": 678.8745627019872,
         "fallbackRate": 0,
         "eByClass": [
-          1.0211075920353903, 1.6488026356137953, 2.2619937019133953, 2.429097428021491,
-          1.8881297323592654
+          1.0249689004460534, 1.6594056530773749, 2.2413644921150015, 2.0316505933841933,
+          2.147718847003578
         ],
-        "crossClassEdgeShare": 0.5578947368421052,
+        "crossClassEdgeShare": 0.6631578947368421,
         "avgDegree": 4.871794871794871,
         "connectedComponents": 1,
         "flowMatrix": [
-          [0, 24, 0, 0, 0],
-          [6, 0, 58, 0, 0],
-          [0, 25, 0, 64, 0],
-          [0, 0, 33, 0, 53],
-          [0, 0, 0, 31, 0]
+          [0, 26, 0, 0, 0],
+          [7, 0, 69, 0, 0],
+          [0, 37, 0, 55, 0],
+          [0, 0, 28, 0, 70],
+          [0, 0, 0, 51, 0]
         ]
       }
     }
