@@ -204,6 +204,27 @@ export function buildPreregCells(): readonly PreregCell[] {
       hypothesis: '极强环境持有成本（顶部快速流失）',
       overrides: { need: { envExponent: 2 } },
     },
+    // v5 新增：持有裕度轴（changes/0005，D-05 方向 B）
+    {
+      cellKey: 'v5:cushionDays=0',
+      hypothesis: 'ρ=0 退回 v4 语义（消融对照）',
+      overrides: { ascent: { holdingCushionDays: 0 } },
+    },
+    {
+      cellKey: 'v5:cushionDays=90',
+      hypothesis: '强裕度封锁顶部（预期 c3 重心或封闭结构）',
+      overrides: { ascent: { holdingCushionDays: 90 } },
+    },
+    {
+      cellKey: 'v5:cushionDays=90+phi=0',
+      hypothesis: '强裕度×v3 需求（预期富人俱乐部顶层）',
+      overrides: { ascent: { holdingCushionDays: 90 }, need: { envExponent: 0 } },
+    },
+    {
+      cellKey: 'v5:geMedian=0.7+cushion30',
+      hypothesis: '裕度×生产力双约束（预期封闭分层可达）',
+      overrides: { ascent: { holdingCushionDays: 30 }, attributes: { ge: { median: 0.7 } } },
+    },
   ];
   return cells;
 }
@@ -262,7 +283,7 @@ export function buildPreregManifest(): PreregManifest {
   return {
     schemaVersion: 'experiment-v2',
     hypothesis:
-      'rules-v4（持有成本解耦 + θM 再平衡）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。',
+      'rules-v5（持有裕度 + 需求解耦 + θM 再平衡）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。',
     primaryMetric: 'TV(P)',
     experimentType: 'rule_sensitivity',
     rulesVersion: RULES_VERSION,
@@ -292,7 +313,7 @@ export function buildPreregManifest(): PreregManifest {
     },
     differenceThresholds: { gini: 0.03, tv: 0.1, mUp: 0.05, segregation: 0.05, openness: 0.05 },
     // 本机预研护栏（07 §3：budgets 示例为占位值；D-04 的正式 P6 预算另行冻结）。
-    budgets: { maxRuns: 24 * 30, maxWallMinutes: 360, maxStorageBytes: 2_000_000_000 },
+    budgets: { maxRuns: 28 * 30, maxWallMinutes: 480, maxStorageBytes: 2_000_000_000 },
     cells: buildPreregCells(),
   };
 }
