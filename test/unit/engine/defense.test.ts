@@ -115,7 +115,9 @@ describe('枚举/结算模块防御路径', () => {
       ...DEFAULT_RUN_CONFIG,
       need: { ...DEFAULT_RUN_CONFIG.need, needMultiplier: [1, 1.3] },
     } as typeof DEFAULT_RUN_CONFIG;
-    expect(() => computeNeed(badConfig, 5, 10, 3)).toThrowError(/needMultiplier 缺少阶级/);
+    expect(() =>
+      computeNeed(badConfig, 5, 10, 3, DEFAULT_RUN_CONFIG.opportunity.env0),
+    ).toThrowError(/needMultiplier 缺少阶级/);
     const badDecay = {
       ...DEFAULT_RUN_CONFIG,
       lifespan: { ...DEFAULT_RUN_CONFIG.lifespan, decay: [1.3] },

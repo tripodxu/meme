@@ -2,8 +2,8 @@ import type { RunConfig } from './types.js';
 import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../control/versions.js';
 
 /**
- * `rules-v3` 首轮默认配置。默认值来自 03 §3，是校准起点，不是已验证结论。
- * 仓库当前处于施工前规格阶段，不得把本配置称为“已校准预设”。
+ * `rules-v4` 首轮默认配置。默认值来自 03 §3，是校准起点，不是已验证结论。
+ * 不得把本配置称为“已校准预设”。
  */
 export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
   schemaVersion: CONFIG_SCHEMA_VERSION,
@@ -37,6 +37,7 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     belowNeedLimit: 14,
     bufferDays: 30,
     needMultiplier: [1.0, 1.3, 1.8, 2.5, 3.5],
+    envExponent: 1.0,
   },
   descent: {
     days: 7,
@@ -86,7 +87,7 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     updateMode: 'dynamic',
     timeConstantDays: 60,
     intercept: 0,
-    mobilityWeight: 8,
+    mobilityWeight: 3,
     mobilityReference: 0.1,
     giniWeight: 6,
     segregationWeight: 4,

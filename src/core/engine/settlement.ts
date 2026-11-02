@@ -21,18 +21,36 @@ export function classBuffer(classAge: number, bufferDays: number): number {
   return clamp((classAge - 1) / (bufferDays - 1), 0, 1);
 }
 
-/** 需求线（03 §6 阶段 C）：`need = buffer(classAge)×baselineSum×ψ[class]`。 */
+/**
+ * 需求线（03 §6 阶段 C，rules-v4）：
+ * `need = buffer(classAge)×baselineSum×ψ[class]×(E[t,class]/E[t,0])^φ`。
+ * `φ=0` 时不做 pow，与 v3 公式逐位一致。
+ */
 export function computeNeed(
   config: RunConfig,
   classAge: number,
   baselineSum: number,
   classIndex: number,
+  eByClass: readonly number[],
 ): number {
   const psi = config.need.needMultiplier[classIndex];
   if (psi === undefined) {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `needMultiplier 缺少阶级 ${classIndex}`);
   }
-  return classBuffer(classAge, config.need.bufferDays) * baselineSum * psi;
+  const base = classBuffer(classAge, config.need.bufferDays) * baselineSum * psi;
+  const phi = config.need.envExponent;
+  if (phi === 0) {
+    return base;
+  }
+  const own = eByClass[classIndex];
+  const bottom = eByClass[0];
+  if (own === undefined || bottom === undefined || !(bottom > 0)) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      `E 缺少阶级或 E[0] 非正: ${String(own)}/${String(bottom)}`,
+    );
+  }
+  return base * Math.pow(own / bottom, phi);
 }
 
 /** 数值稳定 sigmoid；用于 pA 与 Otarget。 */

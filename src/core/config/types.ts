@@ -57,6 +57,8 @@ export interface NeedConfig {
   readonly belowNeedLimit: number;
   readonly bufferDays: number;
   readonly needMultiplier: readonly number[];
+  /** v4 环境持有人乘子指数 φ；0 退回 v3 语义（need 与自身阶级 E 无关）。 */
+  readonly envExponent: number;
 }
 
 export interface DescentConfig {

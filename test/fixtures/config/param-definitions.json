@@ -332,6 +332,18 @@
       "affectsBehavior": true
     },
     {
+      "name": "need.envExponent",
+      "unit": "exponent",
+      "formulaRef": "03 §6 阶段 C / rule.md 5、37（rules-v4）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 4
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "descent.days",
       "unit": "days",
       "formulaRef": "03 §6 阶段 B / rule.md 8",

@@ -498,10 +498,12 @@ export function validateRunConfig(input: unknown): ValidationResult {
       'belowNeedLimit',
       'bufferDays',
       'needMultiplier',
+      'envExponent',
     ])
   ) {
     const need = root['need'];
     checkRegisteredNumber(collector, need['threshold'], '$.need.threshold', 'need.threshold');
+    checkRegisteredNumber(collector, need['envExponent'], '$.need.envExponent', 'need.envExponent');
     checkRegisteredNumber(
       collector,
       need['belowNeedLimit'],
