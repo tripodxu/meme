@@ -11,8 +11,9 @@
 - rev 7（待议决策登记）：`hardLifeFloor` 配置面、sigma 上界、聚类默认算法、P6 预算数字登记为 01 §12 的 D-01–D-04；未关闭前不得写成既定口径。
 - rev 8（2026-11-03，P1 落地）：P1-01–P1-10 已实现（RNG、初始化派生、状态/序列化/哈希、合法行动与 mock/random、A→H 管线、事件/执行记录、重构、宏观与慢变量、快照/回放/克隆、`openness.updateMode`）；10,000 tick soak 与 fast-check 性质测试通过；40/200/1000 人基准见 `docs/benchmarks/`；完成记录见 01 §4。变更详情见 `docs/changes/0003-p1-deterministic-core.md`。
 - rev 9（2026-11-03，P1.5 判定）：P1.5 已按预注册流程执行完毕，**G1.5 未通过**——单一“顶层过重+旋转门”结构、聚类不稳定（ARI 0.471<0.70）、pyramid/olive/closedStratified 全网格不可达；机制级根因与 rules-v4 修订建议见 `docs/research/2026-11-03-p15-report.md`。**P2–P6 依闸门搁置；规则修订须规则负责人批准后重开 rules 版本并重跑 P1.5。**
-- 尚无：Jev HTTP 决策层（P2，被闸门阻断）、UI、Worker/D1/R2、Runner 批量硬化（P5a）、迁移部署资源。
-- 下一唯一入口：规则负责人评审 `docs/research/2026-11-03-p15-report.md` §6 的 v4 建议；批准后修订 rule.md/03 并重跑 P1.5。
+- rev 10（2026-11-03，rules-v4 复核）：用户授权自主规则负责人执行 changes/0004（rules-v4：φ 解耦 + θM 再平衡 + engine v0.1.0）并重跑三轮预注册网格（共 1920 run）。φ 解耦与 ge.median 轴有效拓宽了可达集（P4∈[0.29,0.92]、olive 可达），但可达集仍为连续统，bisect-ARI∈[0.32,0.58] 全部 <0.70——**G1.5 仍未通过，P2–P6 继续搁置**。旋转门引擎三要素已定位（积累无上界/跌落携带财富+时钟重置/mock 无条件上升），rules-v5 候选方向（跌落财富清偿、上升持有资格、积累承载上限）登记于报告 §8.4。
+- 尚无：Jev HTTP 决策层（P2，闸门阻断）、UI（P3）、Worker/D1/R2（P4，需 Cloudflare 账号）、Runner 批量硬化（P5a，闸门阻断）、真实 Jev 冒烟（P2-07，需 TypeSafe API Key）、发布（P7）。
+- 下一唯一入口：规则负责人对 `docs/research/2026-11-03-p15-report.md` §8.4 的 rules-v5 三方向做决策；批准后修订 rule.md/03 并重跑 P1.5。P2-07/P4/P7 另需外部凭据（TypeSafe API Key、Cloudflare 账号），与闸门无关的独立受阻项。
 - 不得提前声称：三类结构已出现、Jev 行为有效、性能已达标、生产可发布。
 
 ## 2. 新接手者开工清单

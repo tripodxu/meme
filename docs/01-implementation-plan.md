@@ -73,7 +73,9 @@ docs/              本施工文档与 adr/
 
 **闸门 G1.5**：按 07 §8.1 预注册的聚类协议，至少 2 类可复现结构聚类，且至少 1 类不是由全死亡/空网络/未归类造成；均值场预测与仿真方向一致。未通过不得启动 P2。G1.5 只是 go/no-go 闸门，不构成校准完成；P6-05 仍要求至少 3 类互不相同的结构指纹聚类。
 
-**P1.5 完成记录（2026-11-03）**：P1.5-01–P1.5-04 已执行——预注册 manifest（`preregistrationHash=sha256:bdff1c9a…`，D-03/D-04 标记保留）、`src/runner` 批量核心与 `scripts/p15-grid.mjs`、16 cell × 30 配对种子 × 3650 tick（480 run，14 分钟）全量运行、均值场分析（`docs/research/p15-mean-field.md` + `scripts/p15-mean-field.mjs`）。**G1.5 判定：未通过**——全网格仅一种“顶层过重+旋转门”结构（topHeavy 30/30 全部 cell），聚类 k=4 轮廓系数 0.265、稳定性 ARI 0.471 < 0.70；pyramid/olive/closedStratified 0/480 不可达。均值场证明该结构由机制（需求与收益同源、Opportunity 顶层自我强化、O 正反馈制动不足）而非参数偶然造成；8 个补充探索变体（crossDays/decay/θM/Mref/ψ/lossRate）全部保持同一结构。证据：`docs/research/2026-11-03-p15-report.md` 与 `out/p15-full.json`。按 kill criteria：**P2–P6 搁置，rules-v4 修订建议已提交规则负责人评审（报告 §6）；未经批准不得实现。**
+**P1.5 完成记录（2026-11-03）**：P1.5-01–P1.5-04 已执行——预注册 manifest（`preregistrationHash=sha256:bdff1c9a…`，D-03/D-04 标记保留）、`src/runner` 批量核心与 `scripts/p15-grid.mjs`、16 cell × 30 配对种子 × 3650 tick（480 run，14 分钟）全量运行、均值场分析（`docs/research/p15-mean-field.md` + `scripts/p15-mean-field.mjs`）。**G1.5 判定：未通过**——全网格仅一种“顶层过重+旋转门”结构（topHeavy 30/30 全部 cell），聚类 k=4 轮廓系数 0.265、稳定性 ARI 0.471 < 0.70；pyramid/olive/closedStratified 0/480 不可达。均值场证明该结构由机制（需求与收益同源、Opportunity 顶层自我强化、O 正反馈制动不足）而非参数偶然造成；8 个补充探索变体（crossDays/decay/θM/Mref/ψ/lossRate）全部保持同一结构。证据：`docs/research/2026-11-03-p15-report.md` 与 `out/p15-full.json`。
+
+**P1.5 v4 复核（2026-11-03，用户授权自主规则负责人）**：按报告 §6 执行 changes/0004（rules-v4：需求线环境持有人乘子 `(env0[c]/env0[0])^φ` + θM 8→3 + engineVersion v0.1.0），重跑三轮预注册网格（20/20/24 cell × 30 种子；hash 4bf566b9/ad2d75fe/f1dc1bca）。φ 解耦有效（P4 梯度 0.29–0.92、olive 可达、ge.median 轴开启中重分布区域），但 **G1.5 仍未通过**：可达集为连续统，bisect-ARI∈[0.32,0.58] 全部 <0.70。机制根因已定位——旋转门引擎三要素（积累无上界、跌落携带财富并重置需求时钟、mock 无条件上升）使 Mup→1 与参数无关。**P2–P6 继续依闸门搁置**；rules-v5 候选方向（跌落财富清偿/上升持有资格/积累承载上限）已登记于报告 §8.4，待规则负责人决策。
 
 ## 5. P2：Jev 决策层
 
