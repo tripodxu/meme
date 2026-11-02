@@ -3,8 +3,9 @@ import { errorCodes, StratifyError } from './control/errors.js';
 import type { AgentId } from './control/ids.js';
 import { HASH_DOMAINS } from './hash/domains.js';
 import { hashValue } from './hash/hash.js';
-import type { AgentState } from './model/agent.js';
+import { agentIndexFromId, type AgentState } from './model/agent.js';
 import type { SimState } from './model/state.js';
+import { clamp } from './engine/arith.js';
 import { createDraw } from './rng/rng.js';
 import { RNG_EVENT_TAGS } from './rng/tags.js';
 import { uniformIndex } from './rng/sampling.js';
@@ -41,19 +42,21 @@ export function computeAscendCost(
   }
   const d = agent.maxClassIndex - agent.classIndex;
   // d=1/2/>=3 分别读取 returnDiscount[0]/[1]/[2]；配置校验保证长度为 3。
+  // returnDiscount 长度恒为 3（配置校验）；d=1/2/>=3 分别读取 [0]/[1]/[2]。
+  const discounts = config.ascent.returnDiscount as readonly number[];
   const discount =
     d === 0
       ? 0
       : d === 1
-        ? (config.ascent.returnDiscount[0] ?? 0)
+        ? (discounts[0] as number)
         : d === 2
-          ? (config.ascent.returnDiscount[1] ?? 0)
-          : (config.ascent.returnDiscount[2] ?? 0);
+          ? (discounts[1] as number)
+          : (discounts[2] as number);
   // crossDays 长度为 C-1，classIndex<C-1 时必有值；E 由状态保证长度 C。
   const crossBase =
-    (config.ascent.crossDays[agent.classIndex] ?? 0) *
+    (config.ascent.crossDays[agent.classIndex] as number) *
     config.opportunity.dailyBase *
-    (eByClass[nextClass] ?? 0);
+    (eByClass[nextClass] as number);
   const openMultiplier = clamp(
     Math.exp(config.openness.ascentCostWeight * (0.5 - openness)),
     config.openness.multiplierMin,
@@ -71,11 +74,9 @@ export function computeDescendCost(
   if (agent.classIndex === 0) {
     return null;
   }
-  return config.descent.days * config.opportunity.dailyBase * (eByClass[agent.classIndex] ?? 0);
-}
-
-export function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value;
+  return (
+    config.descent.days * config.opportunity.dailyBase * (eByClass[agent.classIndex] as number)
+  );
 }
 
 /**
@@ -88,8 +89,10 @@ export function clamp(value: number, min: number, max: number): number {
  */
 export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalActionSet {
   const config = state.config;
-  const agent = state.society.agents.find((candidate) => candidate.id === agentId);
-  if (agent === undefined || !agent.alive) {
+  // agents 恒按 id 升序且 id 为顺序分配，用序号 O(1) 定位（O(N²) 防护）。
+  const index = agentIndexFromId(agentId);
+  const agent = state.society.agents[index];
+  if (agent === undefined || agent.id !== agentId || !agent.alive) {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `到期个体不存在或已死亡: ${agentId}`);
   }
   const eByClass = state.society.eByClass;

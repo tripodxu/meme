@@ -13,6 +13,10 @@ export const INITIAL_POPULATION_SCHEMA_VERSION = 'stratify-initial-population-v1
 export const PREREGISTRATION_SCHEMA_VERSION = 'stratify-preregistration-v1' as const;
 /** 权威状态序列化 schema；字段增删或含义变化必须升级。 */
 export const STATE_SCHEMA_VERSION = 'stratify-state-v1' as const;
+/** 快照封装 schema（02 §7：原子写入由存储适配层负责）。 */
+export const SNAPSHOT_SCHEMA_VERSION = 'stratify-snapshot-v1' as const;
+
+export type SnapshotSchemaVersion = typeof SNAPSHOT_SCHEMA_VERSION;
 /** run 身份块 schema（02 §10）。 */
 export const RUN_IDENTITY_SCHEMA_VERSION = 'stratify-run-identity-v1' as const;
 
