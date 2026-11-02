@@ -1,0 +1,650 @@
+{
+  "schemaVersion": "p15-grid-v1",
+  "stage": "screen",
+  "preregistrationHash": "sha256:bdff1c9adaa76331c0cf09b33d43c8ce6757c20ee12f8167d70536387ba18950",
+  "runCount": 16,
+  "wallMinutes": 0,
+  "manifest": {
+    "populationSize": 40,
+    "totalTicks": 400,
+    "seeds": ["p15-seed-001"],
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168"
+  },
+  "clustering": null,
+  "cells": [
+    {
+      "cellKey": "baseline",
+      "hypothesis": "默认参数下的基准结构",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 286,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:44c37320f14d68f1f1f1207efbe5e20b92603843e2face78370b2ee5d09acfda",
+          "configHash": "sha256:bca532e68f4fbfd0db280321ea9c5ae64c07c56f77468c13c67c75cf85f1a7aa",
+          "paramsHash": "sha256:243f5a425e8473e21d7807f9c3210e03e9916c94c24a693e8daad364a05f55cf",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0, 0.14071428571428574, 0.11642857142857148, 0.10928571428571435, 0.6335714285714288
+            ],
+            "gini": 0.547155895142448,
+            "topWealthShare": 0.34940381336898246,
+            "mUp": 1,
+            "mDown": 0.5085714285714288,
+            "segregation": 0.09143196221424482,
+            "openness": 0.9793720229428375,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.4966810966810966,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "needMultiplier=flat",
+      "hypothesis": "扁平持有成本削弱阶级分离",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 239,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:9cf412a52c60228b6d259b3cf71d2699f34e054fa9576b22f1f86ea8ae0347c7",
+          "configHash": "sha256:4307b6a00272ae9f0fc97327c13955673ee99bdcf036187322c77c919e06100f",
+          "paramsHash": "sha256:6994377c43063cfdee290115c7f9b6705bf89046b84947ba23df8b46db9b38c5",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.014285714285714289, 0.054999999999999986, 0.09571428571428574, 0.09214285714285718,
+              0.742857142857143
+            ],
+            "gini": 0.5348640520247276,
+            "topWealthShare": 0.346768352890157,
+            "mUp": 0.9821428571428573,
+            "mDown": 0.3592857142857142,
+            "segregation": 0.10322959645960396,
+            "openness": 0.9767160605476749,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.3823953823953824,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "needMultiplier=steeper",
+      "hypothesis": "更陡持有成本强化分层",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 205,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:e8bb27c2ea2fc600143b727e17ebb555ea20a514946855ff56bc5ed88f02d17c",
+          "configHash": "sha256:53db6e362182114b2a11e8d31ad2273fd73876516c5f38070ef3612e403de862",
+          "paramsHash": "sha256:949d8e0d1d8e007636a7a25daecfc289d961dc3da2d8b1700a3337d8286a9dc5",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.0521428571428571, 0.10857142857142861, 0.17857142857142866, 0.12571428571428572,
+              0.5349999999999999
+            ],
+            "gini": 0.5419101191647806,
+            "topWealthShare": 0.33859539900636637,
+            "mUp": 1,
+            "mDown": 0.726428571428571,
+            "segregation": 0.07998385895176836,
+            "openness": 0.9793106431897649,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.597113997113997,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "needThreshold=0.3",
+      "hypothesis": "宽松需求线减少被动跌落",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 207,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:89bd8e50e4d2a67339986f02dfb4fbfa8a2de4c9f8ad0a3f5c43091ab423c89e",
+          "configHash": "sha256:8e68146c203037f80a4fada6045c424b16618aa400cd925261f89360db627f12",
+          "paramsHash": "sha256:f4543d25edaa38cbf3b4685eef70634eee337f35097dbacec2d2285188198c4f",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0, 0.04857142857142859, 0.1121428571428572, 0.045000000000000026, 0.7942857142857145
+            ],
+            "gini": 0.4762791104047483,
+            "topWealthShare": 0.31073128578291115,
+            "mUp": 1,
+            "mDown": 0.20928571428571427,
+            "segregation": 0.03760228399941876,
+            "openness": 0.9827477658885811,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.33795093795093795,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "needThreshold=0.9",
+      "hypothesis": "严格需求线加剧跌落",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 210,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:0fd5b35307e015835374657181399bb268512ca988ace4fa47529f4d61785ef5",
+          "configHash": "sha256:0e1a0ed7ae25f738b0f5c6db21928fdda982e864f42904f8513fdf4e3c11c0bb",
+          "paramsHash": "sha256:7a5de1aa99d64aaffc01cd3bb650f5ddbf257bded1de06502b053ba7b2b77f88",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.08214285714285711, 0.10357142857142858, 0.15000000000000005, 0.16785714285714284,
+              0.4964285714285716
+            ],
+            "gini": 0.5318992381353506,
+            "topWealthShare": 0.3319738649811259,
+            "mUp": 1,
+            "mDown": 0.9564285714285715,
+            "segregation": -0.05218992581876565,
+            "openness": 0.9866832420588963,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.6937950937950936,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "env0=compressed",
+      "hypothesis": "压缩阶级机会差削弱分层",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 213,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:d4236425350900eac1b977c0fa83271306c7dd99a372101a94584c989caad726",
+          "configHash": "sha256:2aa858fa180847cea347059bf2747d568681bc0668c658ecf14ded2756dfdf9d",
+          "paramsHash": "sha256:ed46c04ac8c2f1af8b9c9aad72662ff39fc12439e8c1e1ccde3cb50c97e247a5",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0, 0.06785714285714281, 0.03571428571428574, 0.13499999999999998, 0.7614285714285712
+            ],
+            "gini": 0.47167559811800824,
+            "topWealthShare": 0.27657245582559087,
+            "mUp": 1,
+            "mDown": 0.6035714285714283,
+            "segregation": 0.14686735519175675,
+            "openness": 0.9921387460857214,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.33650793650793664,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "env0=expanded",
+      "hypothesis": "扩大阶级机会差强化分层",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 201,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:51fc7ea6d71216f722b3b955992eeec1e0e25b916a0d99ade680213dd8514211",
+          "configHash": "sha256:a09aa43170b50159b211db1ab940c8d44523eb75dff4615813cd33b1b846b17f",
+          "paramsHash": "sha256:e77a0b8bcaa76e4dae7f2ff9ee4282ad9f6c7c203d896a034dcca5b230f90718",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.06714285714285716, 0.12714285714285709, 0.16285714285714276, 0.1114285714285714,
+              0.5314285714285717
+            ],
+            "gini": 0.558867114188734,
+            "topWealthShare": 0.39555102776184575,
+            "mUp": 1,
+            "mDown": 0.45714285714285696,
+            "segregation": 0.06556464507131021,
+            "openness": 0.9589912305959803,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.6103896103896105,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "ablation:beta=0",
+      "hypothesis": "无网络机会（消融 β=0）",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 205,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:79a60ce5a019e913316f59d003d33c3630d90aaeaaa91b0c4f32818df6b1dc52",
+          "configHash": "sha256:efe7821d98673176e810db37b9ca243e8a5068b8ed20ccfbb8a6a3c5dffb0751",
+          "paramsHash": "sha256:28a376fc3631e1f3dc770bff716839351689af0bf8708b7e2dc2212d65fa9cfe",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0, 0.037857142857142846, 0.09785714285714282, 0.20071428571428576, 0.6635714285714284
+            ],
+            "gini": 0.4561754353693921,
+            "topWealthShare": 0.2786602083226535,
+            "mUp": 1,
+            "mDown": 0.7642857142857143,
+            "segregation": -0.025489681792481525,
+            "openness": 0.9918391317020858,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.5183261183261182,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "ablation:O=fixed",
+      "hypothesis": "无制度反馈（O 固定，P1-10 开关）",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 193,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:375207903ee5e678b781226a33454ebce23d9fb4e63d497b06d8d80e29c3e230",
+          "configHash": "sha256:eaf4f3081e142992a4d23696d5b381d8ea5a8c5886819791e88cf19aac65f4aa",
+          "paramsHash": "sha256:8bbde57331e121938c52addc7ee35346d2051ea0c1ea45dcb88452ed638c231b",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.0928571428571429, 0.20357142857142874, 0.0535714285714286, 0.0592857142857143,
+              0.5907142857142859
+            ],
+            "gini": 0.5302674697504204,
+            "topWealthShare": 0.33042815159188127,
+            "mUp": 1,
+            "mDown": 0.5150000000000001,
+            "segregation": 0.19304762205104087,
+            "openness": 0.5,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.4773448773448773,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "ablation:eta=0",
+      "hypothesis": "无阶级拥挤（消融 η=0）",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 189,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:b167f851ff15f289bdab54a377af21a0b0c94cb33bc46713f22bd7bf900c372d",
+          "configHash": "sha256:cd1e7e24ee815357c98d57dda023e980c5f81655c49ab3dacfb87825d34b45ff",
+          "paramsHash": "sha256:141a3d95c7e1d97e54f3cebe188209e4abda244fe2feade8cb80d2b7a9edf165",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0, 0.12714285714285709, 0.18357142857142855, 0.15071428571428563, 0.538571428571429
+            ],
+            "gini": 0.5553185401275603,
+            "topWealthShare": 0.3330738356310763,
+            "mUp": 1,
+            "mDown": 0.525,
+            "segregation": 0.14666397286645502,
+            "openness": 0.9792222656025655,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.5414141414141411,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "ablation:kappa=0",
+      "hypothesis": "无贫富分化反馈（消融 κ=0）",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 192,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:d15d145f9c98041da93ee88068ee2569a0407ee1b3e1314b6a913974bc78caf4",
+          "configHash": "sha256:f8015937e79bf9b0a94d01ef66c0ffec522e2098065bbc9bc125082d8e430e2a",
+          "paramsHash": "sha256:740368b7a1392020eec38b557869a7ba7507d67c08d1e092822cdd8115445ce9",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.031428571428571424, 0.0735714285714286, 0.08714285714285715, 0.18857142857142856,
+              0.6192857142857142
+            ],
+            "gini": 0.5145357689946776,
+            "topWealthShare": 0.3270668400153109,
+            "mUp": 1,
+            "mDown": 0.5714285714285712,
+            "segregation": 0.11767620492008088,
+            "openness": 0.9849795309441817,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.49668109668109667,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "ablation:psi=1",
+      "hypothesis": "无阶级持有成本（消融 ψ=1，预期顶层塌缩）",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 188,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:827e392917b96dec5b1c647b2eb5dfa46db14aa1e0fd3d535d2bb1e70e0795ca",
+          "configHash": "sha256:7105336b05e3bd12d0720dd925f0c177e88bdf5749db5a14d257c215a867812b",
+          "paramsHash": "sha256:04580e88ba90f9df6121c54f28a4a88d42f1ca5688aef5c399c9f6040cef7e26",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0, 0.025000000000000012, 0.07071428571428565, 0.14357142857142854, 0.7607142857142859
+            ],
+            "gini": 0.5156902568154383,
+            "topWealthShare": 0.3461731995798965,
+            "mUp": 0.9750000000000006,
+            "mDown": 0.1678571428571428,
+            "segregation": -0.02491336046308399,
+            "openness": 0.9793596781066486,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.41096681096681087,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "initialShares=bottom-heavy",
+      "hypothesis": "底层更重的初始分布",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 192,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:d0d23afee5d0c429045b3b37d14014a75668bda439c4df9f8027da28c7d2ada2",
+          "configHash": "sha256:e450070063a0bda5c9c94e086c953f8603e4ca7daa859964b65e82508fce8304",
+          "paramsHash": "sha256:97d41b19ead3ebeca59a740060afd583b5565a40f4ece0fc9e7d66e9b672967d",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.014285714285714289, 0.12499999999999997, 0.15357142857142864, 0.09642857142857147,
+              0.6107142857142855
+            ],
+            "gini": 0.4616082695428097,
+            "topWealthShare": 0.2790785007369913,
+            "mUp": 1,
+            "mDown": 0.5521428571428568,
+            "segregation": 0.17403768759263605,
+            "openness": 0.9889559342022681,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.4764790764790762,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "initialShares=middle-heavy",
+      "hypothesis": "中层更重的初始分布",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 191,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:20ed3c921709dde055568a63952e55108269871784a5db7e4c29c5561cbc2d8d",
+          "configHash": "sha256:7354466743db06fd036340da122d5514b247bdf309d1032d8a1463f64d669448",
+          "paramsHash": "sha256:5ba338ceed6c94b1bbac36d9eff756152a1da108b353b3f86a2b7d7b1a8951ad",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0, 0.11214285714285717, 0.22357142857142856, 0.08214285714285714, 0.5821428571428572
+            ],
+            "gini": 0.538878895375796,
+            "topWealthShare": 0.32141902033624764,
+            "mUp": 1,
+            "mDown": 0.6642857142857147,
+            "segregation": 0.17450576792122874,
+            "openness": 0.9743208973221211,
+            "edgeCountAverage": 100,
+            "crossClassEdgeShare": 0.48714285714285716,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "lambdaO=0",
+      "hypothesis": "开放度不影响跨越成本",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 181,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:438ebb3a560716225a379dc59371470504b1639fdd761b4333a08a5d675ea59f",
+          "configHash": "sha256:3e642cf0cd2da6b8d789cd2838af7293a39fd48576727a2a58da3daa45743f27",
+          "paramsHash": "sha256:f5232c52ed65eaa065b9ceedfe77b49f419b3a3a9dc4d26d344f06993e5c0820",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.0914285714285715, 0.25142857142857145, 0.03214285714285716, 0.03714285714285711,
+              0.5878571428571427
+            ],
+            "gini": 0.5139192194402629,
+            "topWealthShare": 0.331968447382534,
+            "mUp": 1,
+            "mDown": 0.5221428571428574,
+            "segregation": 0.11894589890692837,
+            "openness": 0.989656635969117,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.5111111111111111,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "rewireProb=0.2",
+      "hypothesis": "更高网络流动",
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "elapsedMs": 200,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 40,
+          "finalStateHash": "sha256:3f05ae5fee4b0905304b277b01ce23906627ae8aca69564c5b1e93d05e2331b7",
+          "configHash": "sha256:b649f9b8a5db54567f0897f0ab0fc2902b16fa2a4b85759eaeaf3e2338014de3",
+          "paramsHash": "sha256:0a19291cf00c4491d2ffcf36125afcfdfd8f30e4749c80113fc2ce70c61819de",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.017857142857142863, 0.03571428571428573, 0.1071428571428572, 0.11785714285714283,
+              0.7214285714285713
+            ],
+            "gini": 0.5260745384635824,
+            "topWealthShare": 0.3756082279718069,
+            "mUp": 1,
+            "mDown": 0.6100000000000002,
+            "segregation": 0.10988432856262914,
+            "openness": 0.9809385664117896,
+            "edgeCountAverage": 99,
+            "crossClassEdgeShare": 0.40173160173160183,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

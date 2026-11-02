@@ -10,8 +10,9 @@
 - rev 6（第二轮契约整合）：P2-07 拆为 VPS 冒烟与 P4-08 Worker 代理；P1.5 批量核心、报告字段、聚类协议与两阶段扫描；新增 `runtimeVersion`、hash 输入 schema、`labelThresholdsHash`、`O` 固定消融开关 P1-10、`artifactProfile/metrics-v1`；统一参数简写并清理硬编码；评审记录见 `docs/reviews/2026-11-02-contract-architecture-review.md`。
 - rev 7（待议决策登记）：`hardLifeFloor` 配置面、sigma 上界、聚类默认算法、P6 预算数字登记为 01 §12 的 D-01–D-04；未关闭前不得写成既定口径。
 - rev 8（2026-11-03，P1 落地）：P1-01–P1-10 已实现（RNG、初始化派生、状态/序列化/哈希、合法行动与 mock/random、A→H 管线、事件/执行记录、重构、宏观与慢变量、快照/回放/克隆、`openness.updateMode`）；10,000 tick soak 与 fast-check 性质测试通过；40/200/1000 人基准见 `docs/benchmarks/`；完成记录见 01 §4。变更详情见 `docs/changes/0003-p1-deterministic-core.md`。
-- 尚无：Jev HTTP 决策层（P2）、UI、Worker/D1/R2、Runner 批量硬化（P5a）、迁移部署资源和任何仿真结论。
-- 下一唯一入口：执行 **P1.5 涌现可达性预研**（批量核心放 `src/runner`）；P1.5 未通过不得启动 P2–P6。
+- rev 9（2026-11-03，P1.5 判定）：P1.5 已按预注册流程执行完毕，**G1.5 未通过**——单一“顶层过重+旋转门”结构、聚类不稳定（ARI 0.471<0.70）、pyramid/olive/closedStratified 全网格不可达；机制级根因与 rules-v4 修订建议见 `docs/research/2026-11-03-p15-report.md`。**P2–P6 依闸门搁置；规则修订须规则负责人批准后重开 rules 版本并重跑 P1.5。**
+- 尚无：Jev HTTP 决策层（P2，被闸门阻断）、UI、Worker/D1/R2、Runner 批量硬化（P5a）、迁移部署资源。
+- 下一唯一入口：规则负责人评审 `docs/research/2026-11-03-p15-report.md` §6 的 v4 建议；批准后修订 rule.md/03 并重跑 P1.5。
 - 不得提前声称：三类结构已出现、Jev 行为有效、性能已达标、生产可发布。
 
 ## 2. 新接手者开工清单
