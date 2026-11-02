@@ -1,6 +1,6 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v3`；相对 v2 的主要修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v4`；相对 v3 的主要修订（依据 P1.5 预研 `docs/research/2026-11-03-p15-report.md`）：需求线新增阶级环境持有人乘子 `(E[t,c]/E[t,0])^φ`（新参数 `need.envExponent`，默认 1.0，`φ=0` 退回 v3 语义）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 
@@ -59,7 +59,7 @@
 | 寿命         | `decay=[1.30,1.15,1.00,0.88,0.75]`，初始寿命正态均值 25550、标准差 1825 日，截断 `[3650,43800]`；`hardLifeFactor=0.15`、`hardLifeFloor=0.50`       |
 | 属性         | `ge/hard` 为独立截断对数正态，底层 `sigma=0.5`、中位数 1、截断 `[0.2,3.0]`                                                                         |
 | 努力函数     | `F(h)=(1-exp(-FShape×h))/(1-exp(-FShape))`，`FShape=1.2`                                                                                           |
-| 需求         | `needThreshold=0.5`，`belowNeedLimit=14`，`bufferDays=30`，`buffer(age)=clamp((age-1)/(bufferDays-1),0,1)`，`needMultiplier=[1.0,1.3,1.8,2.5,3.5]` |
+| 需求         | `needThreshold=0.5`，`belowNeedLimit=14`，`bufferDays=30`，`buffer(age)=clamp((age-1)/(bufferDays-1),0,1)`，`needMultiplier=[1.0,1.3,1.8,2.5,3.5]`，`envExponent=1.0`（v4 新增） |
 | 主动降阶     | `descendDays=7`，`descendCost=descendDays×B×E[t,currentClass]`                                                                                     |
 | 上升         | `crossDays=[30,40,50,60]`，`crossBase=crossDays[c]×B×E[t,c+1]`                                                                                     |
 | 重返         | 距历史最高阶级 `d=1/2/>=3` 时依次应用 `returnDiscount=[0,0.20,0.40]`；三项都必须可被接线测试观测，默认值允许 `returnDiscount[0]=0`                 |
@@ -72,7 +72,7 @@
 | 网络机会     | `β=0.6`，乘子截断 `[opportunityMin,opportunityMax]=[0.70,1.50]`                                                                                    |
 | 动态 E       | `ρE=0.03`、`η=0.35`、`κ=0.8`、`Gref=0.25`                                                                                                          |
 | 拥挤/分化    | Congestion 截断 `[congestionMin,congestionMax]=[0.20,1.20]`，Polarization 截断 `[polarizationMin,polarizationMax]=[0.85,1.18]`                     |
-| 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=8`、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`λO=2`                                                                |
+| 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=3`（v4 由 8 下调）、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`λO=2`                                                 |
 | 跨越动态乘子 | 截断 `[0.50,2.50]`                                                                                                                                 |
 | 流动率       | 参与率窗口 `metrics.mobilityWindowDays=365`；`Mup/Mdown` 不使用 EMA、不按日频截断                                                                  |
 | 转移矩阵     | `metrics.flowWindowDays=365`；窗口内累计阶级转移计数与行暴露量                                                                                     |
@@ -85,6 +85,7 @@
 | `B` / `env0[c]`                             | `opportunity.dailyBase` / `opportunity.env0`                                                                           | 日基础机会 / 初始阶级机会        |
 | `decay[c]`                                  | `lifespan.decay`                                                                                                       | 阶级寿命损耗                     |
 | `ψ[c]` / `needThreshold`                    | `need.needMultiplier` / `need.threshold`                                                                               | 持有成本 / 跌落阈值              |
+| `φ`                                         | `need.envExponent`                                                                                                     | 环境持有人乘子指数（v4 新增）    |
 | `belowNeedLimit` / `bufferDays`             | `need.belowNeedLimit` / `need.bufferDays`                                                                              | 连续低需求天数 / 需求缓冲        |
 | `descendDays` / `crossDays[c]`              | `descent.days` / `ascent.crossDays`                                                                                    | 主动降阶 / 上升成本天数          |
 | `discount`                                  | `ascent.returnDiscount`                                                                                                | 重返减免                         |
@@ -106,7 +107,7 @@
 | 人口/阶级 | `initialPopulation` 为 `[2,10000]` 整数；`C` 为 `[2,8]` 整数；初始比例非负且 `abs(sum-1)<=1e-12`；initialValue>=0；`initialAgeMode` 为 `uniform                                                                      | newborn` |
 | 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                                            |
 | 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏；待议 D-02）                                                   |
-| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算                                         |
+| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；`envExponent` 在 `[0,4]`（v4 新增；0 为 v3 语义消融值）；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算                                         |
 | 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`；`openness.updateMode` 为 `dynamic` 或 `fixed`                     |
 | 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支（配置面去留见待议 D-01）                     |
 | 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                              |
