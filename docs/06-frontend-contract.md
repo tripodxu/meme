@@ -24,7 +24,7 @@
 - 个体：ge/hard/寿命分布与截断、`hardLifeFactor`。
 - 阶级：env0、decay、crossDays、`needMultiplier`、需求阈值/缓冲/连续跌落日数/主动降阶天数。
 - 竞争：损失率、传递效率、方向系数、候选数、局部/全局比例。
-- 网络与反馈：β/η/κ/H/λO/rewireProb、Congestion/Polarization 上下限、O 固定开关、`flowWindowDays`、`metrics.mobilityWindowDays`。
+- 网络与反馈：β/η/κ/H/λO/rewireProb、Congestion/Polarization 上下限、O 固定开关、`metrics.flowWindowDays`、`metrics.mobilityWindowDays`。
 - 决策：mock/random/Jev/replay、promptStyle（neutral/survival_hint）、模型、topK、并发、超时。
 - 预算：maxCalls/maxInputTokens/maxRunMinutes；live 必填。
 
@@ -58,7 +58,7 @@
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | 阶级结构 | 各阶级存活人口堆叠面积/比例，另显示存活总数，避免死亡被误读为流动                                                                  |
 | 财富     | Gini、中位数、前10%占比；可用对数坐标并明确标注                                                                                    |
-| 流动     | Mup/Mdown 是 365 日参与率（不是年化事件率），二者分开；转移矩阵使用 `flowWindowDays` 同一窗口                                      |
+| 流动     | Mup/Mdown 是 `metrics.mobilityWindowDays` 日参与率（不是年化事件率），二者分开；转移矩阵使用 `metrics.flowWindowDays` 同一窗口     |
 | 网络     | 调整后 S（`[-1,1]`）、edgeCount、平均度、跨层边、连通分量；无网络时显示 `edgeCount=0` 而不是 S=1；小人口网络图仅作辅助，不替代指标 |
 | 制度     | O、动态 E、跨越成本乘子，显示慢变量更新时间                                                                                        |
 | 竞争     | 发起/胜率、损失、获得、净损耗，按原发起方向分组                                                                                    |

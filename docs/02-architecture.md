@@ -135,12 +135,13 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 - `finalStateHash`：domain `stratify-authoritative-state-v1`，覆盖权威快照，排除日志、缓存和 wall-clock。
 - `summaryHash/artifactManifestHash`：分别使用 `stratify-summary-v1/stratify-artifact-manifest-v1`；manifest chunks 按 `(kind,chunkId)` 排序，hash 字段自身排除。
 - `preregistrationHash`：domain `stratify-preregistration-v1`，覆盖 07 定义的假设、primary metric、窗口、种子列表、标签阈值、排除规则和 base config；必须排除服务端生成的 `experimentId/createdAt` 与运行后观测字段（`observedResponseModels`、结果、失败次数），否则创建 experiment 后无法复算预注册 hash。
+- `labelThresholdsHash`：domain `stratify-label-thresholds-v1`（P1-02 注册），覆盖 07 §10 的完整标签阈值表与 tolerance；与 `preregistrationHash` 同时覆盖，避免只记录版本字符串。
 
-实现必须为上述每个 domain 固定一个小型 JSON 测试向量及预期 hash；MVP 的权威 hash 只在受支持的 V8 运行时（Node >=22、workerd、Chromium）承诺一致。核心大量使用 `Math.exp/log/pow/cos`，ECMAScript 不保证这些函数跨引擎 1 ulp 一致；Safari/Firefox 可运行但必须标记 `nonAuthoritativeRuntime`，导出时警告，不得声称与 V8 哈希相同。若产品必须支持多引擎一致哈希，先在 P1 评估并实现 fdlibm 级确定性数学，再扩大支持矩阵。任何 domain 覆盖字段变化都升级 domain 版本，不复用旧 hash 含义。
+实现必须为上述每个 domain 定义**字段级 canonical 输入 schema**（字段名、可选性、`null`、数组顺序、排除字段）并固定 JSON 测试向量及预期 hash；仅写“覆盖 X”不足以支持独立实现。MVP 的权威 hash 只在受支持且 **`runtimeVersion` 相同**的 V8 运行时下承诺一致（记录 Node/workerd/Chromium 的完整版本）：核心大量使用 `Math.exp/log/pow/cos`，即使同为 V8，不同版本也可能出现 1 ulp 差异。Safari/Firefox 及版本不匹配的运行时必须标记 `nonAuthoritativeRuntime`，导出时警告，不得声称与权威 hash 相同。若不同 V8 版本产生不同 hash，必须按 `runtimeVersion` 分组，不得混入同一对照；若产品必须跨版本一致，先在 P1 实现 fdlibm 级确定性数学或注册跨运行时向量。任何 domain 覆盖字段或 schema 变化都升级 domain 版本，不复用旧 hash 含义。决策见 [ADR-0001](adr/0001-runtime-authority-and-hash-inputs.md)。
 
 ## 9. 数据规模策略
 
-- 关系默认上限 6，竞争候选最多 6；禁止默认构造全人口两两候选。
+- 关系上限由 `network.maxDegree`、竞争候选由 `competition.candidateCount` 控制；禁止默认构造全人口两两候选。
 - 宏观统计可按阶级/分位聚合；前端长序列按像素宽度降采样，导出保留原始聚合。
 - D1 每批最多 100 tick；artifact 单块应用层上限 8 MiB，实际分块目标应更小以便重试。
 - 定期快照而非每 tick 全量快照；默认间隔由配置决定并纳入 manifest。
@@ -153,9 +154,11 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 
 ```text
 schemaVersion, rulesVersion, engineVersion, decisionSchemaVersion,
-policyVersion, promptVersion, requestedModel, seed, configHash,
-paramsHash, initialPopulationHash, codeSha
+policyVersion, promptVersion, requestedModel, seed, runtimeVersion,
+configHash, paramsHash, initialPopulationHash, codeSha
 ```
+
+`runtimeVersion` 记录实际执行运行端与版本（如 `node@22.21.0`、`workerd@<version>`、`chromium@<version>`）；它不改变 `rulesVersion`，但决定哈希权威性。
 
 `responseModel` 是逐决策观测值，无法创建时固定；run 聚合保存去重 `responseModels[]`。若集合超过一个，按模型分组并标记模型漂移，正式对照默认判为质量无效，不能静默混样。
 

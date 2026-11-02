@@ -43,9 +43,11 @@
   "promptStyle": "neutral",
   "requestedModel": "mock",
   "observedResponseModels": [],
+  "runtimeVersions": [],
   "codeSha": "...",
   "populationSize": 1000,
   "baseConfigHash": "sha256:...",
+  "artifactProfile": "metrics-only",
   "cells": [
     {
       "cellKey": "needMultiplier=default",
@@ -59,19 +61,24 @@
   "warmupDiagnostic": "90-day rolling mean change < threshold on P/G/O",
   "windows": [{ "start": 365, "end": 1094, "label": "w1" }],
   "labelThresholdVersion": "labels-v3",
-  "budgets": {},
+  "labelThresholdsHash": "sha256:...",
+  "budgets": { "maxRuns": 3000, "maxWallMinutes": 10080, "maxStorageBytes": 500000000000 },
   "createdAt": "ISO-8601"
 }
 ```
 
 完整扫描前冻结假设、primary metric、窗口、种子列表、标签阈值和排除规则，并把它们的 canonical hash 写入 `preregistrationHash`。
 
-`cells[].overrides` 的键必须是 `RunConfig` 点路径（与 `src/core/params.ts` 的注册名一致），值为完整替换值：标量直接替换，数组整体替换，嵌套对象按字段深合并。应用方式为深拷贝 base config 后逐项赋值，结果必须通过 `validateRunConfig`；`fullConfigHash` 是合并后完整配置的 `configHash`。未登记的键、非法值或校验失败必须拒绝该 cell，不得跳过。
+`cells[].overrides` 的键必须是 `RunConfig` 点路径（与 `src/core/params.ts` 的注册名一致），值为完整替换值：标量直接替换，数组整体替换，嵌套对象按字段深合并。应用方式为深拷贝 base config 后逐项赋值，结果必须通过 `validateRunConfig`；`fullConfigHash` 是合并后完整配置的 `configHash`。未登记的键、非法值或校验失败必须拒绝该 cell，不得跳过。`populationSize` 必须等于 base config 的 `population.initialPopulation`；若某个 cell 覆盖人口规模，必须作为独立 cell 记录并纳入 `fullConfigHash`，不得用同一 `populationSize` 冒充。
+
+`artifactProfile` 取 `full|metrics-only`：`full` 保存完整事件/决策/快照，用于审计与回放证据；`metrics-only` 只保存配置、初始/最终快照、全分辨率 tick metrics 和聚合，用于大规模扫描筛选。两者都不得伪造缺失数据；`replayable=true` 仍要求初始快照加全部到期决策。
+
+`labelThresholdsHash` 是对完整标签阈值表（含 `monotonicTolerance/modeTolerance` 与各条件）计算的语义 hash，domain 为 `stratify-label-thresholds-v1`（P1-02 注册并提供向量）；只记录 `labelThresholdVersion` 不足以防止阈值被静默修改。
 
 `preregistrationHash` 的权威口径：
 
-- 覆盖：`schemaVersion`、`hypothesis`、`primaryMetric`、`experimentType`、`rulesVersion/engineVersion/decisionSchemaVersion/policyVersion/promptVersion/promptStyle`、`baseConfigHash`、`cells[].cellKey/overrides/fullConfigHash`、`seeds`、`pairing`、`warmupTicks`、`warmupDiagnostic`、`windows`、`labelThresholdVersion`、`budgets` 和预注册排除规则。
-- 排除：`experimentId`、`createdAt`、`observedResponseModels`、运行结果、失败次数等创建后或运行后字段。
+- 覆盖：`schemaVersion`、`hypothesis`、`primaryMetric`、`experimentType`、`rulesVersion/engineVersion/decisionSchemaVersion/policyVersion/promptVersion/promptStyle`、`baseConfigHash`、`artifactProfile`、`cells[].cellKey/overrides/fullConfigHash`、`seeds`、`pairing`、`warmupTicks`、`warmupDiagnostic`、`windows`、`labelThresholdVersion`、`labelThresholdsHash`、`budgets` 和预注册排除规则。
+- 排除：`experimentId`、`createdAt`、`observedResponseModels`、`runtimeVersions`、运行结果、失败次数等创建后或运行后字段。
 
 运行后不得因结果不理想删除种子；技术失败可重跑，但必须保留失败原因和次数。任何预注册内容变化必须新建 `experimentId`，不得覆盖旧实验。
 
@@ -81,7 +88,7 @@
 - 参数改变导致合法行动变化是允许的结果，不能为保持行动相同而强制改写规则。
 - 为隔离纯传播，可使用同一检查点和决策日志重放；这与策略重跑是另一实验。
 - 初始化、竞争、网络、topK、init_age 使用不同 eventTag；分析用 bootstrap 随机数不得消耗模拟 RNG。
-- 规则敏感性/mock 单元至少 30 个配对种子。live Jev 受请求/成本限制，默认 5–10 个种子、40 人、730 tick、`decisionInterval=30`，单独报告，不与 30 种子 mock 样本合并。区间过宽或结构混合时增加样本并报告，不以挑选子集代替。
+- 规则敏感性/mock 单元至少 30 个配对种子。live Jev 受请求/成本限制，默认 5–10 个种子、40 人、730 tick、`decision.interval=30`，单独报告，不与 30 种子 mock 样本合并。区间过宽或结构混合时增加样本并报告，不以挑选子集代替。
 
 ## 5. 时间窗口与预处理
 
@@ -96,9 +103,9 @@ w1: 365–1094   w2: 1095–1824   w3: 2555–3284
 每个窗口输出：均值、中位数、标准差、30 日块序列、末值和缺失率；P/G/top10/Mup/Mdown/S/O/edgeCount 必须同时保留。窗口标量的唯一算法如下：
 
 - P/G/top10/Mup/Mdown/S/O/E：对窗口内全分辨率 tick 数据取算术平均；仅当该 run 的 `statsStride=1` 时才可直接从 D1 `tick_stats` 复算。D1 的采样行只用于展示，不得把采样均值冒充每日均值。30 日块只用于观察自相关和稳定性，不再二次加权。D 和标签使用这些日均值。
-- 转移矩阵：按 `flowWindowDays` 窗口累计事件计数；另给行暴露量（各 tick 期初处于该行阶级的存活人日数），行转移率=该行各去向计数/行暴露量，暴露量为 0 时比率为 null，不能填 0 冒充无转移。
+- 转移矩阵：按 `metrics.flowWindowDays` 窗口累计事件计数；另给行暴露量（各 tick 期初处于该行阶级的存活人日数），行转移率=该行各去向计数/行暴露量，暴露量为 0 时比率为 null，不能填 0 冒充无转移。
 - 死亡率=窗口死亡数/窗口存活人日暴露量（基于全分辨率 tick 数据）；竞争损耗率=Σ(loss-gain)/Σloss，分母 0 时为 0；回退率=fallback 决策数/非 cancelled 到期决策数，分母 0 时为 null。
-- Mup/Mdown 的 D 输入是每日 365 日参与率的窗口均值，不用窗口事件另算替代；可另报 `365×ΣupEvents/aliveExposure` 作为诊断。
+- Mup/Mdown 的 D 输入是每日 `metrics.mobilityWindowDays` 日参与率的窗口均值，不用窗口事件另算替代；可另报 `metrics.mobilityWindowDays×ΣupEvents/aliveExposure` 作为诊断。
 - S 为调整后同层边占比；`edgeCount=0` 的窗口标记 `networkEmpty`，不参与依赖 S 的标签和 O 反馈诊断。
 - 窗口中存在全死亡后的缺失日时（含最后一 tick 才全死亡、记 scheduled 但 finalAliveCount=0 的 run），该 run 标 extinct 且该窗口不参与正常结构判异；不得把全死亡后的 P=0 日补入均值。空窗口/全缺失指标为 null 并标记质量无效。
 
@@ -108,9 +115,15 @@ w1: 365–1094   w2: 1095–1824   w3: 2555–3284
 
 先用 mock、少量种子做短预检，仅用于排除崩溃/爆炸，不用于结构结论：NaN、负 Value、全死亡、E/O 卡边界、过度回退、明显性能异常均记录。
 
+扫描分两阶段，避免把全部候选值直接跑满 1000 人×3650 tick：
+
+- **Stage A（筛选）**：40/200 人、730 tick、每点 30 个配对种子；只做崩溃/方向/效应量筛选。
+- **Stage B（确认）**：1000 人、3650 tick、每点 30 个配对种子，仅对 Stage A 入选单元执行；确认 run 必须 `statsStride=1` 或上传全分辨率 tick metrics artifact。
+- 两阶段都满足 rule.md 56 的 30 种子要求；Stage A 不得用于最终结构结论，Stage B 不得复用 Stage A 的择优结果而不做独立种子集确认。
+
 ### 6.2 单参数探索扫描
 
-建议起点，不等于最终有效范围：
+建议起点，不等于最终有效范围；参数简写与配置路径映射见 03 §3，cell 的 `overrides` 必须使用点路径：
 
 | 参数           | 候选值                                                                                                                                                                 |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -150,7 +163,7 @@ w1: 365–1094   w2: 1095–1824   w3: 2555–3284
 
 ## 8. 结构指纹与距离
 
-D 按 `rule.md` 第 51 条，对窗口汇总指标计算：
+D 按 `rule.md` 第 51 条，对窗口汇总指标计算。`primaryMetric` 必须从 `TV(P)`、`G`、`Mup`、`Mdown`、`S`、`O` 中预注册一个（可另报 D 与分项）；D 只用于筛选，不得作为“结构显著改变”的唯一主指标：
 
 ```text
 D=0.30|ΔG|+0.25×TV(P)+0.20|ΔMup|+0.15|ΔS|+0.10|ΔO|
@@ -175,6 +188,16 @@ D 只用于筛选。初始实际差异门槛（可在预注册时调整）：
 
 不满足但轨迹 hash 不同：报告“轨迹不同、结构证据不足”。不能把 p 值显著但效应极小当作社会结构改变。
 
+### 8.1 聚类协议（P1.5-04/P6-05 必须预注册）
+
+“结构聚类”不是标签计数。预注册必须固定以下内容；未固定即不得声称“三类结构”：
+
+- **特征向量**：窗口均值 `P[c]`、`G`、`top10`、`Mup`、`Mdown`、`S`、`O`（可选 `edgeCount`/平均度）；标准化方法固定（如 z-score，均值/方差来源固定），不得按结果挑特征。
+- **距离与算法**：默认建议 Ward 层次聚类 + Euclidean；允许改用其他方法，但必须预注册并说明理由。
+- **k 与选择**：`k∈[2,5]`，用 gap statistic/轮廓系数与跨种子稳定性选择；不得运行后按结果改 k。
+- **稳定性**：按种子集随机二分重聚类，调整 Rand 指数 `>=0.70`；每个聚类至少包含 5 个 run（或预注册的最小值）。
+- **与标签的关系**：标签只作描述；三类结构按聚类计数，不按标签组合计数。聚类不稳定时报告“未形成可复现结构”，不得挑选有利种子。
+
 ## 9. 区间与多重比较
 
 - 主分析按 seed 的配对差做 bootstrap（至少 10,000 次，分析 seed 固定）估计 95% 区间；报告方法与版本。
@@ -185,7 +208,7 @@ D 只用于筛选。初始实际差异门槛（可在预注册时调整）：
 
 ## 10. 结构标签（首轮筛查阈值）
 
-标签是可配置描述，不是现实分类，可多标签或“未归类”；不得反馈到模拟。以下为五阶级首轮筛查值，确认扫描前冻结版本：
+标签是可配置描述，不是现实分类，可多标签或“未归类”；不得反馈到模拟。以下为 `C=5` 的首轮筛查值，P1.5/P6 的结构判异固定 `C=5`；其他 `C` 只用于机制/性能测试，不得用这些标签判异。结构判异同时固定 `metrics.flowWindowDays=365`、`metrics.mobilityWindowDays=365`、`metrics.topWealthShareFraction=0.1`；改变这些值必须升级 `labelThresholdVersion`/阈值 hash 并重新预注册，不得与 labels-v3 结果混比。确认扫描前冻结版本：
 
 | 标签       | 窗口条件                                                                                  |
 | ---------- | ----------------------------------------------------------------------------------------- |
@@ -203,7 +226,7 @@ D 只用于筛选。初始实际差异门槛（可在预注册时调整）：
 五个必跑消融，其他输入与 baseline 完全配对：
 
 - `β=0`：移除网络机会，但保留关系、网络竞争和 S。
-- `O=0.5 固定`：停止制度更新，跨越/网络中的 O 乘子仍在但恒定。
+- `O=openness.initial 固定`：通过 P1-10 的 `openness.updateMode=fixed` 冻结，停止制度更新；跨越/网络中的 O 乘子仍在但恒定。不得用极大 `τO` 近似；该开关必须进入 `configHash/paramsHash`。
 - `η=0`：Congestion=1，其他反馈保留。
 - `κ=0`：Polarization=1，其他反馈保留。
 - `ψ=1`：移除阶级持有成本，验证 needMultiplier 对结构的解释力；预期顶层塌缩显著增强。

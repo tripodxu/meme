@@ -17,21 +17,21 @@
 
 ### 2.1 AgentState
 
-| 字段                             | 类型/单位     | 说明                                                                                                       |
-| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------- |
-| `id`                             | 稳定字符串    | 初始化后不变，禁止复用死亡者 ID                                                                            |
-| `alive`                          | boolean       | 死亡后不可逆                                                                                               |
-| `classIndex`                     | int `[0,C-1]` | 当前阶级                                                                                                   |
-| `maxClassIndex`                  | int           | 历史最高阶级，初始等于初始阶级，只升不降                                                                   |
-| `value`                          | number >=0    | 当前财富                                                                                                   |
-| `ge/hard`                        | number >0     | 天赋/努力，运行期不变                                                                                      |
-| `initialLife/remainingLife`      | 日            | 初始寿命预算与剩余寿命                                                                                     |
-| `classAge`                       | 日            | 当前阶级已完成停留日数，进入当日结算后为 1                                                                 |
-| `baselineSum`                    | Value         | 当前阶级历史基准积累积分                                                                                   |
-| `belowNeedStreak`                | tick          | 连续低于 50% 需求线的次数                                                                                  |
-| `lastAscentTick/lastDescentTick` | tick or null  | 最近一次上升/下降（含被动跌落与主动降阶）的 tick，用于 365 日流动参与率；死亡后保留审计值                  |
-| `ties`                           | AgentId[]     | 无向关系，序列化时排序，最大 6                                                                             |
-| `deathTick/deathReason`          | nullable      | 死亡审计信息；`deathReason` 为枚举，MVP 只有 `'age'`（V1 新增原因必须升级 `rulesVersion`，不得写自由文本） |
+| 字段                             | 类型/单位     | 说明                                                                                                             |
+| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `id`                             | 稳定字符串    | 初始化后不变，禁止复用死亡者 ID                                                                                  |
+| `alive`                          | boolean       | 死亡后不可逆                                                                                                     |
+| `classIndex`                     | int `[0,C-1]` | 当前阶级                                                                                                         |
+| `maxClassIndex`                  | int           | 历史最高阶级，初始等于初始阶级，只升不降                                                                         |
+| `value`                          | number >=0    | 当前财富                                                                                                         |
+| `ge/hard`                        | number >0     | 天赋/努力，运行期不变                                                                                            |
+| `initialLife/remainingLife`      | 日            | 初始寿命预算与剩余寿命                                                                                           |
+| `classAge`                       | 日            | 当前阶级已完成停留日数，进入当日结算后为 1                                                                       |
+| `baselineSum`                    | Value         | 当前阶级历史基准积累积分                                                                                         |
+| `belowNeedStreak`                | tick          | 连续低于 `need.threshold×need` 的次数                                                                            |
+| `lastAscentTick/lastDescentTick` | tick or null  | 最近一次上升/下降（含被动跌落与主动降阶）的 tick，用于 `metrics.mobilityWindowDays` 流动参与率；死亡后保留审计值 |
+| `ties`                           | AgentId[]     | 无向关系，序列化时排序，最大 `network.maxDegree`                                                                 |
+| `deathTick/deathReason`          | nullable      | 死亡审计信息；`deathReason` 为枚举，MVP 只有 `'age'`（V1 新增原因必须升级 `rulesVersion`，不得写自由文本）       |
 
 ### 2.2 SocietyState
 
@@ -44,7 +44,7 @@
 | `P0[C]`                  | 初始人口占比，以实际人数计算，不直接用配置理想比例                          |
 | `G/P/S/Mup/Mdown`        | 最近完成 tick 的宏观值；`S` 为调整后同层边占比，`Mup/Mdown` 为 365 日参与率 |
 | `edgeCount`              | 最近完成 tick 的存活网络边数；用于解释 `S=0` 是无边还是随机混合             |
-| `flowMatrix`             | `flowWindowDays` 窗口内阶级转移计数；窗口规则版本化                         |
+| `flowMatrix`             | `metrics.flowWindowDays` 窗口内阶级转移计数；窗口规则版本化                 |
 | `lastOpennessUpdateTick` | 计算开放度的 Δt，防止重复更新                                               |
 | `ruleset/config/seed`    | 完整不可变输入及 hash                                                       |
 
@@ -67,15 +67,37 @@
 | 跨层能力     | 原发起方 ×`crossClassInitiatorMultiplier=0.85`，原被竞争方 ×`crossClassTargetMultiplier=1.15`，同层均 ×1                                           |
 | 竞争转移     | `lossRate=0.08`，`baseTransferEfficiency=0.70`                                                                                                     |
 | 方向修正     | 原发起方高打低获胜 ×`highToLowWinMultiplier=0.5`；低打高获胜 ×`lowToHighWinMultiplier=1.25`；其他获胜 ×1                                           |
-| 网络         | 最大度 6、目标初始度 4、`rewireProb=0.05`、`H=1.2`、`hV=0.4`                                                                                       |
-| 目标候选     | 最多 6 个，局部网络概率 0.70，全局概率 0.30                                                                                                        |
+| 网络         | `maxDegree=6`、`initialDegree=4`、`rewireProb=0.05`、`classWeight=1.2`、`valueWeight=0.4`                                                          |
+| 目标候选     | 最多 `competition.candidateCount=6` 个，局部网络概率 `competition.localTargetProbability=0.70`，全局概率 `1-localTargetProbability`                |
 | 网络机会     | `β=0.6`，乘子截断 `[opportunityMin,opportunityMax]=[0.70,1.50]`                                                                                    |
 | 动态 E       | `ρE=0.03`、`η=0.35`、`κ=0.8`、`Gref=0.25`                                                                                                          |
 | 拥挤/分化    | Congestion 截断 `[congestionMin,congestionMax]=[0.20,1.20]`，Polarization 截断 `[polarizationMin,polarizationMax]=[0.85,1.18]`                     |
 | 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=8`、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`λO=2`                                                                |
 | 跨越动态乘子 | 截断 `[0.50,2.50]`                                                                                                                                 |
-| 流动率       | 365 日参与率窗口 `metrics.mobilityWindowDays=365`；`Mup/Mdown` 不使用 EMA、不按日频截断                                                            |
-| 转移矩阵     | `flowWindowDays=365`；窗口内累计阶级转移计数与行暴露量                                                                                             |
+| 流动率       | 参与率窗口 `metrics.mobilityWindowDays=365`；`Mup/Mdown` 不使用 EMA、不按日频截断                                                                  |
+| 转移矩阵     | `metrics.flowWindowDays=365`；窗口内累计阶级转移计数与行暴露量                                                                                     |
+
+`openness.updateMode` 由 P1-10 引入（默认 `dynamic`，消融为 `fixed`）；`fixed` 时 O 始终等于 `openness.initial`，不得用极大 `τO` 近似。
+
+| 简写                                        | 配置路径                                                                                                               | 说明                             |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `N` / `C`                                   | `population.initialPopulation` / `population.classCount`                                                               | 初始人口 / 阶级数                |
+| `B` / `env0[c]`                             | `opportunity.dailyBase` / `opportunity.env0`                                                                           | 日基础机会 / 初始阶级机会        |
+| `decay[c]`                                  | `lifespan.decay`                                                                                                       | 阶级寿命损耗                     |
+| `ψ[c]` / `needThreshold`                    | `need.needMultiplier` / `need.threshold`                                                                               | 持有成本 / 跌落阈值              |
+| `belowNeedLimit` / `bufferDays`             | `need.belowNeedLimit` / `need.bufferDays`                                                                              | 连续低需求天数 / 需求缓冲        |
+| `descendDays` / `crossDays[c]`              | `descent.days` / `ascent.crossDays`                                                                                    | 主动降阶 / 上升成本天数          |
+| `discount`                                  | `ascent.returnDiscount`                                                                                                | 重返减免                         |
+| `FShape`                                    | `effort.shape`                                                                                                         | 努力函数形状                     |
+| `H` / `hV`                                  | `network.classWeight` / `network.valueWeight`                                                                          | 网络阶级 / 财富权重              |
+| `maxDegree` / `initialDegree`               | `network.maxDegree` / `network.initialDegree`                                                                          | 度上限 / 目标初始度              |
+| `candidateCount` / `localTargetProbability` | `competition.candidateCount` / `competition.localTargetProbability`                                                    | 竞争候选数 / 局部目标概率        |
+| `β`                                         | `networkOpportunity.beta`                                                                                              | 网络机会权重                     |
+| `ρE` / `η` / `κ` / `Gref`                   | `dynamics.classSmoothing` / `dynamics.congestionExponent` / `dynamics.polarizationExponent` / `dynamics.giniReference` | E 平滑 / 拥挤 / 极化 / 基尼参考  |
+| `O0` / `τO` / `λO`                          | `openness.initial` / `openness.timeConstantDays` / `openness.ascentCostWeight`                                         | 开放度初值 / 时间常数 / 成本权重 |
+| `θ0/θM/Mref/θG/θS/Sref`                     | `openness.intercept/mobilityWeight/mobilityReference/giniWeight/segregationWeight/segregationReference`                | 开放度目标参数                   |
+| `flowWindowDays` / `mobilityWindowDays`     | `metrics.flowWindowDays` / `metrics.mobilityWindowDays`                                                                | 转移 / 流动参与率窗口            |
+| `decisionInterval` / `topK`                 | `decision.interval` / `decision.topK`                                                                                  | 决策间隔 / topK                  |
 
 ### 3.1 合法配置域
 
@@ -85,12 +107,12 @@
 | 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                                            |
 | 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏）                                                              |
 | 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算                                         |
-| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`                                                                    |
+| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`；`openness.updateMode` 为 `dynamic` 或 `fixed`                     |
 | 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支                                              |
 | 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                              |
 | 竞争      | 三个 power 指数在 `[0,4]`；lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1） |
 | 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                                                                   |
-| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/flowWindowDays/metrics.mobilityWindowDays>=1 整数；statsStride<=totalTicks                                                                                                 |
+| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/metrics.flowWindowDays/metrics.mobilityWindowDays>=1 整数；statsStride<=totalTicks                                                                                         |
 
 MVP 不允许负 decay，因此寿命不会因阶级而反向增加；`rule.md` 中“可能为负”留作未来规则版本。除表中显式允许 0 的参数外，不得用“正参数”笼统推断范围。所有 schema-valid 配置必须满足收益不超过损失等核心不变量；运行端可进一步限制人口/预算，但不得放宽数学合法域。`totalTicks/statsStride/snapshotStride` 属于 RunConfig 并被 `configHash` 覆盖，05 的顶层 `schedule` 只是服务端索引镜像。
 
@@ -106,7 +128,7 @@ P0 必须提供：
 
 `src/core/config/validate.ts` 的标量与数组元素范围必须从注册表读取，不得另行硬编码；跨字段约束（数组长度、顺序、和为一、`hardLifeFloor` 关系上界等）单独实现并有测试。`test/unit/params.test.ts` 必须覆盖“每个 RunConfig 叶子都已登记”和注册表域边界。参数注册表定义由 `test/fixtures/config/param-definitions.json` 快照冻结，变更需运行 `pnpm params:snapshot` 并人工审查 diff。
 
-至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`initialAgeMode`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`flowWindowDays`、`metrics.mobilityWindowDays`。
+至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`initialAgeMode`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`metrics.flowWindowDays`、`metrics.mobilityWindowDays`。
 
 `initialAgeMode` 是枚举参数而非数值参数，接线测试必须证明 `uniform` 与 `newborn` 产生不同 `initialPopulationHash`，且两者消费同一 `init_age` 地址。`hardLifeFloor` 在合法 `hard` 域内不改变输出：配置必须满足 `hardLifeFloor <= 1+hardLifeFactor×(attributes.hard.min-1)`，违反时 schema 直接拒绝；注册表把它标记为 `guardOnly`，不得算作业务可调参数。所有参数条目标注 `configHash` 覆盖、`paramsHash` 覆盖和是否有接线测试。
 
@@ -140,10 +162,10 @@ R   = Number(u >> 11n) / 2^53
 3. 按 agentId 依次用独立 tag 生成 ge/hard/initialLife；属性之间不共享 counter。
 4. 按 agentId 用 `init_age` 生成初始年龄并设置 `remainingLife`；`initialAgeMode=newborn` 时仍消费 `init_age` 但取 `remainingLife=initialLife`。
 5. 初始化 Value=0、classAge/baselineSum/belowNeedStreak=0、maxClass=当前阶级、lastAscentTick/lastDescentTick=null。
-6. `E=env0`、`O=0.5`、宏观值由初始状态计算，Mup/Mdown=0。
-7. 按 agentId 顺序为未达目标初始度者加边，直到度 4 或无合法候选。每个体的 `network_init` counter 从 0 开始，每成功加一条边后 +1；候选为空不加边也不继续消费。
+6. `E=env0`、`O=openness.initial`、`lastOpennessUpdateTick=0`，宏观值由初始状态计算，Mup/Mdown=0。tick 0 若为决策周期，O 更新的 `Δt=0`，因此初始 O 不因首次更新而改变。
+7. 按 agentId 顺序为未达目标初始度者加边，直到度 `network.initialDegree` 或无合法候选。每个体的 `network_init` counter 从 0 开始，每成功加一条边后 +1；候选为空不加边也不继续消费。
 
-网络候选必须双方存活、非自身、未连边、双方度均小于 6，按初始权重 `w=exp(-H×|classDiff|-hV×|logValueDiff|)` 抽样。
+网络候选必须双方存活、非自身、未连边、双方度均小于 `network.maxDegree`，按初始权重 `w=exp(-H×|classDiff|-hV×|logValueDiff|)` 抽样。
 
 ### 4.4 运行期地址表
 
@@ -165,13 +187,13 @@ R   = Number(u >> 11n) / 2^53
 accumulate
 ascend                  # 非最高层且期初费用足够
 descend                 # 非最低层且期初费用足够
-compete:<agentId>       # 最多 6 个由代码采样的存活目标
+compete:<agentId>       # 最多 competition.candidateCount 个由代码采样的存活目标
 ```
 
-- 竞争目标生成：槽位 k 从 0 开始，先消费来源地址，以 0.70 选邻居、0.30 选全局；再消费目标地址，从该来源的剩余合法目标中均匀抽样。来源为空则用目标地址在另一来源抽样；若已选满 6 个或全局剩余目标为 0 即停止，不为空槽继续消费。去除已选目标本身就是无放回，不做重复拒绝抽样。
+- 竞争目标生成：槽位 k 从 0 开始，先消费来源地址，以 `competition.localTargetProbability` 选邻居、以 `1-localTargetProbability` 选全局；再消费目标地址，从该来源的剩余合法目标中均匀抽样。来源为空则用目标地址在另一来源抽样；若已选满 `competition.candidateCount` 个或全局剩余目标为 0 即停止，不为空槽继续消费。去除已选目标本身就是无放回，不做重复拒绝抽样。
 - 候选排序稳定，先按行动类型，再按 agentId；行动类型顺序固定为 `accumulate<ascend<descend<compete`，同类内按 agentId 的 UTF-8 字节序升序。该顺序同时决定 `legalActions` 请求顺序、`actionSetHash`、mock 加权抽样顺序和 topK 并列规则；展示顺序不得改变 RNG 结果。任何排序语义变化必须升级 `promptVersion`。
 - Jev 只看见这些合法行动。执行顺序按 4.4 的每 agent `action_order` 随机键排序。
-- 因前序竞争导致费用不足、目标已被作为目标、目标死亡或关系已变化时，执行前重新校验；失效行动记 `stale_invalid`，不执行主动行动，仍进入日常积累。目标占用集合为 `targetedAgents`：作为发起方不阻止其另作为目标；A→B 后 B→C 合法，但任何再次以 B 为目标的行动非法。
+- 因前序竞争导致费用不足、目标已被作为目标、目标死亡或关系已变化时，执行前重新校验；失效行动记 `stale_invalid`，不执行主动行动，仍进入日常积累。失效行动不占用 `targetedAgents`、不改变 Value/阶级/网络，只写执行记录。目标占用集合为 `targetedAgents`：作为发起方不阻止其另作为目标；A→B 后 B→C 合法，但任何再次以 B 为目标的行动非法。
 - `accumulate` 不收取额外费用，只表示本 tick 不做升降/竞争。
 
 ## 6. 单 tick 唯一结算顺序
@@ -263,7 +285,7 @@ if remainingLife==0: alive=false, deathTick=t, ties从所有邻居移除
 3. 权重 `w=exp(-H×(1-O)×|classDiff|-hV×|logValueDiff|)`。
 4. 无候选则恢复旧边；有候选则加一条新边。一次最多替换一条。
 
-所有抽样使用 `network_rewire` 独立地址。最终结果必须无自连/重边，度不超过 6。
+所有抽样使用 `network_rewire` 独立地址。最终结果必须无自连/重边，度不超过 `network.maxDegree`。
 
 ### 阶段 G：宏观指标
 
@@ -273,31 +295,31 @@ if remainingLife==0: alive=false, deathTick=t, ties从所有邻居移除
 - Gini：存活者 Value 升序 `x[i]`，`G=Σ(2i-n-1)x[i]/(nΣx)`，i 从 1 开始；总和为 0 时 G=0。
 - `edgeCount`：存活网络的无向边数；`sameShare=edgeCount==0 ? 0 : 同阶级边数/edgeCount`；`expectedShare=Σ P[c]²`；`S` 使用双侧归一化，保证恒在 `[-1,1]`：`S = edgeCount==0 ? 0 : expectedShare>=1 ? 1 : sameShare>=expectedShare ? (sameShare-expectedShare)/(1-expectedShare) : (sameShare-expectedShare)/expectedShare`。即随机混合时 `S=0`，全部同层时 `S=1`，无同层边时 `S=-1`；无边时必须同时输出 `edgeCount=0`，不得用 `S=1` 冒充完全隔离。
 - `Mup = count(alive && lastAscentTick!=null && lastAscentTick >= t-metrics.mobilityWindowDays+1) / max(aliveCount,1)`；`t<metrics.mobilityWindowDays` 时窗口从 0 开始。`Mdown` 同法使用 `lastDescentTick`，包含被动跌落和主动降阶。二者均在 `[0,1]`，不使用 EMA、不按日频截断。
-- 同时计算中位数、前 10% 财富占比、`flowWindowDays` 转移矩阵、跨层边、平均度、连通分量、死亡率、竞争损耗率、Jev 回退率。
+- 同时计算中位数、前 `metrics.topWealthShareFraction` 财富占比、`metrics.flowWindowDays` 转移矩阵、跨层边、平均度、连通分量、死亡率、竞争损耗率、Jev 回退率。
 
-前 10% 按 `ceil(0.1×n)` 个最高 Value 个体计算；n=0 或财富总和 0 时占比为 0，并附空人口标记。竞争损耗率窗口内为 `(loserLoss-winnerGain)/loserLoss`，无损失时为 0。
+前 `metrics.topWealthShareFraction` 按 `ceil(metrics.topWealthShareFraction×n)` 个最高 Value 个体计算；n=0 或财富总和 0 时占比为 0，并附空人口标记。竞争损耗率窗口内为 `(loserLoss-winnerGain)/loserLoss`，无损失时为 0。
 
 ### 阶段 H：慢变量更新
 
 每个 tick 根据 G 阶段指标计算下一 tick 的 E：
 
 ```text
-Congestion=clamp((P0[c]/max(P[c],0.02))^η, congestionMin, congestionMax)
+Congestion=clamp((P0[c]/max(P[c],dynamics.emptyClassPopulationFloor))^η, congestionMin, congestionMax)
 Polarization=clamp(exp(κ×z[c]×(G-Gref)), polarizationMin, polarizationMax)
 Eraw=env0[c]×Congestion×Polarization
 E[next,c]=(1-ρE)×E[t,c]+ρE×Eraw
 ```
 
-空阶级 `P[c]=0` 时按公式 `P0[c]/0.02` 计算；若该阶级初始就为空（`P0[c]=0`），Congestion 落到 `congestionMin`，**不会**获得额外机会。因此“空阶级提高机会”只适用于初始占比为正、后来被抽空的阶级；初始为空的阶级在 v3 中没有入口激励。该语义必须在 P1.5-02 评估，若需要入口激励应升级 rules-v4，不得在 v3 静默改公式。存活人数为 0 时 F 阶段跳过网络重构，G 阶段记录最终指标，随后结束 run：早于最后计划 tick 记 `extinct`，恰在最后计划 tick 则记 `scheduled` 且 `finalAliveCount=0`；两种情况 H 都不再执行，也不再有后续 step。
+空阶级 `P[c]=0` 时按公式 `P0[c]/dynamics.emptyClassPopulationFloor` 计算；若该阶级初始就为空（`P0[c]=0`），Congestion 落到 `congestionMin`，**不会**获得额外机会。因此“空阶级提高机会”只适用于初始占比为正、后来被抽空的阶级；初始为空的阶级在 v3 中没有入口激励。该语义必须在 P1.5-02 评估，若需要入口激励应升级 rules-v4，不得在 v3 静默改公式。存活人数为 0 时 F 阶段跳过网络重构，G 阶段记录最终指标，随后结束 run：早于最后计划 tick 记 `extinct`，恰在最后计划 tick 则记 `scheduled` 且 `finalAliveCount=0`；两种情况 H 都不再执行，也不再有后续 step。
 
-仅在决策周期更新 O，Δt=距上次更新的 tick 数：
+仅在决策周期更新 O，`Δt=tick-lastOpennessUpdateTick`，更新后写回 `lastOpennessUpdateTick=tick`；tick 0 的 `Δt=0`，首次更新不改变 O：
 
 ```text
 Otarget=sigmoid(θ0+θM×(Mup-Mref)-θG×(G-Gref)-θS×(S-Sref))
 O=O+(Otarget-O)×(1-exp(-Δt/τO))
 ```
 
-同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
+`openness.updateMode=fixed` 时跳过上述 O 更新，O 始终保持 `openness.initial`；该开关必须作为可哈希配置项实现（P1-10），不得用极大 `τO` 近似。同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
 
 ## 7. 不变量
 
@@ -305,7 +327,7 @@ O=O+(Otarget-O)×(1-exp(-Δt/τO))
 
 1. Value、life、E、gain、need、cost 全部有限；Value/remainingLife/baselineSum/classAge 不为负。
 2. classIndex/maxClassIndex 在合法范围且 max>=current；alive=false 后状态除审计字段外不再改变。
-3. ties 对称、无自连/重边、度<=6、死亡者无边。
+3. ties 对称、无自连/重边、度<=`network.maxDegree`、死亡者无边。
 4. `O/Mup/Mdown/G` 在 `[0,1]`，`S` 在 `[-1,1]`，`edgeCount>=0`，E>0；P 在有存活者时和为 1。
 5. 每 tick 每发起方最多一次主动行动、每目标最多一场竞争；不重复扣费/转移。
 6. 胜者收益<=败者损失；默认参数下同层/跨层最大传递效率分别为 70%/87.5%，合法域由 `baseTransferEfficiency×directionMultiplier<=1` 保证。

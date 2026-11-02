@@ -81,6 +81,7 @@
 12. `seed` 不改变 `configHash`/`paramsHash`，但改变 `initialPopulationHash`；`initialAgeMode=uniform|newborn` 在同 seed 下产生不同 `initialPopulationHash` 且都消费 `init_age`。
 13. `preregistrationHash` 在提交 experiment 前后、以及服务端生成 `experimentId/createdAt` 后重算一致；运行后填充 `observedResponseModels` 不改变该 hash。
 14. `hardLifeFloor` 在合法 `hard` 域内不改变输出（配置违反关系上界时被拒绝），且在 `hard` 超出合法域时阻止非正寿命。
+15. `openness.updateMode=fixed` 时 O 在所有 tick 保持 `openness.initial`；开关变化改变 `configHash/paramsHash`，dynamic 与 fixed 的其它状态可按配对比较。
 
 失败时输出最小化 seed、配置和 fixture，加入永久回归集。
 
@@ -95,6 +96,7 @@
 - 快照恢复、微扰克隆、live 决策回放及 replay_invalid；
 - 空网络、全零财富、全死亡边界；
 - 每个参数注册项的接线 fixture；
+- 每个 hash domain 的字段级 canonical schema、固定向量与预期 hash；不同 `runtimeVersion` 的 `nonAuthoritativeRuntime` 路径；
 - 参数注册表定义快照 `test/fixtures/config/param-definitions.json`（名称、单位、公式引用、域与 `guardOnly/affectsBehavior`）。
 
 golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异；参数定义快照由 `pnpm params:snapshot` 生成，更新必须人工审查 diff。另为 02 每个 hash domain（含 `configHash/paramsHash/initialPopulationHash/preregistrationHash`）在受支持的 V8 运行时（Node/workerd/Chromium）校验同一 RFC 8785 测试向量。更新必须人工审查，不得用环境变量一键无说明接受。声称无行为重构时 hash 必须一致；行为变化升级版本并保留旧 fixture 读取测试。
@@ -123,6 +125,7 @@ golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异�
 - stats stride 缺口、agent 数、初始/最终快照、决策/事件范围或 manifest 不符不能 complete；extinct finalTick 和 `expectedDueDecisions`（实际到期数，不是理论上界）正确。
 - complete 后仅 verificationStatus=uploaded；独立验证器核对 uncompressed hash、schema、连续性和回放后才 verified。
 - artifact 8 MiB 超限、非法 chunkId/kind、压缩 hash 不符、R2 丢失有明确错误；Worker 不解压巨块。
+- `metrics-v1` 与 `metrics-only` profile 可完成窗口统计复算；`replayable=false` 不被误标为可回放；`full` profile 缺 decisions/events 不得 complete。
 - keyset 分页无重复/遗漏，过滤改变使游标失效；所有列表 LIMIT 生效。
 - 导出 NDJSON 可逐行解析，未知版本/损坏行会停止。
 - 限流原子递增、Retry-After、配额与保留清理任务有效。

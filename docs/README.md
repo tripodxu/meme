@@ -63,6 +63,7 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 - [变更记录](changes/README.md)：行为、契约与实验可比性变更的追加式记录。
 - [发布记录](releases/README.md)：每次发布的版本、备份与验证记录。
 - [评审记录](reviews/2026-11-02-p0-review.md)：P0 评审发现、契约漂移与修复顺序。
+- [第二轮契约与架构评审](reviews/2026-11-02-contract-architecture-review.md)：计划依赖、实验方法、运行时可复现性与规模风险。
 
 ### 3.5 根目录文件
 

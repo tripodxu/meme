@@ -49,7 +49,7 @@ running -> completed | failed | cancelled
 
 `POST /api/jev`：
 
-- body 仅 `state/model/questions`，questions 只允许一个 `action` choice；选项最多 **9**（accumulate/ascend/descend 加最多 6 个目标）。
+- body 仅 `state/model/questions`，questions 只允许一个 `action` choice；选项最多 **9**（accumulate/ascend/descend 加最多 `competition.candidateCount` 个目标，默认 6）。
 - body 应用层上限 256 KiB；模型必须在服务端 allowlist；Key 必填。
 - 同源使用，不开放任意跨域；不转发用户提供的 URL、headers 或其他上游字段。
 - 超时、网络失败映射 502 `upstream_error`；429/529 保留状态与 Retry-After，错误 body 按第 1 节统一包装；服务端不重试。
@@ -76,6 +76,7 @@ running -> completed | failed | cancelled
     "promptVersion": "prompt-v2",
     "requestedModel": "jev-1.13.0",
     "seed": "seed-001",
+    "runtimeVersion": "node@22.21.0",
     "configHash": "sha256:...",
     "paramsHash": "sha256:...",
     "initialPopulationHash": "sha256:...",
@@ -85,11 +86,11 @@ running -> completed | failed | cancelled
 }
 ```
 
-服务端按 02 第 8 节校验 `configHash`，并用 `(config, seed)` 重算 `initialPopulationHash`；不一致返回 422，防止客户端自报 roster 破坏配对。返回 201 `{runId,writeToken,status:"running"}`。source 由服务端根据认证确定，不能由 runner 伪造 browser 或反之。服务端生成的 `runId` 只允许 `[A-Za-z0-9_-]{1,64}`；任何进入 R2 key 或 `sessionStorage` 键的 id 必须先通过该字符集校验。
+服务端按 02 第 8 节校验 `configHash`，并用 `(config, seed)` 重算 `initialPopulationHash`；不一致返回 422，防止客户端自报 roster 破坏配对。`identity.runtimeVersion` 记录执行端实际版本，服务端只记录与展示，用于哈希权威性分组，不参与 `configHash`。返回 201 `{runId,writeToken,status:"running"}`。source 由服务端根据认证确定，不能由 runner 伪造 browser 或反之。服务端生成的 `runId` 只允许 `[A-Za-z0-9_-]{1,64}`；任何进入 R2 key 或 `sessionStorage` 键的 id 必须先通过该字符集校验。
 
 离线 run 不属于该接口：MVP 中离线 mock run 使用本地 `runId=local-<ulid>`，只支持导出/回放，不支持直接采纳为服务器 run；需要云端归档时，用同一 `config+seed` 新建服务器 run 并重新执行。该限制必须在前端明确显示，不得让用户误以为离线 run 已上传。
 
-调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`flowWindowDays/metrics.mobilityWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。`identity.seed` 不进入 `configHash`/`paramsHash`，服务端把它与 `config` 一起用于重算 `initialPopulationHash`；`identity.configHash` 和 `identity.paramsHash` 必须分别等于服务端对 `config` 算出的值，否则 422。服务端还必须校验 `identity.rulesVersion === config.rulesVersion` 与 `identity.policyVersion === config.decision.policy`；`configHash` 只证明 config 未被篡改，不能替代这些跨字段一致性检查。
+调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`metrics.flowWindowDays/metrics.mobilityWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。`identity.seed` 不进入 `configHash`/`paramsHash`，服务端把它与 `config` 一起用于重算 `initialPopulationHash`；`identity.configHash` 和 `identity.paramsHash` 必须分别等于服务端对 `config` 算出的值，否则 422。服务端还必须校验 `identity.rulesVersion === config.rulesVersion` 与 `identity.policyVersion === config.decision.policy`；`configHash` 只证明 config 未被篡改，不能替代这些跨字段一致性检查。
 
 `GET /api/runs/:id`：返回元数据、状态、endReason、进度、版本、预算用量、逐决策观测去重后的 responseModels、verificationStatus 和 artifact manifest，不返回 writeTokenHash 完整值。
 
@@ -105,7 +106,7 @@ statsTicks = {0<=t<totalTicks 且 t%statsStride==0} ∪ {totalTicks-1}
 
 若 tick e 末全死亡且 `e < totalTicks-1`（即 `endReason=extinct`），则 finalTick=e，序列只保留 `t<=e` 的项并确保 e 被插入；不再接受 e 之后的 tick。若全死亡发生在 `totalTicks-1`，序列不变，记 `scheduled`。`totalTicks=3650,statsStride=10` 且无提前结束时为 0,10,...,3640,3649，共 366 行。
 
-`tick_stats` 是按 `statsStride` 采样的查询序列，不是全分辨率事实表。07 定义的窗口均值、死亡暴露量、E 均值和标签条件必须由 runner 从全分辨率 tick 数据计算后随 artifact/summary 提交；仅当该 run 设置 `statsStride=1` 时，才允许从 D1 `tick_stats` 直接复算窗口统计。
+`tick_stats` 是按 `statsStride` 采样的查询序列，不是全分辨率事实表。07 定义的窗口均值、死亡暴露量、E 均值和标签条件必须由 runner 从全分辨率 tick 数据计算后随 `metrics-v1` artifact 或 summary 提交；仅当该 run 设置 `statsStride=1` 时，才允许从 D1 `tick_stats` 直接复算窗口统计。
 
 `POST /api/runs/:id/ticks:batch`
 
@@ -154,7 +155,7 @@ Headers：
 Content-Type: application/gzip
 X-Uncompressed-SHA256: <未压缩NDJSON的sha256 hex>
 X-Compressed-SHA256: <请求体sha256 hex>
-X-Artifact-Kind: decisions|events|snapshot|final_state|manifest
+X-Artifact-Kind: decisions|events|snapshot|final_state|metrics|manifest
 X-Start-Tick / X-End-Tick: 可选范围
 ```
 
@@ -185,9 +186,9 @@ X-Start-Tick / X-End-Tick: 可选范围
 }
 ```
 
-所有 run 的 manifest 必须列出 config/identity、初始权威快照、最终 final_state、完整 decisions 和 events 范围块；仅声明 `replayable=true` 还要求初始快照加全部到期决策能够逐 `(tick,agentId)` 覆盖。`expectedDueDecisions` 是实际到期决策数 `Σ_{t%decisionInterval=0} aliveAtTickStart(t)`，不是 `initialPopulation×ceil(totalTicks/decisionInterval)` 的理论上界；出现死亡或提前 extinct 时必须用实际值，理论上界只用于预算（04 §7 的 `maxDueDecisions`）。同类范围块不得重叠，决策/事件按 tick/seq 连续；快照必须含 initial/final，周期快照按 schedule 覆盖。
+所有 run 的 manifest 必须列出 config/identity、`artifactProfile`、初始权威快照与最终 final_state、全分辨率 tick metrics（`metrics-v1`；或该 run 设置 `statsStride=1` 的 `tick_stats`）。`artifactProfile=full` 时还必须列出完整 decisions 和 events 范围块；`metrics-only` 可省略 decisions/events，但 `replayable` 必须为 false，且不得声明可回放。仅声明 `replayable=true` 还要求初始快照加全部到期决策能够逐 `(tick,agentId)` 覆盖。`expectedDueDecisions` 是实际到期决策数 `Σ_{t%decisionInterval=0} aliveAtTickStart(t)`，不是 `initialPopulation×ceil(totalTicks/decisionInterval)` 的理论上界；出现死亡或提前 extinct 时必须用实际值，理论上界只用于预算（04 §7 的 `maxDueDecisions`）。同类范围块不得重叠，决策/事件按 tick/seq 连续；快照必须含 initial/final，周期快照按 schedule 覆盖。
 
-服务端核对 run 状态、stats 计划、agent 数、必需 artifact 类型/范围、上传计数和清单自洽性后原子完成；`manifest hash` 只证明清单未被篡改，不证明内容已由服务端认证，内容认证由独立验证器完成。相同 complete 重试返回 200，不同摘要 409。`endReason=scheduled|extinct`：`extinct` 要求 finalTick 严格小于 `totalTicks-1` 且 finalAliveCount=0；若全死亡恰好发生在最后一个计划 tick，则记 `scheduled`，但 finalAliveCount 必须为 0 并置 `structurallyUsable=false`，该类 run 不参与结构判异。
+服务端核对 run 状态、stats 计划、agent 数、必需 artifact 类型/范围、上传计数和清单自洽性后原子完成；按 manifest 的 `artifactProfile` 核对必需块：`full` 需 decisions/events，`metrics-only` 需 `metrics-v1`，缺失不得 complete。`manifest hash` 只证明清单未被篡改，不证明内容已由服务端认证，内容认证由独立验证器完成。相同 complete 重试返回 200，不同摘要 409。`endReason=scheduled|extinct`：`extinct` 要求 finalTick 严格小于 `totalTicks-1` 且 finalAliveCount=0；若全死亡恰好发生在最后一个计划 tick，则记 `scheduled`，但 finalAliveCount 必须为 0 并置 `structurallyUsable=false`，该类 run 不参与结构判异。
 
 complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验证器下载、核对压缩/未压缩 hash、NDJSON schema、连续性和实际回放后，才可把 `verificationStatus` 改为 `verified|rejected` 及报告 hash。正式实验只接受 verified，不能把空 manifest 或未验内容当成可回放证据。
 
@@ -201,15 +202,15 @@ complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验
 
 实际 SQL 以 `migrations/0001_init.sql` 为准，至少包含：
 
-| 表                | 主键/关键索引                                                  | 内容                                                                                                                      |
-| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `runs`            | `run_id`；`(created_at,run_id)`、`source/status`               | 元数据、状态/endReason、完整 config JSON、版本/hash、responseModels、verificationStatus、write token hash、预算与完成摘要 |
-| `tick_stats`      | `(run_id,tick)`                                                | 聚合字段与 payloadHash                                                                                                    |
-| `agent_final`     | `(run_id,agent_id)`                                            | 最终个体可查询字段                                                                                                        |
-| `experiments`     | `experiment_id`                                                | 扫描/消融/微扰定义、状态、创建者来源、预算                                                                                |
-| `experiment_runs` | `(experiment_id,run_id)`；唯一 `(experiment_id,cell_key,seed)` | 配对种子和参数单元归属                                                                                                    |
-| `artifacts`       | `(run_id,kind,chunk_id)`                                       | R2 清单、hash、范围、大小                                                                                                 |
-| `rate_limits`     | `(bucket,window_start)`                                        | 原子固定窗口计数                                                                                                          |
+| 表                | 主键/关键索引                                                  | 内容                                                                                                                                                       |
+| ----------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `runs`            | `run_id`；`(created_at,run_id)`、`source/status`               | 元数据、状态/endReason、完整 config JSON、版本/hash、runtimeVersion、artifactProfile、responseModels、verificationStatus、write token hash、预算与完成摘要 |
+| `tick_stats`      | `(run_id,tick)`                                                | 聚合字段与 payloadHash                                                                                                                                     |
+| `agent_final`     | `(run_id,agent_id)`                                            | 最终个体可查询字段                                                                                                                                         |
+| `experiments`     | `experiment_id`                                                | 扫描/消融/微扰定义、状态、创建者来源、预算                                                                                                                 |
+| `experiment_runs` | `(experiment_id,run_id)`；唯一 `(experiment_id,cell_key,seed)` | 配对种子和参数单元归属                                                                                                                                     |
+| `artifacts`       | `(run_id,kind,chunk_id)`                                       | R2 清单、hash、范围、大小                                                                                                                                  |
+| `rate_limits`     | `(bucket,window_start)`                                        | 原子固定窗口计数                                                                                                                                           |
 
 约束：禁止 `agent_ticks`、`raw_decisions` 等每人每 tick D1 表；禁止无索引 LIKE 全表扫描；所有查询硬 LIMIT；迁移上线后只追加。
 
@@ -218,6 +219,7 @@ complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验
 - `decision-v1`：一行一次到期决策，形如 `{schemaVersion,runId,tick,agentId,decision:DecisionRecord,execution:ExecutionRecord|null}`。生产者必须先缓冲该 tick 的全部决策，待 tick 结算完成后整批写出；不得先追加 `execution=null` 的行再原地改写 append-only 文件。取消/崩溃导致未结算的 tick 可以写 `execution=null`，但必须标记 `tickSettled=false`；不得补造执行记录。
 - `event-v1`：03 的事件，一行一事件。
 - `snapshot-v1`：一行一个完整权威快照及 hash。
+- `metrics-v1`：一行一个 tick 的全分辨率指标（与 `tick_stats` 同字段，可含 `eByClass`、跨层边、平均度等窗口所需字段）。用于 `metrics-only` 或 `statsStride>1` 但需要全分辨率窗口统计的运行；按 tick 单调写出，消费者校验连续性。
 - `final-state-v1`：最终状态与结构指纹。
 - `manifest-v1`：配置、版本、chunk 列表、配对种子、预算和完成状态。
 

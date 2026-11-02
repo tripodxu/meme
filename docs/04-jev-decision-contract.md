@@ -85,7 +85,7 @@ interface ExecutionRecord {
 - 使用紧凑英文 JSON 和英文完整选项描述；不依赖中文键名让模型推断含义。
 - state 只含决策相关字段，键集合固定，排除 API Key、run 写令牌、其他实验原始回答和无关人口全量。发给模型的 JSON 使用固定构造顺序以保证 prompt 稳定；`stateHash` 按 02 第 8 节对同一对象做 JCS 排序后计算，二者不得混用。字段增删或含义变化升级 `promptVersion`。
 - 每个数值附明确字段名/单位；比率用 `[0,1]`，剩余寿命和 classAge 用 days。
-- 最近事件最多 5 条，只保留类型、tick、关键数值；竞争目标最多 6 个。
+- 最近事件最多 5 条，只保留类型、tick、关键数值；竞争目标最多 `competition.candidateCount` 个。
 - `promptVersion` 随任何字段含义、选项描述、指令或排序语义变化而升级。
 
 ### 3.2 state 形状
@@ -119,11 +119,11 @@ interface ExecutionRecord {
 }
 ```
 
-`needRatio` 唯一定义为 `need===0 ? null : Value/need`，结果必须有限；最高/最低层不可用的 `costs.ascend/descend` 使用 `null`，该行动也不进入 legalActions。`recentEvents` 每项固定为 `{tick,type,actorId,targetId:null|string,deltaValue:null|number,fromClass:null|int,toClass:null|int}`，按 `(tick,seq)` 取最近 5 项，不保留自由文本。目标只暴露代码允许的信息，不临时增加全人口隐私视图。`state` 与 `recentEvents` 的正式 JSON Schema 由 P2-02 随 `promptVersion` 生成并冻结；`stateHash/actionSetHash` 按 02 第 8 节计算。
+`needRatio` 唯一定义为 `need===0 ? null : Value/need`，结果必须有限；最高/最低层不可用的 `costs.ascend/descend` 使用 `null`，该行动也不进入 legalActions。`costs` 是当前状态下实际应付的净额：已包含重返减免与开放度动态乘子；legalActions 的可用性与引擎扣费必须使用同一净额，不得让模型看到与结算不同的价格。`recentEvents` 每项固定为 `{tick,type,actorId,targetId:null|string,deltaValue:null|number,fromClass:null|int,toClass:null|int}`，按 `(tick,seq)` 取最近 5 项，不保留自由文本。目标只暴露代码允许的信息，不临时增加全人口隐私视图。`state` 与 `recentEvents` 的正式 JSON Schema 由 P2-02 随 `promptVersion` 生成并冻结；`stateHash/actionSetHash` 按 02 第 8 节计算。
 
 ### 3.3 System One 请求
 
-上游端点：`https://api.typesafe.ai/v1/systemone`。浏览器经同源 `POST /api/jev`，VPS 可直连。直连使用 `Authorization: Bearer <key>`；Worker 代理接收 `X-Api-Key` 并转成上游鉴权。
+上游端点：`https://api.typesafe.ai/v1/systemone`。浏览器经同源 `POST /api/jev`，VPS 可直连。直连使用 `Authorization: Bearer <key>`；Worker 代理接收 `X-Api-Key` 并转成上游鉴权。Worker 代理在 P4-08 交付；P2 的真实冒烟走 VPS 直连，不依赖 Worker。
 
 ```json
 {
