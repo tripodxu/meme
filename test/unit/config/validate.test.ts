@@ -94,6 +94,15 @@ describe('validateRunConfig', () => {
     expect(codesOf(config)).toContain(errorCodes.CONFIG_INVALID);
   });
 
+  it('enforces the openness.updateMode enum (P1-10)', () => {
+    const config = cloneConfig();
+    config['openness']['updateMode'] = 'sticky';
+    expect(codesOf(config)).toContain(errorCodes.CONFIG_INVALID);
+    const missing = cloneConfig();
+    delete missing['openness']['updateMode'];
+    expect(codesOf(missing)).toContain(errorCodes.CONFIG_INVALID);
+  });
+
   it('enforces class-array lengths against classCount', () => {
     const config = cloneConfig();
     config['population']['classShares'] = [0.5, 0.5];

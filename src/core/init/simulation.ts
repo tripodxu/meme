@@ -30,8 +30,9 @@ export function createSimulation(config: RunConfig, seed: Seed): SimState {
   for (const agent of population.agents) {
     aliveClassCounts[agent.classIndex] = (aliveClassCounts[agent.classIndex] ?? 0) + 1;
   }
+  // 配置校验保证 initialPopulation>=2，total 恒 >0。
   const total = population.agents.length;
-  const initialClassShares = aliveClassCounts.map((count) => (total === 0 ? 0 : count / total));
+  const initialClassShares = aliveClassCounts.map((count) => count / total);
 
   const sameClassEdges = population.sameClassEdgeCount;
   const society: SocietyState = {

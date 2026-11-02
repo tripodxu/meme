@@ -108,8 +108,12 @@ export interface DynamicsConfig {
   readonly polarizationMax: number;
 }
 
+/** O 更新模式（P1-10）：`dynamic` 为默认反馈；`fixed` 为 P6-04 消融开关。 */
+export type OpennessUpdateMode = 'dynamic' | 'fixed';
+
 export interface OpennessConfig {
   readonly initial: number;
+  readonly updateMode: OpennessUpdateMode;
   readonly timeConstantDays: number;
   readonly intercept: number;
   readonly mobilityWeight: number;
