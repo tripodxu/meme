@@ -80,7 +80,7 @@
 ## 7. 回放、导入与对比
 
 - 导入先读取 schema/version/hash，再校验配置和日志；未知主版本拒绝，不覆盖当前 run。
-- 回放控制与 live 共用视图，但显著标识 `jev_replay`，显示 `replay_invalid` 数。
+- 回放控制与 live 共用视图，但显著标识 `jev_replay`（重放 mock/random 日志时分别标 `mock_replay`/`random_replay`），显示 `replay_invalid` 数。
 - 对比页至少并排显示：配置差异、seed 是否配对、窗口、P/G/top10/Mup/Mdown/S/O、波动区间来源。
 - 微扰对比显示克隆检查点 hash 和唯一变更字段；若变更多于一项，不能标为单微扰。
 - 没有同策略配对波动区间时只显示“描述性差异”，不提供“结构显著改变”按钮/结论。

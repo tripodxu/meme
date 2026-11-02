@@ -219,4 +219,4 @@ Jev 对照至少含 `mock-weighted-v1`、`random-uniform-v1`、jev_live，固定
 - 稳定区扰动吸收结果；
 - 可一键重现的 manifest 和校验通过的 artifact。
 
-至少三组互不相同的结构指纹聚类通过后才完成规则 v3 校准；“三组预设”不等于“三类结构”，同一聚类下的三个预设不算通过。若只得到一种结构，先检查 `needMultiplier/needThreshold/env0/crossDays/decay` 是否被扫描，再调整反馈并重开 rules 版本；若每次不可归类，降低噪声/反馈或延长窗口，不将其包装成理想涌现。
+至少三类互不相同的结构指纹聚类通过后才完成规则 v3 校准；“三组预设”不等于“三类结构”，同一聚类下的三个预设不算通过。若只得到一种结构，先检查 `needMultiplier/needThreshold/env0/crossDays/decay` 是否被扫描，再调整反馈并重开 rules 版本；若每次不可归类，降低噪声/反馈或延长窗口，不将其包装成理想涌现。
