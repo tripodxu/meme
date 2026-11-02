@@ -16,6 +16,7 @@
 7. **批量规模**：扫描分 Stage A（40/200 人×730 tick×30 种子）与 Stage B（1000 人×3650 tick 仅确认）；确认 run 需全分辨率 metrics 或 `statsStride=1`。
 8. **artifact profile**：新增 `artifactProfile=full|metrics-only` 与 R2 `metrics-v1`；`metrics-only` 可省略 decisions/events，但 `replayable=false`，complete 按 profile 核对。
 9. **契约一致性**：统一参数简写/路径（03 §3 符号表），清掉正文中的 6/4/0.02/50% 等硬编码；固定结构判异 `C=5` 与窗口/分位；修正 guide 表格公式；明确 O 的 `lastOpennessUpdateTick`、Jev 成本净额与 stale 行动不占用目标。
+10. **待议决策**：`hardLifeFloor` 配置面、sigma 上界、聚类默认算法、P6 预算数字登记为 01 §12 的 D-01–D-04；未关闭前不得写成既定契约。
 
 ## 兼容性
 

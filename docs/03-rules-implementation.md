@@ -105,10 +105,10 @@
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 人口/阶级 | `initialPopulation` 为 `[2,10000]` 整数；`C` 为 `[2,8]` 整数；初始比例非负且 `abs(sum-1)<=1e-12`；initialValue>=0；`initialAgeMode` 为 `uniform                                                                      | newborn` |
 | 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                                            |
-| 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏）                                                              |
+| 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏；待议 D-02）                                                   |
 | 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算                                         |
 | 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`；`openness.updateMode` 为 `dynamic` 或 `fixed`                     |
-| 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支                                              |
+| 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支（配置面去留见待议 D-01）                     |
 | 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                              |
 | 竞争      | 三个 power 指数在 `[0,4]`；lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1） |
 | 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                                                                   |
@@ -152,7 +152,7 @@ R   = Number(u >> 11n) / 2^53
 - **Fisher–Yates**：数组先升序，i 从 n-1 降到 1，counter 从 0 递增，`j=floor(R(...,counter)×(i+1))` 并交换。
 - **加权抽样**：候选稳定排序，权重有限且 >=0；`r=R×sumWeight`，选择首个使 `r<cumulativeWeight` 的候选；sum=0 时视为无候选。每次选择只消费指定的一个地址，候选集更新后另用下一地址，不做无界拒绝。
 - **正态样本**：第 a 次尝试取 `u1=R(...,2a)`、`u2=R(...,2a+1)`，`z=sqrt(-2ln(max(u1,2^-53)))×cos(2πu2)`；不缓存第二个 Box–Muller 样本。sigma=0 直接取均值且不消费随机数。
-- **截断分布**：ge/hard/life 分别使用 `init_ge/init_hard/init_life`；每次拒绝后 a+=1，lognormal=`exp(sigma×z)`，正态=`mean+sigma×z`。每个属性独立计数，直到落入截断区间。拒绝采样必须有界：尝试次数上限是实现常量并进入 `NUMERIC_CONSTANTS`，超限立即抛 `invariant_violated` 并停止 run，不得无界循环或用 clamp 伪造样本；`sigma` 的配置上界保证合法配置的期望尝试次数有界。
+- **截断分布**：ge/hard/life 分别使用 `init_ge/init_hard/init_life`；每次拒绝后 a+=1，lognormal=`exp(sigma×z)`，正态=`mean+sigma×z`。每个属性独立计数，直到落入截断区间。拒绝采样必须有界：尝试次数上限是实现常量并进入 `NUMERIC_CONSTANTS`，超限立即抛 `invariant_violated` 并停止 run，不得无界循环或用 clamp 伪造样本；`sigma` 的配置上界保证合法配置的期望尝试次数有界。采样器方案与 sigma 上界待议 D-02：若改用逆 CDF，应同步放宽该上界。
 - **初始年龄**：每个体用 `init_age` 消费一次 `u_age=R(...,"init_age",0)`；`initialAgeMode=uniform` 时 `remainingLife=initialLife×(1-u_age)`，`newborn` 时 `remainingLife=initialLife`。两种模式都消费该地址，避免模式切换改变其他随机流。
 
 ### 4.3 初始化顺序与地址

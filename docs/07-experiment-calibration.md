@@ -73,6 +73,8 @@
 
 `artifactProfile` 取 `full|metrics-only`：`full` 保存完整事件/决策/快照，用于审计与回放证据；`metrics-only` 只保存配置、初始/最终快照、全分辨率 tick metrics 和聚合，用于大规模扫描筛选。两者都不得伪造缺失数据；`replayable=true` 仍要求初始快照加全部到期决策。
 
+`budgets` 的示例数字是占位值；真实 `maxRuns/maxWallMinutes/maxStorageBytes` 必须由 P1.5 基准冻结（待议 D-04），不得直接用于正式 P6 扫描。
+
 `labelThresholdsHash` 是对完整标签阈值表（含 `monotonicTolerance/modeTolerance` 与各条件）计算的语义 hash，domain 为 `stratify-label-thresholds-v1`（P1-02 注册并提供向量）；只记录 `labelThresholdVersion` 不足以防止阈值被静默修改。
 
 `preregistrationHash` 的权威口径：
@@ -193,7 +195,7 @@ D 只用于筛选。初始实际差异门槛（可在预注册时调整）：
 “结构聚类”不是标签计数。预注册必须固定以下内容；未固定即不得声称“三类结构”：
 
 - **特征向量**：窗口均值 `P[c]`、`G`、`top10`、`Mup`、`Mdown`、`S`、`O`（可选 `edgeCount`/平均度）；标准化方法固定（如 z-score，均值/方差来源固定），不得按结果挑特征。
-- **距离与算法**：默认建议 Ward 层次聚类 + Euclidean；允许改用其他方法，但必须预注册并说明理由。
+- **距离与算法**：默认建议 Ward 层次聚类 + Euclidean（待议 D-03，需科学负责人确认）；允许改用其他方法，但必须预注册并说明理由。
 - **k 与选择**：`k∈[2,5]`，用 gap statistic/轮廓系数与跨种子稳定性选择；不得运行后按结果改 k。
 - **稳定性**：按种子集随机二分重聚类，调整 Rand 指数 `>=0.70`；每个聚类至少包含 5 个 run（或预注册的最小值）。
 - **与标签的关系**：标签只作描述；三类结构按聚类计数，不按标签组合计数。聚类不稳定时报告“未形成可复现结构”，不得挑选有利种子。
