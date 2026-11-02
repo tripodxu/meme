@@ -89,6 +89,12 @@ describe('可寻址随机数 R(seed,tick,agentId,eventTag,counter)', () => {
     expect(r).toBe((2 ** 53 - 1) / 2 ** 53);
   });
 
+  it('摘要不足 8 字节时按 0 填充', () => {
+    const r = unitFromDigest(Uint8Array.from([0xff, 0x00]));
+    // 缺失字节按 0 填充：u = 0xFF00000000000000
+    expect(r).toBe(Number(0xff00000000000000n >> 11n) / 2 ** 53);
+  });
+
   it('createDraw 绑定地址上下文', () => {
     const draw = createDraw('s1', 3, 'a-0002');
     expect(draw(RNG_EVENT_TAGS.actionOrder, 0)).toBe(
