@@ -57,7 +57,12 @@ function serialize(value: unknown, path: string): string {
 
   const objectValue = value as object;
   if (Array.isArray(objectValue)) {
-    const parts = objectValue.map((item, index) => serialize(item, `${path}[${index}]`));
+    // 不能使用 Array.prototype.map：它会跳过稀疏数组的空洞，join 后产生 `[1,,3]`
+    // 这类非法 JSON。按下标读取可让空洞落入 undefined 分支并被拒绝。
+    const parts: string[] = [];
+    for (let index = 0; index < objectValue.length; index += 1) {
+      parts.push(serialize(objectValue[index], `${path}[${index}]`));
+    }
     return `[${parts.join(',')}]`;
   }
 

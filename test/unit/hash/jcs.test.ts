@@ -73,6 +73,14 @@ describe('RFC 8785 canonicalize', () => {
     expect(codeOf(() => canonicalize(new Uint8Array([1])))).toBe(errorCodes.HASH_NON_CANONICAL);
   });
 
+  it('rejects sparse arrays instead of emitting invalid JSON', () => {
+    const sparse = [1, 2, 3];
+    delete sparse[1];
+    expect(codeOf(() => canonicalize(sparse))).toBe(errorCodes.HASH_NON_CANONICAL);
+    expect(codeOf(() => canonicalize(new Array<number>(3)))).toBe(errorCodes.HASH_NON_CANONICAL);
+    expect(isJsonValue(sparse)).toBe(false);
+  });
+
   it('rejects lone surrogates but accepts paired surrogates', () => {
     expect(codeOf(() => canonicalize('\ud800'))).toBe(errorCodes.HASH_NON_CANONICAL);
     expect(codeOf(() => canonicalize('\udc00'))).toBe(errorCodes.HASH_NON_CANONICAL);
