@@ -11,6 +11,7 @@
 ## 一、 设计哲学与美学定调（Aesthetic Direction）
 
 ### 1.1 视觉定位：「精密计算社会学观测站（Sociology Observatory）」
+
 Stratify 前端不是消费级游戏动画，而是面向社会机制研究、涌现探测与可复现实验的**科学仪器级工作台**。设计融合 **Linear 的克制工业质感**、**ObservableHQ 的数据叙事清晰度** 与 **Bloomberg/Stripe 的高密度遥测布局**：
 
 - **深色科研基底 + 纸质出版亮色双主题**：
@@ -31,45 +32,47 @@ Stratify 前端不是消费级游戏动画，而是面向社会机制研究、�
 ### 2.1 核心色彩体系（Color Tokens）
 
 ```css
-:root, [data-theme="obsidian"] {
+:root,
+[data-theme='obsidian'] {
   /* 1. 背景与层级表面 (Surfaces) */
-  --bg-canvas:        #070A12; /* 全局底层画布 */
-  --bg-panel:         #0D1321; /* 标准卡片/面板底色 */
-  --bg-elevated:      #131C2E; /* 悬浮抽屉/模态框/表头 */
-  --bg-interactive:   #1A263D; /* 控件 Hover/Active 态 */
-  --bg-glass:         rgba(13, 19, 33, 0.82); /* 顶部命令栏毛玻璃 */
+  --bg-canvas: #070a12; /* 全局底层画布 */
+  --bg-panel: #0d1321; /* 标准卡片/面板底色 */
+  --bg-elevated: #131c2e; /* 悬浮抽屉/模态框/表头 */
+  --bg-interactive: #1a263d; /* 控件 Hover/Active 态 */
+  --bg-glass: rgba(13, 19, 33, 0.82); /* 顶部命令栏毛玻璃 */
 
   /* 2. 边框与分割线 (Hairline Borders) */
-  --border-subtle:    #1E293B; /* 1px 标准面板分割 */
-  --border-strong:    #334155; /* 激活态卡片边框 */
-  --border-focus:     #38BDF8; /* 键盘 Focus Ring (2px solid) */
+  --border-subtle: #1e293b; /* 1px 标准面板分割 */
+  --border-strong: #334155; /* 激活态卡片边框 */
+  --border-focus: #38bdf8; /* 键盘 Focus Ring (2px solid) */
 
   /* 3. 文本层级 (Typography Contrast >= WCAG AA 4.5:1) */
-  --text-primary:     #F1F5F9; /* 主标题与核心数值 */
-  --text-secondary:   #94A3B8; /* 字段标签与次要说明 */
-  --text-muted:       #64748B; /* 禁用态、历史暗淡线、单位后缀 */
+  --text-primary: #f1f5f9; /* 主标题与核心数值 */
+  --text-secondary: #94a3b8; /* 字段标签与次要说明 */
+  --text-muted: #64748b; /* 禁用态、历史暗淡线、单位后缀 */
 
   /* 4. 五阶级中性科学色板 + 双重编码符号 (5-Class Semantic Palette) */
-  --class-0-color:    #64748B; /* Class 0 (底层): Slate   | 符号: ○ 空心圆   | 线型: 点线 (dotted) */
-  --class-1-color:    #38BDF8; /* Class 1 (劳工): Sky     | 符号: △ 三角形   | 线型: 短虚线 (dashed) */
-  --class-2-color:    #2DD4BF; /* Class 2 (中坚): Teal    | 符号: □ 正方形   | 线型: 实线 (solid) */
-  --class-3-color:    #A78BFA; /* Class 3 (精英): Violet  | 符号: ◇ 菱形     | 线型: 长划点线 (dash-dot) */
-  --class-4-color:    #F59E0B; /* Class 4 (顶层): Amber   | 符号: ☆ 星形/六边 | 线型: 加粗双实线 */
+  --class-0-color: #64748b; /* Class 0 (底层): Slate   | 符号: ○ 空心圆   | 线型: 点线 (dotted) */
+  --class-1-color: #38bdf8; /* Class 1 (劳工): Sky     | 符号: △ 三角形   | 线型: 短虚线 (dashed) */
+  --class-2-color: #2dd4bf; /* Class 2 (中坚): Teal    | 符号: □ 正方形   | 线型: 实线 (solid) */
+  --class-3-color: #a78bfa; /* Class 3 (精英): Violet  | 符号: ◇ 菱形     | 线型: 长划点线 (dash-dot) */
+  --class-4-color: #f59e0b; /* Class 4 (顶层): Amber   | 符号: ☆ 星形/六边 | 线型: 加粗双实线 */
 
   /* 5. 行动与系统状态语义色 (Action & Status Tokens) */
-  --action-accumulate:#94A3B8; /* 日常积累: 冷灰 */
-  --action-ascend:    #38BDF8; /* 向上跨越: 天青蓝 (带 ▲ 图标) */
-  --action-descend:   #FB923C; /* 降阶/跌落: 琥珀橙 (带 ▼ 图标) */
-  --action-compete:   #C084FC; /* 竞争博弈: 紫晶色 (带 ⚔/⚡ 图标) */
+  --action-accumulate: #94a3b8; /* 日常积累: 冷灰 */
+  --action-ascend: #38bdf8; /* 向上跨越: 天青蓝 (带 ▲ 图标) */
+  --action-descend: #fb923c; /* 降阶/跌落: 琥珀橙 (带 ▼ 图标) */
+  --action-compete: #c084fc; /* 竞争博弈: 紫晶色 (带 ⚔/⚡ 图标) */
 
-  --status-ok:        #10B981; /* 已校准 / Verified / 运行就绪 */
-  --status-warn:      #F59E0B; /* 未校准预设 / 上传落后 / 接近预算上限 */
-  --status-danger:    #F43F5E; /* 不变量失败 / 预算耗尽 / 401/403 熔断 (必配 ⚠ 图标) */
-  --status-replay:    #6366F1; /* Replay 重放模式专属靛蓝标识 */
+  --status-ok: #10b981; /* 已校准 / Verified / 运行就绪 */
+  --status-warn: #f59e0b; /* 未校准预设 / 上传落后 / 接近预算上限 */
+  --status-danger: #f43f5e; /* 不变量失败 / 预算耗尽 / 401/403 熔断 (必配 ⚠ 图标) */
+  --status-replay: #6366f1; /* Replay 重放模式专属靛蓝标识 */
 }
 ```
 
 ### 2.2 字体排印与间距比例（Typography & Spacing）
+
 - **UI 正文字体（`--font-sans`）**：`'Inter', 'HarmonyOS Sans SC', 'PingFang SC', system-ui, sans-serif`
 - **数据/公式/哈希字体（`--font-mono`）**：`'JetBrains Mono', 'Fira Code', ui-monospace, monospace`
 - **字阶规范**：
@@ -113,20 +116,21 @@ flowchart TB
 ```
 
 ### 12 态 RunController 视觉反馈规范（严格对齐 `06 §4`）
+
 顶部指挥栏左侧设有动态状态信标，清晰区分全部 12 种运行状态，绝不混淆：
 
-| 状态枚举 | 视觉徽章样式 | 交互行为约束 |
-| :--- | :--- | :--- |
-| `未配置 (idle)` / `校验失败 (invalid)` | 灰/红边框胶囊 + 错误计数字标 | 禁用「开始/单步」按钮，点击徽章自动滚动至首个报错表单项。 |
-| `就绪 (ready)` | 翠绿实心点 + `就绪 (种子已派生)` | 允许开始、单步或修改配置。 |
-| `等待决策 (awaiting_decision)` | 天青呼吸脉冲环 + `等待 Jev (在途 3 / 完成 37 / 失败 0)` | **严禁把网络等待显示为 Tick 已结算**；支持随时点击「暂停/停止」触发 `AbortController`。 |
-| `结算中 (settling_tick)` | 高速旋转微图标 + `结算 Tick #t (Stage A→H)` | 正在纯核心内推进当前时间片。 |
-| `已暂停 (paused)` | 琥珀双竖线 + `已暂停 @ Tick #t` | 在途请求已 settled/aborted；可单步、Fork 微扰或导出快照。 |
-| `回放中 (replaying)` | 靛蓝胶片图标 + `重放模式: jev_replay (失效: 2)` | 锁定 live 请求通道，顶部横幅常驻显示重放来源。 |
-| `上传落后 (upload_lagging)` | 叠加琥珀云朵角标 `☁ 队列待传 3 块` | 不阻塞本地权威推进；若达本地缓存上限则自动暂停并提示。 |
-| `预算耗尽 (budget_exhausted)` | 玫瑰红锁图标 + `预算触顶停止` | 终态（映射 `failed`），保留全部已结算数据供导出，禁止伪装为正常完成。 |
-| `已取消 (cancelled)` / `失败 (failed)` | 红色警告三角 + 稳定错误码 + `[下载诊断包]` | 核心不变量失败时立即冻结画面并弹出诊断快照下载器。 |
-| `已完成 (completed)` | 翠绿勾选徽章 + `完成 (scheduled / extinct)` | 若 `finalAliveCount=0` 额外高亮 `[⚠ 全死亡：不可用于结构判异]`。 |
+| 状态枚举                               | 视觉徽章样式                                            | 交互行为约束                                                                            |
+| :------------------------------------- | :------------------------------------------------------ | :-------------------------------------------------------------------------------------- |
+| `未配置 (idle)` / `校验失败 (invalid)` | 灰/红边框胶囊 + 错误计数字标                            | 禁用「开始/单步」按钮，点击徽章自动滚动至首个报错表单项。                               |
+| `就绪 (ready)`                         | 翠绿实心点 + `就绪 (种子已派生)`                        | 允许开始、单步或修改配置。                                                              |
+| `等待决策 (awaiting_decision)`         | 天青呼吸脉冲环 + `等待 Jev (在途 3 / 完成 37 / 失败 0)` | **严禁把网络等待显示为 Tick 已结算**；支持随时点击「暂停/停止」触发 `AbortController`。 |
+| `结算中 (settling_tick)`               | 高速旋转微图标 + `结算 Tick #t (Stage A→H)`             | 正在纯核心内推进当前时间片。                                                            |
+| `已暂停 (paused)`                      | 琥珀双竖线 + `已暂停 @ Tick #t`                         | 在途请求已 settled/aborted；可单步、Fork 微扰或导出快照。                               |
+| `回放中 (replaying)`                   | 靛蓝胶片图标 + `重放模式: jev_replay (失效: 2)`         | 锁定 live 请求通道，顶部横幅常驻显示重放来源。                                          |
+| `上传落后 (upload_lagging)`            | 叠加琥珀云朵角标 `☁ 队列待传 3 块`                      | 不阻塞本地权威推进；若达本地缓存上限则自动暂停并提示。                                  |
+| `预算耗尽 (budget_exhausted)`          | 玫瑰红锁图标 + `预算触顶停止`                           | 终态（映射 `failed`），保留全部已结算数据供导出，禁止伪装为正常完成。                   |
+| `已取消 (cancelled)` / `失败 (failed)` | 红色警告三角 + 稳定错误码 + `[下载诊断包]`              | 核心不变量失败时立即冻结画面并弹出诊断快照下载器。                                      |
+| `已完成 (completed)`                   | 翠绿勾选徽章 + `完成 (scheduled / extinct)`             | 若 `finalAliveCount=0` 额外高亮 `[⚠ 全死亡：不可用于结构判异]`。                        |
 
 ---
 
@@ -159,6 +163,7 @@ flowchart LR
 ```
 
 #### 交互亮点与防呆设计：
+
 1. **参数公式实时微图（Inline Formula Sparklines）**：
    - 在调节 `FShape (1.2)`、`bufferDays (30)`、`needMultiplier ψ[c]` 或 `ge/hard` 分布参数时，表单旁内嵌一个 `140×48px` 的迷你 SVG 曲线，实时画出 $F(\text{hard})$ 饱和曲线、30 日缓冲爬坡折线与各阶级持有成本阶梯，让抽象数学参数一目了然。
 2. **「已校准」vs「自定义未校准」防篡改徽章**：
@@ -194,6 +199,7 @@ flowchart LR
 ```
 
 #### 核心图表专项视觉设计细节：
+
 1. **每个图表标配「三件套头部（Card Header Triad）」**：
    - 左上：**标题 + 数学符号 + 单位**（如 `调整后网络隔离度 S [-1, 1]`）。
    - 右上：**当前统计窗口标签**（如 `Window w2: Tick 1095–1824 日均值`） + **`[?]` 公式定义浮层** + **`[表/图]` 原始数据表切换按钮**（满足 `06 §5 & §10` 无障碍要求）。
@@ -269,7 +275,7 @@ flowchart LR
    - 展示当前运行在 IndexedDB 中的分块写入状态（`snapshots`, `decisions`, `events`, `tick_stats` 已落盘至第几块）。若环境禁用 IndexedDB，启动时顶部常驻琥珀色警告 `⚠ IndexedDB 不可用：刷新页面将丢失当前运行，请及时导出`。
 2. **本地与云端运行注册表（Run Registry Table）**：
    - 明确区分两类 ID 与生命周期（严格遵守 `05 §4.2 & 06 §8`）：
-     - `local-<ulid>`：显示 `仅本地 (离线 Mock/Replay)` 徽章，支持一键导出完整 `.ndjson.gz` 归档包或载入回放；当用户点击「上传至云端」时，弹出清晰说明：*“MVP 为防篡改不支持将离线本地结果直接采纳为服务器权威记录；可使用相同 `(config, seed)` 一键新建受控云端运行”*。
+     - `local-<ulid>`：显示 `仅本地 (离线 Mock/Replay)` 徽章，支持一键导出完整 `.ndjson.gz` 归档包或载入回放；当用户点击「上传至云端」时，弹出清晰说明：_“MVP 为防篡改不支持将离线本地结果直接采纳为服务器权威记录；可使用相同 `(config, seed)` 一键新建受控云端运行”_。
      - 云端 `runId`：区分 `上传中`、`上传完整 (uploaded)` 与 **`独立验证通过 (verified)`**（仅 `verified` 带有绿色权威盾牌）。
 
 ---
@@ -309,7 +315,9 @@ src/
 ```
 
 ### 5.2 非阻塞时间片调度器（Time-Sliced RunController）
+
 为确保 3650 Tick 连续运行在浏览器主线程中也绝不锁死 UI（`01 P3-01` & `06 §9`）：
+
 - `RunController` 使用基于帧预算（每帧最多占用 `10ms` 计算时间）的分片循环：
   ```ts
   async function runLoop(myGeneration: number) {
@@ -329,12 +337,13 @@ src/
         await idbStore.appendIfStride(simState);
       }
       publishViewModel(simState); // 每帧至多批量刷新一次 UI
-      await yieldToMainThread();  // MessageChannel / requestAnimationFrame 让出主线程
+      await yieldToMainThread(); // MessageChannel / requestAnimationFrame 让出主线程
     }
   }
   ```
 
 ### 5.3 大数据量渲染降采样与内存上界保护
+
 1. **LTTB（Largest-Triangle-Three-Buckets）可视像素降采样**：
    - 当运行至 `3650` 甚至 `10,000` Tick 时，时序图表根据容器实际像素宽度 $W$（如 `480px`）自动将历史点列通过 LTTB 算法降采样至 $\le W$ 个峰值保留点，不在 DOM/SVG 中挂载数千个节点；用户框选放大某一窗口（如 `365..1094`）时，再从原始缓存切片渲染高精度点。
 2. **有界事件环形缓冲区（Bounded Ring Buffer）**：

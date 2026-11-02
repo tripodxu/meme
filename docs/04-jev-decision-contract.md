@@ -9,19 +9,22 @@ Jev 不得计算或决定：Value、胜率、成本、阶级变更、寿命、�
 ## 2. Policy 统一输出
 
 ```ts
-type DecisionSource = 'mock' | 'random' | 'jev_live' | 'jev_replay' | 'mock_replay' | 'random_replay' | 'fallback';
+type DecisionSource =
+  'mock' | 'random' | 'jev_live' | 'jev_replay' | 'mock_replay' | 'random_replay' | 'fallback';
 
 interface DecisionRecord {
   schemaVersion: string;
-  runId: string;                  // 服务器 run 或 local-<ulid>；离线 run 不得伪装 server run
-  tick: number; agentId: string;
-  stateHash: string; actionSetHash: string;
+  runId: string; // 服务器 run 或 local-<ulid>；离线 run 不得伪装 server run
+  tick: number;
+  agentId: string;
+  stateHash: string;
+  actionSetHash: string;
   legalActions: string[];
   policyVersion: string;
   promptVersion: string | null;
   promptStyle: 'neutral' | 'survival_hint' | null;
   requestedAction: string | null; // 模型原始首选；mock/random为null
-  selectedAction: string;         // 决策层校验/topK/回退后的最终选择，核心仍可能stale_invalid
+  selectedAction: string; // 决策层校验/topK/回退后的最终选择，核心仍可能stale_invalid
   source: DecisionSource;
   probabilitySource: 'exact' | 'derived' | 'none';
   requestedModel: string | null;
@@ -33,7 +36,7 @@ interface DecisionRecord {
   latencyMs: number;
   attempts: number;
   fallbackReason: string | null;
-  rawResponse: unknown | null;   // live artifact；mock 可为 null
+  rawResponse: unknown | null; // live artifact；mock 可为 null
 }
 ```
 
@@ -59,12 +62,14 @@ interface DecisionRecord {
 ```ts
 interface ExecutionRecord {
   schemaVersion: string;
-  runId: string; tick: number; agentId: string;
+  runId: string;
+  tick: number;
+  agentId: string;
   selectedAction: string;
-  executedAction: string | null;      // 实际生效行动；未执行为 null
+  executedAction: string | null; // 实际生效行动；未执行为 null
   status: 'executed' | 'stale_invalid' | 'replay_invalid' | 'skipped_dead';
-  reason: string | null;              // 稳定码，如 target_taken/insufficient_value
-  eventSeq: number | null;            // 对应核心事件序号，便于回查账本
+  reason: string | null; // 稳定码，如 target_taken/insufficient_value
+  eventSeq: number | null; // 对应核心事件序号，便于回查账本
 }
 ```
 
@@ -109,9 +114,7 @@ interface ExecutionRecord {
     "classPopulationShares": [0.4, 0.32, 0.17, 0.09, 0.02]
   },
   "costs": { "ascend": 140.5, "descend": 28.0 },
-  "targets": [
-    { "id": "a-0008", "classIndex": 1, "value": 61.0, "isNeighbor": true }
-  ],
+  "targets": [{ "id": "a-0008", "classIndex": 1, "value": 61.0, "isNeighbor": true }],
   "recentEvents": []
 }
 ```
@@ -178,18 +181,18 @@ cancelled, replay_invalid, stale_invalid
 
 ## 6. 超时、重试、取消与熔断
 
-| 项 | 默认约束 |
-|---|---|
-| 单次请求超时 | 30s，可配置并进入 run manifest |
-| 全局尝试上限 | 每个到期决策全部 HTTP attempt 合计最多 4 次，混合错误也共享此计数 |
-| 网络/超时 | 分类最多 3 次；退避 0.5/1s，加由适配层注入且不消耗模拟 RNG 的抖动 |
-| 429/529 | 分类最多 4 次；无 Retry-After 时退避 1/2/4s |
-| Retry-After | 只接受整数秒；`0<=value<=20` 时按值等待，>20 或非法 HTTP-date 不等待重试，记 `retry_after_exceeded/invalid` 并回退 |
-| 其他 5xx | 分类最多 2 次，退避 0.5s；仍受全局 4 次限制 |
-| 400/401/403/404/422 | 不重试；401/403 立即暂停 live run 并提示 Key/权限问题 |
-| 取消 | AbortSignal 贯穿 fetch 和 sleep；已取消不再发新请求 |
-| 失败熔断 | 按请求完成顺序记录；最近 20 次 live 中 transport 失败>=10 或连续 transport 失败>=5，暂停 run |
-| 回退率闸门 | 最近 100 个到期决策回退率>20% 时标记实验无效并暂停，配置可更严格 |
+| 项                  | 默认约束                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 单次请求超时        | 30s，可配置并进入 run manifest                                                                                     |
+| 全局尝试上限        | 每个到期决策全部 HTTP attempt 合计最多 4 次，混合错误也共享此计数                                                  |
+| 网络/超时           | 分类最多 3 次；退避 0.5/1s，加由适配层注入且不消耗模拟 RNG 的抖动                                                  |
+| 429/529             | 分类最多 4 次；无 Retry-After 时退避 1/2/4s                                                                        |
+| Retry-After         | 只接受整数秒；`0<=value<=20` 时按值等待，>20 或非法 HTTP-date 不等待重试，记 `retry_after_exceeded/invalid` 并回退 |
+| 其他 5xx            | 分类最多 2 次，退避 0.5s；仍受全局 4 次限制                                                                        |
+| 400/401/403/404/422 | 不重试；401/403 立即暂停 live run 并提示 Key/权限问题                                                              |
+| 取消                | AbortSignal 贯穿 fetch 和 sleep；已取消不再发新请求                                                                |
+| 失败熔断            | 按请求完成顺序记录；最近 20 次 live 中 transport 失败>=10 或连续 transport 失败>=5，暂停 run                       |
+| 回退率闸门          | 最近 100 个到期决策回退率>20% 时标记实验无效并暂停，配置可更严格                                                   |
 
 transport 失败只含 timeout/network/429/529/5xx；invalid schema 计入模型质量回退但不计 transport 熔断，cancelled 不计任一失败窗口，401/403 走立即暂停。每次响应完成时追加窗口记录，并发开始顺序不影响熔断。
 

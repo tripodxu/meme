@@ -1,0 +1,139 @@
+{
+  "description": "每个语义 hash domain 的小型固定测试向量。更新必须人工审查，不得用环境变量一键接受。",
+  "canonicalization": "RFC 8785 (JCS) + SHA-256, domain 与 JCS 之间以一个 NUL 分隔",
+  "vectors": [
+    {
+      "domain": "stratify-config-v1",
+      "value": {
+        "schemaVersion": "stratify-config-v1",
+        "rulesVersion": "rules-v3",
+        "population": {
+          "initialPopulation": 40
+        }
+      },
+      "hash": "sha256:d947e2bdd1da9b7197c0a240cb081c0ea63d4c178b51263fa5c97f5acf1550d0"
+    },
+    {
+      "domain": "stratify-params-v1",
+      "value": [
+        {
+          "name": "need.threshold",
+          "unit": "share",
+          "value": 0.5
+        },
+        {
+          "name": "schedule.totalTicks",
+          "unit": "ticks",
+          "value": 3650
+        }
+      ],
+      "hash": "sha256:a49d8ba494377adef7ca44acae12a2ad32189c720d01bef9541aa9b0c346c375"
+    },
+    {
+      "domain": "stratify-initial-population-v1",
+      "value": {
+        "seed": "demo",
+        "agents": [
+          {
+            "id": "a-0001",
+            "classIndex": 0,
+            "value": 0
+          },
+          {
+            "id": "a-0002",
+            "classIndex": 1,
+            "value": 0
+          }
+        ],
+        "ties": []
+      },
+      "hash": "sha256:a37f70c8727a81542ded3fa2ac9df37af959c7f45ebe145394eecdf30d76a044"
+    },
+    {
+      "domain": "stratify-decision-state-v1",
+      "value": {
+        "tick": 10,
+        "agentId": "a-0001",
+        "classIndex": 0,
+        "value": 12.5,
+        "need": 10,
+        "legalActionCount": 2
+      },
+      "hash": "sha256:c946f4ab2f6c36f91e74b7b012ac16713e05ffc78d7ec5ca5409e74ca86c0aa8"
+    },
+    {
+      "domain": "stratify-action-set-v1",
+      "value": ["accumulate", "compete:a-0008", "ascend"],
+      "hash": "sha256:4cc5c902ed97b0d124156d9e8a3ab54a1ffec381d47e3b54cf996099638d4594"
+    },
+    {
+      "domain": "stratify-tick-row-v1",
+      "value": {
+        "tick": 10,
+        "alive": 40,
+        "gini": 0.25,
+        "totalValue": 600
+      },
+      "hash": "sha256:3d8062049319b9a4603c9c25241cb403ef994541276e8fce7c57464b0a8a0c83"
+    },
+    {
+      "domain": "stratify-agent-row-v1",
+      "value": {
+        "tick": 10,
+        "agentId": "a-0001",
+        "classIndex": 0,
+        "value": 12.5
+      },
+      "hash": "sha256:61ce3880cb7136fd64e5302e7f01a39ceda231680e0e78a2b8a8417cb3e19633"
+    },
+    {
+      "domain": "stratify-authoritative-state-v1",
+      "value": {
+        "tick": 10,
+        "seed": "demo",
+        "agents": [
+          {
+            "id": "a-0001",
+            "classIndex": 0,
+            "value": 12.5
+          }
+        ]
+      },
+      "hash": "sha256:07b7c2f73b000ab59ed8111d1585e7d3f76ba30a932ec1d32fd4d5cc72ed5d36"
+    },
+    {
+      "domain": "stratify-summary-v1",
+      "value": {
+        "runId": "run_01",
+        "ticks": 120,
+        "finalGini": 0.31,
+        "deadAgents": 2
+      },
+      "hash": "sha256:eb542ae996bc607928b602fff30db9591cb4ec379afa28496f0eb1f70e384281"
+    },
+    {
+      "domain": "stratify-artifact-manifest-v1",
+      "value": {
+        "runId": "run_01",
+        "chunks": [
+          {
+            "kind": "events",
+            "chunkId": "events-0-1000.jsonl",
+            "size": 1024
+          }
+        ]
+      },
+      "hash": "sha256:2acaf8a70dbaf3c7117bda99841ff9293224c2c09c0a9d14a511a3d1329c8a61"
+    },
+    {
+      "domain": "stratify-preregistration-v1",
+      "value": {
+        "hypothesis": "openness raises mobility",
+        "primaryMetric": "gini",
+        "seeds": ["s1", "s2"],
+        "baseConfigHash": "sha256:00"
+      },
+      "hash": "sha256:cdb5e4b38850c73e9f1a80da2cd9802af40c2dbc5076c95b16c036debe928328"
+    }
+  ]
+}

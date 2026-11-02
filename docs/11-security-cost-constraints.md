@@ -9,30 +9,30 @@
 
 ## 2. 秘密管理
 
-| 秘密 | 存储 | 禁止 |
-|---|---|---|
-| 浏览器 TypeSafe BYOK | 当前页面内存、请求 X-Api-Key | localStorage、D1/R2、日志、URL、导出 |
-| VPS TypeSafe Key | 权限600 env/秘密管理 | manifest、journal、checkpoint、命令行参数 |
-| RUNNER_TOKEN | Worker secret + VPS env | 前端 bundle、仓库、普通日志 |
-| run writeToken | 创建时返回一次；服务端只存 SHA-256；浏览器只存 sessionStorage | 数据库明文、localStorage、跨 run 复用、URL |
-| 备份凭据 | 独立秘密管理 | 与普通实验导出一起公开 |
+| 秘密                 | 存储                                                          | 禁止                                       |
+| -------------------- | ------------------------------------------------------------- | ------------------------------------------ |
+| 浏览器 TypeSafe BYOK | 当前页面内存、请求 X-Api-Key                                  | localStorage、D1/R2、日志、URL、导出       |
+| VPS TypeSafe Key     | 权限600 env/秘密管理                                          | manifest、journal、checkpoint、命令行参数  |
+| RUNNER_TOKEN         | Worker secret + VPS env                                       | 前端 bundle、仓库、普通日志                |
+| run writeToken       | 创建时返回一次；服务端只存 SHA-256；浏览器只存 sessionStorage | 数据库明文、localStorage、跨 run 复用、URL |
+| 备份凭据             | 独立秘密管理                                                  | 与普通实验导出一起公开                     |
 
 日志只记录 keySource、Key 指纹（如确需限流且使用不可逆 hash）和 token 前缀，不记录可还原值。秘密泄漏立即轮换并检查费用。
 
 ## 3. 威胁与控制
 
-| 威胁 | 强制控制 |
-|---|---|
+| 威胁                | 强制控制                                                                      |
+| ------------------- | ----------------------------------------------------------------------------- |
 | 开放 Jev 代理被盗用 | 固定上游、模型 allowlist、Key 必填、body/options 限制、IP+Key指纹和全局保险丝 |
-| SSRF/任意转发 | 不接受上游 URL 或自定义 headers；只转发白名单字段 |
-| 匿名 run/存储滥用 | IP 配额、总 ticks/agents/bytes 限制、保留清理、维护开关 |
-| 写令牌越权 | 每 run 独立、hash 存储、状态检查、constant-time 鉴权比较适用时使用 |
-| 批次重放/重复计费 | 主键+payloadHash 幂等；重试不生成新 run；Jev 请求重试有限且不重复 topK |
-| R2 路径穿越/覆盖 | chunkId 白名单、固定 key 模板、同键不同 hash 409 |
-| 大 body/zip bomb | body/chunk 硬限制；Worker 不为验证解压巨块；消费者限制行/块大小 |
-| XSS | rawResponse/state 只作为文本渲染，禁止 innerHTML；依赖最小化、CSP |
-| 数据损坏被标完成 | hash、manifest、计数、complete 校验、核心 invariant 即停 |
-| 供应链 | lockfile、依赖审查、更新测试、密钥扫描、CI 最小权限 |
+| SSRF/任意转发       | 不接受上游 URL 或自定义 headers；只转发白名单字段                             |
+| 匿名 run/存储滥用   | IP 配额、总 ticks/agents/bytes 限制、保留清理、维护开关                       |
+| 写令牌越权          | 每 run 独立、hash 存储、状态检查、constant-time 鉴权比较适用时使用            |
+| 批次重放/重复计费   | 主键+payloadHash 幂等；重试不生成新 run；Jev 请求重试有限且不重复 topK        |
+| R2 路径穿越/覆盖    | chunkId 白名单、固定 key 模板、同键不同 hash 409                              |
+| 大 body/zip bomb    | body/chunk 硬限制；Worker 不为验证解压巨块；消费者限制行/块大小               |
+| XSS                 | rawResponse/state 只作为文本渲染，禁止 innerHTML；依赖最小化、CSP             |
+| 数据损坏被标完成    | hash、manifest、计数、complete 校验、核心 invariant 即停                      |
+| 供应链              | lockfile、依赖审查、更新测试、密钥扫描、CI 最小权限                           |
 
 生产添加合理安全头：CSP、X-Content-Type-Options、Referrer-Policy、frame-ancestors 等；同源 API 不返回宽松 CORS credentials。静态资源与 API 错误不泄漏堆栈/env。
 

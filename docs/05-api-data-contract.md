@@ -109,24 +109,26 @@ statsTicks = {0<=t<totalTicks 且 t%statsStride==0} ∪ {totalTicks-1}
 
 ```json
 {
-  "ticks": [{
-    "tick": 0,
-    "aliveCount": 40,
-    "classCounts": [18,12,6,3,1],
-    "gini": 0.28,
-    "medianValue": 2,
-    "top10Share": 0.42,
-    "mUp": 0,
-    "mDown": 0,
-    "segregation": 0,
-    "edgeCount": 0,
-    "openness": 0.5,
-    "deathCount": 0,
-    "competitionLoss": 0,
-    "competitionGain": 0,
-    "fallbackRate": 0,
-    "payloadHash": "sha256:..."
-  }]
+  "ticks": [
+    {
+      "tick": 0,
+      "aliveCount": 40,
+      "classCounts": [18, 12, 6, 3, 1],
+      "gini": 0.28,
+      "medianValue": 2,
+      "top10Share": 0.42,
+      "mUp": 0,
+      "mDown": 0,
+      "segregation": 0,
+      "edgeCount": 0,
+      "openness": 0.5,
+      "deathCount": 0,
+      "competitionLoss": 0,
+      "competitionGain": 0,
+      "fallbackRate": 0,
+      "payloadHash": "sha256:..."
+    }
+  ]
 }
 ```
 
@@ -197,15 +199,15 @@ complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验
 
 实际 SQL 以 `migrations/0001_init.sql` 为准，至少包含：
 
-| 表 | 主键/关键索引 | 内容 |
-|---|---|---|
-| `runs` | `run_id`；`(created_at,run_id)`、`source/status` | 元数据、状态/endReason、完整 config JSON、版本/hash、responseModels、verificationStatus、write token hash、预算与完成摘要 |
-| `tick_stats` | `(run_id,tick)` | 聚合字段与 payloadHash |
-| `agent_final` | `(run_id,agent_id)` | 最终个体可查询字段 |
-| `experiments` | `experiment_id` | 扫描/消融/微扰定义、状态、创建者来源、预算 |
-| `experiment_runs` | `(experiment_id,run_id)`；唯一 `(experiment_id,cell_key,seed)` | 配对种子和参数单元归属 |
-| `artifacts` | `(run_id,kind,chunk_id)` | R2 清单、hash、范围、大小 |
-| `rate_limits` | `(bucket,window_start)` | 原子固定窗口计数 |
+| 表                | 主键/关键索引                                                  | 内容                                                                                                                      |
+| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `runs`            | `run_id`；`(created_at,run_id)`、`source/status`               | 元数据、状态/endReason、完整 config JSON、版本/hash、responseModels、verificationStatus、write token hash、预算与完成摘要 |
+| `tick_stats`      | `(run_id,tick)`                                                | 聚合字段与 payloadHash                                                                                                    |
+| `agent_final`     | `(run_id,agent_id)`                                            | 最终个体可查询字段                                                                                                        |
+| `experiments`     | `experiment_id`                                                | 扫描/消融/微扰定义、状态、创建者来源、预算                                                                                |
+| `experiment_runs` | `(experiment_id,run_id)`；唯一 `(experiment_id,cell_key,seed)` | 配对种子和参数单元归属                                                                                                    |
+| `artifacts`       | `(run_id,kind,chunk_id)`                                       | R2 清单、hash、范围、大小                                                                                                 |
+| `rate_limits`     | `(bucket,window_start)`                                        | 原子固定窗口计数                                                                                                          |
 
 约束：禁止 `agent_ticks`、`raw_decisions` 等每人每 tick D1 表；禁止无索引 LIKE 全表扫描；所有查询硬 LIMIT；迁移上线后只追加。
 

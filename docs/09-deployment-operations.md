@@ -4,11 +4,11 @@
 
 至少两套隔离资源：
 
-| 环境 | 用途 | 数据与密钥 |
-|---|---|---|
-| local | 单元、workerd、前端开发 | 本地 D1/R2，不使用生产密钥 |
-| preview | PR/发布前集成、真实小额冒烟 | 独立 D1/R2、独立 Runner token、低预算 Jev |
-| production | 正式网站和实验归档 | 独立 D1/R2、生产 Runner token、严格配额 |
+| 环境       | 用途                        | 数据与密钥                                |
+| ---------- | --------------------------- | ----------------------------------------- |
+| local      | 单元、workerd、前端开发     | 本地 D1/R2，不使用生产密钥                |
+| preview    | PR/发布前集成、真实小额冒烟 | 独立 D1/R2、独立 Runner token、低预算 Jev |
+| production | 正式网站和实验归档          | 独立 D1/R2、生产 Runner token、严格配额   |
 
 禁止 preview 与 production 共用数据库、bucket、writeToken 或 Runner token。所有命名、ID 和域名放 wrangler 环境配置，不写死源码。
 
@@ -170,12 +170,12 @@ JEV_CONCURRENCY=4
 
 ## 9. 监控与告警
 
-| 指标 | 需要告警的异常 |
-|---|---|
-| Worker | 5xx/CPU/内存、请求体超限、异常流量 |
-| D1/R2 | 写失败、存储增长、孤儿 artifact、备份失败 |
-| Jev | 401/429/5xx、延迟、回退率、token/成本突增 |
-| Runner | 反复重启、checkpoint 停滞、上传落后、预算接近上限 |
+| 指标     | 需要告警的异常                                         |
+| -------- | ------------------------------------------------------ |
+| Worker   | 5xx/CPU/内存、请求体超限、异常流量                     |
+| D1/R2    | 写失败、存储增长、孤儿 artifact、备份失败              |
+| Jev      | 401/429/5xx、延迟、回退率、token/成本突增              |
+| Runner   | 反复重启、checkpoint 停滞、上传落后、预算接近上限      |
 | 实验质量 | NaN/invariant failure、缺失 tick、异常全死亡、版本混杂 |
 
 告警含 runId/requestId/版本，不含 Key/writeToken/raw state。具体阈值经基线压测冻结；回退率>20% 和核心不变量失败可直接暂停正式实验。

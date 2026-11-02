@@ -18,13 +18,13 @@ VPS Batch CLI -> Same Pure Core + Same DecisionPolicy
 
 ## 2. 运行端职责
 
-| 运行端 | 负责 | 不负责 |
-|---|---|---|
-| 浏览器 | 交互、mock/live 小规模运行、可视化、回放、临时保存 | 大规模扫描、暴露服务端密钥、复制结算逻辑 |
-| Worker | 静态资源、同源 Jev 代理、认证、限流、D1/R2 I/O、导出 | 长循环仿真、海量事件入库、保存用户 BYOK |
-| D1 | run 元数据、聚合 tick、最终个体、实验和配额 | 原始决策全文、大事件流、周期快照blob |
-| R2 | gzip NDJSON 决策/事件/快照/最终状态分块 | 高频小范围关系查询 |
-| VPS | 批量并发、长时运行、检查点、配对实验、上传 | 绕过共享预算、另写一套规则 |
+| 运行端 | 负责                                                 | 不负责                                   |
+| ------ | ---------------------------------------------------- | ---------------------------------------- |
+| 浏览器 | 交互、mock/live 小规模运行、可视化、回放、临时保存   | 大规模扫描、暴露服务端密钥、复制结算逻辑 |
+| Worker | 静态资源、同源 Jev 代理、认证、限流、D1/R2 I/O、导出 | 长循环仿真、海量事件入库、保存用户 BYOK  |
+| D1     | run 元数据、聚合 tick、最终个体、实验和配额          | 原始决策全文、大事件流、周期快照blob     |
+| R2     | gzip NDJSON 决策/事件/快照/最终状态分块              | 高频小范围关系查询                       |
+| VPS    | 批量并发、长时运行、检查点、配对实验、上传           | 绕过共享预算、另写一套规则               |
 
 ## 3. 依赖方向
 
@@ -49,7 +49,7 @@ shared/contracts -> app, worker, runner
 **seed 的归属**：`seed` 不是 `RunConfig` 字段，不进入 `configHash`。它是 `createSimulation` 的独立入参，`(config, seed)` 共同决定初始人口、初始网络、初始年龄和全部可寻址随机流；`paramsHash` 也不含 seed。配对实验要求同一 seed 下配置可比，因此 cell 级 `fullConfigHash` 必须在所有 seed 间相同。
 
 ```ts
-function createSimulation(config: RunConfig, seed: Seed): SimState;   // 初始人口由 (config, seed) 纯函数派生
+function createSimulation(config: RunConfig, seed: Seed): SimState; // 初始人口由 (config, seed) 纯函数派生
 function deriveInitialPopulation(config: RunConfig, seed: Seed): InitialPopulation;
 
 interface SimulationEngine {
@@ -74,18 +74,18 @@ interface RandomSource {
 
 ## 5. RunController 状态机
 
-| 事件 | 前置状态 | 后置状态 | 副作用 |
-|---|---|---|---|
-| validate | idle | validating/ready | 校验成功冻结配置；失败回 idle 并显示字段错误 |
-| start/resume | ready/paused | running | 创建唯一推进循环 |
-| pause | running | paused | 停止新决策，abort/settle 在途请求 |
-| step | ready/paused | paused | 仅完成一个 tick，中间可等待决策 |
-| finish scheduled/extinct | running/paused | completed | 写最终状态与 endReason |
-| stop | running/paused | cancelling→cancelled | abort 在途并保存诊断 |
-| invariant/budget/auth failure | running/paused | failed | 保存 reason 和诊断，不得自动转 mock |
-| reset | 任意非空闲状态 | idle | generation+1，旧响应全部失效 |
-| start replay | ready/paused | replaying | 只读决策日志，禁止 live 请求 |
-| replay pause/resume/finish | replaying | paused/replaying/completed | 与 live 共用视图，不改来源标识 |
+| 事件                          | 前置状态       | 后置状态                   | 副作用                                       |
+| ----------------------------- | -------------- | -------------------------- | -------------------------------------------- |
+| validate                      | idle           | validating/ready           | 校验成功冻结配置；失败回 idle 并显示字段错误 |
+| start/resume                  | ready/paused   | running                    | 创建唯一推进循环                             |
+| pause                         | running        | paused                     | 停止新决策，abort/settle 在途请求            |
+| step                          | ready/paused   | paused                     | 仅完成一个 tick，中间可等待决策              |
+| finish scheduled/extinct      | running/paused | completed                  | 写最终状态与 endReason                       |
+| stop                          | running/paused | cancelling→cancelled       | abort 在途并保存诊断                         |
+| invariant/budget/auth failure | running/paused | failed                     | 保存 reason 和诊断，不得自动转 mock          |
+| reset                         | 任意非空闲状态 | idle                       | generation+1，旧响应全部失效                 |
+| start replay                  | ready/paused   | replaying                  | 只读决策日志，禁止 live 请求                 |
+| replay pause/resume/finish    | replaying      | paused/replaying/completed | 与 live 共用视图，不改来源标识               |
 
 `uploadLagging` 是 running/paused/completed 可叠加的持久化标志，不是核心状态；`budget_exhausted` 映射 failed 并保留独立 reason。`cancelling` 完成前不得启动新 run。
 
@@ -167,14 +167,14 @@ paramsHash, initialPopulationHash, codeSha
 
 ## 11. 故障边界
 
-| 故障 | 系统行为 |
-|---|---|
-| 单个 Jev 失败 | 有限重试；按契约回退并记录，达到失败率阈值后暂停/失败 |
-| 非法模型行动 | 不执行，回退 accumulate，保留候选和原因 |
-| 上传失败 | 本地继续到安全上限或暂停；指数重试；不得重复完成 run |
-| 本地快照损坏 | 使用上一完整点，记录丢失区间并重跑 |
-| 配置/日志版本不兼容 | 拒绝导入，保留原文件，不自动改写成未知语义 |
-| 核心不变量失败 | 立即终止 run，保存诊断快照；禁止 clamp 后假装正常 |
+| 故障                | 系统行为                                              |
+| ------------------- | ----------------------------------------------------- |
+| 单个 Jev 失败       | 有限重试；按契约回退并记录，达到失败率阈值后暂停/失败 |
+| 非法模型行动        | 不执行，回退 accumulate，保留候选和原因               |
+| 上传失败            | 本地继续到安全上限或暂停；指数重试；不得重复完成 run  |
+| 本地快照损坏        | 使用上一完整点，记录丢失区间并重跑                    |
+| 配置/日志版本不兼容 | 拒绝导入，保留原文件，不自动改写成未知语义            |
+| 核心不变量失败      | 立即终止 run，保存诊断快照；禁止 clamp 后假装正常     |
 
 ## 12. 架构变更触发 ADR 的情况
 
