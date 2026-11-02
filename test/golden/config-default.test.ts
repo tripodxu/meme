@@ -11,7 +11,6 @@ import {
 } from '../../src/core/config/hash.js';
 import type { RunConfig } from '../../src/core/config/types.js';
 import { validateRunConfig } from '../../src/core/config/validate.js';
-import { canonicalize } from '../../src/core/hash/jcs.js';
 import { HASH_DOMAINS } from '../../src/core/hash/domains.js';
 import { hashValue } from '../../src/core/hash/hash.js';
 
@@ -31,8 +30,12 @@ const fixture = readJson('../fixtures/config/default-rules-v3.json');
 const golden = readJson('../fixtures/config/default-rules-v3.hashes.json') as GoldenHashes;
 
 describe('golden: rules-v3 default config', () => {
-  it('round-trips the checked-in fixture without losing fields', () => {
-    expect(canonicalize(fixture)).toBe(canonicalize(JSON.parse(JSON.stringify(fixture))));
+  it('round-trips the fixture through validation and JSON without changing the hash', () => {
+    expect(validateRunConfig(fixture).ok).toBe(true);
+    const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
+    expect(validateRunConfig(roundTripped).ok).toBe(true);
+    expect(computeConfigHash(roundTripped as RunConfig)).toBe(golden.configHash);
+    expect(computeParamsHash(roundTripped as RunConfig)).toBe(golden.paramsHash);
   });
 
   it('validates the fixture', () => {

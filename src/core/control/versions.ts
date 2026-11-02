@@ -6,7 +6,6 @@
  */
 export const RULES_VERSION = 'rules-v3' as const;
 export const ENGINE_VERSION = 'engine-v0.0.0' as const;
-export const SCHEMA_VERSION = 'schema-v1' as const;
 export const DECISION_SCHEMA_VERSION = 'stratify-decision-v1' as const;
 export const CONFIG_SCHEMA_VERSION = 'stratify-config-v1' as const;
 export const PARAMS_SCHEMA_VERSION = 'stratify-params-v1' as const;
@@ -15,4 +14,3 @@ export const PREREGISTRATION_SCHEMA_VERSION = 'stratify-preregistration-v1' as c
 
 export type RulesVersion = typeof RULES_VERSION;
 export type EngineVersion = typeof ENGINE_VERSION;
-export type SchemaVersion = typeof SCHEMA_VERSION;
