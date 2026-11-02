@@ -1,0 +1,25 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# WorkBuddy local project data
+.workbuddy/
+
+# Node / TypeScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Cloudflare / local dev
+.wrangler/
+.dev.vars
+.env
+.env.*
+
+# Logs / local artifacts
+*.log
+tmp/
+.tmp/
