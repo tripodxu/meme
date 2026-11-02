@@ -813,6 +813,17 @@ export const NUMERIC_CONSTANTS: readonly NumericConstant[] = [
     value: 1e-12,
     reason: '跨字段关系约束（如 hardLifeFloor 上界）比较时允许的浮点误差。',
   },
+  {
+    name: 'TWO_PI',
+    value: 2 * Math.PI,
+    reason: 'Box–Muller 正态抽样的角度参数（03 §4.2）。',
+  },
+  {
+    name: 'REJECTION_ATTEMPT_LIMIT',
+    value: 10000,
+    reason:
+      '截断分布拒绝抽样的尝试次数上限（03 §4.2）；sigma 合法域保证期望尝试次数有界，超限抛 invariant_violated。',
+  },
 ];
 
 const definitionByName = new Map<string, ParamDefinition>(
