@@ -37,7 +37,7 @@ export function deriveInitialPopulation(config: RunConfig, seed: Seed): InitialP
   // 步骤 1：按 classIndex 排序的多重集合，再洗牌（步骤 2）。
   const classMultiset: number[] = [];
   for (let classIndex = 0; classIndex < classCount; classIndex += 1) {
-    const count = counts[classIndex] ?? 0;
+    const count = counts[classIndex] as number;
     for (let i = 0; i < count; i += 1) {
       classMultiset.push(classIndex);
     }
@@ -135,7 +135,7 @@ function buildInitialNetwork(config: RunConfig, seed: Seed, agents: AgentState[]
   for (const agent of agents) {
     const draw = createDraw(seed, RNG_INIT_TICK, agent.id);
     let counter = 0;
-    while ((degrees.get(agent.id) ?? 0) < degreeTarget) {
+    while ((degrees.get(agent.id) as number) < degreeTarget) {
       // 两遍流式加权抽样：先求和，再按累计权重选择（候选按 agentId 升序）。
       let totalWeight = 0;
       for (const candidate of agents) {
@@ -143,7 +143,7 @@ function buildInitialNetwork(config: RunConfig, seed: Seed, agents: AgentState[]
           continue;
         }
         const diff = Math.abs(agent.classIndex - candidate.classIndex);
-        totalWeight += weightByClassDiff.get(diff) ?? 0;
+        totalWeight += weightByClassDiff.get(diff) as number;
       }
       if (totalWeight <= 0) {
         break;
@@ -157,7 +157,7 @@ function buildInitialNetwork(config: RunConfig, seed: Seed, agents: AgentState[]
           continue;
         }
         const diff = Math.abs(agent.classIndex - candidate.classIndex);
-        cumulative += weightByClassDiff.get(diff) ?? 0;
+        cumulative += weightByClassDiff.get(diff) as number;
         if (target < cumulative) {
           chosen = candidate;
           break;
@@ -166,10 +166,10 @@ function buildInitialNetwork(config: RunConfig, seed: Seed, agents: AgentState[]
       if (chosen === undefined) {
         break;
       }
-      neighborSets.get(agent.id)?.add(chosen.id);
-      neighborSets.get(chosen.id)?.add(agent.id);
-      degrees.set(agent.id, (degrees.get(agent.id) ?? 0) + 1);
-      degrees.set(chosen.id, (degrees.get(chosen.id) ?? 0) + 1);
+      (neighborSets.get(agent.id) as Set<string>).add(chosen.id);
+      (neighborSets.get(chosen.id) as Set<string>).add(agent.id);
+      degrees.set(agent.id, (degrees.get(agent.id) as number) + 1);
+      degrees.set(chosen.id, (degrees.get(chosen.id) as number) + 1);
       edges.push(
         agent.id < chosen.id ? { a: agent.id, b: chosen.id } : { a: chosen.id, b: agent.id },
       );
@@ -199,8 +199,8 @@ function isCandidate(
   if (other.id === self.id || !other.alive) {
     return false;
   }
-  if (neighborSets.get(self.id)?.has(other.id)) {
+  if ((neighborSets.get(self.id) as Set<string>).has(other.id)) {
     return false;
   }
-  return (degrees.get(other.id) ?? 0) < maxDegree;
+  return (degrees.get(other.id) as number) < maxDegree;
 }

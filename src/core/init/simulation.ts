@@ -28,7 +28,9 @@ export function createSimulation(config: RunConfig, seed: Seed): SimState {
   const classCount = validConfig.population.classCount;
   const aliveClassCounts = new Array<number>(classCount).fill(0);
   for (const agent of population.agents) {
-    aliveClassCounts[agent.classIndex] = (aliveClassCounts[agent.classIndex] ?? 0) + 1;
+    // classIndex < C 由初始化构造保证。
+    const slot = agent.classIndex as number;
+    aliveClassCounts[slot] = (aliveClassCounts[slot] as number) + 1;
   }
   // 配置校验保证 initialPopulation>=2，total 恒 >0。
   const total = population.agents.length;

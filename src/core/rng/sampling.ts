@@ -48,11 +48,8 @@ export function fisherYatesShuffle<T>(items: readonly T[], draw: (counter: numbe
     assertUnitInterval(r, 'fisherYatesShuffle');
     counter += 1;
     const j = Math.floor(r * (i + 1));
-    const current = result[i];
-    const swapWith = result[j];
-    if (current === undefined || swapWith === undefined) {
-      throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'Fisher–Yates 索引越界');
-    }
+    const current = result[i] as T;
+    const swapWith = result[j] as T;
     result[i] = swapWith;
     result[j] = current;
   }

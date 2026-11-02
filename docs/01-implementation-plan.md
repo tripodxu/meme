@@ -58,6 +58,8 @@ docs/              本施工文档与 adr/
 
 **闸门 G1**：机制规则（1–25、30–45）有逐条测试，元规则（26–29、46–59）有对应的实验/验收任务；同输入最终哈希一致；无 `Math.random()`、I/O 或 wall clock；至少 10,000 tick soak 无 NaN/Infinity/负财富。
 
+**P1 完成记录（2026-11-03）**：P1-01–P1-10 已实现并通过本地门禁（`typecheck/typecheck:core/lint/format/test:coverage/build/check:docs`，350 个测试，核心覆盖率 statements 98.4%/branches 96.4%）。交付物：可寻址 RNG 与标准抽样（`src/core/rng`）、`(config,seed)` 初始化派生含初始网络（`src/core/init`）、`stratify-state-v1` 序列化与导入边界校验、`initialPopulationHash/authoritativeStateHash/labelThresholdsHash` 与 12 个 domain 的字段级 schema、合法行动枚举与 mock/random 策略（`src/core/legal-actions.ts`、`src/decision`）、A→H 固定管线与事件/执行记录（`src/core/engine`）、网络重构（`src/core/network`）、宏观指标与慢变量（`src/core/macros`、`src/core/feedback`）、快照/恢复/决策日志回放/微扰克隆（`src/core/replay`）、`openness.updateMode` 消融开关、10,000 tick soak 与性质测试（fast-check）、40/200/1000 人基准（`scripts/benchmark.mjs`，结果见 `docs/benchmarks/`）。golden fixture：40 人默认 mock tick 0/1/10/120/400 状态哈希与指标、uniform/newborn 3650 tick 死亡率对照（0.10 / 0）。机制规则 1–25、30–45 逐条测试；元规则 26–29、46–59 对应 P1.5/P6 实验任务。以下事项按计划推迟：`workerd/Chromium` 运行时哈希校验（P4 集成时补）、大规模参数接线对照（P1.5/P6）。
+
 ## 4.5 P1.5：涌现可达性预研（新增，阻断 P2–P6）
 
 > 目的：在接模型、UI 和云之前，先回答“当前规则能否产生多于一种可归类结构”。这不是完整校准，而是 go/no-go 闸门。
