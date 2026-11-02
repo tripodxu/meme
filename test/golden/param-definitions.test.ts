@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { PARAM_DEFINITIONS } from '../../src/core/params.js';
 
 interface ParamSnapshot {
+  readonly schemaVersion: string;
   readonly definitions: readonly unknown[];
 }
 
@@ -30,6 +31,10 @@ function projectDefinitions(): unknown[] {
 }
 
 describe('golden: parameter registry contract', () => {
+  it('declares the params schema version', () => {
+    expect(fixture.schemaVersion).toBe('stratify-params-v1');
+  });
+
   it('matches the frozen definition snapshot', () => {
     expect(projectDefinitions()).toEqual(fixture.definitions);
   });

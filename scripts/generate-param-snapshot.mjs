@@ -19,7 +19,9 @@ const definitions = PARAM_DEFINITIONS.map(
 );
 
 const snapshot = {
+  schemaVersion: 'stratify-params-v1',
   description: '参数注册表契约快照；任何变更必须人工审查并同步 03 与 golden 测试。',
+  source: 'scripts/generate-param-snapshot.mjs（读取 src/core/params.ts 的构建产物）',
   definitions,
 };
 

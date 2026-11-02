@@ -28,6 +28,6 @@
 
 ## 验证与文档
 
-- 本地：`format`、`lint`、`typecheck`、`typecheck:core`、`build`、`check:docs`、`test:coverage`、`test:integration`、`test:e2e` 通过；159 个测试，statements 98.36%、branches 96.68%。
+- 本地：`format`、`lint`、`typecheck`、`typecheck:core`、`build`、`check:docs`、`test:coverage`、`test:integration`、`test:e2e` 通过；160 个测试，statements 98.36%、branches 96.68%。
 - 同步文档：[03 规则实现](../03-rules-implementation.md)、[04 Jev 契约](../04-jev-decision-contract.md)、[05 API 契约](../05-api-data-contract.md)、[07 实验校准](../07-experiment-calibration.md)、[08 测试门禁](../08-testing-quality.md)、[10 工程约定](../10-engineering-conventions.md)、[12 交接清单](../12-handoff-checklists.md)。
 - 新增 golden：`test/fixtures/config/param-definitions.json` 与 `test/golden/param-definitions.test.ts`；生成命令 `pnpm params:snapshot`，更新须人工审查 diff。
