@@ -74,7 +74,7 @@ flowchart LR
 
 | 阶段                                         | 核心目标                                            | 关键任务编号与交付物                                                                                                                                                                                                                                                                                                                                                                                              | 阻断闸门（Gate）验收标准                                                                                                                         |
 | :------------------------------------------- | :-------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **P0**<br>规格冻结与骨架                     | 工程脚手架、Schema、9 域哈希、参数注册表            | - `P0-01`: Node >=22.18 + pnpm + TS strict + Vitest + fast-check<br>- `P0-02`: `RunConfig/RunIdentity`、RFC 8785 (JCS) 哈希向量<br>- `P0-03`: 配置与导入文件路径化 Schema 校验<br>- `P0-04/05`: 59 条规则映射清单、ADR 与 fixture 规范<br>- `P0-06`: `ParameterRegistry` 与全参数接线测试                                                                                                                         | **G0**：配置 fixture 可 round-trip；`paramsHash` 入 golden；所有业务常数零裸字面量；CI 空核心全绿。                                              |
+| **P0**<br>规格冻结与骨架                     | 工程脚手架、配置校验、11 个 hash domain、参数注册表 | - `P0-01`: Node >=22.18 + pnpm + TS strict + Vitest + fast-check<br>- `P0-02`: `RunConfig/RunIdentity`、RFC 8785 (JCS) 哈希向量<br>- `P0-03`: 配置与导入文件路径化 Schema 校验<br>- `P0-04/05`: 59 条规则映射清单、ADR 与 fixture 规范<br>- `P0-06`: `ParameterRegistry` 与全参数接线测试                                                                                                                         | **G0**：配置 fixture 可 round-trip；`paramsHash` 入 golden；所有业务常数零裸字面量；CI 空核心全绿。                                              |
 | **P1**<br>确定性规则核心                     | 可寻址 RNG、8 阶段结算、快照、微扰克隆              | - `P1-01`: SHA-256 长度前缀 RNG 与截断分布抽样<br>- `P1-02`: `AgentState/SocietyState` 与规范化哈希<br>- `P1-03`: 合法行动枚举（`accumulate<ascend<descend<compete`）与 `mock/random`<br>- `P1-04`: 积累、`needMultiplier` 历史积分、升降、跌落、竞争、寿命<br>- `P1-05/06`: 加权网络初始化/重构、动态 `E/O`、双侧 `S`、365日 `Mup/Mdown`<br>- `P1-07/08/09`: A→H 固定管线、快照恢复、微扰克隆、40/200/1000人基准 | **G1**：机制规则（1–25, 30–45）逐条单测通过；同输入最终状态哈希 100% 一致；10,000 tick soak 零 `NaN/Infinity/负财富`。                           |
 | **P1.5**<br>涌现可达性预研<br>_(新增阻断层)_ | 验证规则能否产生多于一种可归类社会结构              | - `P1.5-01`: Headless CLI 跑 40/200/1000 人 × 3650 tick × 30 配对种子<br>- `P1.5-02`: 均值场/不动点分析（验证顶层拥挤时 $E$ 可低于中层，及 $P_0[c]=0$ 语义）<br>- `P1.5-03`: 6 类结构标签在参数网格上的可达性矩阵<br>- `P1.5-04`: 冻结 `preregistrationHash` 与 Kill Criteria                                                                                                                                     | **G1.5 (阻断 P2–P6)**：至少出现 **2 类**可复现且非全死/空网的结构聚类；若 3 参数格×30 种子仅得 ≤1 类结构，立即停止后续开发并回改规则。           |
 | **P2**<br>Jev 决策层                         | System One Choice 协议、限流重试、预算熔断、重放    | - `P2-01/02`: `DecisionPolicy` 接口、紧凑英文 state 与 `promptStyle` (`neutral/survival_hint`)<br>- `P2-03/04`: TypeSafe 客户端、全局 4 次/分类重试、Abort、transport 熔断<br>- `P2-05`: `BudgetManager` 每次 HTTP attempt 原子预留与核销、20% 回退率闸门<br>- `P2-06/07`: `DecisionRecord` + `ExecutionRecord` 分离、Worker `/api/jev` 同源代理                                                                  | **G2**：故障注入覆盖超时/401/403/429/529/5xx/非法 JSON/过期状态；预算与取消严格生效；低成本 live 冒烟通过。                                      |
@@ -100,7 +100,7 @@ flowchart LR
    - 演示对照 `newborn`：**同样消费一次 `"init_age"` 地址**，但设置 `remainingLife = initialLife`，确保切换模式不污染后续任何随机流。
 3. **365 日流动参与率 $M\_{\text{up}} / M\_{\text{down}}$（消除随人口规模 $N$ 漂移与单次事件饱和）**：
    - 严禁使用“单日事件数 × 365 再取 EMA”。
-   - 唯一定义为：`Mup = count(alive && lastAscentTick != null && lastAscentTick >= t - MupWindowDays + 1) / max(aliveCount, 1)`（默认 `MupWindowDays = 365`，`t < 365` 时窗口从 0 起算）；`Mdown` 同法统计 `lastDescentTick`（含被动跌落与主动降阶）。
+   - 唯一定义为：`Mup = count(alive && lastAscentTick != null && lastAscentTick >= t - metrics.mobilityWindowDays + 1) / max(aliveCount, 1)`（默认 `metrics.mobilityWindowDays = 365`，`t < 365` 时窗口从 0 起算）；`Mdown` 同法统计 `lastDescentTick`（含被动跌落与主动降阶）。
 4. **双侧归一化网络隔离度 $S \in [-1, 1]$（消除阶级分布集中带来的伪高隔离）**：
    - 设存活网络无向边数为 `edgeCount`，同阶级边占比为 `sameShare = edgeCount == 0 ? 0 : sameClassEdges / edgeCount`，随机混合期望同层占比为 `expectedShare = Σ P[c]²`：
      $$S = \begin{cases} 0, & \text{edgeCount} = 0 \text{ (同时标记 edgeCount=0)} \\ 1, & \text{expectedShare} \ge 1 \\ \dfrac{\text{sameShare} - \text{expectedShare}}{1 - \text{expectedShare}}, & \text{sameShare} \ge \text{expectedShare} \\ \dfrac{\text{sameShare} - \text{expectedShare}}{\text{expectedShare}}, & \text{sameShare} < \text{expectedShare} \end{cases}$$
@@ -167,7 +167,7 @@ flowchart TB
 
 ## 五、 系统核心契约汇总（Contracts & Schemas）
 
-### 5.1 Canonical JSON 与九大语义哈希契约（RFC 8785 JCS）
+### 5.1 Canonical JSON 与九类语义哈希（11 个 domain，RFC 8785 JCS）
 
 所有语义哈希统一采用 `hash(domain, value) = "sha256:" + hex(SHA-256(UTF-8(domain + "\0" + JCS(value))))`：
 
@@ -202,7 +202,7 @@ export type DecisionSource =
   'mock' | 'random' | 'jev_live' | 'jev_replay' | 'mock_replay' | 'random_replay' | 'fallback';
 
 export interface DecisionRecord {
-  schemaVersion: 'decision-v1';
+  schemaVersion: 'stratify-decision-v1';
   runId: string; // 云端 runId 或本地 "local-<ulid>"
   tick: number;
   agentId: string;

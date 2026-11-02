@@ -119,7 +119,7 @@ interface ExecutionRecord {
 }
 ```
 
-`needRatio` 唯一定义为 `need===0 ? null : Value/need`，结果必须有限；最高/最低层不可用的 `costs.ascend/descend` 使用 `null`，该行动也不进入 legalActions。`recentEvents` 每项固定为 `{tick,type,actorId,targetId:null|string,deltaValue:null|number,fromClass:null|int,toClass:null|int}`，按 `(tick,seq)` 取最近 5 项，不保留自由文本。目标只暴露代码允许的信息，不临时增加全人口隐私视图。P0 为 state 和 recentEvents 生成正式 JSON Schema；`stateHash/actionSetHash` 按 02 第 8 节计算。
+`needRatio` 唯一定义为 `need===0 ? null : Value/need`，结果必须有限；最高/最低层不可用的 `costs.ascend/descend` 使用 `null`，该行动也不进入 legalActions。`recentEvents` 每项固定为 `{tick,type,actorId,targetId:null|string,deltaValue:null|number,fromClass:null|int,toClass:null|int}`，按 `(tick,seq)` 取最近 5 项，不保留自由文本。目标只暴露代码允许的信息，不临时增加全人口隐私视图。`state` 与 `recentEvents` 的正式 JSON Schema 由 P2-02 随 `promptVersion` 生成并冻结；`stateHash/actionSetHash` 按 02 第 8 节计算。
 
 ### 3.3 System One 请求
 

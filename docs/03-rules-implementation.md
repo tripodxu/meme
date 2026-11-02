@@ -74,7 +74,7 @@
 | 拥挤/分化    | Congestion 截断 `[congestionMin,congestionMax]=[0.20,1.20]`，Polarization 截断 `[polarizationMin,polarizationMax]=[0.85,1.18]`                     |
 | 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=8`、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`λO=2`                                                                |
 | 跨越动态乘子 | 截断 `[0.50,2.50]`                                                                                                                                 |
-| 流动率       | 365 日参与率窗口 `MupWindowDays=365`；`Mup/Mdown` 不使用 EMA、不按日频截断                                                                         |
+| 流动率       | 365 日参与率窗口 `metrics.mobilityWindowDays=365`；`Mup/Mdown` 不使用 EMA、不按日频截断                                                            |
 | 转移矩阵     | `flowWindowDays=365`；窗口内累计阶级转移计数与行暴露量                                                                                             |
 
 ### 3.1 合法配置域
@@ -90,7 +90,7 @@
 | 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                              |
 | 竞争      | 三个 power 指数在 `[0,4]`；lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1） |
 | 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                                                                   |
-| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/flowWindowDays/MupWindowDays>=1 整数；statsStride<=totalTicks                                                                                                              |
+| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/flowWindowDays/metrics.mobilityWindowDays>=1 整数；statsStride<=totalTicks                                                                                                 |
 
 MVP 不允许负 decay，因此寿命不会因阶级而反向增加；`rule.md` 中“可能为负”留作未来规则版本。除表中显式允许 0 的参数外，不得用“正参数”笼统推断范围。所有 schema-valid 配置必须满足收益不超过损失等核心不变量；运行端可进一步限制人口/预算，但不得放宽数学合法域。`totalTicks/statsStride/snapshotStride` 属于 RunConfig 并被 `configHash` 覆盖，05 的顶层 `schedule` 只是服务端索引镜像。
 
@@ -100,13 +100,13 @@ MVP 不允许负 decay，因此寿命不会因阶级而反向增加；`rule.md` 
 
 P0 必须提供：
 
-- `ParameterRegistry` 单一来源，JSON Schema 和本文参数表由它生成或校验；
+- `ParameterRegistry` 单一来源，配置校验与本文参数表由它驱动；对外 JSON Schema（导入导出用）必须由注册表生成并有一致性测试；
 - 每个参数至少一个“接线测试”：改变参数值必须改变对应输出，或明确标记为不影响行为并说明原因；
 - golden fixture 记录 `paramsHash`；参数改名或含义变化升级 `rulesVersion`。
 
 `src/core/config/validate.ts` 的标量与数组元素范围必须从注册表读取，不得另行硬编码；跨字段约束（数组长度、顺序、和为一、`hardLifeFloor` 关系上界等）单独实现并有测试。`test/unit/params.test.ts` 必须覆盖“每个 RunConfig 叶子都已登记”和注册表域边界。
 
-至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`initialAgeMode`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`flowWindowDays`、`MupWindowDays`。
+至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`initialAgeMode`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`flowWindowDays`、`metrics.mobilityWindowDays`。
 
 `initialAgeMode` 是枚举参数而非数值参数，接线测试必须证明 `uniform` 与 `newborn` 产生不同 `initialPopulationHash`，且两者消费同一 `init_age` 地址。`hardLifeFloor` 在合法 `hard` 域内不改变输出：配置必须满足 `hardLifeFloor <= 1+hardLifeFactor×(attributes.hard.min-1)`，违反时 schema 直接拒绝；注册表把它标记为 `guardOnly`，不得算作业务可调参数。所有参数条目标注 `configHash` 覆盖、`paramsHash` 覆盖和是否有接线测试。
 
@@ -272,7 +272,7 @@ if remainingLife==0: alive=false, deathTick=t, ties从所有邻居移除
 - `P[c]=存活且class=c人数/存活人数`；无存活者时全 0，并单独报告 `aliveCount=0`。
 - Gini：存活者 Value 升序 `x[i]`，`G=Σ(2i-n-1)x[i]/(nΣx)`，i 从 1 开始；总和为 0 时 G=0。
 - `edgeCount`：存活网络的无向边数；`sameShare=edgeCount==0 ? 0 : 同阶级边数/edgeCount`；`expectedShare=Σ P[c]²`；`S` 使用双侧归一化，保证恒在 `[-1,1]`：`S = edgeCount==0 ? 0 : expectedShare>=1 ? 1 : sameShare>=expectedShare ? (sameShare-expectedShare)/(1-expectedShare) : (sameShare-expectedShare)/expectedShare`。即随机混合时 `S=0`，全部同层时 `S=1`，无同层边时 `S=-1`；无边时必须同时输出 `edgeCount=0`，不得用 `S=1` 冒充完全隔离。
-- `Mup = count(alive && lastAscentTick!=null && lastAscentTick >= t-MupWindowDays+1) / max(aliveCount,1)`；`t<MupWindowDays` 时窗口从 0 开始。`Mdown` 同法使用 `lastDescentTick`，包含被动跌落和主动降阶。二者均在 `[0,1]`，不使用 EMA、不按日频截断。
+- `Mup = count(alive && lastAscentTick!=null && lastAscentTick >= t-metrics.mobilityWindowDays+1) / max(aliveCount,1)`；`t<metrics.mobilityWindowDays` 时窗口从 0 开始。`Mdown` 同法使用 `lastDescentTick`，包含被动跌落和主动降阶。二者均在 `[0,1]`，不使用 EMA、不按日频截断。
 - 同时计算中位数、前 10% 财富占比、`flowWindowDays` 转移矩阵、跨层边、平均度、连通分量、死亡率、竞争损耗率、Jev 回退率。
 
 前 10% 按 `ceil(0.1×n)` 个最高 Value 个体计算；n=0 或财富总和 0 时占比为 0，并附空人口标记。竞争损耗率窗口内为 `(loserLoss-winnerGain)/loserLoss`，无损失时为 0。

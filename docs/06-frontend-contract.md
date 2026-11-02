@@ -24,7 +24,7 @@
 - 个体：ge/hard/寿命分布与截断、`hardLifeFactor`。
 - 阶级：env0、decay、crossDays、`needMultiplier`、需求阈值/缓冲/连续跌落日数/主动降阶天数。
 - 竞争：损失率、传递效率、方向系数、候选数、局部/全局比例。
-- 网络与反馈：β/η/κ/H/λO/rewireProb、Congestion/Polarization 上下限、O 固定开关、`flowWindowDays`、`MupWindowDays`。
+- 网络与反馈：β/η/κ/H/λO/rewireProb、Congestion/Polarization 上下限、O 固定开关、`flowWindowDays`、`metrics.mobilityWindowDays`。
 - 决策：mock/random/Jev/replay、promptStyle（neutral/survival_hint）、模型、topK、并发、超时。
 - 预算：maxCalls/maxInputTokens/maxRunMinutes；live 必填。
 

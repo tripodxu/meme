@@ -39,6 +39,8 @@ docs/              本施工文档与 adr/
 
 **闸门 G0**：配置 fixture 可 round-trip；所有默认参数有单位/范围；`paramsHash` 进入 golden；CI 对空核心也能稳定执行。禁止在此阶段调用真实 Jev。
 
+**P0 完成记录（2026-11-02）**：已完成 TS/pnpm/Vitest/ESLint/Prettier、`RunConfig` 类型与路径化校验、参数注册表（含 `guardOnly` 与接线说明）、JCS/SHA-256 与 11 个 hash domain、golden fixture 及本地门禁。以下项尚未实现，按依赖推迟：`Ruleset/RunIdentity` 类型（P1-02）、state/recentEvents JSON Schema（P2-02）、`initialPopulationHash`（P1-01）与 `preregistrationHash`（P6-05）。在这些项完成前，P0-02/P0-03 只能标记为部分完成，不得声称全部验收已满足。
+
 ## 4. P1：确定性规则核心
 
 | ID    | 工作                                            | 依赖        | 交付与验收                                                                    |

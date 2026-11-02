@@ -70,7 +70,7 @@ running -> completed | failed | cancelled
   "config": {},
   "identity": {
     "rulesVersion": "rules-v3",
-    "engineVersion": "0.1.0",
+    "engineVersion": "engine-v0.0.0",
     "decisionSchemaVersion": "stratify-decision-v1",
     "policyVersion": "mock-weighted-v1",
     "promptVersion": "prompt-v2",
@@ -89,7 +89,7 @@ running -> completed | failed | cancelled
 
 离线 run 不属于该接口：MVP 中离线 mock run 使用本地 `runId=local-<ulid>`，只支持导出/回放，不支持直接采纳为服务器 run；需要云端归档时，用同一 `config+seed` 新建服务器 run 并重新执行。该限制必须在前端明确显示，不得让用户误以为离线 run 已上传。
 
-调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`flowWindowDays/MupWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。`identity.seed` 不进入 `configHash`/`paramsHash`，服务端把它与 `config` 一起用于重算 `initialPopulationHash`；`identity.configHash` 和 `identity.paramsHash` 必须分别等于服务端对 `config` 算出的值，否则 422。
+调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`flowWindowDays/metrics.mobilityWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。`identity.seed` 不进入 `configHash`/`paramsHash`，服务端把它与 `config` 一起用于重算 `initialPopulationHash`；`identity.configHash` 和 `identity.paramsHash` 必须分别等于服务端对 `config` 算出的值，否则 422。服务端还必须校验 `identity.rulesVersion === config.rulesVersion` 与 `identity.policyVersion === config.decision.policy`；`configHash` 只证明 config 未被篡改，不能替代这些跨字段一致性检查。
 
 `GET /api/runs/:id`：返回元数据、状态、endReason、进度、版本、预算用量、逐决策观测去重后的 responseModels、verificationStatus 和 artifact manifest，不返回 writeTokenHash 完整值。
 
@@ -104,6 +104,8 @@ statsTicks = {0<=t<totalTicks 且 t%statsStride==0} ∪ {totalTicks-1}
 ```
 
 若 tick e 末全死亡且 `e < totalTicks-1`（即 `endReason=extinct`），则 finalTick=e，序列只保留 `t<=e` 的项并确保 e 被插入；不再接受 e 之后的 tick。若全死亡发生在 `totalTicks-1`，序列不变，记 `scheduled`。`totalTicks=3650,statsStride=10` 且无提前结束时为 0,10,...,3640,3649，共 366 行。
+
+`tick_stats` 是按 `statsStride` 采样的查询序列，不是全分辨率事实表。07 定义的窗口均值、死亡暴露量、E 均值和标签条件必须由 runner 从全分辨率 tick 数据计算后随 artifact/summary 提交；仅当该 run 设置 `statsStride=1` 时，才允许从 D1 `tick_stats` 直接复算窗口统计。
 
 `POST /api/runs/:id/ticks:batch`
 
@@ -132,7 +134,7 @@ statsTicks = {0<=t<totalTicks 且 t%statsStride==0} ∪ {totalTicks-1}
 }
 ```
 
-- `mUp/mDown` 是 365 日参与率（过去 `MupWindowDays` 日内至少一次上升/下降的存活者占比），不是年化事件率，也不是 EMA；`segregation` 是调整后同层边占比 `S∈[-1,1]`，无网络时 `S=0` 且必须同时写 `edgeCount=0`。
+- `mUp/mDown` 是 365 日参与率（过去 `metrics.mobilityWindowDays` 日内至少一次上升/下降的存活者占比），不是年化事件率，也不是 EMA；`segregation` 是调整后同层边占比 `S∈[-1,1]`，无网络时 `S=0` 且必须同时写 `edgeCount=0`。
 - 1–100 条/run 请求，tick 严格属于计划 stats 序列，单请求内不重复。
 - `(runId,tick)` 幂等：同 payloadHash 返回已接受；不同内容返回 409，不覆盖。
 - 每 tick 可带完整结构指纹/转移矩阵 JSON，但有单行大小上限 64 KiB；大矩阵/完整事件进 R2。

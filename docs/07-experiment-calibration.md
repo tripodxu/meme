@@ -49,7 +49,7 @@
   "cells": [
     {
       "cellKey": "needMultiplier=default",
-      "overrides": { "needMultiplier": [1.0, 1.3, 1.8, 2.5, 3.5] },
+      "overrides": { "need.needMultiplier": [1.0, 1.3, 1.8, 2.5, 3.5] },
       "fullConfigHash": "sha256:..."
     }
   ],
@@ -65,6 +65,8 @@
 ```
 
 完整扫描前冻结假设、primary metric、窗口、种子列表、标签阈值和排除规则，并把它们的 canonical hash 写入 `preregistrationHash`。
+
+`cells[].overrides` 的键必须是 `RunConfig` 点路径（与 `src/core/params.ts` 的注册名一致），值为完整替换值：标量直接替换，数组整体替换，嵌套对象按字段深合并。应用方式为深拷贝 base config 后逐项赋值，结果必须通过 `validateRunConfig`；`fullConfigHash` 是合并后完整配置的 `configHash`。未登记的键、非法值或校验失败必须拒绝该 cell，不得跳过。
 
 `preregistrationHash` 的权威口径：
 
@@ -93,9 +95,9 @@ w1: 365–1094   w2: 1095–1824   w3: 2555–3284
 
 每个窗口输出：均值、中位数、标准差、30 日块序列、末值和缺失率；P/G/top10/Mup/Mdown/S/O/edgeCount 必须同时保留。窗口标量的唯一算法如下：
 
-- P/G/top10/Mup/Mdown/S/O/E：对窗口内每日 tick_stats 瞬时值取算术平均；30 日块只用于观察自相关和稳定性，不再二次加权。D 和标签使用这些日均值。
+- P/G/top10/Mup/Mdown/S/O/E：对窗口内全分辨率 tick 数据取算术平均；仅当该 run 的 `statsStride=1` 时才可直接从 D1 `tick_stats` 复算。D1 的采样行只用于展示，不得把采样均值冒充每日均值。30 日块只用于观察自相关和稳定性，不再二次加权。D 和标签使用这些日均值。
 - 转移矩阵：按 `flowWindowDays` 窗口累计事件计数；另给行暴露量（各 tick 期初处于该行阶级的存活人日数），行转移率=该行各去向计数/行暴露量，暴露量为 0 时比率为 null，不能填 0 冒充无转移。
-- 死亡率=窗口死亡数/窗口存活人日暴露量；竞争损耗率=Σ(loss-gain)/Σloss，分母 0 时为 0；回退率=fallback 决策数/非 cancelled 到期决策数，分母 0 时为 null。
+- 死亡率=窗口死亡数/窗口存活人日暴露量（基于全分辨率 tick 数据）；竞争损耗率=Σ(loss-gain)/Σloss，分母 0 时为 0；回退率=fallback 决策数/非 cancelled 到期决策数，分母 0 时为 null。
 - Mup/Mdown 的 D 输入是每日 365 日参与率的窗口均值，不用窗口事件另算替代；可另报 `365×ΣupEvents/aliveExposure` 作为诊断。
 - S 为调整后同层边占比；`edgeCount=0` 的窗口标记 `networkEmpty`，不参与依赖 S 的标签和 O 反馈诊断。
 - 窗口中存在全死亡后的缺失日时（含最后一 tick 才全死亡、记 scheduled 但 finalAliveCount=0 的 run），该 run 标 extinct 且该窗口不参与正常结构判异；不得把全死亡后的 P=0 日补入均值。空窗口/全缺失指标为 null 并标记质量无效。
