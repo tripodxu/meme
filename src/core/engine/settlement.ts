@@ -23,7 +23,7 @@ export function classBuffer(classAge: number, bufferDays: number): number {
 
 /**
  * 需求线（03 §6 阶段 C，rules-v4）：
- * `need = buffer(classAge)×baselineSum×ψ[class]×(E[t,class]/E[t,0])^φ`。
+ * `need = buffer(classAge)×baselineSum×ψ[class]×(env0[class]/env0[0])^φ`。
  * `φ=0` 时不做 pow，与 v3 公式逐位一致。
  */
 export function computeNeed(
@@ -31,7 +31,6 @@ export function computeNeed(
   classAge: number,
   baselineSum: number,
   classIndex: number,
-  eByClass: readonly number[],
 ): number {
   const psi = config.need.needMultiplier[classIndex];
   if (psi === undefined) {
@@ -42,12 +41,13 @@ export function computeNeed(
   if (phi === 0) {
     return base;
   }
-  const own = eByClass[classIndex];
-  const bottom = eByClass[0];
+  // 乘子锚定结构性 env0 比例（对运行期 Congestion 均衡化免疫，changes/0004 勘误）。
+  const own = config.opportunity.env0[classIndex];
+  const bottom = config.opportunity.env0[0];
   if (own === undefined || bottom === undefined || !(bottom > 0)) {
     throw new StratifyError(
       errorCodes.INVARIANT_VIOLATED,
-      `E 缺少阶级或 E[0] 非正: ${String(own)}/${String(bottom)}`,
+      `env0 缺少阶级或 env0[0] 非正: ${String(own)}/${String(bottom)}`,
     );
   }
   return base * Math.pow(own / bottom, phi);

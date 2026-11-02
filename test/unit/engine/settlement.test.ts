@@ -63,17 +63,16 @@ describe('阶级缓冲与需求线（03 §3/§6）', () => {
     expect(classBuffer(100, 30)).toBe(1);
   });
 
-  it('need = buffer×baselineSum×ψ[class]×(E[c]/E[0])^φ（v4）', () => {
-    const eByClass = DEFAULT_RUN_CONFIG.opportunity.env0;
+  it('need = buffer×baselineSum×ψ[class]×(env0[c]/env0[0])^φ（v4，结构锚定）', () => {
     // φ=1 默认：ψ_eff = 2.5 × (3.2/1) = 8
-    const need = computeNeed(DEFAULT_RUN_CONFIG, 30, 60, 3, eByClass);
+    const need = computeNeed(DEFAULT_RUN_CONFIG, 30, 60, 3);
     expect(need).toBeCloseTo(1 * 60 * 2.5 * (3.2 / 1), 12);
     // φ=0 退回 v3：无 pow
     const v3Config = {
       ...DEFAULT_RUN_CONFIG,
       need: { ...DEFAULT_RUN_CONFIG.need, envExponent: 0 },
     };
-    expect(computeNeed(v3Config, 30, 60, 3, eByClass)).toBeCloseTo(1 * 60 * 2.5, 12);
+    expect(computeNeed(v3Config, 30, 60, 3)).toBeCloseTo(1 * 60 * 2.5, 12);
   });
 });
 

@@ -1,6 +1,6 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v4`；相对 v3 的主要修订（依据 P1.5 预研 `docs/research/2026-11-03-p15-report.md`）：需求线新增阶级环境持有人乘子 `(E[t,c]/E[t,0])^φ`（新参数 `need.envExponent`，默认 1.0，`φ=0` 退回 v3 语义）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v4`；相对 v3 的主要修订（依据 P1.5 预研 `docs/research/2026-11-03-p15-report.md`）：需求线新增阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（新参数 `need.envExponent`，默认 1.0，`φ=0` 退回 v3 语义；锚定结构比例 env0 而非运行期 E——v4 初稿用 E 比例被 Congestion 均衡化中和，网格证据见 changes/0004）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 

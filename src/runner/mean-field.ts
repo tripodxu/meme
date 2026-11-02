@@ -78,23 +78,33 @@ export function checkCongestionSigns(
 }
 
 /**
- * 顶层可持续性裕度（rule.md 5/37 的机械推论）：
- * `margin = median(ge×F(hard)×Opp) / ψ[top]`。
- * margin < 1 ⇒ 中位数个体在顶层必然入不敷出（需求线按 ψ×baseline 增长），
- * 顶层人口由“升-耗-落”循环维持（旋转门），而非稳定吸收。
+ * 顶层可持续性裕度（rule.md 5/37 的机械推论，v4 含环境持有人乘子）：
+ * `margin = median(ge×F(hard)×Opp) / (ψ[top]×(E[top]/E[0])^φ)`。
+ * margin < 1 ⇒ 中位数个体在顶层必然入不敷出（需求线按 ψ×baseline×环境乘子增长），
+ * 顶层人口由“升-耗-落”循环维持（旋转门）；margin 与 1 的差距随 φ 增大。
  */
 export function topClassMargin(
   config: RunConfig,
   geValues: readonly number[],
   hardValues: number,
+  eByClass?: readonly number[],
 ): number {
   const top = config.population.classCount - 1;
   const psi = config.need.needMultiplier[top] ?? 1;
+  let envMultiplier = 1;
+  if (eByClass !== undefined && config.need.envExponent !== 0) {
+    const own = eByClass[top];
+    const bottom = eByClass[0];
+    if (own === undefined || bottom === undefined || !(bottom > 0)) {
+      throw new Error('E 缺少阶级或 E[0] 非正');
+    }
+    envMultiplier = (own / bottom) ** config.need.envExponent;
+  }
   const f = effortFunction(config.effort.shape, hardValues);
   const productivity = geValues.map((ge) => ge * f);
   const sorted = [...productivity].sort((a, b) => a - b);
   const medianProductivity = sorted[Math.floor(sorted.length / 2)] ?? 0;
-  return medianProductivity / psi;
+  return medianProductivity / (psi * envMultiplier);
 }
 
 /** Otarget 对 Mup/G/S 的解析偏导（rule.md 42，sigmoid 的局部斜率）。 */

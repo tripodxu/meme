@@ -160,6 +160,27 @@ export function buildPreregCells(): readonly PreregCell[] {
       hypothesis: '更高网络流动',
       overrides: { network: { rewireProb: 0.2 } },
     },
+    // v4 新增：φ 扫描与 θM 对照（changes/0004 的效果分离归因）
+    {
+      cellKey: 'v4:envExponent=0',
+      hypothesis: 'φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）',
+      overrides: { need: { envExponent: 0 } },
+    },
+    {
+      cellKey: 'v4:envExponent=0.5',
+      hypothesis: '弱环境持有成本',
+      overrides: { need: { envExponent: 0.5 } },
+    },
+    {
+      cellKey: 'v4:envExponent=1.5',
+      hypothesis: '强环境持有成本',
+      overrides: { need: { envExponent: 1.5 } },
+    },
+    {
+      cellKey: 'v4:thetaM=8',
+      hypothesis: 'v3 值 θM=8 对照（预期 O 钉在高位）',
+      overrides: { openness: { mobilityWeight: 8 } },
+    },
   ];
   return cells;
 }
@@ -218,7 +239,7 @@ export function buildPreregManifest(): PreregManifest {
   return {
     schemaVersion: 'experiment-v2',
     hypothesis:
-      'rules-v3 在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。',
+      'rules-v4（持有成本解耦 + θM 再平衡）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。',
     primaryMetric: 'TV(P)',
     experimentType: 'rule_sensitivity',
     rulesVersion: RULES_VERSION,
@@ -245,7 +266,7 @@ export function buildPreregManifest(): PreregManifest {
     },
     differenceThresholds: { gini: 0.03, tv: 0.1, mUp: 0.05, segregation: 0.05, openness: 0.05 },
     // 本机预研护栏（07 §3：budgets 示例为占位值；D-04 的正式 P6 预算另行冻结）。
-    budgets: { maxRuns: 16 * 30, maxWallMinutes: 240, maxStorageBytes: 2_000_000_000 },
+    budgets: { maxRuns: 20 * 30, maxWallMinutes: 300, maxStorageBytes: 2_000_000_000 },
     cells: buildPreregCells(),
   };
 }
