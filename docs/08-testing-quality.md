@@ -45,7 +45,7 @@
 
 ### 3.3 成本与竞争
 
-- 首次升至历史新高 d=0 无减免；d=1/2/>=3 分别为 0/20/40%，动态乘子只与减免后 base 相乘，费用>0。
+- 首次升至历史新高 d=0 无减免；d=1/2/>=3 分别读取 `returnDiscount[0]/[1]/[2]`，默认 0/20/40%；用非零测试值证明 `returnDiscount[0]` 可观测；动态乘子只与减免后 base 相乘，费用>0。
 - Value 恰好等于费用可行动，使用固定 fixture 让 Value 略低于费用则不可；一次只变一层。
 - 同层/跨层 power 系数正确；pA 在 [0,1]，极端 Value 不产生 Infinity。
 - 高打低/低打高/防守胜方向系数正确；所有方向 gain<=loss。
@@ -59,7 +59,7 @@
 - 死亡者 ties 被移除，不参与下一 tick 任何候选/中位数/竞争。
 - 重构无候选恢复旧边；每 agent 每周期最多一条；O 改变权重符合公式。
 - 全零财富 G=0；无网络时 `S=0` 且 `edgeCount=0`；空阶级/全死亡无 NaN。
-- 调整后 S：随机混合时接近 0；全部同层时为 1；跨层多于随机时为负；改变阶级分布不得单独把 S 推高。
+- 调整后 S：随机混合时接近 0；全部同层时为 1；无同层边时为 -1；跨层多于随机时在 `(-1,0)`；改变阶级分布不得单独把 S 推高；极端分布（如 `P=[0.9,0.1,0,0,0]`、`expectedShare` 接近 1）仍满足 `S∈[-1,1]`。
 - Mup/Mdown 为 `MupWindowDays` 窗口参与率，只统计存活者；边界 tick、窗口不足、死亡日、主动降阶/被动跌落都要覆盖；不使用 EMA。
 - E 每 tick 只更新一次，O 仅决策周期按真实 Δt 更新；不得同 tick 二次结算。
 
@@ -78,6 +78,9 @@
 9. 参数接线：对注册表中每个业务参数做最小扰动，必须改变对应输出；明确标记为 no-op 的参数要有理由和测试。
 10. 初始人口只由 `(config,seed)` 决定；相同输入跨运行端得到同一 `initialPopulationHash`，不同 seed 得到不同 roster。
 11. S 在 `[-1,1]`、edgeCount 一致；Mup/Mdown 在 `[0,1]` 且只统计存活者；空网络/空人口不产生 NaN。
+12. `seed` 不改变 `configHash`/`paramsHash`，但改变 `initialPopulationHash`；`initialAgeMode=uniform|newborn` 在同 seed 下产生不同 `initialPopulationHash` 且都消费 `init_age`。
+13. `preregistrationHash` 在提交 experiment 前后、以及服务端生成 `experimentId/createdAt` 后重算一致；运行后填充 `observedResponseModels` 不改变该 hash。
+14. `hardLifeFloor` 在合法 `hard∈[0.2,3.0]` 内不改变输出，且在 `hard` 超出合法域时阻止非正寿命。
 
 失败时输出最小化 seed、配置和 fixture，加入永久回归集。
 
@@ -93,7 +96,7 @@
 - 空网络、全零财富、全死亡边界；
 - 每个参数注册项的接线 fixture。
 
-golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异；另为 02 每个 hash domain 在受支持的 V8 运行时（Node/workerd/Chromium）校验同一 RFC 8785 测试向量。更新必须人工审查，不得用环境变量一键无说明接受。声称无行为重构时 hash 必须一致；行为变化升级版本并保留旧 fixture 读取测试。
+golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异；另为 02 每个 hash domain（含 `configHash/paramsHash/initialPopulationHash/preregistrationHash`）在受支持的 V8 运行时（Node/workerd/Chromium）校验同一 RFC 8785 测试向量。更新必须人工审查，不得用环境变量一键无说明接受。声称无行为重构时 hash 必须一致；行为变化升级版本并保留旧 fixture 读取测试。
 
 ## 6. Jev 契约测试
 

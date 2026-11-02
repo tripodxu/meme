@@ -56,7 +56,7 @@ running -> completed | failed | cancelled
 
 ### 4.2 实验与 run 创建/读取
 
-`POST /api/experiments`：仅 RUNNER_TOKEN 可用，body 为 07 的完整 experiment manifest 但省略 experimentId/createdAt（二者由服务端生成），返回 201 `{experimentId,createdAt}`。`GET /api/experiments/:id` 返回 manifest、关联 runs 和派生进度；MVP 不提供覆盖式修改，变更实验定义需新建 experiment。
+`POST /api/experiments`：仅 RUNNER_TOKEN 可用，body 为 07 的完整 experiment manifest 但省略 experimentId/createdAt（二者由服务端生成），返回 201 `{experimentId,createdAt}`。`preregistrationHash` 由客户端在提交前按 02 §8 计算并随 body 提交；服务端用同一规范重算并校验，不一致返回 422。`GET /api/experiments/:id` 返回 manifest、关联 runs 和派生进度；MVP 不提供覆盖式修改，变更实验定义需新建 experiment。
 
 创建 run 时可带 `experiment:null|{experimentId,cellKey,seed}`。browser 必须为 null；runner 绑定时服务端在同一 transaction 校验 experiment 存在、cell/seed 已声明，并写 experiment_runs，重复 `(experimentId,cellKey,seed)` 返回 409。
 
@@ -77,6 +77,7 @@ running -> completed | failed | cancelled
     "requestedModel": "jev-1.13.0",
     "seed": "seed-001",
     "configHash": "sha256:...",
+    "paramsHash": "sha256:...",
     "initialPopulationHash": "sha256:...",
     "codeSha": "git-sha"
   },
@@ -88,7 +89,7 @@ running -> completed | failed | cancelled
 
 离线 run 不属于该接口：MVP 中离线 mock run 使用本地 `runId=local-<ulid>`，只支持导出/回放，不支持直接采纳为服务器 run；需要云端归档时，用同一 `config+seed` 新建服务器 run 并重新执行。该限制必须在前端明确显示，不得让用户误以为离线 run 已上传。
 
-调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`flowWindowDays/MupWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。
+调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`flowWindowDays/MupWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。`identity.seed` 不进入 `configHash`/`paramsHash`，服务端把它与 `config` 一起用于重算 `initialPopulationHash`；`identity.configHash` 和 `identity.paramsHash` 必须分别等于服务端对 `config` 算出的值，否则 422。
 
 `GET /api/runs/:id`：返回元数据、状态、endReason、进度、版本、预算用量、逐决策观测去重后的 responseModels、verificationStatus 和 artifact manifest，不返回 writeTokenHash 完整值。
 

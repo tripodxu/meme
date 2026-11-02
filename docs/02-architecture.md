@@ -46,9 +46,11 @@ shared/contracts -> app, worker, runner
 
 类型名为施工约定，可在不改变语义的情况下调整签名：
 
+**seed 的归属**：`seed` 不是 `RunConfig` 字段，不进入 `configHash`。它是 `createSimulation` 的独立入参，`(config, seed)` 共同决定初始人口、初始网络、初始年龄和全部可寻址随机流；`paramsHash` 也不含 seed。配对实验要求同一 seed 下配置可比，因此 cell 级 `fullConfigHash` 必须在所有 seed 间相同。
+
 ```ts
-function createSimulation(config: RunConfig): SimState;   // 初始人口由 (config, seed) 纯函数派生
-function deriveInitialPopulation(config: RunConfig): InitialPopulation;
+function createSimulation(config: RunConfig, seed: Seed): SimState;   // 初始人口由 (config, seed) 纯函数派生
+function deriveInitialPopulation(config: RunConfig, seed: Seed): InitialPopulation;
 
 interface SimulationEngine {
   step(state: SimState, decisions: ReadonlyMap<AgentId, Decision>): StepResult;
@@ -124,13 +126,15 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 ```
 
 - 输入只含 JSON 数据；对象键按 JCS 排序，数组顺序具有语义，不得随意排序。非有限数、undefined、bigint、函数在 canonicalization 前拒绝；`-0` 统一为 0，Unicode 不先做不兼容的本地化转换。
-- `configHash`：domain `stratify-config-v1`，覆盖完整冻结 RunConfig，排除 Key/token、wall-clock 和上传状态。
+- `configHash`：domain `stratify-config-v1`，覆盖完整冻结 RunConfig，排除 `seed`、Key/token、wall-clock 和上传状态。
+- `paramsHash`：domain `stratify-params-v1`，覆盖参数注册表解析后的全部业务参数名、值与单位；同样排除 seed、Key/token 和 wall-clock。用于 golden fixture 和“参数变化是否影响行为”的对照。
 - `initialPopulationHash`：domain `stratify-initial-population-v1`，覆盖按 id 排序的初始 agents、初始 ties 和 seed。
 - `stateHash`（决策）：domain `stratify-decision-state-v1`，覆盖 04 定义的完整序列化 state，不是整个 SimState。
 - `actionSetHash`：domain `stratify-action-set-v1`，覆盖按请求顺序排列的 legalActions 字符串数组。
 - `payloadHash`：domain `stratify-tick-row-v1` 或 `stratify-agent-row-v1`，覆盖除 payloadHash 自身外的完整行。
 - `finalStateHash`：domain `stratify-authoritative-state-v1`，覆盖权威快照，排除日志、缓存和 wall-clock。
 - `summaryHash/artifactManifestHash`：分别使用 `stratify-summary-v1/stratify-artifact-manifest-v1`；manifest chunks 按 `(kind,chunkId)` 排序，hash 字段自身排除。
+- `preregistrationHash`：domain `stratify-preregistration-v1`，覆盖 07 定义的假设、primary metric、窗口、种子列表、标签阈值、排除规则和 base config；必须排除服务端生成的 `experimentId/createdAt` 与运行后观测字段（`observedResponseModels`、结果、失败次数），否则创建 experiment 后无法复算预注册 hash。
 
 实现必须为上述每个 domain 固定一个小型 JSON 测试向量及预期 hash；MVP 的权威 hash 只在受支持的 V8 运行时（Node >=22、workerd、Chromium）承诺一致。核心大量使用 `Math.exp/log/pow/cos`，ECMAScript 不保证这些函数跨引擎 1 ulp 一致；Safari/Firefox 可运行但必须标记 `nonAuthoritativeRuntime`，导出时警告，不得声称与 V8 哈希相同。若产品必须支持多引擎一致哈希，先在 P1 评估并实现 fdlibm 级确定性数学，再扩大支持矩阵。任何 domain 覆盖字段变化都升级 domain 版本，不复用旧 hash 含义。
 
@@ -150,7 +154,7 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 ```text
 schemaVersion, rulesVersion, engineVersion, decisionSchemaVersion,
 policyVersion, promptVersion, requestedModel, seed, configHash,
-initialPopulationHash, codeSha
+paramsHash, initialPopulationHash, codeSha
 ```
 
 `responseModel` 是逐决策观测值，无法创建时固定；run 聚合保存去重 `responseModels[]`。若集合超过一个，按模型分组并标记模型漂移，正式对照默认判为质量无效，不能静默混样。

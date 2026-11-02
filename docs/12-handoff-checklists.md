@@ -1,9 +1,10 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-02，rev 2）
+## 1. 当前交接状态（2026-11-02，rev 3）
 
-- 已有：`rule.md` v3 59 条、Jev 简介、本施工文档套件（`docs/` 13 篇 + `docs/adr/`）、根目录 `AGENTS.md`。
+- 已有：`rule.md` v3 59 条、Jev 简介、本施工文档套件（`docs/` 13 篇编号文档 + README + `docs/adr/`）、根目录 `AGENTS.md`。
 - 已完成交叉复核与首轮修订：阶级持有成本 `needMultiplier`、初始年龄分布、365 日流动参与率、调整后 S、参数注册表、P1.5 可达性闸门、契约洞与统计口径已写入对应文档；未校准项均标注为待验证。
+- rev 3（P0 定稿前修订）：`S` 改为双侧归一化保证 `[-1,1]`；`returnDiscount[0]` 接入 `d=1`；`seed` 明确不进入 `configHash`，补齐 `paramsHash/preregistrationHash` 域与排除字段；`initialAgeMode`、`hardLife*/returnDiscount` 进入注册表与扫描表；P0-02/P0-03/P0-06 验收同步。
 - 尚无：应用代码、包管理配置、测试、迁移、部署资源和任何仿真结果。
 - 下一唯一入口：按 `01-implementation-plan.md` 执行 P0，随后完成 P1 确定性核心与 **P1.5 涌现可达性预研**；P1.5 未通过不得启动 P2–P6。
 - 不得提前声称：三类结构已出现、Jev 行为有效、性能已达标、生产可发布。

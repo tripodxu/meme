@@ -31,11 +31,11 @@ docs/              本施工文档与 adr/
 | ID | 工作 | 依赖 | 交付与验收 |
 |---|---|---|---|
 | P0-01 | 初始化包、TS、格式化、测试、CI 骨架 | 无 | 安装后 `pnpm typecheck && pnpm test && pnpm build` 可运行 |
-| P0-02 | 定义版本字段、单位、ID、 branded types 与错误码 | P0-01 | `Ruleset/RunConfig/RunIdentity` 类型与文档一致 |
-| P0-03 | 用 schema 校验完整配置和导入文件 | P0-02 | 缺字段、NaN、非法范围、未知版本均返回路径化错误 |
+| P0-02 | 定义版本字段、单位、ID、 branded types 与错误码 | P0-01 | `Ruleset/RunConfig/RunIdentity` 类型与文档一致；`seed` 明确不属于 `RunConfig`；`configHash/paramsHash/initialPopulationHash/preregistrationHash` 各有 domain、覆盖字段和测试向量 |
+| P0-03 | 用 schema 校验完整配置和导入文件 | P0-02 | 缺字段、NaN、非法范围、未知版本均返回路径化错误；`returnDiscount` 长度/单调性、`initialAgeMode` 枚举被校验 |
 | P0-04 | 将 59 条规则映射到模块和测试清单 | P0-02 | 03 文档无“待定”核心顺序；未校准项显式标识；机制规则与验收/方法条目分开 |
 | P0-05 | 建立 fixture、变更和发布目录约定；复用 `docs/adr/0000-template.md` | P0-01 | ADR 模板可直接复制；目录约定可用，CI 检查必要文档链接 |
-| P0-06 | 建立参数注册表与接线测试 | P0-02 | 03 所有业务常数有名称/范围/公式引用；改一个参数必须改变对应输出；无裸字面量 |
+| P0-06 | 建立参数注册表与接线测试 | P0-02 | 03 所有业务常数有名称/范围/公式引用；改一个参数必须改变对应输出；`hardLifeFloor` 标为 guardOnly 且有边界测试；无裸字面量 |
 
 **闸门 G0**：配置 fixture 可 round-trip；所有默认参数有单位/范围；`paramsHash` 进入 golden；CI 对空核心也能稳定执行。禁止在此阶段调用真实 Jev。
 

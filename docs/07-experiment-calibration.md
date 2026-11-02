@@ -58,7 +58,14 @@
 }
 ```
 
-完整扫描前冻结假设、primary metric、窗口、种子列表、标签阈值和排除规则，并把它们的 canonical hash 写入 `preregistrationHash`。运行后不得因结果不理想删除种子；技术失败可重跑，但必须保留失败原因和次数。任何预注册内容变化必须新建 `experimentId`，不得覆盖旧实验。
+完整扫描前冻结假设、primary metric、窗口、种子列表、标签阈值和排除规则，并把它们的 canonical hash 写入 `preregistrationHash`。
+
+`preregistrationHash` 的权威口径：
+
+- 覆盖：`schemaVersion`、`hypothesis`、`primaryMetric`、`experimentType`、`rulesVersion/engineVersion/decisionSchemaVersion/policyVersion/promptVersion/promptStyle`、`baseConfigHash`、`cells[].cellKey/overrides/fullConfigHash`、`seeds`、`pairing`、`warmupTicks`、`warmupDiagnostic`、`windows`、`labelThresholdVersion`、`budgets` 和预注册排除规则。
+- 排除：`experimentId`、`createdAt`、`observedResponseModels`、运行结果、失败次数等创建后或运行后字段。
+
+运行后不得因结果不理想删除种子；技术失败可重跑，但必须保留失败原因和次数。任何预注册内容变化必须新建 `experimentId`，不得覆盖旧实验。
 
 ## 4. 配对与共同随机数
 
@@ -99,7 +106,7 @@ w1: 365–1094   w2: 1095–1824   w3: 2555–3284
 
 | 参数 | 候选值 |
 |---|---|
-| needMultiplier | `[1,1,1,1,1]`（ψ=1 消融）、默认、扁平 1.5、陡峭 `[1,1.2,1.6,2.2,3.0]`、更陡 `[1,1.3,1.8,2.5,3.5]` |
+| needMultiplier | `[1,1,1,1,1]`（ψ=1 消融）、默认 `[1,1.3,1.8,2.5,3.5]`、扁平 `[1,1.5,1.5,1.5,1.5]`、陡峭 `[1,1.2,1.6,2.2,3.0]`、更陡 `[1,1.4,2.1,3.0,4.2]` |
 | needThreshold | 0.3, 0.5, 0.7, 0.9 |
 | env0 | 默认、压缩 `[1,1.2,1.5,1.9,2.4]`、扩大 `[1,2,3.5,5,7]` |
 | crossDays | 默认、减半、加倍 |
@@ -111,9 +118,10 @@ w1: 365–1094   w2: 1095–1824   w3: 2555–3284
 | λO | 0, 1, 2, 3 |
 | 竞争损失率 | 0.02, 0.08, 0.15 |
 | rewireProb | 0, 0.05, 0.20 |
-| 初始阶级分布 | 默认、底层更重、中层更重、两端更重（完整配置入库） |
+| 初始阶级分布 | 默认 `[0.45,0.30,0.15,0.08,0.02]`、底层更重 `[0.60,0.25,0.10,0.04,0.01]`、中层更重 `[0.20,0.30,0.30,0.15,0.05]`、两端更重 `[0.40,0.10,0.10,0.10,0.30]`（完整配置入库） |
+| initialAgeMode | `uniform`（默认）、`newborn`（对照；3650 tick 内死亡率接近 0，不参与寿命结论） |
 
-在单参数扫描前先做一次全局筛选（Morris elementary effects 或小型 Sobol），覆盖上表及 `congestionMin/Max`、`polarizationMin/Max`、`Mref/Sref/θM/θS`。不得只凭直觉挑 8 个反馈参数而漏掉主导阶级分布的 `needMultiplier/needThreshold/env0/crossDays/decay`。每次只变一项，其他冻结；候选值可因护栏/先验试验调整，但要保留搜索历史。
+在单参数扫描前先做一次全局筛选（Morris elementary effects 或小型 Sobol），覆盖上表及 `congestionMin/Max`、`polarizationMin/Max`、`Mref/Sref/θM/θS`。不得只凭直觉挑 8 个反馈参数而漏掉主导阶级分布的 `needMultiplier/needThreshold/env0/crossDays/decay`；`initialAgeMode` 作为初始化模式对照单独报告，不与连续参数混合做敏感性排序。每次只变一项，其他冻结；候选值可因护栏/先验试验调整，但要保留搜索历史。
 
 ### 6.3 多参数与临界区
 

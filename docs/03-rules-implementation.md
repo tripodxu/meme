@@ -1,6 +1,6 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v3`；相对 v2 的主要修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v3`；相对 v2 的主要修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 
@@ -56,13 +56,13 @@
 |---|---|
 | 人口 | `C=5`，初始比例 `[0.45,0.30,0.15,0.08,0.02]`，`initialValue=0`，`initialAgeMode=uniform` |
 | 机会 | `B=2`，`env0=[1,1.5,2.2,3.2,4.5]` |
-| 寿命 | `decay=[1.30,1.15,1.00,0.88,0.75]`，初始寿命正态均值 25550、标准差 1825 日，截断 `[3650,43800]` |
+| 寿命 | `decay=[1.30,1.15,1.00,0.88,0.75]`，初始寿命正态均值 25550、标准差 1825 日，截断 `[3650,43800]`；`hardLifeFactor=0.15`、`hardLifeFloor=0.50` |
 | 属性 | `ge/hard` 为独立截断对数正态，底层 `sigma=0.5`、中位数 1、截断 `[0.2,3.0]` |
 | 努力函数 | `F(h)=(1-exp(-FShape×h))/(1-exp(-FShape))`，`FShape=1.2` |
 | 需求 | `needThreshold=0.5`，`belowNeedLimit=14`，`bufferDays=30`，`buffer(age)=clamp((age-1)/(bufferDays-1),0,1)`，`needMultiplier=[1.0,1.3,1.8,2.5,3.5]` |
 | 主动降阶 | `descendDays=7`，`descendCost=descendDays×B×E[t,currentClass]` |
 | 上升 | `crossDays=[30,40,50,60]`，`crossBase=crossDays[c]×B×E[t,c+1]` |
-| 重返 | 距历史最高阶级 `d=1/2/>=3` 时减免 `returnDiscount=[0,0.20,0.40]` |
+| 重返 | 距历史最高阶级 `d=1/2/>=3` 时依次应用 `returnDiscount=[0,0.20,0.40]`；三项都必须可被接线测试观测，默认值允许 `returnDiscount[0]=0` |
 | 竞争能力 | `power=(1+Value)^powerValueExponent×ge^powerGeExponent×hard^powerHardExponent`，默认 `0.35/0.6/0.4` |
 | 跨层能力 | 原发起方 ×`crossClassInitiatorMultiplier=0.85`，原被竞争方 ×`crossClassTargetMultiplier=1.15`，同层均 ×1 |
 | 竞争转移 | `lossRate=0.08`，`baseTransferEfficiency=0.70` |
@@ -84,8 +84,9 @@
 | 人口/阶级 | `initialPopulation` 为 `[2,10000]` 整数；`C` 为 `[2,8]` 整数；初始比例非负且 `abs(sum-1)<=1e-12`；initialValue>=0；`initialAgeMode` 为 `uniform|newborn` |
 | 数组 | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]` |
 | 分布 | ge/hard 的 sigma>=0、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma>=0 |
-| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免在 `[0,1]` |
+| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算 |
 | 反馈 | β/η/κ/λO/H/hV>=0（消融值 0 合法）；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；θM/θG/θS>=0，θ0 有限且在 `[-20,20]` |
+| 寿命损耗 | `hardLifeFactor>=0`；`hardLifeFloor` 为 `(0,1]` 的正数且仅作数值护栏；合法 `hard∈[0.2,3.0]` 内不得依赖该护栏产生业务分支 |
 | 网络/候选 | `maxDegree=6`；initialDegree 为 `[0,6]` 整数；competitionCandidateCount 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability` |
 | 竞争 | lossRate 在 `[0,0.5]`；baseTransferEfficiency 和各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1` |
 | 决策 | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限 |
@@ -103,7 +104,9 @@ P0 必须提供：
 - 每个参数至少一个“接线测试”：改变参数值必须改变对应输出，或明确标记为不影响行为并说明原因；
 - golden fixture 记录 `paramsHash`；参数改名或含义变化升级 `rulesVersion`。
 
-至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`flowWindowDays`、`MupWindowDays`。
+至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`initialAgeMode`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`flowWindowDays`、`MupWindowDays`。
+
+`initialAgeMode` 是枚举参数而非数值参数，接线测试必须证明 `uniform` 与 `newborn` 产生不同 `initialPopulationHash`，且两者消费同一 `init_age` 地址。`hardLifeFloor` 在合法 `hard∈[0.2,3.0]` 下不改变输出，注册表必须把它标记为 `guardOnly` 并提供“边界外输入仍被拦截”的测试；不得把它算作业务可调参数。所有参数条目标注 `configHash` 覆盖、`paramsHash` 覆盖和是否有接线测试。
 
 ## 4. 可寻址随机数与初始化
 
@@ -183,7 +186,8 @@ compete:<agentId>       # 最多 6 个由代码采样的存活目标
 
 ```text
 d = maxClassIndex - classIndex
-discount = d<=1 ? 0 : d==2 ? returnDiscount[1] : returnDiscount[2]   # 首次上升d=0与返回上一层d=1均无减免
+discount = d==0 ? 0 : d==1 ? returnDiscount[0] : d==2 ? returnDiscount[1] : returnDiscount[2]
+# d=0 首次上升无减免；d=1/2/>=3 分别读取 returnDiscount[0]/[1]/[2]
 openMultiplier = clamp(exp(λO×(0.5-O)), opennessMultiplierMin, opennessMultiplierMax)
 cost = crossBase×(1-discount)×openMultiplier
 ```
@@ -263,7 +267,7 @@ if remainingLife==0: alive=false, deathTick=t, ties从所有邻居移除
 
 - `P[c]=存活且class=c人数/存活人数`；无存活者时全 0，并单独报告 `aliveCount=0`。
 - Gini：存活者 Value 升序 `x[i]`，`G=Σ(2i-n-1)x[i]/(nΣx)`，i 从 1 开始；总和为 0 时 G=0。
-- `edgeCount`：存活网络的无向边数；`sameShare=edgeCount==0 ? 0 : 同阶级边数/edgeCount`；`expectedShare=Σ P[c]²`；`S = edgeCount==0 ? 0 : expectedShare>=1 ? 1 : (sameShare-expectedShare)/(1-expectedShare)`。无边时必须同时输出 `edgeCount=0`，不得用 `S=1` 冒充完全隔离。
+- `edgeCount`：存活网络的无向边数；`sameShare=edgeCount==0 ? 0 : 同阶级边数/edgeCount`；`expectedShare=Σ P[c]²`；`S` 使用双侧归一化，保证恒在 `[-1,1]`：`S = edgeCount==0 ? 0 : expectedShare>=1 ? 1 : sameShare>=expectedShare ? (sameShare-expectedShare)/(1-expectedShare) : (sameShare-expectedShare)/expectedShare`。即随机混合时 `S=0`，全部同层时 `S=1`，无同层边时 `S=-1`；无边时必须同时输出 `edgeCount=0`，不得用 `S=1` 冒充完全隔离。
 - `Mup = count(alive && lastAscentTick!=null && lastAscentTick >= t-MupWindowDays+1) / max(aliveCount,1)`；`t<MupWindowDays` 时窗口从 0 开始。`Mdown` 同法使用 `lastDescentTick`，包含被动跌落和主动降阶。二者均在 `[0,1]`，不使用 EMA、不按日频截断。
 - 同时计算中位数、前 10% 财富占比、`flowWindowDays` 转移矩阵、跨层边、平均度、连通分量、死亡率、竞争损耗率、Jev 回退率。
 
@@ -305,6 +309,8 @@ O=O+(Otarget-O)×(1-exp(-Δt/τO))
 8. 序列化/恢复后的权威状态哈希一致，连续运行与快照恢复一致。
 9. `needMultiplier` 长度为 C、非递减、`needMultiplier[0]=1`；`initialAgeMode` 只影响初始化，不影响其他随机流。
 10. `lastAscentTick/lastDescentTick` 单调且不超过当前 tick；Mup/Mdown 的分子只统计存活者。
+11. `S` 恒在 `[-1,1]`：随机混合时接近 0，全部同层时为 1，无同层边时为 -1；`edgeCount=0` 时 `S=0`。
+12. `returnDiscount` 长度固定为 3，依次对应 `d=1/2/>=3`；修改任一项必须改变对应距离的上升成本（默认 `returnDiscount[0]=0` 时该项不可观测，需用非零测试值覆盖）。
 
 ## 8. 规则到模块映射
 
