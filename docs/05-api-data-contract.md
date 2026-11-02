@@ -85,7 +85,7 @@ running -> completed | failed | cancelled
 }
 ```
 
-服务端按 02 第 8 节校验 `configHash`，并用 `(config, seed)` 重算 `initialPopulationHash`；不一致返回 422，防止客户端自报 roster 破坏配对。返回 201 `{runId,writeToken,status:"running"}`。source 由服务端根据认证确定，不能由 runner 伪造 browser 或反之。
+服务端按 02 第 8 节校验 `configHash`，并用 `(config, seed)` 重算 `initialPopulationHash`；不一致返回 422，防止客户端自报 roster 破坏配对。返回 201 `{runId,writeToken,status:"running"}`。source 由服务端根据认证确定，不能由 runner 伪造 browser 或反之。服务端生成的 `runId` 只允许 `[A-Za-z0-9_-]{1,64}`；任何进入 R2 key 或 `sessionStorage` 键的 id 必须先通过该字符集校验。
 
 离线 run 不属于该接口：MVP 中离线 mock run 使用本地 `runId=local-<ulid>`，只支持导出/回放，不支持直接采纳为服务器 run；需要云端归档时，用同一 `config+seed` 新建服务器 run 并重新执行。该限制必须在前端明确显示，不得让用户误以为离线 run 已上传。
 
@@ -154,7 +154,7 @@ X-Artifact-Kind: decisions|events|snapshot|final_state|manifest
 X-Start-Tick / X-End-Tick: 可选范围
 ```
 
-- chunkId 只允许 `[A-Za-z0-9._-]{1,128}`；R2 key 为 `runs/<runId>/<kind>/<chunkId>.ndjson.gz`，不能路径穿越。
+- chunkId 只允许 `[A-Za-z0-9._-]{1,128}`；R2 key 为 `runs/<runId>/<kind>/<chunkId>.ndjson.gz`，不能路径穿越。runId 也必须满足 `[A-Za-z0-9_-]{1,64}`，上传与读取前统一校验，非法 id 返回 400 而不是拼出可疑 key。离线 `local-<ulid>` 只存在浏览器，永不进入 R2。
 - 压缩请求体最大 8 MiB；NDJSON 每行 schema 校验由生产者保证，消费者仍须逐行校验。
 - 同 run/kind/chunkId 且 compressed hash 相同：200 幂等；不同：409。Worker 必须对压缩请求体计算并校验 X-Compressed-SHA256，返回 `{etag,bytes,compressedSha256}`。
 - 未压缩 hash 由生产者在有界本地流中计算，消费者下载后必须验证；Worker 不为校验解压大对象，因此 complete 不代表 uncompressed hash 已经服务端内容认证。

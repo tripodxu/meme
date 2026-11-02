@@ -31,7 +31,7 @@
 | `belowNeedStreak` | tick | 连续低于 50% 需求线的次数 |
 | `lastAscentTick/lastDescentTick` | tick or null | 最近一次上升/下降（含被动跌落与主动降阶）的 tick，用于 365 日流动参与率；死亡后保留审计值 |
 | `ties` | AgentId[] | 无向关系，序列化时排序，最大 6 |
-| `deathTick/deathReason` | nullable | 死亡审计信息 |
+| `deathTick/deathReason` | nullable | 死亡审计信息；`deathReason` 为枚举，MVP 只有 `'age'`（V1 新增原因必须升级 `rulesVersion`，不得写自由文本） |
 
 ### 2.2 SocietyState
 
@@ -133,7 +133,7 @@ R   = Number(u >> 11n) / 2^53
 
 ### 4.3 初始化顺序与地址
 
-1. 校验配置，用最大余数法转为精确人数；余数并列时优先较小 classIndex。生成对应阶级的多重集合并按 classIndex 排序。
+1. 校验配置，用最大余数法转为精确人数；余数并列时优先较小 classIndex。生成对应阶级的多重集合并按 classIndex 排序。允许某些阶级初始人数为 0；`P0[c]=0` 的语义见阶段 H。
 2. 以 `agentId="population"`、`eventTag="init_class_shuffle"` 对上述数组做 Fisher–Yates，再按稳定 agentId 顺序分配。
 3. 按 agentId 依次用独立 tag 生成 ge/hard/initialLife；属性之间不共享 counter。
 4. 按 agentId 用 `init_age` 生成初始年龄并设置 `remainingLife`；`initialAgeMode=newborn` 时仍消费 `init_age` 但取 `remainingLife=initialLife`。
@@ -167,7 +167,7 @@ compete:<agentId>       # 最多 6 个由代码采样的存活目标
 ```
 
 - 竞争目标生成：槽位 k 从 0 开始，先消费来源地址，以 0.70 选邻居、0.30 选全局；再消费目标地址，从该来源的剩余合法目标中均匀抽样。来源为空则用目标地址在另一来源抽样；若已选满 6 个或全局剩余目标为 0 即停止，不为空槽继续消费。去除已选目标本身就是无放回，不做重复拒绝抽样。
-- 候选排序稳定，先按行动类型，再按 agentId；展示顺序不得改变 RNG 结果。
+- 候选排序稳定，先按行动类型，再按 agentId；行动类型顺序固定为 `accumulate<ascend<descend<compete`，同类内按 agentId 的 UTF-8 字节序升序。该顺序同时决定 `legalActions` 请求顺序、`actionSetHash`、mock 加权抽样顺序和 topK 并列规则；展示顺序不得改变 RNG 结果。任何排序语义变化必须升级 `promptVersion`。
 - Jev 只看见这些合法行动。执行顺序按 4.4 的每 agent `action_order` 随机键排序。
 - 因前序竞争导致费用不足、目标已被作为目标、目标死亡或关系已变化时，执行前重新校验；失效行动记 `stale_invalid`，不执行主动行动，仍进入日常积累。目标占用集合为 `targetedAgents`：作为发起方不阻止其另作为目标；A→B 后 B→C 合法，但任何再次以 B 为目标的行动非法。
 - `accumulate` 不收取额外费用，只表示本 tick 不做升降/竞争。
@@ -236,7 +236,7 @@ else: belowNeedStreak = 0
 if belowNeedStreak >= belowNeedLimit and classIndex > 0: classIndex -= 1
 ```
 
-跌落后重置 classAge=0、baselineSum=0、belowNeedStreak=0，记 `lastDescentTick=t`，maxClass 不变；每次最多跌一层。最低层即使持续低于需求也不跌落，streak 可保留 `belowNeedLimit` 但不得继续增长无意义，实现可固定为该值。需求为 0 时严格比较 `Value<0`，因此不会触发。
+跌落后重置 classAge=0、baselineSum=0、belowNeedStreak=0，记 `lastDescentTick=t`，maxClass 不变；每次最多跌一层。最低层即使持续低于需求也不跌落；其 `belowNeedStreak` 仍按上式递增，但必须在达到 `belowNeedLimit` 后钳制为该值，不得无界增长。需求为 0 时严格比较 `Value<0`，因此不会触发。
 
 ### 阶段 E：寿命与死亡
 
@@ -284,7 +284,7 @@ Eraw=env0[c]×Congestion×Polarization
 E[next,c]=(1-ρE)×E[t,c]+ρE×Eraw
 ```
 
-空阶级 P=0 按公式提高机会，但不得超过上限。存活人数为 0 时 F 阶段跳过网络重构，G 阶段记录最终指标，随后结束 run：早于最后计划 tick 记 `extinct`，恰在最后计划 tick 则记 `scheduled` 且 `finalAliveCount=0`；两种情况 H 都不再执行，也不再有后续 step。
+空阶级 `P[c]=0` 时按公式 `P0[c]/0.02` 计算；若该阶级初始就为空（`P0[c]=0`），Congestion 落到 `congestionMin`，**不会**获得额外机会。因此“空阶级提高机会”只适用于初始占比为正、后来被抽空的阶级；初始为空的阶级在 v3 中没有入口激励。该语义必须在 P1.5-02 评估，若需要入口激励应升级 rules-v4，不得在 v3 静默改公式。存活人数为 0 时 F 阶段跳过网络重构，G 阶段记录最终指标，随后结束 run：早于最后计划 tick 记 `extinct`，恰在最后计划 tick 则记 `scheduled` 且 `finalAliveCount=0`；两种情况 H 都不再执行，也不再有后续 step。
 
 仅在决策周期更新 O，Δt=距上次更新的 tick 数：
 

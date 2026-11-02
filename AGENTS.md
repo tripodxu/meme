@@ -18,9 +18,11 @@
 ## 常用入口
 
 - 任务与依赖：`docs/01-implementation-plan.md`
+- 架构与模块边界：`docs/02-architecture.md`
 - 规则结算：`docs/03-rules-implementation.md`
 - Jev 与回放：`docs/04-jev-decision-contract.md`
 - API/存储：`docs/05-api-data-contract.md`
+- 前端交互：`docs/06-frontend-contract.md`
 - 测试门禁：`docs/08-testing-quality.md`
 - 发布运维：`docs/09-deployment-operations.md`
 - 编码与评审：`docs/10-engineering-conventions.md`

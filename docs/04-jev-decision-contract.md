@@ -9,7 +9,7 @@ Jev 不得计算或决定：Value、胜率、成本、阶级变更、寿命、�
 ## 2. Policy 统一输出
 
 ```ts
-type DecisionSource = 'mock' | 'random' | 'jev_live' | 'jev_replay' | 'fallback';
+type DecisionSource = 'mock' | 'random' | 'jev_live' | 'jev_replay' | 'mock_replay' | 'random_replay' | 'fallback';
 
 interface DecisionRecord {
   schemaVersion: string;
@@ -68,16 +68,17 @@ interface ExecutionRecord {
 }
 ```
 
-- `executed` 表示核心已按该行动结算；`stale_invalid`/`replay_invalid` 表示跳过了主动行动但个体仍进入日常积累；`skipped_dead` 表示决策后、执行前已死亡。
+- `executed` 表示核心已按该行动结算；`stale_invalid`/`replay_invalid` 表示跳过了主动行动但个体仍进入日常积累；`skipped_dead` 表示决策后、执行前已死亡，仅作为防御性枚举保留：当前管线只在 E 阶段（C 积累之后）标记死亡，B/C 阶段仍存活者必然执行或失效，因此正常运行不得产生 `skipped_dead`；性质测试必须断言其为 0，若未来调整死亡时机再启用。
 - 一次到期决策对应一条执行记录；竞争结果、费用和阶级变化仍以核心事件为准，不在执行记录中复制数值。
 - 回放时按新世界重新生成执行记录，旧记录只用于对比，不得覆盖。
+- 回放来源按原始策略区分：`jev_replay` 只表示重放 Jev 决策；重放 mock/random 日志分别标 `mock_replay`/`random_replay`，不得统一冒充 `jev_replay`。只有 `jev_replay` 计入“模型重放”统计，mock/random 重放属于确定性核心回归。
 
 ## 3. 输入序列化
 
 ### 3.1 原则
 
 - 使用紧凑英文 JSON 和英文完整选项描述；不依赖中文键名让模型推断含义。
-- state 只含决策相关字段，固定键序，排除 API Key、run 写令牌、其他实验原始回答和无关人口全量。
+- state 只含决策相关字段，键集合固定，排除 API Key、run 写令牌、其他实验原始回答和无关人口全量。发给模型的 JSON 使用固定构造顺序以保证 prompt 稳定；`stateHash` 按 02 第 8 节对同一对象做 JCS 排序后计算，二者不得混用。字段增删或含义变化升级 `promptVersion`。
 - 每个数值附明确字段名/单位；比率用 `[0,1]`，剩余寿命和 classAge 用 days。
 - 最近事件最多 5 条，只保留类型、tick、关键数值；竞争目标最多 6 个。
 - `promptVersion` 随任何字段含义、选项描述、指令或排序语义变化而升级。
@@ -224,7 +225,7 @@ maxHttpAttempts    = maxDueDecisions × 4                                      #
 2. 回放按 `(tick,agentId)` 找记录并核对当前合法行动集；标准回放**只使用决策层最终的 `selectedAction`**，不得使用 requestedAction 让原本被回退的非法模型回答在新世界“复活”。
 3. selectedAction 仍合法则交给核心重新执行前校验；不得重新调用 Jev。原核心是否曾 stale 只作审计，新世界按当前状态重新判断。
 4. 不再合法则记 `replay_invalid`，回退 accumulate，继续用可寻址随机流。requestedAction 重放属于另一实验协议，MVP 不支持。
-5. 回放来源标 `jev_replay`，report 与 `jev_live` 分开；不得称重新获得了同样模型判断。
+5. 回放来源标 `jev_replay`，report 与 `jev_live` 分开；mock/random 日志重放分别标 `mock_replay`/`random_replay`。三者都不得称重新获得了同样模型判断，只有 `jev_replay` 属于模型重放。
 6. 微扰实验从同一权威检查点克隆，只改声明字段；模型行为对比与决策回放对比分报告，因为前者会重新调用模型，后者不会。
 
 ## 10. 代理与隐私

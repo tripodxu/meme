@@ -29,7 +29,7 @@
 - 增加一个竞争随机消费，不改变另一个体网络重构和初始化样本；`init_age` 只影响本个体初始余命。
 - 最大余数人数正确，P0 使用实际人数；分布截断边界无越界样本。
 - 初始人口是 `(config,seed)` 的纯函数：同 config/seed 在不同运行端得到同一 roster 和 `initialPopulationHash`；不得支持外部独立 roster。
-- 初始网络无自连/重边、对称、度限制、无法连边时正常终止。
+- 初始网络无自连/重边、对称、度限制、无法连边时正常终止；空阶级 `P0[c]=0` 时 Congestion 取 `congestionMin` 而非 NaN，且该阶级可被升入后正常更新。
 
 ### 3.2 积累与需求
 
@@ -55,7 +55,7 @@
 ### 3.4 寿命、网络与慢变量
 
 - hard 寿命因子在合法 hard∈[0.2,3.0] 内为 [0.88,1.30]；`hardLifeFloor` 只作数值护栏，不得写成可达的业务分支；阶级变化只影响后续；remainingLife=0 当天死亡且不可复活。
-- `initialAgeMode=uniform` 的默认 3650 tick 实验死亡率显著大于 0；`newborn` 对照在 3650 tick 内死亡率接近 0；两种模式都要覆盖快照恢复。
+- `initialAgeMode=uniform` 的默认 3650 tick 实验死亡率 `>=0.05`；`newborn` 对照在 3650 tick 内死亡率 `<=0.01`；两种模式都要覆盖快照恢复。该阈值是机制可观测性下限，不是现实死亡率承诺。
 - 死亡者 ties 被移除，不参与下一 tick 任何候选/中位数/竞争。
 - 重构无候选恢复旧边；每 agent 每周期最多一条；O 改变权重符合公式。
 - 全零财富 G=0；无网络时 `S=0` 且 `edgeCount=0`；空阶级/全死亡无 NaN。
@@ -103,9 +103,9 @@ golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异�
 - 请求只含白名单字段，action criteria 与 legalActions 一致，最多 9 个选项。
 - prompt 中的成本、转移损耗和“是否摧毁总财富”描述由当前 config 生成，不得写死；当 `baseTransferEfficiency×directionMultiplier=1` 时不得声称有损耗。`promptStyle=neutral|survival_hint` 必须进入 `promptVersion`。
 - 响应：正常概率、缺 answers、空概率、未知选项、负/NaN 字符串、超界 confidence、缺 usage、真实 model 不同。
-- 每个到期决策有且仅有一条执行记录；`executed/stale_invalid/replay_invalid/skipped_dead` 与核心事件和账本一致，执行记录不改写 requested/selected。
+- 每个到期决策有且仅有一条执行记录；`executed/stale_invalid/replay_invalid/skipped_dead` 与核心事件和账本一致，执行记录不改写 requested/selected。`skipped_dead` 在现有死亡时机下必须恒为 0；重放 mock/random 日志分别标 `mock_replay`/`random_replay`，不得冒充 `jev_replay`。
 - topK=1 并列稳定；topK>1 使用地址 RNG，重试不重复采样。
-- 同一 state 重复 10–30 次的重测信度脚本可运行，输出选项分布、一致率和 ICC；低于阈值时报告 `model_unstable`，不得进入正式结构对照。
+- 同一 state 重复 20 次的重测信度脚本可运行，输出选项分布、top-1 一致率、ICC(2,1) 和重复间平均 TV 距离；未达 07 §11 门槛（一致率>=0.70、ICC>=0.50、TV<=0.15）时报告 `model_unstable`，不得进入正式结构对照。
 - 401/403/400/422 不重试；429/529 尊重 Retry-After；5xx/网络次数正确。
 - Abort 能中断 fetch 和等待；重置后的响应因 state/generation 不符被丢弃。
 - 混合错误共享全局 4 次上限；Retry-After>20s 不再重试；熔断按完成顺序分类。
@@ -144,7 +144,7 @@ golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异�
 
 ## 10. CI 与发布证据
 
-PR 必跑：lint、typecheck、unit/property、core golden、build、 Worker 集成（契约相关时）、依赖/密钥扫描。主分支增加 E2E 和基准；live 冒烟仅手动/受控计划，使用独立低预算 secret。
+PR 必跑：format、lint、typecheck、unit/property、core golden、build、Worker 集成（契约相关时）、依赖/密钥扫描。核心覆盖率门禁（statements/branches >=95%）在 unit/property 任务中执行；主分支增加 E2E 和基准；live 冒烟仅手动/受控计划，使用独立低预算 secret。
 
 发布证据包：
 

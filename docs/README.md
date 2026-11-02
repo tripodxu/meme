@@ -22,7 +22,9 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 | Jev 请求、决策与重放 | `04-jev-decision-contract.md` | 不允许前端自行发明协议 |
 | HTTP、D1、R2 与导出格式 | `05-api-data-contract.md` | 版本化变更，保持迁移可追加 |
 | 实验、判异和校准 | `07-experiment-calibration.md` | 不以单张图代替统计验收 |
+| 前端交互、离线与回放 | `06-frontend-contract.md` | 不在前端复制结算公式 |
 | 质量门禁 | `08-testing-quality.md` | 未通过不得标记完成 |
+| 代码风格、评审与文档维护 | `10-engineering-conventions.md` | 与 CI 规则冲突时先改约定并更新 CI |
 | 部署、备份和故障处置 | `09-deployment-operations.md` | 演练通过后才可正式发布 |
 | 安全、额度和成本 | `11-security-cost-constraints.md` | 安全约束优先于功能进度 |
 
