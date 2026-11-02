@@ -18,7 +18,7 @@
       "value": [
         {
           "name": "need.threshold",
-          "unit": "share",
+          "unit": "ratio",
           "value": 0.5
         },
         {
@@ -27,7 +27,7 @@
           "value": 3650
         }
       ],
-      "hash": "sha256:a49d8ba494377adef7ca44acae12a2ad32189c720d01bef9541aa9b0c346c375"
+      "hash": "sha256:3da035e443b4e5bfee4b08b4bc63134c7ccdb0ff4fc11f205aca898d8272bd30"
     },
     {
       "domain": "stratify-initial-population-v1",

@@ -24,6 +24,7 @@
 - 金额/Value 使用 number 但不得负值；只在文档明确规定处使用容差（如配置比例和），费用/财富比较默认直接比较，禁止随处自行取整或引入 epsilon。
 - 禁止在核心调用 `Math.random()`、`Date.now()`、`new Date()`、`crypto.randomUUID()`；ID 和时钟由适配层注入。
 - 所有业务常数来自 `src/core/params.ts` 的 `ParameterRegistry`；禁止在结算函数写裸字面量。新参数必须有名称、单位、合法域、公式引用和接线测试。
+- `src/core` 必须通过 `pnpm typecheck:core`（`tsconfig.core.json` 不含 Node 类型）；新增依赖不得让该检查失败。
 - 初始人口/网络/年龄由 `(config,seed)` 纯函数派生；不得在核心接受独立 roster 或隐式全局状态。
 - 权威哈希的跨运行时承诺只覆盖 V8（Node >=22、workerd、Chromium）；使用 `Math.exp/log/pow/cos` 时不得声称跨引擎 1 ulp 一致，除非已实现确定性数学层。
 - 不使用对象键遍历顺序决定结算；候选人、阶级和行动均显式排序。
@@ -47,7 +48,7 @@
 ## 6. 测试约定
 
 - 测试名描述行为和边界，不写“test1”或只镜像函数名。
-- fixture 包含 schema 版本和来源；golden 更新必须附差异原因，禁止直接批量覆盖后通过。
+- fixture 包含 schema 版本和来源；golden 更新必须附差异原因，禁止直接批量覆盖后通过。参数注册表定义由 `test/fixtures/config/param-definitions.json` 冻结，变更时运行 `pnpm params:snapshot` 并人工审查 diff。
 - 单元测试不访问真实网络；集成测试用本地 workerd/D1/R2；live 测试独立且有预算。
 - 每个 bug 修复先添加可失败的回归测试；每个规则改动同步更新映射测试。
 - 测试不得依赖本机绝对路径、当前时间或未固定 locale。

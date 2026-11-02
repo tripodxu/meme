@@ -104,7 +104,7 @@ P0 必须提供：
 - 每个参数至少一个“接线测试”：改变参数值必须改变对应输出，或明确标记为不影响行为并说明原因；
 - golden fixture 记录 `paramsHash`；参数改名或含义变化升级 `rulesVersion`。
 
-`src/core/config/validate.ts` 的标量与数组元素范围必须从注册表读取，不得另行硬编码；跨字段约束（数组长度、顺序、和为一、`hardLifeFloor` 关系上界等）单独实现并有测试。`test/unit/params.test.ts` 必须覆盖“每个 RunConfig 叶子都已登记”和注册表域边界。
+`src/core/config/validate.ts` 的标量与数组元素范围必须从注册表读取，不得另行硬编码；跨字段约束（数组长度、顺序、和为一、`hardLifeFloor` 关系上界等）单独实现并有测试。`test/unit/params.test.ts` 必须覆盖“每个 RunConfig 叶子都已登记”和注册表域边界。参数注册表定义由 `test/fixtures/config/param-definitions.json` 快照冻结，变更需运行 `pnpm params:snapshot` 并人工审查 diff。
 
 至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`initialAgeMode`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`flowWindowDays`、`metrics.mobilityWindowDays`。
 

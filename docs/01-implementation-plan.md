@@ -172,6 +172,7 @@ pnpm install --frozen-lockfile
 pnpm format        # prettier --check，与 lint 分列
 pnpm lint
 pnpm typecheck
+pnpm typecheck:core  # core 不含 Node 类型的纯度检查
 pnpm test
 pnpm test:coverage # 核心 statements/branches >=95%
 pnpm test:integration

@@ -94,9 +94,10 @@
 - 365+ tick 的反馈 fixture，验证 E/O、调整后 S、365 日 Mup/Mdown；
 - 快照恢复、微扰克隆、live 决策回放及 replay_invalid；
 - 空网络、全零财富、全死亡边界；
-- 每个参数注册项的接线 fixture。
+- 每个参数注册项的接线 fixture；
+- 参数注册表定义快照 `test/fixtures/config/param-definitions.json`（名称、单位、公式引用、域与 `guardOnly/affectsBehavior`）。
 
-golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异；另为 02 每个 hash domain（含 `configHash/paramsHash/initialPopulationHash/preregistrationHash`）在受支持的 V8 运行时（Node/workerd/Chromium）校验同一 RFC 8785 测试向量。更新必须人工审查，不得用环境变量一键无说明接受。声称无行为重构时 hash 必须一致；行为变化升级版本并保留旧 fixture 读取测试。
+golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异；参数定义快照由 `pnpm params:snapshot` 生成，更新必须人工审查 diff。另为 02 每个 hash domain（含 `configHash/paramsHash/initialPopulationHash/preregistrationHash`）在受支持的 V8 运行时（Node/workerd/Chromium）校验同一 RFC 8785 测试向量。更新必须人工审查，不得用环境变量一键无说明接受。声称无行为重构时 hash 必须一致；行为变化升级版本并保留旧 fixture 读取测试。
 
 ## 6. Jev 契约测试
 
@@ -144,7 +145,7 @@ golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异�
 
 ## 10. CI 与发布证据
 
-PR 必跑：format、lint、typecheck、unit/property、core golden、build、Worker 集成（契约相关时）、依赖/密钥扫描。核心覆盖率门禁（statements/branches >=95%）在 unit/property 任务中执行；主分支增加 E2E 和基准；live 冒烟仅手动/受控计划，使用独立低预算 secret。
+PR 必跑：format、lint、typecheck、`typecheck:core`（不含 Node 类型）、unit/property、core golden、build、Worker 集成（契约相关时）、依赖审计 `pnpm audit --prod --audit-level high`。核心覆盖率门禁（statements/branches >=95%）在 unit/property 任务中执行；主分支增加 E2E 和基准；live 冒烟仅手动/受控计划，使用独立低预算 secret。密钥扫描在 P7 发布门禁与仓库 secret scanning 执行，不阻塞每个 PR。
 
 发布证据包：
 

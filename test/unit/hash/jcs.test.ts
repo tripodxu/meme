@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { canonicalize, isJsonValue } from '../../../src/core/hash/jcs.js';
+import { canonicalize, isJsonValue, utf8Bytes } from '../../../src/core/hash/jcs.js';
 import { StratifyError, errorCodes } from '../../../src/core/control/errors.js';
 
 function codeOf(fn: () => unknown): string | undefined {
@@ -107,5 +107,11 @@ describe('RFC 8785 canonicalize', () => {
     expect(isJsonValue({ a: [1, 'x', null] })).toBe(true);
     expect(isJsonValue({ a: undefined })).toBe(false);
     expect(isJsonValue(Number.NaN)).toBe(false);
+  });
+});
+
+describe('utf8Bytes', () => {
+  it.each(['ascii', '€', '😀', '种子', 'a\u0000b'])('matches TextEncoder for %j', (text) => {
+    expect(Array.from(utf8Bytes(text))).toEqual(Array.from(new TextEncoder().encode(text)));
   });
 });

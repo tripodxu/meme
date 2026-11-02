@@ -1,3 +1,5 @@
+import { utf8ToBytes } from '@noble/hashes/utils.js';
+
 import { errorCodes, StratifyError } from '../control/errors.js';
 
 export type JsonPrimitive = null | boolean | number | string;
@@ -99,8 +101,7 @@ export function isJsonValue(value: unknown): value is JsonValue {
   }
 }
 
-const utf8 = new TextEncoder();
-
+/** UTF-8 编码由纯 JS 库提供，避免核心源码依赖 TextEncoder/Buffer 等运行时全局。 */
 export function utf8Bytes(text: string): Uint8Array {
-  return utf8.encode(text);
+  return utf8ToBytes(text);
 }

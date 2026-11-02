@@ -1,0 +1,941 @@
+{
+  "description": "参数注册表契约快照；任何变更必须人工审查并同步 03 与 golden 测试。",
+  "definitions": [
+    {
+      "name": "population.initialPopulation",
+      "unit": "person",
+      "formulaRef": "03 §3.1 人口/阶级",
+      "domain": {
+        "kind": "number",
+        "min": 2,
+        "max": 10000,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.classCount",
+      "unit": "classCount",
+      "formulaRef": "03 §3.1 人口/阶级",
+      "domain": {
+        "kind": "number",
+        "min": 2,
+        "max": 8,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.classShares",
+      "unit": "ratio",
+      "formulaRef": "03 §3.1 人口/阶级",
+      "domain": {
+        "kind": "array",
+        "length": "classCount",
+        "element": {
+          "kind": "number",
+          "min": 0,
+          "max": 1
+        },
+        "sumToOne": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.initialValue",
+      "unit": "value",
+      "formulaRef": "03 §4.3 初始化顺序",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.initialAgeMode",
+      "unit": "dimensionless",
+      "formulaRef": "03 §4.2 初始年龄 / rule.md 20",
+      "domain": {
+        "kind": "enum",
+        "values": ["uniform", "newborn"]
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "opportunity.dailyBase",
+      "unit": "value",
+      "formulaRef": "03 §6 阶段 C / rule.md 3",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "opportunity.env0",
+      "unit": "value",
+      "formulaRef": "03 §3 / rule.md 2、33",
+      "domain": {
+        "kind": "array",
+        "length": "classCount",
+        "element": {
+          "kind": "number",
+          "exclusiveMin": 0
+        }
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "lifespan.decay",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 E / rule.md 22",
+      "domain": {
+        "kind": "array",
+        "length": "classCount",
+        "element": {
+          "kind": "number",
+          "min": 0,
+          "max": 3
+        }
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "lifespan.initialLife.mean",
+      "unit": "days",
+      "formulaRef": "03 §3 寿命 / rule.md 20",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "lifespan.initialLife.sigma",
+      "unit": "days",
+      "formulaRef": "03 §3 寿命 / rule.md 20",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "lifespan.initialLife.min",
+      "unit": "days",
+      "formulaRef": "03 §4.2 截断分布",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "lifespan.initialLife.max",
+      "unit": "days",
+      "formulaRef": "03 §4.2 截断分布",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "lifespan.hardLifeFactor",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 E / rule.md 25",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 10
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "lifespan.hardLifeFloor",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3.1 寿命损耗",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0,
+        "max": 1
+      },
+      "guardOnly": true,
+      "affectsBehavior": false
+    },
+    {
+      "name": "attributes.ge.sigma",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 属性",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "attributes.ge.median",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 属性",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "attributes.ge.min",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3.1 分布",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "attributes.ge.max",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3.1 分布",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "attributes.hard.sigma",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 属性",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "attributes.hard.median",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 属性",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "attributes.hard.min",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3.1 分布",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "attributes.hard.max",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3.1 分布",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "effort.shape",
+      "unit": "exponent",
+      "formulaRef": "03 §3 努力函数 / rule.md 3、36",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "need.threshold",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 D / rule.md 7",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "need.belowNeedLimit",
+      "unit": "ticks",
+      "formulaRef": "03 §6 阶段 D / rule.md 7",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "need.bufferDays",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 C / rule.md 6",
+      "domain": {
+        "kind": "number",
+        "min": 2,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "need.needMultiplier",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 C / rule.md 5",
+      "domain": {
+        "kind": "array",
+        "length": "classCount",
+        "element": {
+          "kind": "number",
+          "min": 1,
+          "max": 6
+        },
+        "nonDecreasing": true,
+        "firstElement": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "descent.days",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 B / rule.md 8",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "ascent.crossDays",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 B / rule.md 9",
+      "domain": {
+        "kind": "array",
+        "length": "classCountMinus1",
+        "element": {
+          "kind": "number",
+          "exclusiveMin": 0
+        }
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "ascent.returnDiscount",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 B / rule.md 10、11",
+      "domain": {
+        "kind": "array",
+        "length": 3,
+        "element": {
+          "kind": "number",
+          "min": 0,
+          "max": 1
+        },
+        "nonDecreasing": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.powerValueExponent",
+      "unit": "exponent",
+      "formulaRef": "03 §6 阶段 B / rule.md 12",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 4
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.powerGeExponent",
+      "unit": "exponent",
+      "formulaRef": "03 §6 阶段 B / rule.md 12",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 4
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.powerHardExponent",
+      "unit": "exponent",
+      "formulaRef": "03 §6 阶段 B / rule.md 12",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 4
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.crossClassInitiatorMultiplier",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 B / rule.md 16",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1.25
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.crossClassTargetMultiplier",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 B / rule.md 17",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1.25
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.lossRate",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 B / rule.md 13",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 0.5
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.baseTransferEfficiency",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 B / rule.md 13",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.highToLowWinMultiplier",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 B / rule.md 18",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1.25
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.lowToHighWinMultiplier",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 B / rule.md 19",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1.25
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.candidateCount",
+      "unit": "count",
+      "formulaRef": "03 §5 合法行动 / rule.md 40",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 6,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "competition.localTargetProbability",
+      "unit": "ratio",
+      "formulaRef": "03 §5 合法行动 / rule.md 40",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "network.maxDegree",
+      "unit": "count",
+      "formulaRef": "03 §3 / rule.md 30",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 6,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "network.initialDegree",
+      "unit": "count",
+      "formulaRef": "03 §4.3 初始化 / rule.md 30",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 6,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "network.rewireProb",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 F / rule.md 39",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "network.classWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 F / rule.md 38、39",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "network.valueWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 F / rule.md 38、39",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "networkOpportunity.beta",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 C / rule.md 36",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "networkOpportunity.min",
+      "unit": "ratio",
+      "formulaRef": "03 §3 网络机会 / rule.md 36",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "networkOpportunity.max",
+      "unit": "ratio",
+      "formulaRef": "03 §3 网络机会 / rule.md 36",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.classSmoothing",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 33",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.congestionExponent",
+      "unit": "exponent",
+      "formulaRef": "03 §6 阶段 H / rule.md 34",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.polarizationExponent",
+      "unit": "exponent",
+      "formulaRef": "03 §6 阶段 H / rule.md 35",
+      "domain": {
+        "kind": "number",
+        "min": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.giniReference",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 35",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.congestionMin",
+      "unit": "ratio",
+      "formulaRef": "03 §3 拥挤/分化 / rule.md 34",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.congestionMax",
+      "unit": "ratio",
+      "formulaRef": "03 §3 拥挤/分化 / rule.md 34",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.emptyClassPopulationFloor",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 34",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.polarizationMin",
+      "unit": "ratio",
+      "formulaRef": "03 §3 拥挤/分化 / rule.md 35",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "dynamics.polarizationMax",
+      "unit": "ratio",
+      "formulaRef": "03 §3 拥挤/分化 / rule.md 35",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.initial",
+      "unit": "ratio",
+      "formulaRef": "03 §4.3 初始化 / rule.md 43",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.timeConstantDays",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 H / rule.md 43",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.intercept",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 H / rule.md 42",
+      "domain": {
+        "kind": "number",
+        "min": -20,
+        "max": 20
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.mobilityWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 H / rule.md 42",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 100
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.mobilityReference",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 42",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.giniWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 H / rule.md 42",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 100
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.segregationWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 H / rule.md 42",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 100
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.segregationReference",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 42",
+      "domain": {
+        "kind": "number",
+        "min": -1,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.ascentCostWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 B / rule.md 44",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 100
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.multiplierMin",
+      "unit": "ratio",
+      "formulaRef": "03 §3 跨越动态乘子 / rule.md 44",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.multiplierMax",
+      "unit": "ratio",
+      "formulaRef": "03 §3 跨越动态乘子 / rule.md 44",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "decision.interval",
+      "unit": "ticks",
+      "formulaRef": "03 §1 通用约定",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "decision.topK",
+      "unit": "count",
+      "formulaRef": "04 §4 响应校验与选择",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "max": 9,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "decision.policy",
+      "unit": "dimensionless",
+      "formulaRef": "04 §2.1 默认 mock 与 random 策略",
+      "domain": {
+        "kind": "enum",
+        "values": ["mock-weighted-v1", "random-uniform-v1", "jev_live"]
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "schedule.totalTicks",
+      "unit": "ticks",
+      "formulaRef": "03 §1 通用约定",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "schedule.statsStride",
+      "unit": "ticks",
+      "formulaRef": "05 §4.3 聚合 tick 批量写",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "schedule.snapshotStride",
+      "unit": "ticks",
+      "formulaRef": "02 §9 数据规模策略",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "metrics.flowWindowDays",
+      "unit": "days",
+      "formulaRef": "03 §3 转移矩阵 / rule.md 50",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "metrics.mobilityWindowDays",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 G / rule.md 31",
+      "domain": {
+        "kind": "number",
+        "min": 1,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "metrics.topWealthShareFraction",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 G / rule.md 50",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    }
+  ]
+}

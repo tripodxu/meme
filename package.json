@@ -10,10 +10,12 @@
   "packageManager": "pnpm@11.22.0",
   "scripts": {
     "check:docs": "node scripts/check-doc-links.mjs",
+    "params:snapshot": "pnpm build && node scripts/generate-param-snapshot.mjs",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:core": "tsc --noEmit -p tsconfig.core.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
