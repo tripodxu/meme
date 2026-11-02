@@ -5,6 +5,7 @@ import {
   createDemoConfig,
   mergeConfig,
 } from '../../../src/core/config/defaults.js';
+import { validateRunConfig } from '../../../src/core/config/validate.js';
 import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../../../src/core/control/versions.js';
 
 describe('DEFAULT_RUN_CONFIG', () => {
@@ -84,6 +85,30 @@ describe('createDemoConfig', () => {
   it('ignores undefined overrides', () => {
     const demo = createDemoConfig({ schedule: { totalTicks: undefined } as never });
     expect(demo.schedule.totalTicks).toBe(120);
+  });
+
+  it('deep-merges nested spec overrides instead of dropping siblings', () => {
+    const merged = mergeConfig(DEFAULT_RUN_CONFIG, {
+      lifespan: { initialLife: { mean: 26000 } },
+    });
+    expect(merged.lifespan.initialLife).toEqual({
+      mean: 26000,
+      sigma: 1825,
+      min: 3650,
+      max: 43800,
+    });
+    expect(merged.lifespan.hardLifeFactor).toBe(DEFAULT_RUN_CONFIG.lifespan.hardLifeFactor);
+
+    const demo = createDemoConfig({ attributes: { ge: { sigma: 0.6 } } });
+    expect(demo.attributes.ge).toEqual({ sigma: 0.6, median: 1, min: 0.2, max: 3 });
+    expect(demo.attributes.hard).toEqual(DEFAULT_RUN_CONFIG.attributes.hard);
+    expect(validateRunConfig(demo).ok).toBe(true);
+  });
+
+  it('does not pollute Object.prototype through a __proto__ patch key', () => {
+    const patch = JSON.parse('{"__proto__":{"polluted":true}}') as never;
+    mergeConfig(DEFAULT_RUN_CONFIG, patch);
+    expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
   });
 });
 

@@ -134,20 +134,26 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** 浅合并每个配置分组；数组整体替换，避免把数组按索引合并成语义错误的结构。 */
+/**
+ * 递归合并纯对象；数组整体替换，避免把数组按索引合并成语义错误的结构。
+ * 嵌套对象（如 `lifespan.initialLife`）只覆盖声明字段，保留其余先验；
+ * 通过 Map + Object.fromEntries 构造结果，避免 `__proto__` 之类的键触发赋值器。
+ */
 export function mergeConfig(base: RunConfig, patch: DeepPartialConfig): RunConfig {
-  const merged: Record<string, unknown> = { ...base };
-  for (const [key, value] of Object.entries(patch)) {
-    if (value === undefined) continue;
-    const baseValue = (base as unknown as Record<string, unknown>)[key];
-    merged[key] =
-      isPlainObject(value) && isPlainObject(baseValue)
-        ? { ...baseValue, ...withoutUndefined(value) }
-        : value;
-  }
-  return merged as unknown as RunConfig;
+  return mergeValue(base, patch) as RunConfig;
 }
 
-function withoutUndefined(value: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
+function mergeValue(baseValue: unknown, patchValue: unknown): unknown {
+  if (patchValue === undefined) {
+    return baseValue;
+  }
+  if (!isPlainObject(baseValue) || !isPlainObject(patchValue)) {
+    return patchValue;
+  }
+  const entries = new Map<string, unknown>(Object.entries(baseValue));
+  for (const [key, value] of Object.entries(patchValue)) {
+    if (value === undefined) continue;
+    entries.set(key, mergeValue(entries.get(key), value));
+  }
+  return Object.fromEntries(entries);
 }
