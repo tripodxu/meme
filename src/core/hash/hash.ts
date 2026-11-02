@@ -1,5 +1,6 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 
+import { errorCodes, StratifyError } from '../control/errors.js';
 import { canonicalize, utf8Bytes } from './jcs.js';
 
 export type HashAlgorithm = 'sha256';
@@ -32,7 +33,10 @@ export function sha256Hex(bytes: Uint8Array): string {
  */
 export function hashValue(domain: string, value: unknown): string {
   if (!domain.startsWith('stratify-') || domain.includes('\0')) {
-    throw new Error(`非法 hash domain: ${JSON.stringify(domain)}`);
+    throw new StratifyError(
+      errorCodes.HASH_DOMAIN_INVALID,
+      `非法 hash domain: ${JSON.stringify(domain)}`,
+    );
   }
   const payload = `${domain}\0${canonicalize(value)}`;
   return HASH_PREFIX + sha256Hex(utf8Bytes(payload));
@@ -40,11 +44,11 @@ export function hashValue(domain: string, value: unknown): string {
 
 export function parseHash(hash: string): ParsedHash {
   if (!hash.startsWith(HASH_PREFIX)) {
-    throw new Error(`非法 hash 前缀: ${hash.slice(0, 16)}`);
+    throw new StratifyError(errorCodes.HASH_INVALID, `非法 hash 前缀: ${hash.slice(0, 16)}`);
   }
   const digest = hash.slice(HASH_PREFIX.length);
   if (!/^[0-9a-f]{64}$/.test(digest)) {
-    throw new Error('hash 摘要必须为 64 位小写十六进制');
+    throw new StratifyError(errorCodes.HASH_INVALID, 'hash 摘要必须为 64 位小写十六进制');
   }
   return { algorithm: 'sha256', digest };
 }

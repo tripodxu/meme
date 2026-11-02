@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { StratifyError, errorCodes } from '../../../src/core/control/errors.js';
 import {
   asAgentId,
   asChunkId,
@@ -22,7 +23,7 @@ describe('run and chunk ids', () => {
     expect(asAgentId('a-0001')).toBe('a-0001');
     expect(asAgentId('a-123456')).toBe('a-123456');
     expect(asChunkId('events-0-1000.jsonl')).toBe('events-0-1000.jsonl');
-    expect(() => asChunkId('events/0.jsonl')).toThrow(RangeError);
+    expect(() => asChunkId('events/0.jsonl')).toThrow(StratifyError);
   });
 
   it('checks chunk ids without throwing', () => {
@@ -33,10 +34,10 @@ describe('run and chunk ids', () => {
   });
 
   it('rejects ids that violate the R2/sessionStorage-safe charset', () => {
-    expect(() => asRunId('run 01')).toThrow(RangeError);
-    expect(() => asRunId('a/b')).toThrow(RangeError);
-    expect(() => asRunId('')).toThrow(RangeError);
-    expect(() => asRunId('x'.repeat(65))).toThrow(RangeError);
+    expect(() => asRunId('run 01')).toThrow(StratifyError);
+    expect(() => asRunId('a/b')).toThrow(StratifyError);
+    expect(() => asRunId('')).toThrow(StratifyError);
+    expect(() => asRunId('x'.repeat(65))).toThrow(StratifyError);
     expect(isRunId('ok_id-1')).toBe(true);
     expect(isRunId('bad id')).toBe(false);
   });
@@ -45,19 +46,29 @@ describe('run and chunk ids', () => {
     expect(isLocalRunId(`local-${ULID}`)).toBe(true);
     expect(isLocalRunId(`local-${ULID.toLowerCase()}`)).toBe(false);
     expect(isLocalRunId(`local-${ULID.slice(0, 25)}`)).toBe(false);
-    expect(() => asLocalRunId(`run-${ULID}`)).toThrow(RangeError);
+    expect(() => asLocalRunId(`run-${ULID}`)).toThrow(StratifyError);
   });
 
   it('requires at least four digits for agent ids', () => {
     expect(isAgentId('a-001')).toBe(false);
     expect(isAgentId('a-0001')).toBe(true);
     expect(isAgentId('b-0001')).toBe(false);
-    expect(() => asAgentId('a-1')).toThrow(RangeError);
+    expect(() => asAgentId('a-1')).toThrow(StratifyError);
   });
 
   it('rejects non-string values', () => {
-    expect(() => asRunId(1)).toThrow(TypeError);
-    expect(() => asSeed(null)).toThrow(TypeError);
+    expect(() => asRunId(1)).toThrow(StratifyError);
+    expect(() => asSeed(null)).toThrow(StratifyError);
+  });
+
+  it('uses the stable id_invalid code', () => {
+    try {
+      asRunId('bad id');
+      expect.unreachable('should throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(StratifyError);
+      expect((error as StratifyError).code).toBe(errorCodes.ID_INVALID);
+    }
   });
 });
 

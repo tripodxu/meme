@@ -14,6 +14,9 @@ describe('error codes', () => {
         'config_non_finite',
         'config_out_of_range',
         'hash_non_canonical',
+        'hash_invalid',
+        'hash_domain_invalid',
+        'id_invalid',
         'invariant_violated',
       ]),
     );

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { StratifyError, errorCodes } from '../../../src/core/control/errors.js';
 import { hashValue, parseHash, sha256Hex } from '../../../src/core/hash/hash.js';
 import { HASH_DOMAINS } from '../../../src/core/hash/domains.js';
 
@@ -45,6 +46,23 @@ describe('hashValue', () => {
   it('rejects domains without the stratify- prefix and embedded NUL', () => {
     expect(() => hashValue('config-v1', {})).toThrow(/非法 hash domain/);
     expect(() => hashValue('stratify-a\0b', {})).toThrow(/非法 hash domain/);
+  });
+
+  it('uses stable hash error codes', () => {
+    try {
+      hashValue('config-v1', {});
+      expect.unreachable('should throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(StratifyError);
+      expect((error as StratifyError).code).toBe(errorCodes.HASH_DOMAIN_INVALID);
+    }
+    try {
+      parseHash('sha1:abc');
+      expect.unreachable('should throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(StratifyError);
+      expect((error as StratifyError).code).toBe(errorCodes.HASH_INVALID);
+    }
   });
 
   it('declares every documented hash domain with the versioned prefix', () => {

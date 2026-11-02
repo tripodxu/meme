@@ -1,3 +1,5 @@
+import { StratifyError, errorCodes } from './errors.js';
+
 declare const brandSymbol: unique symbol;
 
 /** 名义类型：防止把任意字符串当作 ID 或 seed 传递。 */
@@ -18,14 +20,14 @@ export const AGENT_ID_PATTERN = /^a-\d{4,}$/;
 
 function assertString(name: string, value: unknown): asserts value is string {
   if (typeof value !== 'string') {
-    throw new TypeError(`${name} 必须是字符串`);
+    throw new StratifyError(errorCodes.ID_INVALID, `${name} 必须是字符串`);
   }
 }
 
 export function asRunId(value: unknown): RunId {
   assertString('runId', value);
   if (!RUN_ID_PATTERN.test(value)) {
-    throw new RangeError('runId 必须匹配 [A-Za-z0-9_-]{1,64}');
+    throw new StratifyError(errorCodes.ID_INVALID, 'runId 必须匹配 [A-Za-z0-9_-]{1,64}');
   }
   return value as RunId;
 }
@@ -33,7 +35,7 @@ export function asRunId(value: unknown): RunId {
 export function asLocalRunId(value: unknown): LocalRunId {
   assertString('localRunId', value);
   if (!LOCAL_RUN_ID_PATTERN.test(value)) {
-    throw new RangeError('localRunId 必须匹配 local-<ULID>');
+    throw new StratifyError(errorCodes.ID_INVALID, 'localRunId 必须匹配 local-<ULID>');
   }
   return value as LocalRunId;
 }
@@ -41,7 +43,7 @@ export function asLocalRunId(value: unknown): LocalRunId {
 export function asAgentId(value: unknown): AgentId {
   assertString('agentId', value);
   if (!AGENT_ID_PATTERN.test(value)) {
-    throw new RangeError('agentId 必须匹配 a-<至少 4 位数字>');
+    throw new StratifyError(errorCodes.ID_INVALID, 'agentId 必须匹配 a-<至少 4 位数字>');
   }
   return value as AgentId;
 }
@@ -49,7 +51,7 @@ export function asAgentId(value: unknown): AgentId {
 export function asChunkId(value: unknown): ChunkId {
   assertString('chunkId', value);
   if (!CHUNK_ID_PATTERN.test(value)) {
-    throw new RangeError('chunkId 必须匹配 [A-Za-z0-9._-]{1,128}');
+    throw new StratifyError(errorCodes.ID_INVALID, 'chunkId 必须匹配 [A-Za-z0-9._-]{1,128}');
   }
   return value as ChunkId;
 }
@@ -59,13 +61,13 @@ const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[
 export function asSeed(value: unknown): Seed {
   assertString('seed', value);
   if (value.length === 0) {
-    throw new RangeError('seed 不得为空');
+    throw new StratifyError(errorCodes.ID_INVALID, 'seed 不得为空');
   }
   if (value.length > 256) {
-    throw new RangeError('seed 长度不得超过 256');
+    throw new StratifyError(errorCodes.ID_INVALID, 'seed 长度不得超过 256');
   }
   if (value.includes('\0') || LONE_SURROGATE.test(value)) {
-    throw new RangeError('seed 不得包含 NUL 或未配对的代理项');
+    throw new StratifyError(errorCodes.ID_INVALID, 'seed 不得包含 NUL 或未配对的代理项');
   }
   return value as Seed;
 }
