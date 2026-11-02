@@ -23,6 +23,9 @@
 - 所有非有限数在产生处报错；禁止用 `value || 0` 掩盖 NaN，使用 `Number.isFinite`。
 - 金额/Value 使用 number 但不得负值；只在文档明确规定处使用容差（如配置比例和），费用/财富比较默认直接比较，禁止随处自行取整或引入 epsilon。
 - 禁止在核心调用 `Math.random()`、`Date.now()`、`new Date()`、`crypto.randomUUID()`；ID 和时钟由适配层注入。
+- 所有业务常数来自 `src/core/params.ts` 的 `ParameterRegistry`；禁止在结算函数写裸字面量。新参数必须有名称、单位、合法域、公式引用和接线测试。
+- 初始人口/网络/年龄由 `(config,seed)` 纯函数派生；不得在核心接受独立 roster 或隐式全局状态。
+- 权威哈希的跨运行时承诺只覆盖 V8（Node >=22、workerd、Chromium）；使用 `Math.exp/log/pow/cos` 时不得声称跨引擎 1 ulp 一致，除非已实现确定性数学层。
 - 不使用对象键遍历顺序决定结算；候选人、阶级和行动均显式排序。
 
 ## 4. 核心与随机数
