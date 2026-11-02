@@ -83,6 +83,7 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
   },
   openness: {
     initial: 0.5,
+    updateMode: 'dynamic',
     timeConstantDays: 60,
     intercept: 0,
     mobilityWeight: 8,

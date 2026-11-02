@@ -14,13 +14,28 @@
   },
   "lifespan": {
     "decay": [1.3, 1.15, 1, 0.88, 0.75],
-    "initialLife": { "mean": 25550, "sigma": 1825, "min": 3650, "max": 43800 },
+    "initialLife": {
+      "mean": 25550,
+      "sigma": 1825,
+      "min": 3650,
+      "max": 43800
+    },
     "hardLifeFactor": 0.15,
     "hardLifeFloor": 0.5
   },
   "attributes": {
-    "ge": { "sigma": 0.5, "median": 1, "min": 0.2, "max": 3 },
-    "hard": { "sigma": 0.5, "median": 1, "min": 0.2, "max": 3 }
+    "ge": {
+      "sigma": 0.5,
+      "median": 1,
+      "min": 0.2,
+      "max": 3
+    },
+    "hard": {
+      "sigma": 0.5,
+      "median": 1,
+      "min": 0.2,
+      "max": 3
+    }
   },
   "effort": {
     "shape": 1.2
@@ -76,6 +91,7 @@
   },
   "openness": {
     "initial": 0.5,
+    "updateMode": "dynamic",
     "timeConstantDays": 60,
     "intercept": 0,
     "mobilityWeight": 8,

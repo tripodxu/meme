@@ -807,6 +807,7 @@ export function validateRunConfig(input: unknown): ValidationResult {
   if (
     checkObject(collector, root['openness'], '$.openness', [
       'initial',
+      'updateMode',
       'timeConstantDays',
       'intercept',
       'mobilityWeight',
@@ -820,6 +821,12 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const openness = root['openness'];
+    checkRegisteredEnum(
+      collector,
+      openness['updateMode'],
+      '$.openness.updateMode',
+      'openness.updateMode',
+    );
     checkRegisteredNumber(collector, openness['initial'], '$.openness.initial', 'openness.initial');
     checkRegisteredNumber(
       collector,

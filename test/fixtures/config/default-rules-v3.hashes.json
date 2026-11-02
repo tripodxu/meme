@@ -2,6 +2,6 @@
   "description": "rules-v3 默认配置的 golden 摘要。更新必须人工审查，不得用环境变量一键接受。",
   "rulesVersion": "rules-v3",
   "fixture": "test/fixtures/config/default-rules-v3.json",
-  "configHash": "sha256:7fb707adef0621e651ad6dd56552b108006616c40279bad52594874e1d0d5926",
-  "paramsHash": "sha256:608ae26afb0cf468cc7770c6872e6c3059235b1456a1b01cf4a53744ddbffc3a"
+  "configHash": "sha256:aaab5b5e688fde2aba0d4934f49466c459e01976f447e1c3c1fca064b99c58a4",
+  "paramsHash": "sha256:2a0be88d2fe886b847dfad9302a4584016d14d949cc3a96da464c8470ae22889"
 }

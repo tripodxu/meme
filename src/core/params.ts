@@ -615,6 +615,16 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest: '改变 O0 后 tick 0 的 O 与上升成本改变。',
   },
   {
+    name: 'openness.updateMode',
+    unit: 'dimensionless',
+    formulaRef: '03 §3 开放度 / P1-10 消融开关',
+    domain: { kind: 'enum', values: ['dynamic', 'fixed'] },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      'fixed 时 O 恒等于 openness.initial，E 更新不受影响；开关变化改变 configHash/paramsHash。',
+  },
+  {
     name: 'openness.timeConstantDays',
     unit: 'days',
     formulaRef: '03 §6 阶段 H / rule.md 43',

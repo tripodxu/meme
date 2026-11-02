@@ -715,6 +715,17 @@
       "affectsBehavior": true
     },
     {
+      "name": "openness.updateMode",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 开放度 / P1-10 消融开关",
+      "domain": {
+        "kind": "enum",
+        "values": ["dynamic", "fixed"]
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "openness.timeConstantDays",
       "unit": "days",
       "formulaRef": "03 §6 阶段 H / rule.md 43",
