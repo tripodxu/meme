@@ -52,6 +52,28 @@ for (const cell of manifest.cells) {
     const outcome = runSingle(config, asSeed(seed), { policy: 'mock-weighted-v1' });
     const elapsedMs = Math.round(performance.now() - runStart);
     const w1 = outcome.report.windows.find((window) => window.label === 'w1');
+    const w3 = outcome.report.windows.find((window) => window.label === 'w3');
+    const windowPayload = (window) =>
+      window === undefined
+        ? null
+        : {
+            label: window.label,
+            available: window.missingTicks === 0,
+            missingTicks: window.missingTicks,
+            classShares: window.classShares,
+            gini: window.gini,
+            topWealthShare: window.topWealthShare,
+            mUp: window.mUp,
+            mDown: window.mDown,
+            segregation: window.segregation,
+            openness: window.openness,
+            edgeCountAverage: window.edgeCountAverage,
+            crossClassEdgeShare: window.crossClassEdgeShare,
+            deathRate: window.deathRate,
+            networkEmpty: window.networkEmpty,
+            labels: outcome.report.labelsByWindow[window.label] ?? [],
+            evidence: outcome.report.labelsEvidenceByWindow[window.label] ?? {},
+          };
     runCount += 1;
     seedResults.push({
       seed,
@@ -63,53 +85,43 @@ for (const cell of manifest.cells) {
       finalStateHash: outcome.report.finalStateHash,
       configHash: outcome.configHash,
       paramsHash: outcome.paramsHash,
-      w1:
-        w1 === undefined
-          ? null
-          : {
-              label: w1.label,
-              available: w1.missingTicks === 0,
-              missingTicks: w1.missingTicks,
-              classShares: w1.classShares,
-              gini: w1.gini,
-              topWealthShare: w1.topWealthShare,
-              mUp: w1.mUp,
-              mDown: w1.mDown,
-              segregation: w1.segregation,
-              openness: w1.openness,
-              edgeCountAverage: w1.edgeCountAverage,
-              crossClassEdgeShare: w1.crossClassEdgeShare,
-              deathRate: w1.deathRate,
-              networkEmpty: w1.networkEmpty,
-              labels: outcome.report.labelsByWindow[w1.label] ?? [],
-              evidence: outcome.report.labelsEvidenceByWindow[w1.label] ?? {},
-            },
+      w1: windowPayload(w1),
+      w3: windowPayload(w3),
     });
   }
   log(`cell=${cell.cellKey} done (${seedResults.length} seeds)`);
   cellResults.push({ cellKey: cell.cellKey, hypothesis: cell.hypothesis, seeds: seedResults });
 }
 
-// 聚类（仅 full 阶段）：w1 特征向量 → z-score → Ward k∈[2,5]。
+// 聚类（仅 full 阶段）：w1+w3 特征点 → z-score → Ward k∈[2,5]；同 run 双窗应同簇。
 let clustering = null;
 if (stage === 'full') {
   const points = [];
   const pointMeta = [];
   for (const cell of cellResults) {
     for (const seedResult of cell.seeds) {
-      if (seedResult.w1 !== null && seedResult.w1.available) {
-        points.push([
-          ...seedResult.w1.classShares,
-          seedResult.w1.gini,
-          seedResult.w1.topWealthShare,
-          seedResult.w1.mUp,
-          seedResult.w1.mDown,
-          seedResult.w1.segregation,
-          seedResult.w1.openness,
-        ]);
-        pointMeta.push({ cell: cell.cellKey, seed: seedResult.seed });
+      for (const key of ['w1', 'w3']) {
+        const w = seedResult[key];
+        if (w !== null && w.available) {
+          points.push([
+            ...w.classShares,
+            w.gini,
+            w.topWealthShare,
+            w.mUp,
+            w.mDown,
+            w.segregation,
+            w.openness,
+          ]);
+          pointMeta.push({ cell: cell.cellKey, seed: seedResult.seed, window: key });
+        }
       }
     }
+  }
+  // 时间稳定性：同一 (cell,seed) 的 w1/w3 簇一致性。
+  const byRun = new Map();
+  for (const p of pointMeta) {
+    const key = p.cell + '|' + p.seed;
+    byRun.set(key, (byRun.get(key) ?? 0) + 1);
   }
   log(`clustering points=${points.length}`);
   if (points.length >= 8) {
