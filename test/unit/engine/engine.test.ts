@@ -146,7 +146,7 @@ describe('主动行动与失效（03 §5/§6 阶段 B）', () => {
     const execution = result.executions.find((entry) => entry.agentId === agent.id);
     expect(execution?.status).toBe('stale_invalid');
     expect(execution?.executedAction).toBeNull();
-    expect(execution?.reason).toBe('insufficient_value');
+    expect(execution?.reason).toBe('insufficient_cushion');
     // 仍进入积累：wealth_changed(accumulate) 存在
     const gained = result.events.find(
       (event) =>

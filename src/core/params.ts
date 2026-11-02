@@ -364,6 +364,16 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest: '非零测试值下 d=1/2/>=3 的上升费用分别改变。',
   },
   {
+    name: 'ascent.holdingCushionDays',
+    unit: 'days',
+    formulaRef: '03 §5 合法行动 / rule.md 9（rules-v5）',
+    domain: { kind: 'number', min: 0, max: 365, integer: true },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      'ρ=0 与 v4 逐位一致；ρ>0 时裕度不足的个体失去 ascend 行动，引擎复核抛 insufficient_cushion。',
+  },
+  {
     name: 'competition.powerValueExponent',
     unit: 'exponent',
     formulaRef: '03 §6 阶段 B / rule.md 12',

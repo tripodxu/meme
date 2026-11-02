@@ -2,7 +2,7 @@ import type { RunConfig } from './types.js';
 import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../control/versions.js';
 
 /**
- * `rules-v4` 首轮默认配置。默认值来自 03 §3，是校准起点，不是已验证结论。
+ * `rules-v5` 首轮默认配置。默认值来自 03 §3，是校准起点，不是已验证结论。
  * 不得把本配置称为“已校准预设”。
  */
 export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
@@ -45,6 +45,7 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
   ascent: {
     crossDays: [30, 40, 50, 60],
     returnDiscount: [0, 0.2, 0.4],
+    holdingCushionDays: 30,
   },
   competition: {
     powerValueExponent: 0.35,

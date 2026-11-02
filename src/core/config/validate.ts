@@ -526,8 +526,20 @@ export function validateRunConfig(input: unknown): ValidationResult {
     checkRegisteredNumber(collector, root['descent']['days'], '$.descent.days', 'descent.days');
   }
 
-  if (checkObject(collector, root['ascent'], '$.ascent', ['crossDays', 'returnDiscount'])) {
+  if (
+    checkObject(collector, root['ascent'], '$.ascent', [
+      'crossDays',
+      'returnDiscount',
+      'holdingCushionDays',
+    ])
+  ) {
     const ascent = root['ascent'];
+    checkRegisteredNumber(
+      collector,
+      ascent['holdingCushionDays'],
+      '$.ascent.holdingCushionDays',
+      'ascent.holdingCushionDays',
+    );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(
         collector,

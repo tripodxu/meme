@@ -1,6 +1,6 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v4`；相对 v3 的主要修订（依据 P1.5 预研 `docs/research/2026-11-03-p15-report.md`）：需求线新增阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（新参数 `need.envExponent`，默认 1.0，`φ=0` 退回 v3 语义；锚定结构比例 env0 而非运行期 E——v4 初稿用 E 比例被 Congestion 均衡化中和，网格证据见 changes/0004）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v5`；相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（新参数 `ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 
@@ -102,18 +102,18 @@
 
 ### 3.1 合法配置域
 
-| 字段组    | 约束                                                                                                                                                                                                                                  |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 人口/阶级 | `initialPopulation` 为 `[2,10000]` 整数；`C` 为 `[2,8]` 整数；初始比例非负且 `abs(sum-1)<=1e-12`；initialValue>=0；`initialAgeMode` 为 `uniform                                                                                       | newborn` |
-| 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                                                             |
-| 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏；待议 D-02）                                                                    |
-| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；`envExponent` 在 `[0,4]`（v4 新增；0 为 v3 语义消融值）；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算 |
-| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`；`openness.updateMode` 为 `dynamic` 或 `fixed`                                      |
-| 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支（配置面去留见待议 D-01）                                      |
-| 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                                               |
-| 竞争      | 三个 power 指数在 `[0,4]`；lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1）                  |
-| 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                                                                                    |
-| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/metrics.flowWindowDays/metrics.mobilityWindowDays>=1 整数；statsStride<=totalTicks                                                                                                          |
+| 字段组    | 约束                                                                                                                                                                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 人口/阶级 | `initialPopulation` 为 `[2,10000]` 整数；`C` 为 `[2,8]` 整数；初始比例非负且 `abs(sum-1)<=1e-12`；initialValue>=0；`initialAgeMode` 为 `uniform                                                                                                                                                              | newborn` |
+| 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                                                                                                                                    |
+| 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏；待议 D-02）                                                                                                                                           |
+| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；`envExponent` 在 `[0,4]`（v4 新增；0 为 v3 语义消融值）；`holdingCushionDays` 在 `[0,365]` 整数（v5 新增；0 为 v4 语义消融值）；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算 |
+| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`；`openness.updateMode` 为 `dynamic` 或 `fixed`                                                                                                             |
+| 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支（配置面去留见待议 D-01）                                                                                                             |
+| 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                                                                                                                      |
+| 竞争      | 三个 power 指数在 `[0,4]`；lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1）                                                                                         |
+| 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                                                                                                                                                           |
+| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/metrics.flowWindowDays/metrics.mobilityWindowDays>=1 整数；statsStride<=totalTicks                                                                                                                                                                                 |
 
 MVP 不允许负 decay，因此寿命不会因阶级而反向增加；`rule.md` 中“可能为负”留作未来规则版本。除表中显式允许 0 的参数外，不得用“正参数”笼统推断范围。所有 schema-valid 配置必须满足收益不超过损失等核心不变量；运行端可进一步限制人口/预算，但不得放宽数学合法域。`totalTicks/statsStride/snapshotStride` 属于 RunConfig 并被 `configHash` 覆盖，05 的顶层 `schedule` 只是服务端索引镜像。
 
@@ -186,7 +186,7 @@ R   = Number(u >> 11n) / 2^53
 
 ```text
 accumulate
-ascend                  # 非最高层且期初费用足够
+ascend                  # 非最高层且期初费用 + 持有裕度足够（v5）
 descend                 # 非最低层且期初费用足够
 compete:<agentId>       # 最多 competition.candidateCount 个由代码采样的存活目标
 ```

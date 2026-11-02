@@ -1,12 +1,12 @@
 /**
  * 版本常量。三个版本轴互不复用：
- * - `rulesVersion` 管社会结算语义（v4：需求线环境持有人乘子 + θM 再平衡，见 changes/0004）；
- * - `engineVersion` 管结算实现修订（v0.1.0：v4 勘误 env0 锚定；初稿 E 锚定实现作废）；
+ * - `rulesVersion` 管社会结算语义（v5：上升持有裕度，见 changes/0005；v4：需求线环境持有人乘子 + θM 再平衡，见 changes/0004）；
+ * - `engineVersion` 管结算实现修订（v0.2.0：v5 裕度逻辑；v0.1.0：v4 env0 锚定）；
  * - `schemaVersion` 管序列化/导入导出；
  * - `promptVersion` 管 Jev 输入。
  */
-export const RULES_VERSION = 'rules-v4' as const;
-export const ENGINE_VERSION = 'engine-v0.1.0' as const;
+export const RULES_VERSION = 'rules-v5' as const;
+export const ENGINE_VERSION = 'engine-v0.2.0' as const;
 export const DECISION_SCHEMA_VERSION = 'stratify-decision-v1' as const;
 export const CONFIG_SCHEMA_VERSION = 'stratify-config-v1' as const;
 export const PARAMS_SCHEMA_VERSION = 'stratify-params-v1' as const;
