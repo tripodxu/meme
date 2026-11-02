@@ -34,7 +34,7 @@ describe('RunIdentity（02 §10）', () => {
       codeSha: 'test-sha',
     });
     expect(identity.schemaVersion).toBe('stratify-run-identity-v1');
-    expect(identity.rulesVersion).toBe('rules-v3');
+    expect(identity.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
     expect(identity.configHash).toBe(computeConfigHash(DEFAULT_RUN_CONFIG));
     expect(identity.seed).toBe('s');
     expect(identity.promptVersion).toBeNull();

@@ -318,6 +318,16 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest: '改变 ψ[c] 后对应阶级 need 与跌落风险改变。',
   },
   {
+    name: 'need.envExponent',
+    unit: 'exponent',
+    formulaRef: '03 §6 阶段 C / rule.md 5、37（rules-v4）',
+    domain: { kind: 'number', min: 0, max: 4 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      'φ=0 时 need 与 v3 公式逐位一致；φ>0 时高阶级 need 按 (E[c]/E[0])^φ 相对提高，跌落边界改变。',
+  },
+  {
     name: 'descent.days',
     unit: 'days',
     formulaRef: '03 §6 阶段 B / rule.md 8',

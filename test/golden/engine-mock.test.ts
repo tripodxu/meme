@@ -16,9 +16,10 @@ import type { SimState } from '../../src/core/model/state.js';
 import type { AgentId } from '../../src/core/control/ids.js';
 
 /**
- * golden：40 人默认 mock 运行（08 §5）。
+ * golden：40 人默认 mock 运行（08 §5，rules-v4）。
  * fixture 冻结 tick 0/1/10/120/400 的状态哈希与聚合指标；
  * 更新必须人工审查差异并说明原因，不得一键覆盖。
+ * v3 历史 fixture（mock-run-rules-v3.json）保留只读，不参与当前断言。
  */
 
 interface GoldenFixture {
@@ -37,7 +38,7 @@ interface GoldenFixture {
   };
 }
 
-const FIXTURE_PATH = '../fixtures/engine/mock-run-rules-v3.json';
+const FIXTURE_PATH = '../fixtures/engine/mock-run-rules-v4.json';
 const UPDATE = process.env['STRATIFY_UPDATE_GOLDEN'] === '1';
 
 function loadFixture(): GoldenFixture | null {

@@ -196,7 +196,10 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
     });
     agent.baselineSum += config.opportunity.dailyBase * env;
     agent.classAge += 1;
-    needs.set(agent.id, computeNeed(config, agent.classAge, agent.baselineSum, agent.classIndex));
+    needs.set(
+      agent.id,
+      computeNeed(config, agent.classAge, agent.baselineSum, agent.classIndex, eByClass),
+    );
   }
 
   // ---- 阶段 D：被动跌落（仅未成功主动变动阶级者）----
