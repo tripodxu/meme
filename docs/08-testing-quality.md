@@ -26,19 +26,22 @@
 
 - 同地址重复调用相同；不同 seed/tick/agent/eventTag/counter 可区分；高 53 位全 1 时 R 仍严格小于 1。
 - mock-weighted-v1/random-uniform-v1 的权重、并列、derived 概率和地址与 golden 一致；Jev fallback 不会变成 mock。
-- 增加一个竞争随机消费，不改变另一个体网络重构和初始化样本。
+- 增加一个竞争随机消费，不改变另一个体网络重构和初始化样本；`init_age` 只影响本个体初始余命。
 - 最大余数人数正确，P0 使用实际人数；分布截断边界无越界样本。
+- 初始人口是 `(config,seed)` 的纯函数：同 config/seed 在不同运行端得到同一 roster 和 `initialPopulationHash`；不得支持外部独立 roster。
 - 初始网络无自连/重边、对称、度限制、无法连边时正常终止。
 
 ### 3.2 积累与需求
 
 - ge=hard=1、无网络/反馈时 gain=B×env0[c]。
-- hard=0 趋近 0，hard 增加 gain 单调；F(1)=1。
+- hard=0 趋近 0，hard 增加 gain 单调；F(1)=1、F(0)=0。
 - 无邻居 Opportunity=1；邻居中位数/全体中位数偶数规则正确。
-- 主动变动后 baseline 清零，新阶级首日 need=0；第 30 日 buffer=1。
+- 主动变动后 baseline 清零，新阶级首日 need=0；第 `bufferDays` 日 buffer=1。
+- `needMultiplier` 逐阶级生效：`ψ[0]=1`，高阶同 Value/同 baseline 下更易触发跌落；`ψ` 长度/单调性非法时 schema 拒绝。
 - E 改变不追溯改写旧 baseline；被动跌落后下一日使用新阶级。
-- 低于 50% 连续 13 日不跌、第 14 日跌；中间恢复清零；最低层不跌。
+- 低于 `needThreshold` 连续 `belowNeedLimit-1` 日不跌、第 `belowNeedLimit` 日跌；中间恢复清零；最低层不跌。
 - 成功主动升降当日跳过被动跌落；stale 行动不错误跳过。
+- `initialAgeMode=uniform` 时 `remainingLife<initialLife`；`newborn` 时相等；两种模式都消费 `init_age`，其他属性随机流不变。
 
 ### 3.3 成本与竞争
 
@@ -51,11 +54,13 @@
 
 ### 3.4 寿命、网络与慢变量
 
-- hard 损耗最低因子 0.6；阶级变化只影响后续；remainingLife=0 当天死亡且不可复活。
+- hard 寿命因子在合法 hard∈[0.2,3.0] 内为 [0.88,1.30]；`hardLifeFloor` 只作数值护栏，不得写成可达的业务分支；阶级变化只影响后续；remainingLife=0 当天死亡且不可复活。
+- `initialAgeMode=uniform` 的默认 3650 tick 实验死亡率显著大于 0；`newborn` 对照在 3650 tick 内死亡率接近 0；两种模式都要覆盖快照恢复。
 - 死亡者 ties 被移除，不参与下一 tick 任何候选/中位数/竞争。
 - 重构无候选恢复旧边；每 agent 每周期最多一条；O 改变权重符合公式。
-- 全零财富 G=0、无网络 S=1、空阶级/全死亡无 NaN。
-- Mup/Mdown 分母为 tick 期初存活数，二者分离；EMA 和截断正确。
+- 全零财富 G=0；无网络时 `S=0` 且 `edgeCount=0`；空阶级/全死亡无 NaN。
+- 调整后 S：随机混合时接近 0；全部同层时为 1；跨层多于随机时为负；改变阶级分布不得单独把 S 推高。
+- Mup/Mdown 为 `MupWindowDays` 窗口参与率，只统计存活者；边界 tick、窗口不足、死亡日、主动降阶/被动跌落都要覆盖；不使用 EMA。
 - E 每 tick 只更新一次，O 仅决策周期按真实 Δt 更新；不得同 tick 二次结算。
 
 ## 4. 性质测试
@@ -69,7 +74,10 @@
 5. 任意无效行动不会导致负 Value/非法阶级，且有明确失效事件。
 6. 克隆不改变原世界；只修改指定字段时其他权威字段 hash 相同。
 7. 全人口死亡后以 extinct 技术完成，finalTick/finalState.tick 和 stats 最后一行符合 05；恰在最后一 tick 全死亡时记 scheduled 且 finalAliveCount=0、不可用于结构判异；继续 step 必须返回明确终态错误。
-8. 任意 schema-valid 配置都满足 03 的合法域和 gain<=loss，零值消融及 decay=0 可运行，负 decay 被拒绝。
+8. 任意 schema-valid 配置都满足 03 的合法域和 gain<=loss，零值消融及 decay=0 可运行，负 decay 被拒绝；`needMultiplier` 非法长度/非单调/ψ[0]≠1 被拒绝。
+9. 参数接线：对注册表中每个业务参数做最小扰动，必须改变对应输出；明确标记为 no-op 的参数要有理由和测试。
+10. 初始人口只由 `(config,seed)` 决定；相同输入跨运行端得到同一 `initialPopulationHash`，不同 seed 得到不同 roster。
+11. S 在 `[-1,1]`、edgeCount 一致；Mup/Mdown 在 `[0,1]` 且只统计存活者；空网络/空人口不产生 NaN。
 
 失败时输出最小化 seed、配置和 fixture，加入永久回归集。
 
@@ -77,20 +85,24 @@
 
 至少冻结：
 
-- 40 人默认 mock 的 tick 0/1/10/120 状态与指标；
+- 40 人默认 mock 的 tick 0/1/10/120 状态与指标（`rules-v3`）；
 - 含主动升降、被动跌落、四种竞争方向、死亡和网络重构的人工小世界；
-- 365+ tick 的反馈 fixture，验证 E/O 更新；
+- 初始年龄 uniform/newborn 两种模式的初始化与 3650 tick 死亡率对照；
+- 365+ tick 的反馈 fixture，验证 E/O、调整后 S、365 日 Mup/Mdown；
 - 快照恢复、微扰克隆、live 决策回放及 replay_invalid；
-- 空网络、全零财富、全死亡边界。
+- 空网络、全零财富、全死亡边界；
+- 每个参数注册项的接线 fixture。
 
-golden 包含版本、输入、输出 hash 和必要可读差异；另为 02 每个 hash domain 在浏览器/Node/Worker 校验同一 RFC 8785 测试向量。更新必须人工审查，不得用环境变量一键无说明接受。声称无行为重构时 hash 必须一致；行为变化升级版本并保留旧 fixture 读取测试。
+golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异；另为 02 每个 hash domain 在受支持的 V8 运行时（Node/workerd/Chromium）校验同一 RFC 8785 测试向量。更新必须人工审查，不得用环境变量一键无说明接受。声称无行为重构时 hash 必须一致；行为变化升级版本并保留旧 fixture 读取测试。
 
 ## 6. Jev 契约测试
 
 - 请求只含白名单字段，action criteria 与 legalActions 一致，最多 9 个选项。
+- prompt 中的成本、转移损耗和“是否摧毁总财富”描述由当前 config 生成，不得写死；当 `baseTransferEfficiency×directionMultiplier=1` 时不得声称有损耗。`promptStyle=neutral|survival_hint` 必须进入 `promptVersion`。
 - 响应：正常概率、缺 answers、空概率、未知选项、负/NaN 字符串、超界 confidence、缺 usage、真实 model 不同。
 - 每个到期决策有且仅有一条执行记录；`executed/stale_invalid/replay_invalid/skipped_dead` 与核心事件和账本一致，执行记录不改写 requested/selected。
 - topK=1 并列稳定；topK>1 使用地址 RNG，重试不重复采样。
+- 同一 state 重复 10–30 次的重测信度脚本可运行，输出选项分布、一致率和 ICC；低于阈值时报告 `model_unstable`，不得进入正式结构对照。
 - 401/403/400/422 不重试；429/529 尊重 Retry-After；5xx/网络次数正确。
 - Abort 能中断 fetch 和等待；重置后的响应因 state/generation 不符被丢弃。
 - 混合错误共享全局 4 次上限；Retry-After>20s 不再重试；熔断按完成顺序分类。
@@ -104,7 +116,7 @@ golden 包含版本、输入、输出 hash 和必要可读差异；另为 02 每
 - 匿名 browser 与 Runner token 来源正确；无/错/跨 run writeToken 均拒绝。
 - tick/agent/artifact/complete 重复请求幂等；同键不同 hash 409。
 - 批次中一条失败整批回滚；并发 complete 只有一个成功状态转换。
-- stats stride 缺口、agent 数、初始/最终快照、决策/事件范围或 manifest 不符不能 complete；extinct finalTick 和 expectedDueDecisions 正确。
+- stats stride 缺口、agent 数、初始/最终快照、决策/事件范围或 manifest 不符不能 complete；extinct finalTick 和 `expectedDueDecisions`（实际到期数，不是理论上界）正确。
 - complete 后仅 verificationStatus=uploaded；独立验证器核对 uncompressed hash、schema、连续性和回放后才 verified。
 - artifact 8 MiB 超限、非法 chunkId/kind、压缩 hash 不符、R2 丢失有明确错误；Worker 不解压巨块。
 - keyset 分页无重复/遗漏，过滤改变使游标失效；所有列表 LIMIT 生效。
@@ -113,7 +125,7 @@ golden 包含版本、输入、输出 hash 和必要可读差异；另为 02 每
 
 ## 8. 前端 E2E
 
-覆盖 06 的八个场景，并增加：
+覆盖 06 的全部场景，并增加：
 
 - 运行中快速暂停/继续/单步无重复 tick；重置无旧响应污染。
 - 配置冻结，修改下一场配置不影响当前 configHash。
