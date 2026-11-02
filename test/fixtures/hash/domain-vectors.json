@@ -36,18 +36,44 @@
         "agents": [
           {
             "id": "a-0001",
+            "alive": true,
             "classIndex": 0,
-            "value": 0
+            "maxClassIndex": 0,
+            "value": 0,
+            "ge": 1.04,
+            "hard": 0.98,
+            "initialLife": 25100,
+            "remainingLife": 12550,
+            "classAge": 0,
+            "baselineSum": 0,
+            "belowNeedStreak": 0,
+            "lastAscentTick": null,
+            "lastDescentTick": null,
+            "deathTick": null,
+            "deathReason": null
           },
           {
             "id": "a-0002",
+            "alive": true,
             "classIndex": 1,
-            "value": 0
+            "maxClassIndex": 1,
+            "value": 0,
+            "ge": 0.87,
+            "hard": 1.21,
+            "initialLife": 26200,
+            "remainingLife": 26200,
+            "classAge": 0,
+            "baselineSum": 0,
+            "belowNeedStreak": 0,
+            "lastAscentTick": null,
+            "lastDescentTick": null,
+            "deathTick": null,
+            "deathReason": null
           }
         ],
-        "ties": []
+        "ties": [["a-0001", "a-0002"]]
       },
-      "hash": "sha256:a37f70c8727a81542ded3fa2ac9df37af959c7f45ebe145394eecdf30d76a044"
+      "hash": "sha256:8c97ac3e0017b93807ec990032e278cca47a5280b50aff0b65f2657597139bd7"
     },
     {
       "domain": "stratify-decision-state-v1",
@@ -89,17 +115,204 @@
     {
       "domain": "stratify-authoritative-state-v1",
       "value": {
-        "tick": 10,
-        "seed": "demo",
-        "agents": [
-          {
-            "id": "a-0001",
-            "classIndex": 0,
-            "value": 12.5
+        "schemaVersion": "stratify-state-v1",
+        "config": {
+          "schemaVersion": "stratify-config-v1",
+          "rulesVersion": "rules-v3",
+          "population": {
+            "initialPopulation": 3,
+            "classCount": 5,
+            "classShares": [0.5, 0.2, 0.1, 0.1, 0.1],
+            "initialValue": 0,
+            "initialAgeMode": "uniform"
+          },
+          "opportunity": {
+            "dailyBase": 2,
+            "env0": [1, 1.5, 2.2, 3.2, 4.5]
+          },
+          "lifespan": {
+            "decay": [1.3, 1.15, 1, 0.88, 0.75],
+            "initialLife": {
+              "mean": 25550,
+              "sigma": 1825,
+              "min": 3650,
+              "max": 43800
+            },
+            "hardLifeFactor": 0.15,
+            "hardLifeFloor": 0.5
+          },
+          "attributes": {
+            "ge": {
+              "sigma": 0.5,
+              "median": 1,
+              "min": 0.2,
+              "max": 3
+            },
+            "hard": {
+              "sigma": 0.5,
+              "median": 1,
+              "min": 0.2,
+              "max": 3
+            }
+          },
+          "effort": {
+            "shape": 1.2
+          },
+          "need": {
+            "threshold": 0.5,
+            "belowNeedLimit": 14,
+            "bufferDays": 30,
+            "needMultiplier": [1, 1.3, 1.8, 2.5, 3.5]
+          },
+          "descent": {
+            "days": 7
+          },
+          "ascent": {
+            "crossDays": [30, 40, 50, 60],
+            "returnDiscount": [0, 0.2, 0.4]
+          },
+          "competition": {
+            "powerValueExponent": 0.35,
+            "powerGeExponent": 0.6,
+            "powerHardExponent": 0.4,
+            "crossClassInitiatorMultiplier": 0.85,
+            "crossClassTargetMultiplier": 1.15,
+            "lossRate": 0.08,
+            "baseTransferEfficiency": 0.7,
+            "highToLowWinMultiplier": 0.5,
+            "lowToHighWinMultiplier": 1.25,
+            "candidateCount": 6,
+            "localTargetProbability": 0.7
+          },
+          "network": {
+            "maxDegree": 2,
+            "initialDegree": 1,
+            "rewireProb": 0.05,
+            "classWeight": 1.2,
+            "valueWeight": 0.4
+          },
+          "networkOpportunity": {
+            "beta": 0.6,
+            "min": 0.7,
+            "max": 1.5
+          },
+          "dynamics": {
+            "classSmoothing": 0.03,
+            "congestionExponent": 0.35,
+            "polarizationExponent": 0.8,
+            "giniReference": 0.25,
+            "congestionMin": 0.2,
+            "congestionMax": 1.2,
+            "emptyClassPopulationFloor": 0.02,
+            "polarizationMin": 0.85,
+            "polarizationMax": 1.18
+          },
+          "openness": {
+            "initial": 0.5,
+            "timeConstantDays": 60,
+            "intercept": 0,
+            "mobilityWeight": 8,
+            "mobilityReference": 0.1,
+            "giniWeight": 6,
+            "segregationWeight": 4,
+            "segregationReference": 0.3,
+            "ascentCostWeight": 2,
+            "multiplierMin": 0.5,
+            "multiplierMax": 2.5
+          },
+          "decision": {
+            "interval": 10,
+            "topK": 1,
+            "policy": "mock-weighted-v1"
+          },
+          "schedule": {
+            "totalTicks": 3650,
+            "statsStride": 10,
+            "snapshotStride": 100
+          },
+          "metrics": {
+            "flowWindowDays": 365,
+            "mobilityWindowDays": 365,
+            "topWealthShareFraction": 0.1
           }
-        ]
+        },
+        "configHash": "sha256:3924ac22e8358647ea410d145a59b7e7d014b70b4706e31b9b553a294e39072a",
+        "paramsHash": "sha256:f39c8d1e470ba96fc866687d9583e6dca42323f2d5e48b46fb47998153ea6326",
+        "seed": "demo",
+        "society": {
+          "tick": 0,
+          "agents": [
+            {
+              "id": "a-0000",
+              "alive": true,
+              "classIndex": 0,
+              "maxClassIndex": 0,
+              "value": 0,
+              "ge": 0.8635055598277044,
+              "hard": 0.9469208606642243,
+              "initialLife": 26382.6651008966,
+              "remainingLife": 13052.193523079917,
+              "classAge": 0,
+              "baselineSum": 0,
+              "belowNeedStreak": 0,
+              "lastAscentTick": null,
+              "lastDescentTick": null,
+              "ties": ["a-0001", "a-0002"],
+              "deathTick": null,
+              "deathReason": null
+            },
+            {
+              "id": "a-0001",
+              "alive": true,
+              "classIndex": 0,
+              "maxClassIndex": 0,
+              "value": 0,
+              "ge": 1.0215471402399852,
+              "hard": 1.3961901551293465,
+              "initialLife": 28160.54508128669,
+              "remainingLife": 14927.093080924698,
+              "classAge": 0,
+              "baselineSum": 0,
+              "belowNeedStreak": 0,
+              "lastAscentTick": null,
+              "lastDescentTick": null,
+              "ties": ["a-0000"],
+              "deathTick": null,
+              "deathReason": null
+            },
+            {
+              "id": "a-0002",
+              "alive": true,
+              "classIndex": 1,
+              "maxClassIndex": 1,
+              "value": 0,
+              "ge": 0.5708689484937444,
+              "hard": 1.703604137430669,
+              "initialLife": 24389.279708260456,
+              "remainingLife": 13604.552703102023,
+              "classAge": 0,
+              "baselineSum": 0,
+              "belowNeedStreak": 0,
+              "lastAscentTick": null,
+              "lastDescentTick": null,
+              "ties": ["a-0000"],
+              "deathTick": null,
+              "deathReason": null
+            }
+          ],
+          "eByClass": [1, 1.5, 2.2, 3.2, 4.5],
+          "openness": 0.5,
+          "initialClassShares": [0.6666666666666666, 0.3333333333333333, 0, 0, 0],
+          "gini": 0,
+          "segregation": -0.10000000000000003,
+          "mUp": 0,
+          "mDown": 0,
+          "edgeCount": 2,
+          "flowWindow": [],
+          "lastOpennessUpdateTick": 0
+        }
       },
-      "hash": "sha256:07b7c2f73b000ab59ed8111d1585e7d3f76ba30a932ec1d32fd4d5cc72ed5d36"
+      "hash": "sha256:134a0aa63f2c03143dec14adb30d8aba13f7361a997231f774b3b215818136b1"
     },
     {
       "domain": "stratify-summary-v1",
@@ -134,6 +347,49 @@
         "baseConfigHash": "sha256:00"
       },
       "hash": "sha256:cdb5e4b38850c73e9f1a80da2cd9802af40c2dbc5076c95b16c036debe928328"
+    },
+    {
+      "domain": "stratify-label-thresholds-v1",
+      "value": {
+        "classCount": 5,
+        "monotonicTolerance": 0.02,
+        "modeTolerance": 0.02,
+        "labels": {
+          "pyramid": {
+            "adjacentMonotonic": "nonIncreasing",
+            "bottomTwoShareMin": 0.6,
+            "topShareMax": 0.1,
+            "middleThreeShareMin": 0.2
+          },
+          "olive": {
+            "middleThreeShareMin": 0.6,
+            "modeClassIndex": 2,
+            "poleShareMax": 0.2
+          },
+          "bipolar": {
+            "poleSumMin": 0.5,
+            "middleThreeShareMax": 0.4,
+            "giniMin": 0.4
+          },
+          "closedStratified": {
+            "opennessMax": 0.25,
+            "mUpMax": 0.05,
+            "segregationMin": 0.5,
+            "requiresEdgeCount": true,
+            "blockSupportMin": 0.8
+          },
+          "highFlowNetwork": {
+            "mUpMin": 0.2,
+            "opennessMin": 0.6,
+            "segregationMax": 0.2,
+            "crossClassEdgeShareMin": 0.35
+          },
+          "topHeavy": {
+            "topShareMin": 0.5
+          }
+        }
+      },
+      "hash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168"
     }
   ]
 }

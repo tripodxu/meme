@@ -11,6 +11,10 @@ export const CONFIG_SCHEMA_VERSION = 'stratify-config-v1' as const;
 export const PARAMS_SCHEMA_VERSION = 'stratify-params-v1' as const;
 export const INITIAL_POPULATION_SCHEMA_VERSION = 'stratify-initial-population-v1' as const;
 export const PREREGISTRATION_SCHEMA_VERSION = 'stratify-preregistration-v1' as const;
+/** 权威状态序列化 schema；字段增删或含义变化必须升级。 */
+export const STATE_SCHEMA_VERSION = 'stratify-state-v1' as const;
+/** run 身份块 schema（02 §10）。 */
+export const RUN_IDENTITY_SCHEMA_VERSION = 'stratify-run-identity-v1' as const;
 
 export type RulesVersion = typeof RULES_VERSION;
 export type EngineVersion = typeof ENGINE_VERSION;

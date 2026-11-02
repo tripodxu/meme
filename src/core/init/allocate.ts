@@ -15,40 +15,47 @@ export function allocateClassCounts(
       `人口必须为非负整数: ${String(population)}`,
     );
   }
-  const counts = shares.map((share) => {
+  const entries = shares.map((share, classIndex) => {
     if (!Number.isFinite(share) || share < 0) {
       throw new StratifyError(
         errorCodes.INVARIANT_VIOLATED,
         `阶级比例必须有限且 >=0: ${String(share)}`,
       );
     }
-    return Math.floor(share * population);
+    const exact = share * population;
+    return { classIndex, count: Math.floor(exact), remainder: exact - Math.floor(exact) };
   });
-  const floorSum = counts.reduce((sum, count) => sum + count, 0);
+  let floorSum = 0;
+  for (const entry of entries) {
+    floorSum += entry.count;
+  }
   let remaining = population - floorSum;
   if (remaining < 0) {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, '最大余数法出现负余数，比例或人口非法');
   }
-  const order = shares
-    .map((share, classIndex) => ({
-      classIndex,
-      remainder: share * population - Math.floor(share * population),
-    }))
-    .sort((a, b) => b.remainder - a.remainder || a.classIndex - b.classIndex);
+  const order = [...entries].sort(
+    (a, b) => b.remainder - a.remainder || a.classIndex - b.classIndex,
+  );
   for (const entry of order) {
     if (remaining <= 0) {
       break;
     }
-    const target = entry.classIndex;
-    counts[target] = (counts[target] ?? 0) + 1;
+    entry.count += 1;
     remaining -= 1;
   }
-  const total = counts.reduce((sum, count) => sum + count, 0);
+  let total = 0;
+  for (const entry of entries) {
+    total += entry.count;
+  }
   if (total !== population) {
     throw new StratifyError(
       errorCodes.INVARIANT_VIOLATED,
       `最大余数法分配总数 ${total} 与人口 ${population} 不一致`,
     );
+  }
+  const counts = new Array<number>(entries.length).fill(0);
+  for (const entry of entries) {
+    counts[entry.classIndex] = entry.count;
   }
   return counts;
 }
