@@ -120,6 +120,7 @@ pnpm test
 - ExecStart 指向构建后的固定批次 CLI 和 manifest；没有 manifest 不自动启动真实 Jev。
 - 每批 manifest 独立，服务重启读取检查点；不要把长命令只放 shell 历史。
 - journald 配置大小/保留，磁盘到阈值时停止新批次；NTP 正常，避免时间戳和超时异常。
+- 多 worker 共享预算/限流：MVP 只支持单机多进程，由一个调度进程或 `/var/lib/stratify/budget.sqlite`（WAL + 事务预留）统一记账；不得让每个 worker 各自维护 `MAX_CALLS/MAX_COST_USD`，也不支持多主机分片。
 
 环境至少：
 

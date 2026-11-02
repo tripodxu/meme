@@ -14,7 +14,7 @@
 | 浏览器 TypeSafe BYOK | 当前页面内存、请求 X-Api-Key | localStorage、D1/R2、日志、URL、导出 |
 | VPS TypeSafe Key | 权限600 env/秘密管理 | manifest、journal、checkpoint、命令行参数 |
 | RUNNER_TOKEN | Worker secret + VPS env | 前端 bundle、仓库、普通日志 |
-| run writeToken | 创建时返回一次；服务端只存 SHA-256 | 数据库明文、跨 run 复用、URL |
+| run writeToken | 创建时返回一次；服务端只存 SHA-256；浏览器只存 sessionStorage | 数据库明文、localStorage、跨 run 复用、URL |
 | 备份凭据 | 独立秘密管理 | 与普通实验导出一起公开 |
 
 日志只记录 keySource、Key 指纹（如确需限流且使用不可逆 hash）和 token 前缀，不记录可还原值。秘密泄漏立即轮换并检查费用。

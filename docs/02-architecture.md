@@ -47,7 +47,8 @@ shared/contracts -> app, worker, runner
 类型名为施工约定，可在不改变语义的情况下调整签名：
 
 ```ts
-function createSimulation(config: RunConfig, initial: InitialPopulation): SimState;
+function createSimulation(config: RunConfig): SimState;   // 初始人口由 (config, seed) 纯函数派生
+function deriveInitialPopulation(config: RunConfig): InitialPopulation;
 
 interface SimulationEngine {
   step(state: SimState, decisions: ReadonlyMap<AgentId, Decision>): StepResult;
@@ -66,6 +67,8 @@ interface RandomSource {
 ```
 
 `step` 只接收本 tick 已确定的决策；网络请求不得藏在 `step` 内。`StepResult` 包含新状态、事件和统计，不允许原地修改输入快照。性能优化若引入可变性，必须证明外部语义不变且快照隔离仍成立。
+
+`createSimulation` 不接受独立 roster：初始人口、初始网络和初始年龄必须由 `(config, seed)` 纯函数派生，否则“同 seed 同初始人口”的配对和 `initialPopulationHash` 校验不成立。需要人为指定初始人口时，另立实验协议并升级 schema，不得在 MVP 中混用。
 
 ## 5. RunController 状态机
 
@@ -129,7 +132,7 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 - `finalStateHash`：domain `stratify-authoritative-state-v1`，覆盖权威快照，排除日志、缓存和 wall-clock。
 - `summaryHash/artifactManifestHash`：分别使用 `stratify-summary-v1/stratify-artifact-manifest-v1`；manifest chunks 按 `(kind,chunkId)` 排序，hash 字段自身排除。
 
-实现必须为上述每个 domain 固定一个小型 JSON 测试向量及预期 hash；跨浏览器/Node/Worker 测试一致。任何 domain 覆盖字段变化都升级 domain 版本，不复用旧 hash 含义。
+实现必须为上述每个 domain 固定一个小型 JSON 测试向量及预期 hash；MVP 的权威 hash 只在受支持的 V8 运行时（Node >=22、workerd、Chromium）承诺一致。核心大量使用 `Math.exp/log/pow/cos`，ECMAScript 不保证这些函数跨引擎 1 ulp 一致；Safari/Firefox 可运行但必须标记 `nonAuthoritativeRuntime`，导出时警告，不得声称与 V8 哈希相同。若产品必须支持多引擎一致哈希，先在 P1 评估并实现 fdlibm 级确定性数学，再扩大支持矩阵。任何 domain 覆盖字段变化都升级 domain 版本，不复用旧 hash 含义。
 
 ## 9. 数据规模策略
 
@@ -138,6 +141,7 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 - D1 每批最多 100 tick；artifact 单块应用层上限 8 MiB，实际分块目标应更小以便重试。
 - 定期快照而非每 tick 全量快照；默认间隔由配置决定并纳入 manifest。
 - 1000 人长周期只由 VPS 执行；浏览器给出规模和预计 Jev 调用量警告。
+- VPS 多 worker 的共享预算/限流必须由单协调进程或同机 SQLite WAL 原子预留在实现；MVP 不支持多主机分片，否则 `maxCalls/maxCostUsd` 只能各线程各自计数，无法作为硬约束。
 
 ## 10. 版本与兼容性
 
