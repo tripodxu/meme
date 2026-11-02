@@ -187,6 +187,16 @@ function checkLognormal(
     collector.add(path, errorCodes.CONFIG_OUT_OF_RANGE, '必须满足 0 < min <= median <= max');
     return undefined;
   }
+  const sigma = value['sigma'] as number;
+  const maxSigma = Math.log(max) - Math.log(min);
+  if (sigma > maxSigma + RELATION_TOLERANCE) {
+    collector.add(
+      `${path}.sigma`,
+      errorCodes.CONFIG_OUT_OF_RANGE,
+      `必须 <= ln(max/min)（当前上界 ${maxSigma}），否则截断拒绝采样可能不收敛`,
+    );
+    return undefined;
+  }
   return value as unknown as TruncatedLognormalSpec;
 }
 
@@ -208,6 +218,16 @@ function checkNormal(
   const max = value['max'] as number;
   if (!(min <= mean && mean <= max)) {
     collector.add(path, errorCodes.CONFIG_OUT_OF_RANGE, '必须满足 0 < min <= mean <= max');
+    return undefined;
+  }
+  const sigma = value['sigma'] as number;
+  const maxSigma = max - min;
+  if (sigma > maxSigma + RELATION_TOLERANCE) {
+    collector.add(
+      `${path}.sigma`,
+      errorCodes.CONFIG_OUT_OF_RANGE,
+      `必须 <= max-min（当前上界 ${maxSigma}），否则截断拒绝采样可能不收敛`,
+    );
     return undefined;
   }
   return value as unknown as TruncatedNormalSpec;

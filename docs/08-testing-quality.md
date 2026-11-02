@@ -27,14 +27,14 @@
 - 同地址重复调用相同；不同 seed/tick/agent/eventTag/counter 可区分；高 53 位全 1 时 R 仍严格小于 1。
 - mock-weighted-v1/random-uniform-v1 的权重、并列、derived 概率和地址与 golden 一致；Jev fallback 不会变成 mock。
 - 增加一个竞争随机消费，不改变另一个体网络重构和初始化样本；`init_age` 只影响本个体初始余命。
-- 最大余数人数正确，P0 使用实际人数；分布截断边界无越界样本。
+- 最大余数人数正确，P0 使用实际人数；分布截断边界无越界样本；拒绝采样超过尝试上限时抛 `invariant_violated`，不得无界循环。
 - 初始人口是 `(config,seed)` 的纯函数：同 config/seed 在不同运行端得到同一 roster 和 `initialPopulationHash`；不得支持外部独立 roster。
 - 初始网络无自连/重边、对称、度限制、无法连边时正常终止；空阶级 `P0[c]=0` 时 Congestion 取 `congestionMin` 而非 NaN，且该阶级可被升入后正常更新。
 
 ### 3.2 积累与需求
 
 - ge=hard=1、无网络/反馈时 gain=B×env0[c]。
-- hard=0 趋近 0，hard 增加 gain 单调；F(1)=1、F(0)=0。
+- hard=0 趋近 0，hard 增加 gain 单调；F(1)=1、F(0)=0；`FShape` 接近 0 时使用稳定实现且不产生 NaN。
 - 无邻居 Opportunity=1；邻居中位数/全体中位数偶数规则正确。
 - 主动变动后 baseline 清零，新阶级首日 need=0；第 `bufferDays` 日 buffer=1。
 - `needMultiplier` 逐阶级生效：`ψ[0]=1`，高阶同 Value/同 baseline 下更易触发跌落；`ψ` 长度/单调性非法时 schema 拒绝。
@@ -47,7 +47,7 @@
 
 - 首次升至历史新高 d=0 无减免；d=1/2/>=3 分别读取 `returnDiscount[0]/[1]/[2]`，默认 0/20/40%；用非零测试值证明 `returnDiscount[0]` 可观测；动态乘子只与减免后 base 相乘，费用>0。
 - Value 恰好等于费用可行动，使用固定 fixture 让 Value 略低于费用则不可；一次只变一层。
-- 同层/跨层 power 系数正确；pA 在 [0,1]，极端 Value 不产生 Infinity。
+- 同层/跨层 power 系数正确；pA 在 [0,1]，极端 Value 不产生 Infinity/NaN；power 以 log 空间比较或等价稳定实现。
 - 高打低/低打高/防守胜方向系数正确；所有方向 gain<=loss。
 - 目标已被作为目标、死亡或费用被前序竞争消耗时 stale_invalid；A→B 后 B→C 合法，再次以 B 为目标非法，仅作为发起方不占用 targetedAgents。
 - Value=0 竞争转移为 0，无负数；每目标每 tick 最多一场。

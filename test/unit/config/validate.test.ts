@@ -157,6 +157,26 @@ describe('validateRunConfig', () => {
     expect(codesOf(normal)).toContain(errorCodes.CONFIG_OUT_OF_RANGE);
   });
 
+  it('bounds distribution sigma by the truncation span', () => {
+    const lognormal = cloneConfig();
+    lognormal['attributes']['ge']['sigma'] = 2.8;
+    expect(codesOf(lognormal)).toContain(errorCodes.CONFIG_OUT_OF_RANGE);
+    expect(pathsOf(lognormal)).toContain('$.attributes.ge.sigma');
+
+    const lognormalBoundary = cloneConfig();
+    lognormalBoundary['attributes']['ge']['sigma'] = 2.7;
+    expect(codesOf(lognormalBoundary)).toEqual([]);
+
+    const normal = cloneConfig();
+    normal['lifespan']['initialLife']['sigma'] = 41000;
+    expect(codesOf(normal)).toContain(errorCodes.CONFIG_OUT_OF_RANGE);
+    expect(pathsOf(normal)).toContain('$.lifespan.initialLife.sigma');
+
+    const normalBoundary = cloneConfig();
+    normalBoundary['lifespan']['initialLife']['sigma'] = 40000;
+    expect(codesOf(normalBoundary)).toEqual([]);
+  });
+
   it('enforces transfer efficiency times direction multiplier <= 1', () => {
     const config = cloneConfig();
     config['competition']['baseTransferEfficiency'] = 0.9;
@@ -191,6 +211,7 @@ describe('validateRunConfig', () => {
       ['population', 'initialValue', -1],
       ['opportunity', 'dailyBase', 0],
       ['lifespan', 'hardLifeFloor', 0],
+      ['lifespan', 'hardLifeFactor', 11],
       ['effort', 'shape', 0],
       ['need', 'threshold', 1.1],
       ['need', 'belowNeedLimit', 0],
@@ -198,6 +219,7 @@ describe('validateRunConfig', () => {
       ['descent', 'days', 0],
       ['competition', 'lossRate', 0.6],
       ['competition', 'candidateCount', 7],
+      ['competition', 'powerValueExponent', 5],
       ['network', 'maxDegree', 7],
       ['network', 'initialDegree', -1],
       ['network', 'rewireProb', 1.1],
@@ -207,6 +229,7 @@ describe('validateRunConfig', () => {
       ['openness', 'initial', 1.5],
       ['openness', 'timeConstantDays', 0],
       ['openness', 'intercept', 21],
+      ['openness', 'mobilityWeight', 101],
       ['decision', 'interval', 0],
       ['decision', 'topK', 10],
       ['schedule', 'totalTicks', 0],
