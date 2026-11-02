@@ -68,6 +68,8 @@ export interface DescentConfig {
 export interface AscentConfig {
   readonly crossDays: readonly number[];
   readonly returnDiscount: readonly number[];
+  /** v5 持有裕度天数 ρ；上升要求 `value >= cross + ρ×B×E[target]×ψ_eff[target]`；0 退回 v4。 */
+  readonly holdingCushionDays: number;
 }
 
 export interface CompetitionConfig {

@@ -9,7 +9,7 @@ import { validateRunConfig } from '../../../src/core/config/validate.js';
 import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../../../src/core/control/versions.js';
 
 describe('DEFAULT_RUN_CONFIG', () => {
-  it('matches the rules-v3 defaults in 03 §3', () => {
+  it('matches the rules-v5 defaults in 03 §3', () => {
     expect(DEFAULT_RUN_CONFIG.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
     expect(DEFAULT_RUN_CONFIG.rulesVersion).toBe(RULES_VERSION);
     expect(DEFAULT_RUN_CONFIG.population).toEqual({
@@ -33,6 +33,7 @@ describe('DEFAULT_RUN_CONFIG', () => {
     expect(DEFAULT_RUN_CONFIG.ascent).toEqual({
       crossDays: [30, 40, 50, 60],
       returnDiscount: [0, 0.2, 0.4],
+      holdingCushionDays: 30,
     });
     expect(DEFAULT_RUN_CONFIG.schedule).toEqual({
       totalTicks: 3650,

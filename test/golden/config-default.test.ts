@@ -27,10 +27,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v4.json');
-const golden = readJson('../fixtures/config/default-rules-v4.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v5.json');
+const golden = readJson('../fixtures/config/default-rules-v5.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v4 default config', () => {
+describe('golden: rules-v5 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -46,7 +46,7 @@ describe('golden: rules-v4 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v4.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v5.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
@@ -73,27 +73,33 @@ describe('golden: rules-v4 default config', () => {
   });
 });
 
-describe('golden: rules-v3 fixture（历史只读）', () => {
+describe('golden: 历史 fixture（v3/v4 只读）', () => {
   const v3Fixture = readJson('../fixtures/config/default-rules-v3.json');
   const v3Golden = readJson('../fixtures/config/default-rules-v3.hashes.json') as GoldenHashes;
+  const v4Fixture = readJson('../fixtures/config/default-rules-v4.json');
+  const v4Golden = readJson('../fixtures/config/default-rules-v4.hashes.json') as GoldenHashes;
 
-  it('v3 fixture 哈希仍与冻结记录一致（历史证据不被篡改）', () => {
+  it('v3/v4 fixture configHash 仍与冻结记录一致（历史证据不被篡改）', () => {
     expect(v3Golden.rulesVersion).toBe('rules-v3');
+    expect(v4Golden.rulesVersion).toBe('rules-v4');
     // configHash 只覆盖配置 JSON 本身，不受注册表增长影响。
     expect(computeConfigHash(v3Fixture as RunConfig)).toBe(v3Golden.configHash);
-    // paramsHash 由参数注册表驱动：注册表随 rules-v4 新增 need.envExponent 后，
-    // 缺少该字段的 v3 配置不再可哈希（canonicalize 拒绝 undefined）——
-    // 其冻结历史值保留在 v3 记录中供审计。
+    expect(computeConfigHash(v4Fixture as RunConfig)).toBe(v4Golden.configHash);
+    // paramsHash 由参数注册表驱动：注册表随新参数增长后，缺字段的旧配置不再可哈希
+    //（canonicalize 拒绝 undefined）；冻结历史值保留在各自记录中供审计。
     expect(() => computeParamsHash(v3Fixture as RunConfig)).toThrowError(/undefined/);
+    expect(() => computeParamsHash(v4Fixture as RunConfig)).toThrowError(/undefined/);
   });
 
-  it('v3 fixture 不再被当前版本接受（config_unknown_version）', () => {
-    const result = validateRunConfig(v3Fixture);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.issues.some((issue) => issue.code === errorCodes.CONFIG_UNKNOWN_VERSION)).toBe(
-        true,
-      );
+  it('v3/v4 fixture 不再被当前版本接受（config_unknown_version）', () => {
+    for (const stale of [v3Fixture, v4Fixture]) {
+      const result = validateRunConfig(stale);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(
+          result.issues.some((issue) => issue.code === errorCodes.CONFIG_UNKNOWN_VERSION),
+        ).toBe(true);
+      }
     }
   });
 });

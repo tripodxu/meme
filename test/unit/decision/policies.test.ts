@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { createDemoConfig } from '../../../src/core/config/defaults.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { createSimulation } from '../../../src/core/init/simulation.js';
-import { enumerateLegalActions } from '../../../src/core/legal-actions.js';
+import {
+  computeAscendCost,
+  computeAscendCushion,
+  enumerateLegalActions,
+} from '../../../src/core/legal-actions.js';
 import type { SimState } from '../../../src/core/model/state.js';
 import {
   decideMockWeighted,
@@ -43,10 +47,11 @@ function mockDecide(state: SimState, agentIndex: number) {
 
 describe('mock-weighted-v1（04 §2.1）', () => {
   function makeSoloState(): SimState {
-    // candidateCount=0：无 compete 行动，便于隔离 ascend/descend 权重规则。
+    // candidateCount=0：无 compete 行动；ρ=1 使 [cost+cushion, 1.5×cost) 窗口存在。
     const config = createDemoConfig({
       population: { initialPopulation: 4 },
       competition: { candidateCount: 0 },
+      ascent: { holdingCushionDays: 1 },
     });
     return createSimulation(config, SEED);
   }
@@ -56,9 +61,18 @@ describe('mock-weighted-v1（04 §2.1）', () => {
     const { agent } = legalOf(state, 0);
     agent.classIndex = 1;
     agent.maxClassIndex = 1;
-    // 重新枚举（阶级变化后费用不同），再设定 Value 恰可负担 ascend。
+    // 先按费用+裕度门槛设值（ρ=1 窗口：cost+cushion < 1.5×cost），再枚举。
+    const fee = computeAscendCost(
+      state.config,
+      agent,
+      state.society.eByClass,
+      state.society.openness,
+    );
+    if (fee === null) throw new Error('ascend 费用应为数值');
+    agent.value =
+      fee + computeAscendCushion(state.config, agent.classIndex + 1, state.society.eByClass);
     const fresh = enumerateLegalActions(state, agent.id);
-    agent.value = fresh.ascendCost ?? 0; // 恰可负担但 < 1.5×cost
+    if (!fresh.actions.includes('ascend')) throw new Error('ascend 应合法（ρ=1 窗口）');
     agent.belowNeedStreak = 0;
     const decision = mockDecide(state, 0);
     expect(decision.selectedAction).toBe('accumulate');
@@ -76,7 +90,7 @@ describe('mock-weighted-v1（04 §2.1）', () => {
     const fresh = enumerateLegalActions(state, agent.id);
     const ascendCost = fresh.ascendCost;
     if (ascendCost === null) throw new Error('ascend 应合法');
-    agent.value = MOCK_WEIGHTED_V1_CONSTANTS.ascendAffordabilityFactor * ascendCost;
+    agent.value = MOCK_WEIGHTED_V1_CONSTANTS.ascendAffordabilityFactor * ascendCost * 4; // 覆盖裕度
     agent.belowNeedStreak = 0;
     const decision = mockDecide(state, 0);
     expect(decision.probabilities?.['ascend']).toBeCloseTo(0.8 / 1.8, 12);

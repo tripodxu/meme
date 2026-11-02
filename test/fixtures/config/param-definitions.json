@@ -387,6 +387,19 @@
       "affectsBehavior": true
     },
     {
+      "name": "ascent.holdingCushionDays",
+      "unit": "days",
+      "formulaRef": "03 §5 合法行动 / rule.md 9（rules-v5）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 365,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "competition.powerValueExponent",
       "unit": "exponent",
       "formulaRef": "03 §6 阶段 B / rule.md 12",

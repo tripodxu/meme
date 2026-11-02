@@ -1,12 +1,12 @@
 {
   "description": "40 人默认 mock 运行（seed=golden-mock-seed）；更新必须人工审查差异并说明原因。",
-  "rulesVersion": "rules-v4",
-  "paramsHash": "sha256:492cfa595cfbcef3b4f005f61a810b4cc158241fd8726195c8e81baf51765179",
+  "rulesVersion": "rules-v5",
+  "paramsHash": "sha256:3f6bccc37565bcf6bfbc7ab3ae650e302fbd269c11a436e8d0ec678eaa83e9fc",
   "seed": "golden-mock-seed",
   "checkpoints": [
     {
       "tick": 0,
-      "finalStateHash": "sha256:178a4b2b3e385644967574ddf92ec6401d6f86d42b22aafa673185dc91976e2a",
+      "finalStateHash": "sha256:7a3b84e9efeadaba45d8579fcaa12126bf4d918bb59e12e66f062baae90691c3",
       "stats": {
         "tick": 0,
         "aliveCount": 40,
@@ -38,7 +38,7 @@
     },
     {
       "tick": 1,
-      "finalStateHash": "sha256:24ef122304a909236e597878cc2a4de339a28f6365bfcbdf2706e33ac5a35b6f",
+      "finalStateHash": "sha256:f09b2dca5608ddbc858a600a1d46555b985bab4dc4654f52817ffcd212837cbd",
       "stats": {
         "tick": 1,
         "aliveCount": 40,
@@ -73,7 +73,7 @@
     },
     {
       "tick": 10,
-      "finalStateHash": "sha256:cee420d0f8d3e13166d6f702737bb0b052b4cbd449db5d3b3ad745882b3e4291",
+      "finalStateHash": "sha256:5dd1f922c3da1030cc36f436dca0df1c95148678779476eac0d7670e86ddb3c4",
       "stats": {
         "tick": 10,
         "aliveCount": 40,
@@ -108,34 +108,34 @@
     },
     {
       "tick": 120,
-      "finalStateHash": "sha256:1b7d9d808a17b448dde07c4e18e40bad3eb36fef6a6f60db4899d59f6f7e98de",
+      "finalStateHash": "sha256:0abe93e5b989df22d6a407e3dc54d763dcb7193a4ca0948a843e556e29d5890f",
       "stats": {
         "tick": 120,
         "aliveCount": 40,
-        "classCounts": [12, 22, 5, 1, 0],
-        "gini": 0.3807267333563324,
-        "medianValue": 176.84802225214415,
-        "topWealthShare": 0.25373266010037976,
-        "mUp": 0.375,
+        "classCounts": [21, 17, 2, 0, 0],
+        "gini": 0.356056216565232,
+        "medianValue": 279.25399837789837,
+        "topWealthShare": 0.25841275342219183,
+        "mUp": 0.025,
         "mDown": 0.35,
-        "segregation": 0.21294455026898035,
+        "segregation": 0.34145839526215904,
         "edgeCount": 101,
-        "openness": 0.33659220231067655,
+        "openness": 0.24425461146154764,
         "deathCount": 0,
-        "competitionLoss": 253.96102683794896,
-        "competitionGain": 187.74127339584598,
+        "competitionLoss": 316.2175750739535,
+        "competitionGain": 230.1652175942615,
         "fallbackRate": 0,
         "eByClass": [
-          0.9227807054237742, 1.2421816537028287, 2.5582771097810633, 3.9862009996089496,
-          5.332235837076247
+          0.8650403621394958, 1.2987871231544992, 2.593450355862002, 3.977600596838218,
+          5.309339200612416
         ],
-        "crossClassEdgeShare": 0.46534653465346537,
+        "crossClassEdgeShare": 0.3564356435643564,
         "avgDegree": 5.05,
         "connectedComponents": 1,
         "flowMatrix": [
-          [0, 10, 0, 0, 0],
-          [4, 0, 4, 0, 0],
-          [0, 8, 0, 1, 0],
+          [0, 1, 0, 0, 0],
+          [4, 0, 0, 0, 0],
+          [0, 8, 0, 0, 0],
           [0, 0, 4, 0, 0],
           [0, 0, 0, 1, 0]
         ]
@@ -143,36 +143,36 @@
     },
     {
       "tick": 400,
-      "finalStateHash": "sha256:5948b6c5a802a5c35521f9e9c6244880d9a9baaddeea8e3e752e25536b14b76c",
+      "finalStateHash": "sha256:7ad3cd017f40551d0e6dd702cf2ad2dda8e9dba7be5f352ba33f1ad34c554fb5",
       "stats": {
         "tick": 400,
         "aliveCount": 39,
-        "classCounts": [0, 4, 7, 9, 19],
-        "gini": 0.4658085135439977,
-        "medianValue": 576.7097219375304,
-        "topWealthShare": 0.3217601590729978,
+        "classCounts": [1, 9, 27, 2, 0],
+        "gini": 0.40435126536759397,
+        "medianValue": 909.1226968865365,
+        "topWealthShare": 0.29145016155384706,
         "mUp": 1,
-        "mDown": 1,
-        "segregation": 0.005263157894736775,
+        "mDown": 0.3333333333333333,
+        "segregation": 0.22895482331892048,
         "edgeCount": 95,
-        "openness": 0.9268291935035378,
+        "openness": 0.8769990804030993,
         "deathCount": 0,
-        "competitionLoss": 979.2282328267415,
-        "competitionGain": 678.8745627019872,
+        "competitionLoss": 1353.7523737726442,
+        "competitionGain": 897.7468357805798,
         "fallbackRate": 0,
         "eByClass": [
-          1.0249689004460534, 1.6594056530773749, 2.2413644921150015, 2.0316505933841933,
-          2.147718847003578
+          1.0625944559324658, 1.4301646770681222, 1.393118212410068, 3.8961886848843936,
+          5.492385810529044
         ],
-        "crossClassEdgeShare": 0.6631578947368421,
+        "crossClassEdgeShare": 0.35789473684210527,
         "avgDegree": 4.871794871794871,
         "connectedComponents": 1,
         "flowMatrix": [
-          [0, 26, 0, 0, 0],
-          [7, 0, 69, 0, 0],
-          [0, 37, 0, 55, 0],
-          [0, 0, 28, 0, 70],
-          [0, 0, 0, 51, 0]
+          [0, 27, 0, 0, 0],
+          [9, 0, 31, 0, 0],
+          [0, 6, 0, 2, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 0, 0, 0]
         ]
       }
     }

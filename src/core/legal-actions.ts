@@ -65,6 +65,44 @@ export function computeAscendCost(
   return crossBase * (1 - discount) * openMultiplier;
 }
 
+/**
+ * v5 持有裕度门槛（rule.md 9 / changes/0005）：上升要求支付 cross 后仍保有
+ * `ρ×B×E[t,target]×ψ_eff[target]` 的余额；裕度不支付、只作余额门槛。
+ * `ρ=0` 时裕度为 0，与 v4 逐位一致。
+ */
+export function computeAscendCushion(
+  config: RunConfig,
+  targetClassIndex: number,
+  eByClass: readonly number[],
+): number {
+  const rho = config.ascent.holdingCushionDays;
+  if (rho === 0) {
+    return 0;
+  }
+  const env = eByClass[targetClassIndex];
+  if (env === undefined) {
+    throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `E 缺少阶级 ${targetClassIndex}`);
+  }
+  const psi = config.need.needMultiplier[targetClassIndex];
+  if (psi === undefined) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      `needMultiplier 缺少阶级 ${targetClassIndex}`,
+    );
+  }
+  const phi = config.need.envExponent;
+  let envMultiplier = 1;
+  if (phi !== 0) {
+    const own = config.opportunity.env0[targetClassIndex];
+    const bottom = config.opportunity.env0[0];
+    if (own === undefined || bottom === undefined || !(bottom > 0)) {
+      throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'env0 非法');
+    }
+    envMultiplier = Math.pow(own / bottom, phi);
+  }
+  return rho * config.opportunity.dailyBase * env * psi * envMultiplier;
+}
+
 /** 主动降阶费用：`descendDays×B×E[t,current]`；最低层不合法。 */
 export function computeDescendCost(
   config: RunConfig,
@@ -98,7 +136,9 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
   const eByClass = state.society.eByClass;
   const ascendCost = computeAscendCost(config, agent, eByClass, state.society.openness);
   const descendCost = computeDescendCost(config, agent, eByClass);
-  const canAscend = ascendCost !== null && agent.value >= ascendCost;
+  const canAscend =
+    ascendCost !== null &&
+    agent.value >= ascendCost + computeAscendCushion(config, agent.classIndex + 1, eByClass);
   const canDescend = descendCost !== null && agent.value >= descendCost;
 
   const targets = sampleCompetitionTargets(state, agent);

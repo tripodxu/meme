@@ -11,7 +11,7 @@ import { parseActionKey } from '../legal-actions.js';
 import { attemptRewire } from '../network/rewire.js';
 import { computeTickStats, type TickStats } from '../macros/tick-metrics.js';
 import { maybeUpdateOpenness, updateClassEnvironment } from '../feedback/slow-variables.js';
-import { computeAscendCost, computeDescendCost } from '../legal-actions.js';
+import { computeAscendCost, computeAscendCushion, computeDescendCost } from '../legal-actions.js';
 import {
   computeNeed,
   computeOpportunityFromMedians,
@@ -445,16 +445,18 @@ function executeAction(input: ExecuteActionInput): void {
     return;
   }
   if (parsed.type === 'ascend') {
-    // 执行前复核：费用与当前 Value（前序竞争可能已消耗）。
+    // 执行前复核：费用 + 持有裕度与当前 Value（前序竞争可能已消耗）。
     const cost = computeAscendCost(config, agent, eByClass, openness);
-    if (cost === null || agent.value < cost) {
+    const cushion =
+      cost === null ? 0 : computeAscendCushion(config, agent.classIndex + 1, eByClass);
+    if (cost === null || agent.value < cost + cushion) {
       events.emit({
         type: 'action_invalid',
         agentId: agent.id,
         action: decision.selectedAction,
-        reason: 'insufficient_value',
+        reason: 'insufficient_cushion',
       });
-      record(null, 'stale_invalid', 'insufficient_value');
+      record(null, 'stale_invalid', 'insufficient_cushion');
       return;
     }
     const before = agent.value;
