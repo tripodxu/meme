@@ -152,7 +152,6 @@ function mergeValue(baseValue: unknown, patchValue: unknown): unknown {
   }
   const entries = new Map<string, unknown>(Object.entries(baseValue));
   for (const [key, value] of Object.entries(patchValue)) {
-    if (value === undefined) continue;
     entries.set(key, mergeValue(entries.get(key), value));
   }
   return Object.fromEntries(entries);

@@ -1,7 +1,8 @@
 import type { RunConfig, TruncatedLognormalSpec, TruncatedNormalSpec } from './types.js';
 import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../control/versions.js';
 import { errorCodes, type ErrorCode } from '../control/errors.js';
-import { readNumericConstant } from '../params.js';
+import { getParamDefinition, readNumericConstant } from '../params.js';
+import type { ArrayDomain, ParamDefinition, ParamDomain } from '../params.js';
 
 export interface ValidationIssue {
   readonly path: string;
@@ -16,14 +17,8 @@ export type ValidationResult =
 const SUPPORTED_RULES_VERSIONS: ReadonlySet<string> = new Set([RULES_VERSION]);
 const SHARE_TOLERANCE = readNumericConstant('CONFIG_SHARE_TOLERANCE');
 const RELATION_TOLERANCE = readNumericConstant('CONFIG_RELATION_TOLERANCE');
-const MAX_TOP_K = readNumericConstant('MAX_TOP_K');
-const MAX_COMPETITION_CANDIDATES = readNumericConstant('MAX_COMPETITION_CANDIDATES');
 
-const POLICY_IDS: ReadonlySet<string> = new Set([
-  'mock-weighted-v1',
-  'random-uniform-v1',
-  'jev_live',
-]);
+type NumericDomain = Extract<ParamDomain, { kind: 'number' }>;
 
 class Collector {
   readonly issues: ValidationIssue[] = [];
@@ -70,6 +65,7 @@ interface NumberRange {
   readonly min?: number;
   readonly max?: number;
   readonly exclusiveMin?: number;
+  readonly exclusiveMax?: number;
   readonly integer?: boolean;
 }
 
@@ -104,14 +100,18 @@ function checkNumber(
     collector.add(path, errorCodes.CONFIG_OUT_OF_RANGE, `必须 > ${range.exclusiveMin}`);
     return undefined;
   }
+  if (range.exclusiveMax !== undefined && value >= range.exclusiveMax) {
+    collector.add(path, errorCodes.CONFIG_OUT_OF_RANGE, `必须 < ${range.exclusiveMax}`);
+    return undefined;
+  }
   return value;
 }
 
 interface NumberArrayOptions {
   readonly length: number;
-  readonly nonDecreasing?: boolean;
-  readonly sumToOne?: boolean;
-  readonly firstElement?: number;
+  readonly nonDecreasing?: boolean | undefined;
+  readonly sumToOne?: boolean | undefined;
+  readonly firstElement?: number | undefined;
 }
 
 function checkNumberArray(
@@ -171,13 +171,14 @@ function checkLognormal(
   collector: Collector,
   value: unknown,
   path: string,
+  namePrefix: string,
 ): TruncatedLognormalSpec | undefined {
   if (!checkObject(collector, value, path, ['sigma', 'median', 'min', 'max'])) return undefined;
   const before = collector.issues.length;
-  checkNumber(collector, value['sigma'], `${path}.sigma`, { min: 0 });
-  checkNumber(collector, value['median'], `${path}.median`, { exclusiveMin: 0 });
-  checkNumber(collector, value['min'], `${path}.min`, { exclusiveMin: 0 });
-  checkNumber(collector, value['max'], `${path}.max`, { exclusiveMin: 0 });
+  checkRegisteredNumber(collector, value['sigma'], `${path}.sigma`, `${namePrefix}.sigma`);
+  checkRegisteredNumber(collector, value['median'], `${path}.median`, `${namePrefix}.median`);
+  checkRegisteredNumber(collector, value['min'], `${path}.min`, `${namePrefix}.min`);
+  checkRegisteredNumber(collector, value['max'], `${path}.max`, `${namePrefix}.max`);
   if (collector.issues.length !== before) return undefined;
   const median = value['median'] as number;
   const min = value['min'] as number;
@@ -193,13 +194,14 @@ function checkNormal(
   collector: Collector,
   value: unknown,
   path: string,
+  namePrefix: string,
 ): TruncatedNormalSpec | undefined {
   if (!checkObject(collector, value, path, ['mean', 'sigma', 'min', 'max'])) return undefined;
   const before = collector.issues.length;
-  checkNumber(collector, value['mean'], `${path}.mean`, { exclusiveMin: 0 });
-  checkNumber(collector, value['sigma'], `${path}.sigma`, { min: 0 });
-  checkNumber(collector, value['min'], `${path}.min`, { exclusiveMin: 0 });
-  checkNumber(collector, value['max'], `${path}.max`, { exclusiveMin: 0 });
+  checkRegisteredNumber(collector, value['mean'], `${path}.mean`, `${namePrefix}.mean`);
+  checkRegisteredNumber(collector, value['sigma'], `${path}.sigma`, `${namePrefix}.sigma`);
+  checkRegisteredNumber(collector, value['min'], `${path}.min`, `${namePrefix}.min`);
+  checkRegisteredNumber(collector, value['max'], `${path}.max`, `${namePrefix}.max`);
   if (collector.issues.length !== before) return undefined;
   const mean = value['mean'] as number;
   const min = value['min'] as number;
@@ -221,6 +223,78 @@ function checkPairOrder(
   if (lower !== undefined && upper !== undefined && lower > upper) {
     collector.add(path, errorCodes.CONFIG_OUT_OF_RANGE, message);
   }
+}
+
+function requireDefinition(name: string): ParamDefinition {
+  const definition = getParamDefinition(name);
+  if (definition === undefined) {
+    throw new Error(`PARAM_DEFINITIONS 缺少登记项：${name}`);
+  }
+  return definition;
+}
+
+function requireNumberDomain(name: string): NumericDomain {
+  const domain = requireDefinition(name).domain;
+  if (domain.kind !== 'number') {
+    throw new Error(`参数 ${name} 不是数值域`);
+  }
+  return domain;
+}
+
+/** 从注册表读取标量域；业务范围只在 `params.ts` 维护一份。 */
+function checkRegisteredNumber(
+  collector: Collector,
+  value: unknown,
+  path: string,
+  name: string,
+): number | undefined {
+  return checkNumber(collector, value, path, requireNumberDomain(name));
+}
+
+function checkRegisteredEnum(
+  collector: Collector,
+  value: unknown,
+  path: string,
+  name: string,
+): string | undefined {
+  const domain = requireDefinition(name).domain;
+  if (domain.kind !== 'enum') {
+    throw new Error(`参数 ${name} 不是枚举域`);
+  }
+  if (typeof value !== 'string' || !domain.values.includes(value)) {
+    collector.add(path, errorCodes.CONFIG_INVALID, `必须为 ${domain.values.join(' 或 ')}`);
+    return undefined;
+  }
+  return value;
+}
+
+function registeredLength(domain: ArrayDomain, classCount: number | undefined): number | undefined {
+  if (domain.length === 'classCount') return classCount;
+  if (domain.length === 'classCountMinus1') {
+    return classCount === undefined ? undefined : classCount - 1;
+  }
+  return domain.length;
+}
+
+function checkRegisteredNumberArray(
+  collector: Collector,
+  value: unknown,
+  path: string,
+  name: string,
+  classCount?: number,
+): readonly number[] | undefined {
+  const domain = requireDefinition(name).domain;
+  if (domain.kind !== 'array') {
+    throw new Error(`参数 ${name} 不是数组域`);
+  }
+  const length = registeredLength(domain, classCount);
+  if (length === undefined) return undefined;
+  return checkNumberArray(collector, value, path, domain.element, {
+    length,
+    nonDecreasing: domain.nonDecreasing,
+    sumToOne: domain.sumToOne,
+    firstElement: domain.firstElement,
+  });
 }
 
 /** 完整配置校验：缺字段、未知字段、NaN/Infinity、非法范围与未知版本均返回路径化错误。 */
@@ -278,48 +352,56 @@ export function validateRunConfig(input: unknown): ValidationResult {
       'initialAgeMode',
     ])
   ) {
-    checkNumber(collector, population['initialPopulation'], '$.population.initialPopulation', {
-      min: 2,
-      max: 10000,
-      integer: true,
-    });
-    classCount = checkNumber(collector, population['classCount'], '$.population.classCount', {
-      min: 2,
-      max: 8,
-      integer: true,
-    });
-    checkNumber(collector, population['initialValue'], '$.population.initialValue', { min: 0 });
-    const mode = population['initialAgeMode'];
-    if (mode !== 'uniform' && mode !== 'newborn') {
-      collector.add(
-        '$.population.initialAgeMode',
-        errorCodes.CONFIG_INVALID,
-        '必须为 uniform 或 newborn',
-      );
-    }
+    checkRegisteredNumber(
+      collector,
+      population['initialPopulation'],
+      '$.population.initialPopulation',
+      'population.initialPopulation',
+    );
+    classCount = checkRegisteredNumber(
+      collector,
+      population['classCount'],
+      '$.population.classCount',
+      'population.classCount',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['initialValue'],
+      '$.population.initialValue',
+      'population.initialValue',
+    );
+    checkRegisteredEnum(
+      collector,
+      population['initialAgeMode'],
+      '$.population.initialAgeMode',
+      'population.initialAgeMode',
+    );
     if (classCount !== undefined) {
-      checkNumberArray(
+      checkRegisteredNumberArray(
         collector,
         population['classShares'],
         '$.population.classShares',
-        { min: 0, max: 1 },
-        { length: classCount, sumToOne: true },
+        'population.classShares',
+        classCount,
       );
     }
   }
 
   if (checkObject(collector, root['opportunity'], '$.opportunity', ['dailyBase', 'env0'])) {
     const opportunity = root['opportunity'];
-    checkNumber(collector, opportunity['dailyBase'], '$.opportunity.dailyBase', {
-      exclusiveMin: 0,
-    });
+    checkRegisteredNumber(
+      collector,
+      opportunity['dailyBase'],
+      '$.opportunity.dailyBase',
+      'opportunity.dailyBase',
+    );
     if (classCount !== undefined) {
-      checkNumberArray(
+      checkRegisteredNumberArray(
         collector,
         opportunity['env0'],
         '$.opportunity.env0',
-        { exclusiveMin: 0 },
-        { length: classCount },
+        'opportunity.env0',
+        classCount,
       );
     }
   }
@@ -334,33 +416,43 @@ export function validateRunConfig(input: unknown): ValidationResult {
   ) {
     const lifespan = root['lifespan'];
     if (classCount !== undefined) {
-      checkNumberArray(
+      checkRegisteredNumberArray(
         collector,
         lifespan['decay'],
         '$.lifespan.decay',
-        { min: 0, max: 3 },
-        { length: classCount },
+        'lifespan.decay',
+        classCount,
       );
     }
-    checkNormal(collector, lifespan['initialLife'], '$.lifespan.initialLife');
-    hardLifeFactor = checkNumber(
+    checkNormal(
+      collector,
+      lifespan['initialLife'],
+      '$.lifespan.initialLife',
+      'lifespan.initialLife',
+    );
+    hardLifeFactor = checkRegisteredNumber(
       collector,
       lifespan['hardLifeFactor'],
       '$.lifespan.hardLifeFactor',
-      {
-        min: 0,
-      },
+      'lifespan.hardLifeFactor',
     );
-    hardLifeFloor = checkNumber(collector, lifespan['hardLifeFloor'], '$.lifespan.hardLifeFloor', {
-      exclusiveMin: 0,
-      max: 1,
-    });
+    hardLifeFloor = checkRegisteredNumber(
+      collector,
+      lifespan['hardLifeFloor'],
+      '$.lifespan.hardLifeFloor',
+      'lifespan.hardLifeFloor',
+    );
   }
 
   if (checkObject(collector, root['attributes'], '$.attributes', ['ge', 'hard'])) {
     const attributes = root['attributes'];
-    checkLognormal(collector, attributes['ge'], '$.attributes.ge');
-    hardMin = checkLognormal(collector, attributes['hard'], '$.attributes.hard')?.min;
+    checkLognormal(collector, attributes['ge'], '$.attributes.ge', 'attributes.ge');
+    hardMin = checkLognormal(
+      collector,
+      attributes['hard'],
+      '$.attributes.hard',
+      'attributes.hard',
+    )?.min;
   }
 
   // `hardLifeFloor` 只有在对合法 hard 域取最小因子时仍不低于它，才是纯数值护栏。
@@ -377,7 +469,7 @@ export function validateRunConfig(input: unknown): ValidationResult {
   }
 
   if (checkObject(collector, root['effort'], '$.effort', ['shape'])) {
-    checkNumber(collector, root['effort']['shape'], '$.effort.shape', { exclusiveMin: 0 });
+    checkRegisteredNumber(collector, root['effort']['shape'], '$.effort.shape', 'effort.shape');
   }
 
   if (
@@ -389,44 +481,45 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const need = root['need'];
-    checkNumber(collector, need['threshold'], '$.need.threshold', { min: 0, max: 1 });
-    checkNumber(collector, need['belowNeedLimit'], '$.need.belowNeedLimit', {
-      min: 1,
-      integer: true,
-    });
-    checkNumber(collector, need['bufferDays'], '$.need.bufferDays', { min: 2, integer: true });
+    checkRegisteredNumber(collector, need['threshold'], '$.need.threshold', 'need.threshold');
+    checkRegisteredNumber(
+      collector,
+      need['belowNeedLimit'],
+      '$.need.belowNeedLimit',
+      'need.belowNeedLimit',
+    );
+    checkRegisteredNumber(collector, need['bufferDays'], '$.need.bufferDays', 'need.bufferDays');
     if (classCount !== undefined) {
-      checkNumberArray(
+      checkRegisteredNumberArray(
         collector,
         need['needMultiplier'],
         '$.need.needMultiplier',
-        { min: 1, max: 6 },
-        { length: classCount, nonDecreasing: true, firstElement: 1 },
+        'need.needMultiplier',
+        classCount,
       );
     }
   }
 
   if (checkObject(collector, root['descent'], '$.descent', ['days'])) {
-    checkNumber(collector, root['descent']['days'], '$.descent.days', { exclusiveMin: 0 });
+    checkRegisteredNumber(collector, root['descent']['days'], '$.descent.days', 'descent.days');
   }
 
   if (checkObject(collector, root['ascent'], '$.ascent', ['crossDays', 'returnDiscount'])) {
     const ascent = root['ascent'];
     if (classCount !== undefined) {
-      checkNumberArray(
+      checkRegisteredNumberArray(
         collector,
         ascent['crossDays'],
         '$.ascent.crossDays',
-        { exclusiveMin: 0 },
-        { length: classCount - 1 },
+        'ascent.crossDays',
+        classCount,
       );
     }
-    checkNumberArray(
+    checkRegisteredNumberArray(
       collector,
       ascent['returnDiscount'],
       '$.ascent.returnDiscount',
-      { min: 0, max: 1 },
-      { length: 3, nonDecreasing: true },
+      'ascent.returnDiscount',
     );
   }
 
@@ -446,63 +539,71 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const competition = root['competition'];
-    checkNumber(collector, competition['powerValueExponent'], '$.competition.powerValueExponent', {
-      min: 0,
-    });
-    checkNumber(collector, competition['powerGeExponent'], '$.competition.powerGeExponent', {
-      min: 0,
-    });
-    checkNumber(collector, competition['powerHardExponent'], '$.competition.powerHardExponent', {
-      min: 0,
-    });
-    checkNumber(
+    checkRegisteredNumber(
+      collector,
+      competition['powerValueExponent'],
+      '$.competition.powerValueExponent',
+      'competition.powerValueExponent',
+    );
+    checkRegisteredNumber(
+      collector,
+      competition['powerGeExponent'],
+      '$.competition.powerGeExponent',
+      'competition.powerGeExponent',
+    );
+    checkRegisteredNumber(
+      collector,
+      competition['powerHardExponent'],
+      '$.competition.powerHardExponent',
+      'competition.powerHardExponent',
+    );
+    checkRegisteredNumber(
       collector,
       competition['crossClassInitiatorMultiplier'],
       '$.competition.crossClassInitiatorMultiplier',
-      { min: 0, max: 1.25 },
+      'competition.crossClassInitiatorMultiplier',
     );
-    checkNumber(
+    checkRegisteredNumber(
       collector,
       competition['crossClassTargetMultiplier'],
       '$.competition.crossClassTargetMultiplier',
-      { min: 0, max: 1.25 },
+      'competition.crossClassTargetMultiplier',
     );
-    checkNumber(collector, competition['lossRate'], '$.competition.lossRate', { min: 0, max: 0.5 });
-    const efficiency = checkNumber(
+    checkRegisteredNumber(
+      collector,
+      competition['lossRate'],
+      '$.competition.lossRate',
+      'competition.lossRate',
+    );
+    const efficiency = checkRegisteredNumber(
       collector,
       competition['baseTransferEfficiency'],
       '$.competition.baseTransferEfficiency',
-      { min: 0, max: 1.25 },
+      'competition.baseTransferEfficiency',
     );
-    if (efficiency !== undefined && efficiency > 1) {
-      collector.add(
-        '$.competition.baseTransferEfficiency',
-        errorCodes.CONFIG_OUT_OF_RANGE,
-        '必须 <= 1（同层与防守方方向乘子恒为 1，否则胜者收益会超过败者损失）',
-      );
-    }
-    const highToLow = checkNumber(
+    const highToLow = checkRegisteredNumber(
       collector,
       competition['highToLowWinMultiplier'],
       '$.competition.highToLowWinMultiplier',
-      { min: 0, max: 1.25 },
+      'competition.highToLowWinMultiplier',
     );
-    const lowToHigh = checkNumber(
+    const lowToHigh = checkRegisteredNumber(
       collector,
       competition['lowToHighWinMultiplier'],
       '$.competition.lowToHighWinMultiplier',
-      { min: 0, max: 1.25 },
+      'competition.lowToHighWinMultiplier',
     );
-    checkNumber(collector, competition['candidateCount'], '$.competition.candidateCount', {
-      min: 0,
-      max: MAX_COMPETITION_CANDIDATES,
-      integer: true,
-    });
-    checkNumber(
+    checkRegisteredNumber(
+      collector,
+      competition['candidateCount'],
+      '$.competition.candidateCount',
+      'competition.candidateCount',
+    );
+    checkRegisteredNumber(
       collector,
       competition['localTargetProbability'],
       '$.competition.localTargetProbability',
-      { min: 0, max: 1 },
+      'competition.localTargetProbability',
     );
 
     if (efficiency !== undefined) {
@@ -531,16 +632,17 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const network = root['network'];
-    const maxDegree = checkNumber(collector, network['maxDegree'], '$.network.maxDegree', {
-      min: 0,
-      max: 6,
-      integer: true,
-    });
-    const initialDegree = checkNumber(
+    const maxDegree = checkRegisteredNumber(
+      collector,
+      network['maxDegree'],
+      '$.network.maxDegree',
+      'network.maxDegree',
+    );
+    const initialDegree = checkRegisteredNumber(
       collector,
       network['initialDegree'],
       '$.network.initialDegree',
-      { min: 0, max: 6, integer: true },
+      'network.initialDegree',
     );
     checkPairOrder(
       collector,
@@ -549,9 +651,24 @@ export function validateRunConfig(input: unknown): ValidationResult {
       '$.network.initialDegree',
       'initialDegree 必须 <= maxDegree',
     );
-    checkNumber(collector, network['rewireProb'], '$.network.rewireProb', { min: 0, max: 1 });
-    checkNumber(collector, network['classWeight'], '$.network.classWeight', { min: 0 });
-    checkNumber(collector, network['valueWeight'], '$.network.valueWeight', { min: 0 });
+    checkRegisteredNumber(
+      collector,
+      network['rewireProb'],
+      '$.network.rewireProb',
+      'network.rewireProb',
+    );
+    checkRegisteredNumber(
+      collector,
+      network['classWeight'],
+      '$.network.classWeight',
+      'network.classWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      network['valueWeight'],
+      '$.network.valueWeight',
+      'network.valueWeight',
+    );
   }
 
   if (
@@ -562,13 +679,24 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const opportunity = root['networkOpportunity'];
-    checkNumber(collector, opportunity['beta'], '$.networkOpportunity.beta', { min: 0 });
-    const min = checkNumber(collector, opportunity['min'], '$.networkOpportunity.min', {
-      exclusiveMin: 0,
-    });
-    const max = checkNumber(collector, opportunity['max'], '$.networkOpportunity.max', {
-      exclusiveMin: 0,
-    });
+    checkRegisteredNumber(
+      collector,
+      opportunity['beta'],
+      '$.networkOpportunity.beta',
+      'networkOpportunity.beta',
+    );
+    const min = checkRegisteredNumber(
+      collector,
+      opportunity['min'],
+      '$.networkOpportunity.min',
+      'networkOpportunity.min',
+    );
+    const max = checkRegisteredNumber(
+      collector,
+      opportunity['max'],
+      '$.networkOpportunity.max',
+      'networkOpportunity.max',
+    );
     checkPairOrder(collector, min, max, '$.networkOpportunity.min', 'min 必须 <= max');
   }
 
@@ -586,31 +714,41 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const dynamics = root['dynamics'];
-    checkNumber(collector, dynamics['classSmoothing'], '$.dynamics.classSmoothing', {
-      exclusiveMin: 0,
-      max: 1,
-    });
-    checkNumber(collector, dynamics['congestionExponent'], '$.dynamics.congestionExponent', {
-      min: 0,
-    });
-    checkNumber(collector, dynamics['polarizationExponent'], '$.dynamics.polarizationExponent', {
-      min: 0,
-    });
-    checkNumber(collector, dynamics['giniReference'], '$.dynamics.giniReference', {
-      min: 0,
-      max: 1,
-    });
-    const congestionMin = checkNumber(
+    checkRegisteredNumber(
+      collector,
+      dynamics['classSmoothing'],
+      '$.dynamics.classSmoothing',
+      'dynamics.classSmoothing',
+    );
+    checkRegisteredNumber(
+      collector,
+      dynamics['congestionExponent'],
+      '$.dynamics.congestionExponent',
+      'dynamics.congestionExponent',
+    );
+    checkRegisteredNumber(
+      collector,
+      dynamics['polarizationExponent'],
+      '$.dynamics.polarizationExponent',
+      'dynamics.polarizationExponent',
+    );
+    checkRegisteredNumber(
+      collector,
+      dynamics['giniReference'],
+      '$.dynamics.giniReference',
+      'dynamics.giniReference',
+    );
+    const congestionMin = checkRegisteredNumber(
       collector,
       dynamics['congestionMin'],
       '$.dynamics.congestionMin',
-      { exclusiveMin: 0 },
+      'dynamics.congestionMin',
     );
-    const congestionMax = checkNumber(
+    const congestionMax = checkRegisteredNumber(
       collector,
       dynamics['congestionMax'],
       '$.dynamics.congestionMax',
-      { exclusiveMin: 0 },
+      'dynamics.congestionMax',
     );
     checkPairOrder(
       collector,
@@ -619,23 +757,23 @@ export function validateRunConfig(input: unknown): ValidationResult {
       '$.dynamics.congestionMin',
       'congestionMin 必须 <= congestionMax',
     );
-    checkNumber(
+    checkRegisteredNumber(
       collector,
       dynamics['emptyClassPopulationFloor'],
       '$.dynamics.emptyClassPopulationFloor',
-      { exclusiveMin: 0, max: 1 },
+      'dynamics.emptyClassPopulationFloor',
     );
-    const polarizationMin = checkNumber(
+    const polarizationMin = checkRegisteredNumber(
       collector,
       dynamics['polarizationMin'],
       '$.dynamics.polarizationMin',
-      { exclusiveMin: 0 },
+      'dynamics.polarizationMin',
     );
-    const polarizationMax = checkNumber(
+    const polarizationMax = checkRegisteredNumber(
       collector,
       dynamics['polarizationMax'],
       '$.dynamics.polarizationMax',
-      { exclusiveMin: 0 },
+      'dynamics.polarizationMax',
     );
     checkPairOrder(
       collector,
@@ -662,31 +800,67 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const openness = root['openness'];
-    checkNumber(collector, openness['initial'], '$.openness.initial', { min: 0, max: 1 });
-    checkNumber(collector, openness['timeConstantDays'], '$.openness.timeConstantDays', {
-      exclusiveMin: 0,
-    });
-    checkNumber(collector, openness['intercept'], '$.openness.intercept', { min: -20, max: 20 });
-    checkNumber(collector, openness['mobilityWeight'], '$.openness.mobilityWeight', { min: 0 });
-    checkNumber(collector, openness['mobilityReference'], '$.openness.mobilityReference', {
-      min: 0,
-      max: 1,
-    });
-    checkNumber(collector, openness['giniWeight'], '$.openness.giniWeight', { min: 0 });
-    checkNumber(collector, openness['segregationWeight'], '$.openness.segregationWeight', {
-      min: 0,
-    });
-    checkNumber(collector, openness['segregationReference'], '$.openness.segregationReference', {
-      min: -1,
-      max: 1,
-    });
-    checkNumber(collector, openness['ascentCostWeight'], '$.openness.ascentCostWeight', { min: 0 });
-    const min = checkNumber(collector, openness['multiplierMin'], '$.openness.multiplierMin', {
-      exclusiveMin: 0,
-    });
-    const max = checkNumber(collector, openness['multiplierMax'], '$.openness.multiplierMax', {
-      exclusiveMin: 0,
-    });
+    checkRegisteredNumber(collector, openness['initial'], '$.openness.initial', 'openness.initial');
+    checkRegisteredNumber(
+      collector,
+      openness['timeConstantDays'],
+      '$.openness.timeConstantDays',
+      'openness.timeConstantDays',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['intercept'],
+      '$.openness.intercept',
+      'openness.intercept',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['mobilityWeight'],
+      '$.openness.mobilityWeight',
+      'openness.mobilityWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['mobilityReference'],
+      '$.openness.mobilityReference',
+      'openness.mobilityReference',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['giniWeight'],
+      '$.openness.giniWeight',
+      'openness.giniWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['segregationWeight'],
+      '$.openness.segregationWeight',
+      'openness.segregationWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['segregationReference'],
+      '$.openness.segregationReference',
+      'openness.segregationReference',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['ascentCostWeight'],
+      '$.openness.ascentCostWeight',
+      'openness.ascentCostWeight',
+    );
+    const min = checkRegisteredNumber(
+      collector,
+      openness['multiplierMin'],
+      '$.openness.multiplierMin',
+      'openness.multiplierMin',
+    );
+    const max = checkRegisteredNumber(
+      collector,
+      openness['multiplierMax'],
+      '$.openness.multiplierMax',
+      'openness.multiplierMax',
+    );
     checkPairOrder(
       collector,
       min,
@@ -698,15 +872,14 @@ export function validateRunConfig(input: unknown): ValidationResult {
 
   if (checkObject(collector, root['decision'], '$.decision', ['interval', 'topK', 'policy'])) {
     const decision = root['decision'];
-    checkNumber(collector, decision['interval'], '$.decision.interval', { min: 1, integer: true });
-    checkNumber(collector, decision['topK'], '$.decision.topK', {
-      min: 1,
-      max: MAX_TOP_K,
-      integer: true,
-    });
-    if (typeof decision['policy'] !== 'string' || !POLICY_IDS.has(decision['policy'])) {
-      collector.add('$.decision.policy', errorCodes.CONFIG_INVALID, '未知策略标识');
-    }
+    checkRegisteredNumber(
+      collector,
+      decision['interval'],
+      '$.decision.interval',
+      'decision.interval',
+    );
+    checkRegisteredNumber(collector, decision['topK'], '$.decision.topK', 'decision.topK');
+    checkRegisteredEnum(collector, decision['policy'], '$.decision.policy', 'decision.policy');
   }
 
   if (
@@ -717,18 +890,24 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const schedule = root['schedule'];
-    const totalTicks = checkNumber(collector, schedule['totalTicks'], '$.schedule.totalTicks', {
-      min: 1,
-      integer: true,
-    });
-    const statsStride = checkNumber(collector, schedule['statsStride'], '$.schedule.statsStride', {
-      min: 1,
-      integer: true,
-    });
-    checkNumber(collector, schedule['snapshotStride'], '$.schedule.snapshotStride', {
-      min: 1,
-      integer: true,
-    });
+    const totalTicks = checkRegisteredNumber(
+      collector,
+      schedule['totalTicks'],
+      '$.schedule.totalTicks',
+      'schedule.totalTicks',
+    );
+    const statsStride = checkRegisteredNumber(
+      collector,
+      schedule['statsStride'],
+      '$.schedule.statsStride',
+      'schedule.statsStride',
+    );
+    checkRegisteredNumber(
+      collector,
+      schedule['snapshotStride'],
+      '$.schedule.snapshotStride',
+      'schedule.snapshotStride',
+    );
     checkPairOrder(
       collector,
       statsStride,
@@ -746,18 +925,24 @@ export function validateRunConfig(input: unknown): ValidationResult {
     ])
   ) {
     const metrics = root['metrics'];
-    checkNumber(collector, metrics['flowWindowDays'], '$.metrics.flowWindowDays', {
-      min: 1,
-      integer: true,
-    });
-    checkNumber(collector, metrics['mobilityWindowDays'], '$.metrics.mobilityWindowDays', {
-      min: 1,
-      integer: true,
-    });
-    checkNumber(collector, metrics['topWealthShareFraction'], '$.metrics.topWealthShareFraction', {
-      exclusiveMin: 0,
-      max: 1,
-    });
+    checkRegisteredNumber(
+      collector,
+      metrics['flowWindowDays'],
+      '$.metrics.flowWindowDays',
+      'metrics.flowWindowDays',
+    );
+    checkRegisteredNumber(
+      collector,
+      metrics['mobilityWindowDays'],
+      '$.metrics.mobilityWindowDays',
+      'metrics.mobilityWindowDays',
+    );
+    checkRegisteredNumber(
+      collector,
+      metrics['topWealthShareFraction'],
+      '$.metrics.topWealthShareFraction',
+      'metrics.topWealthShareFraction',
+    );
   }
 
   if (!collector.ok) {

@@ -813,16 +813,6 @@ export const NUMERIC_CONSTANTS: readonly NumericConstant[] = [
     value: 1e-12,
     reason: '跨字段关系约束（如 hardLifeFloor 上界）比较时允许的浮点误差。',
   },
-  {
-    name: 'MAX_TOP_K',
-    value: 9,
-    reason: '04 §4.2 单个 Choice 最多 9 个选项。',
-  },
-  {
-    name: 'MAX_COMPETITION_CANDIDATES',
-    value: 6,
-    reason: '03 §5 竞争候选上限。',
-  },
 ];
 
 const definitionByName = new Map<string, ParamDefinition>(

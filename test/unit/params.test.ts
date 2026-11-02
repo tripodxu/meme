@@ -29,6 +29,14 @@ describe('parameter registry', () => {
     }
   });
 
+  it('registers every RunConfig leaf except version identity fields', () => {
+    const registered = new Set(PARAM_DEFINITIONS.map((definition) => definition.name));
+    const missing = collectLeafPaths(DEFAULT_RUN_CONFIG).filter(
+      (path) => path !== 'schemaVersion' && path !== 'rulesVersion' && !registered.has(path),
+    );
+    expect(missing).toEqual([]);
+  });
+
   it('accepts every default value under the registered domain', () => {
     for (const definition of PARAM_DEFINITIONS) {
       const value = readPath(DEFAULT_RUN_CONFIG, definition.name);
@@ -85,8 +93,7 @@ describe('parameter registry', () => {
       expect.arrayContaining([
         'TWO_POW_NEG_53',
         'CONFIG_SHARE_TOLERANCE',
-        'MAX_TOP_K',
-        'MAX_COMPETITION_CANDIDATES',
+        'CONFIG_RELATION_TOLERANCE',
       ]),
     );
     for (const constant of NUMERIC_CONSTANTS) {
@@ -110,6 +117,16 @@ describe('parameter registry', () => {
     expect(readPath(DEFAULT_RUN_CONFIG, 'missing.path')).toBeUndefined();
   });
 });
+
+function collectLeafPaths(value: unknown, prefix = ''): string[] {
+  if (Array.isArray(value)) return [prefix];
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value).flatMap(([key, child]) =>
+      collectLeafPaths(child, prefix === '' ? key : `${prefix}.${key}`),
+    );
+  }
+  return [prefix];
+}
 
 function checkNumberInDomain(
   name: string,
