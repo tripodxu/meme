@@ -30,6 +30,8 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 
 ## 3. 文档地图
 
+### 3.1 核心规格（编号文档）
+
 1. [项目章程与范围](00-project-charter.md)：目标、非目标、角色、完成定义。
 2. [分阶段施工计划](01-implementation-plan.md)：任务编号、依赖、交付物、验收闸门。
 3. [系统架构与模块边界](02-architecture.md)：共享核心、三种运行端、状态和依赖规则。
@@ -43,7 +45,29 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 11. [工程协作约定](10-engineering-conventions.md)：目录、编码、Git、评审、ADR、文档维护。
 12. [安全、资源与成本约束](11-security-cost-constraints.md)：密钥、限流、配额、隐私和预算。
 13. [执行与交接清单](12-handoff-checklists.md)：开工、完工、发布和交接可复制清单。
-14. [架构决策记录](adr/README.md)：ADR 触发条件、编号规则与模板。
+
+### 3.2 导读与设计指南（派生文档）
+
+以下文件是对编号规格的提炼，**不构成新的验收口径**；与编号文档或 `rule.md` 冲突时，以编号文档为准。
+
+- [总体施工计划与契约总览](guides/plan-and-contracts.md)：架构铁律、阶段表、核心公式、哈希与 API 的一页式汇总。
+- [前端设计指南](guides/frontend-design.md)：设计令牌、五大工作区、帧预算调度与降采样方案。
+
+### 3.3 参考资料（非契约）
+
+- [Jev（TypeSafe）简介](reference/jev-overview.md)：System One 三种原语、接口、限制与已知局限。
+
+### 3.4 决策记录
+
+- [架构决策记录](adr/README.md)：ADR 触发条件、编号规则与模板。
+
+### 3.5 根目录文件
+
+| 文件 | 作用 |
+|---|---|
+| [README.md](../README.md) | 项目总览与文档导航入口 |
+| [rule.md](../rule.md) | 社会机制与实验目标的唯一事实来源 |
+| [AGENTS.md](../AGENTS.md) | 仓库执行约定与强制约束 |
 
 ## 4. 按角色阅读
 
