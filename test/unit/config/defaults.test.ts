@@ -60,6 +60,14 @@ describe('DEFAULT_RUN_CONFIG', () => {
   it('does not include seed anywhere in the config tree', () => {
     expect(JSON.stringify(DEFAULT_RUN_CONFIG)).not.toContain('"seed"');
   });
+
+  it('deep-freezes the default config to prevent cross-run mutation', () => {
+    expect(Object.isFrozen(DEFAULT_RUN_CONFIG)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_RUN_CONFIG.population.classShares)).toBe(true);
+    expect(() => {
+      (DEFAULT_RUN_CONFIG.need as unknown as { threshold: number }).threshold = 0.6;
+    }).toThrow(TypeError);
+  });
 });
 
 describe('createDemoConfig', () => {

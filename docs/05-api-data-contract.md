@@ -191,7 +191,7 @@ X-Start-Tick / X-End-Tick: 可选范围
 
 complete 仅表示上传技术完整，`verificationStatus=uploaded`；独立验证器下载、核对压缩/未压缩 hash、NDJSON schema、连续性和实际回放后，才可把 `verificationStatus` 改为 `verified|rejected` 及报告 hash。正式实验只接受 verified，不能把空 manifest 或未验内容当成可回放证据。
 
-`POST /api/runs/:id/verification`：仅 RUNNER_TOKEN，body `{status:"verified"|"rejected",reportHash,checkedCounts,replayFinalStateHash:null|string}`；只允许 completed run 更新验证元数据，同内容幂等，verified 后不同内容冲突。该接口不能修改 ticks/agents/artifacts 或把 rejected 改为 verified。
+`POST /api/runs/:id/verification`：仅 RUNNER_TOKEN，body `{status:"verified"|"rejected",reportHash,checkedCounts,replayFinalStateHash:null|string}`；只允许 completed run 更新验证元数据，同内容幂等，verified 后不同内容冲突。该接口不能修改 ticks/agents/artifacts 或把 rejected 改为 verified。`reportHash` 必须使用 02 §8 注册的独立 domain；未注册前只能作为不参与回放的诊断摘要。
 
 `GET /api/runs/:id/stats?from=&to=`：返回聚合序列，范围有硬上限；大数据走 artifact，不通过无界 JSON 响应。
 

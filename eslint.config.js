@@ -46,6 +46,12 @@ export default tseslint.config(
         { name: 'fetch', message: 'src/core 不得发起网络请求。' },
         { name: 'localStorage', message: 'src/core 不得访问浏览器存储。' },
         { name: 'performance', message: 'src/core 不得读取 wall clock。' },
+        { name: 'process', message: 'src/core 不得依赖 Node 运行时。' },
+        { name: 'Buffer', message: 'src/core 不得依赖 Node 运行时。' },
+        { name: 'setTimeout', message: 'src/core 不得自行调度定时器。' },
+        { name: 'setInterval', message: 'src/core 不得自行调度定时器。' },
+        { name: 'queueMicrotask', message: 'src/core 不得自行调度微任务。' },
+        { name: 'crypto', message: 'src/core 不得使用运行时熵源或非确定性加密接口。' },
       ],
       'no-restricted-properties': [
         'error',

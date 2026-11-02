@@ -220,7 +220,7 @@ maxHttpAttempts    = maxDueDecisions × 4                                      #
 - 每个 agent 同 tick 最多一个在途请求；响应按 tick/agent 归档，执行顺序由 03 的 action_order 随机键决定。
 - 浏览器默认并发 2–4，VPS 默认从 4 开始压测；实际上限取配置、上游限制和配额的较小值。
 - 限流等待不改变 RNG 地址；重试不得重新抽取 topK 或重新生成候选。
-- 同一请求内容可计算 requestHash 用于诊断，但不得跨不同 run 自动复用模型回答。
+- 同一请求内容可计算 requestHash 用于诊断，但不得跨不同 run 自动复用模型回答；requestHash 若作为语义 hash 使用，必须先在 02 §8 注册独立 domain。
 
 ## 9. 回放与微扰
 

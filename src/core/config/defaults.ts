@@ -5,7 +5,7 @@ import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../control/versions.js';
  * `rules-v3` 首轮默认配置。默认值来自 03 §3，是校准起点，不是已验证结论。
  * 仓库当前处于施工前规格阶段，不得把本配置称为“已校准预设”。
  */
-export const DEFAULT_RUN_CONFIG: RunConfig = {
+export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
   schemaVersion: CONFIG_SCHEMA_VERSION,
   rulesVersion: RULES_VERSION,
   population: {
@@ -109,7 +109,18 @@ export const DEFAULT_RUN_CONFIG: RunConfig = {
     mobilityWindowDays: 365,
     topWealthShareFraction: 0.1,
   },
-};
+});
+
+/** 深度冻结默认配置，防止跨 run 意外修改共享对象。 */
+function deepFreeze<T>(value: T): T {
+  if (typeof value === 'object' && value !== null) {
+    for (const child of Object.values(value as unknown as Record<string, unknown>)) {
+      deepFreeze(child);
+    }
+    Object.freeze(value);
+  }
+  return value;
+}
 
 /** 交互演示默认：40 人、120 tick（03 §1）。结构实验请显式提高 `schedule.totalTicks`。 */
 export function createDemoConfig(overrides: DeepPartialConfig = {}): RunConfig {
