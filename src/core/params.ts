@@ -410,10 +410,10 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     name: 'competition.baseTransferEfficiency',
     unit: 'ratio',
     formulaRef: '03 §6 阶段 B / rule.md 13',
-    domain: { kind: 'number', min: 0, max: 1.25 },
+    domain: { kind: 'number', min: 0, max: 1 },
     guardOnly: false,
     affectsBehavior: true,
-    wireTest: '改变效率后胜者收益改变，且效率×方向乘子<=1。',
+    wireTest: '改变效率后胜者收益改变，且效率<=1、效率×方向乘子<=1。',
   },
   {
     name: 'competition.highToLowWinMultiplier',

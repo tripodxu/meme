@@ -148,6 +148,21 @@ describe('validateRunConfig', () => {
     expect(codesOf(boundary)).toEqual([]);
   });
 
+  it('rejects baseTransferEfficiency above 1 even with small direction multipliers', () => {
+    const config = cloneConfig();
+    config['competition']['baseTransferEfficiency'] = 1.25;
+    config['competition']['highToLowWinMultiplier'] = 0.5;
+    config['competition']['lowToHighWinMultiplier'] = 0.8;
+    expect(codesOf(config)).toContain(errorCodes.CONFIG_OUT_OF_RANGE);
+    expect(pathsOf(config)).toContain('$.competition.baseTransferEfficiency');
+
+    const boundary = cloneConfig();
+    boundary['competition']['baseTransferEfficiency'] = 1;
+    boundary['competition']['highToLowWinMultiplier'] = 0.5;
+    boundary['competition']['lowToHighWinMultiplier'] = 1;
+    expect(codesOf(boundary)).toEqual([]);
+  });
+
   it('enforces known ranges for every scalar group', () => {
     const cases: Array<[string, string, unknown]> = [
       ['population', 'initialPopulation', 1],

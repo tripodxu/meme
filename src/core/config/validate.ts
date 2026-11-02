@@ -450,6 +450,13 @@ export function validateRunConfig(input: unknown): ValidationResult {
       '$.competition.baseTransferEfficiency',
       { min: 0, max: 1.25 },
     );
+    if (efficiency !== undefined && efficiency > 1) {
+      collector.add(
+        '$.competition.baseTransferEfficiency',
+        errorCodes.CONFIG_OUT_OF_RANGE,
+        '必须 <= 1（同层与防守方方向乘子恒为 1，否则胜者收益会超过败者损失）',
+      );
+    }
     const highToLow = checkNumber(
       collector,
       competition['highToLowWinMultiplier'],

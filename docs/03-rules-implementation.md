@@ -79,18 +79,18 @@
 
 ### 3.1 合法配置域
 
-| 字段组    | 约束                                                                                                                                                                         |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 人口/阶级 | `initialPopulation` 为 `[2,10000]` 整数；`C` 为 `[2,8]` 整数；初始比例非负且 `abs(sum-1)<=1e-12`；initialValue>=0；`initialAgeMode` 为 `uniform                              | newborn` |
-| 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                    |
-| 分布      | ge/hard 的 sigma>=0、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma>=0                                                                                        |
-| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算 |
-| 反馈      | β/η/κ/λO/H/hV>=0（消融值 0 合法）；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；θM/θG/θS>=0，θ0 有限且在 `[-20,20]`                                              |
-| 寿命损耗  | `hardLifeFactor>=0`；`hardLifeFloor` 为 `(0,1]` 的正数且仅作数值护栏；合法 `hard∈[0.2,3.0]` 内不得依赖该护栏产生业务分支                                                     |
-| 网络/候选 | `maxDegree=6`；initialDegree 为 `[0,6]` 整数；competitionCandidateCount 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`       |
-| 竞争      | lossRate 在 `[0,0.5]`；baseTransferEfficiency 和各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`                                                |
-| 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                           |
-| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/flowWindowDays/MupWindowDays>=1 整数；statsStride<=totalTicks                                                                      |
+| 字段组    | 约束                                                                                                                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 人口/阶级 | `initialPopulation` 为 `[2,10000]` 整数；`C` 为 `[2,8]` 整数；初始比例非负且 `abs(sum-1)<=1e-12`；initialValue>=0；`initialAgeMode` 为 `uniform                                           | newborn` |
+| 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                 |
+| 分布      | ge/hard 的 sigma>=0、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma>=0                                                                                                     |
+| 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算              |
+| 反馈      | β/η/κ/λO/H/hV>=0（消融值 0 合法）；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；θM/θG/θS>=0，θ0 有限且在 `[-20,20]`                                                           |
+| 寿命损耗  | `hardLifeFactor>=0`；`hardLifeFloor` 为 `(0,1]` 的正数且仅作数值护栏；合法 `hard∈[0.2,3.0]` 内不得依赖该护栏产生业务分支                                                                  |
+| 网络/候选 | `maxDegree=6`；initialDegree 为 `[0,6]` 整数；competitionCandidateCount 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                    |
+| 竞争      | lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1） |
+| 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                                        |
+| 调度/指标 | totalTicks>=1、statsStride/snapshotStride/flowWindowDays/MupWindowDays>=1 整数；statsStride<=totalTicks                                                                                   |
 
 MVP 不允许负 decay，因此寿命不会因阶级而反向增加；`rule.md` 中“可能为负”留作未来规则版本。除表中显式允许 0 的参数外，不得用“正参数”笼统推断范围。所有 schema-valid 配置必须满足收益不超过损失等核心不变量；运行端可进一步限制人口/预算，但不得放宽数学合法域。`totalTicks/statsStride/snapshotStride` 属于 RunConfig 并被 `configHash` 覆盖，05 的顶层 `schedule` 只是服务端索引镜像。
 
