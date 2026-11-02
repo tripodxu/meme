@@ -2,7 +2,7 @@
 
 ## 1. 当前交接状态（2026-11-02，rev 5）
 
-- 已有：`rule.md` v3 59 条、本施工文档套件（`docs/` 13 篇编号文档 + `docs/README.md` + `docs/adr/` + `docs/guides/` 导读 2 篇 + `docs/reference/` 参考资料）、根目录 `AGENTS.md` 与 `README.md`；P0 工程骨架（TS/pnpm/Vitest/ESLint/Prettier、配置类型与校验、参数注册表、JCS 与 11 个 hash domain、golden 与 158 个测试）。
+- 已有：`rule.md` v3 59 条、本施工文档套件（`docs/` 13 篇编号文档 + `docs/README.md` + `docs/adr/` + `docs/guides/` 导读 2 篇 + `docs/reference/` 参考资料）、根目录 `AGENTS.md` 与 `README.md`；P0 工程骨架（TS/pnpm/Vitest/ESLint/Prettier、配置类型与校验、参数注册表、JCS 与 11 个 hash domain、golden 与 159 个测试）。
 - 已完成交叉复核与首轮修订：阶级持有成本 `needMultiplier`、初始年龄分布、365 日流动参与率、调整后 S、参数注册表、P1.5 可达性闸门、契约洞与统计口径已写入对应文档；未校准项均标注为待验证。
 - rev 3（P0 定稿前修订）：`S` 改为双侧归一化保证 `[-1,1]`；`returnDiscount[0]` 接入 `d=1`；`seed` 明确不进入 `configHash`，补齐 `paramsHash/preregistrationHash` 域与排除字段；`initialAgeMode`、`hardLife*/returnDiscount` 进入注册表与扫描表；P0-02/P0-03/P0-06 验收同步。
 - rev 4（P0 落地前补齐）：P5 拆为 P5a（本地批跑，G6 前）/P5b（上传云，G6 后），P6 只依赖 P5a；`P0[c]=0` 空阶级机会语义在 03/rule.md 对齐；回放来源区分 `jev_replay/mock_replay/random_replay`，`skipped_dead` 标为防御性枚举；state 固定构造顺序与 JCS 哈希分离；runId 字符集与 R2 key 校验；行动类型显式排序；`deathReason` 枚举；标准命令补 `format/coverage`；`docs/README` 与 `AGENTS.md` 入口补 02/06/10。

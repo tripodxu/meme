@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_RUN_CONFIG } from '../../../src/core/config/defaults.js';
 import { isValidRunConfig, validateRunConfig } from '../../../src/core/config/validate.js';
 import { errorCodes } from '../../../src/core/control/errors.js';
+import { PARAM_DEFINITIONS } from '../../../src/core/params.js';
+import type { ParamDomain } from '../../../src/core/params.js';
 
 type Mutable = Record<string, any>;
 
@@ -432,4 +434,46 @@ describe('validateRunConfig', () => {
     policy['decision']['policy'] = 123;
     expect(codesOf(policy)).toContain(errorCodes.CONFIG_INVALID);
   });
+
+  it('enforces every registered parameter domain', () => {
+    for (const definition of PARAM_DEFINITIONS) {
+      const config = cloneConfig();
+      setPath(config, definition.name, outsideDomainValue(definition.domain));
+      const result = validateRunConfig(config);
+      expect(result.ok, `${definition.name} accepted an out-of-domain value`).toBe(false);
+    }
+  });
 });
+
+function outsideDomainValue(domain: ParamDomain): unknown {
+  if (domain.kind === 'enum') return '__invalid__';
+  if (domain.kind === 'array') {
+    const length =
+      domain.length === 'classCount' ? 5 : domain.length === 'classCountMinus1' ? 4 : domain.length;
+    const values = Array.from({ length }, () => 0);
+    values[0] = outsideNumber(domain.element);
+    return values;
+  }
+  return outsideNumber(domain);
+}
+
+function outsideNumber(domain: {
+  readonly min?: number;
+  readonly max?: number;
+  readonly exclusiveMin?: number;
+  readonly exclusiveMax?: number;
+}): number {
+  if (domain.exclusiveMin !== undefined) return domain.exclusiveMin;
+  if (domain.min !== undefined) return domain.min - 1;
+  if (domain.exclusiveMax !== undefined) return domain.exclusiveMax;
+  if (domain.max !== undefined) return domain.max + 1;
+  throw new Error('参数域没有边界，无法构造越界值');
+}
+
+function setPath(target: Mutable, path: string, value: unknown): void {
+  const segments = path.split('.');
+  const last = segments.pop() as string;
+  let current = target;
+  for (const segment of segments) current = current[segment] as Mutable;
+  current[last] = value;
+}
