@@ -191,7 +191,8 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     domain: { kind: 'number', exclusiveMin: 0, max: 1 },
     guardOnly: true,
     affectsBehavior: false,
-    wireTest: '合法 hard∈[0.2,3.0] 内输出不变；边界外输入仍被拦截。',
+    wireTest:
+      '合法 hard 域内输出不变；配置必须满足 <= 1+hardLifeFactor×(attributes.hard.min-1)，否则 schema 拒绝。',
   },
   {
     name: 'attributes.ge.sigma',
@@ -582,9 +583,9 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     unit: 'ratio',
     formulaRef: '03 §6 阶段 H / rule.md 34',
     domain: { kind: 'number', exclusiveMin: 0, max: 1 },
-    guardOnly: true,
-    affectsBehavior: false,
-    wireTest: '仅作 max(P[c],floor) 数值护栏；不属于业务可调参数。',
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '改变 floor 后空阶级与稀疏阶级（P<floor）的 Congestion 与 E 改变。',
   },
   {
     name: 'dynamics.polarizationMin',
@@ -806,6 +807,11 @@ export const NUMERIC_CONSTANTS: readonly NumericConstant[] = [
     name: 'CONFIG_SHARE_TOLERANCE',
     value: 1e-12,
     reason: '初始比例之和允许的绝对误差，见 03 §3.1。',
+  },
+  {
+    name: 'CONFIG_RELATION_TOLERANCE',
+    value: 1e-12,
+    reason: '跨字段关系约束（如 hardLifeFloor 上界）比较时允许的浮点误差。',
   },
   {
     name: 'MAX_TOP_K',

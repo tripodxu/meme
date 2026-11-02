@@ -15,6 +15,7 @@ export type ValidationResult =
 
 const SUPPORTED_RULES_VERSIONS: ReadonlySet<string> = new Set([RULES_VERSION]);
 const SHARE_TOLERANCE = readNumericConstant('CONFIG_SHARE_TOLERANCE');
+const RELATION_TOLERANCE = readNumericConstant('CONFIG_RELATION_TOLERANCE');
 const MAX_TOP_K = readNumericConstant('MAX_TOP_K');
 const MAX_COMPETITION_CANDIDATES = readNumericConstant('MAX_COMPETITION_CANDIDATES');
 
@@ -265,6 +266,9 @@ export function validateRunConfig(input: unknown): ValidationResult {
 
   const population = root['population'];
   let classCount: number | undefined;
+  let hardLifeFactor: number | undefined;
+  let hardLifeFloor: number | undefined;
+  let hardMin: number | undefined;
   if (
     checkObject(collector, population, '$.population', [
       'initialPopulation',
@@ -339,8 +343,15 @@ export function validateRunConfig(input: unknown): ValidationResult {
       );
     }
     checkNormal(collector, lifespan['initialLife'], '$.lifespan.initialLife');
-    checkNumber(collector, lifespan['hardLifeFactor'], '$.lifespan.hardLifeFactor', { min: 0 });
-    checkNumber(collector, lifespan['hardLifeFloor'], '$.lifespan.hardLifeFloor', {
+    hardLifeFactor = checkNumber(
+      collector,
+      lifespan['hardLifeFactor'],
+      '$.lifespan.hardLifeFactor',
+      {
+        min: 0,
+      },
+    );
+    hardLifeFloor = checkNumber(collector, lifespan['hardLifeFloor'], '$.lifespan.hardLifeFloor', {
       exclusiveMin: 0,
       max: 1,
     });
@@ -349,7 +360,20 @@ export function validateRunConfig(input: unknown): ValidationResult {
   if (checkObject(collector, root['attributes'], '$.attributes', ['ge', 'hard'])) {
     const attributes = root['attributes'];
     checkLognormal(collector, attributes['ge'], '$.attributes.ge');
-    checkLognormal(collector, attributes['hard'], '$.attributes.hard');
+    hardMin = checkLognormal(collector, attributes['hard'], '$.attributes.hard')?.min;
+  }
+
+  // `hardLifeFloor` 只有在对合法 hard 域取最小因子时仍不低于它，才是纯数值护栏。
+  // 否则它会改变寿命损耗，必须拒绝配置而不是在注册表里谎称 guardOnly。
+  if (hardLifeFactor !== undefined && hardLifeFloor !== undefined && hardMin !== undefined) {
+    const minFactor = 1 + hardLifeFactor * (hardMin - 1);
+    if (hardLifeFloor > minFactor + RELATION_TOLERANCE) {
+      collector.add(
+        '$.lifespan.hardLifeFloor',
+        errorCodes.CONFIG_OUT_OF_RANGE,
+        `必须 <= 1 + hardLifeFactor×(attributes.hard.min-1)（当前上界 ${minFactor}），否则会在合法 hard 域内改变寿命损耗`,
+      );
+    }
   }
 
   if (checkObject(collector, root['effort'], '$.effort', ['shape'])) {

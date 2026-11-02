@@ -58,12 +58,12 @@ describe('parameter registry', () => {
   it('marks guardOnly parameters as not affecting behavior', () => {
     const guardOnly = PARAM_DEFINITIONS.filter((definition) => definition.guardOnly);
     expect(guardOnly.map((definition) => definition.name).sort()).toEqual([
-      'dynamics.emptyClassPopulationFloor',
       'lifespan.hardLifeFloor',
     ]);
     for (const definition of guardOnly) {
       expect(definition.affectsBehavior).toBe(false);
     }
+    expect(getParamDefinition('dynamics.emptyClassPopulationFloor')?.affectsBehavior).toBe(true);
   });
 
   it('requires a wiring test description for every parameter', () => {

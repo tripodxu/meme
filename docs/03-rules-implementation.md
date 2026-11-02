@@ -86,7 +86,7 @@
 | 分布      | ge/hard 的 sigma>=0、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma>=0                                                                                                     |
 | 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算              |
 | 反馈      | β/η/κ/λO/H/hV>=0（消融值 0 合法）；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；θM/θG/θS>=0，θ0 有限且在 `[-20,20]`                                                           |
-| 寿命损耗  | `hardLifeFactor>=0`；`hardLifeFloor` 为 `(0,1]` 的正数且仅作数值护栏；合法 `hard∈[0.2,3.0]` 内不得依赖该护栏产生业务分支                                                                  |
+| 寿命损耗  | `hardLifeFactor>=0`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支                            |
 | 网络/候选 | `maxDegree=6`；initialDegree 为 `[0,6]` 整数；competitionCandidateCount 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                    |
 | 竞争      | lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1） |
 | 决策      | decisionInterval/topK 为正整数，topK<=9；topK 实际还不得超过当次合法行动数；timeout/预算为正且有限                                                                                        |
@@ -106,7 +106,7 @@ P0 必须提供：
 
 至少覆盖：`FShape`、`powerValueExponent/powerGeExponent/powerHardExponent`、`crossClassInitiatorMultiplier/crossClassTargetMultiplier`、`lossRate`、`baseTransferEfficiency`、`highToLowWinMultiplier/lowToHighWinMultiplier`、`descendDays`、`returnDiscount`、`bufferDays`、`needThreshold`、`belowNeedLimit`、`needMultiplier`、`initialAgeMode`、`opportunityMin/Max`、`congestionMin/Max`、`polarizationMin/Max`、`opennessMultiplierMin/Max`、`hardLifeFactor/hardLifeFloor`、`flowWindowDays`、`MupWindowDays`。
 
-`initialAgeMode` 是枚举参数而非数值参数，接线测试必须证明 `uniform` 与 `newborn` 产生不同 `initialPopulationHash`，且两者消费同一 `init_age` 地址。`hardLifeFloor` 在合法 `hard∈[0.2,3.0]` 下不改变输出，注册表必须把它标记为 `guardOnly` 并提供“边界外输入仍被拦截”的测试；不得把它算作业务可调参数。所有参数条目标注 `configHash` 覆盖、`paramsHash` 覆盖和是否有接线测试。
+`initialAgeMode` 是枚举参数而非数值参数，接线测试必须证明 `uniform` 与 `newborn` 产生不同 `initialPopulationHash`，且两者消费同一 `init_age` 地址。`hardLifeFloor` 在合法 `hard` 域内不改变输出：配置必须满足 `hardLifeFloor <= 1+hardLifeFactor×(attributes.hard.min-1)`，违反时 schema 直接拒绝；注册表把它标记为 `guardOnly`，不得算作业务可调参数。所有参数条目标注 `configHash` 覆盖、`paramsHash` 覆盖和是否有接线测试。
 
 ## 4. 可寻址随机数与初始化
 
@@ -248,7 +248,7 @@ remainingLife = max(0,remainingLife-loss)
 if remainingLife==0: alive=false, deathTick=t, ties从所有邻居移除
 ```
 
-默认 `hardLifeFactor=0.15`、`hardLifeFloor=0.50`；在合法 hard∈[0.2,3.0] 内因子范围为 [0.88,1.30]，`hardLifeFloor` 只作数值护栏，不是可达的业务分支。使用被动跌落后的阶级，不追溯历史。死亡者当天已完成的积累/行动仍保留在事件和当日统计中；从下一 tick 不再参与。
+默认 `hardLifeFactor=0.15`、`hardLifeFloor=0.50`；默认配置下合法 `hard∈[0.2,3.0]` 的因子范围为 `[0.88,1.30]`。配置约束保证 `hardLifeFloor` 不高于合法域内的最小因子，因此它只作数值护栏，不是可达的业务分支。使用被动跌落后的阶级，不追溯历史。死亡者当天已完成的积累/行动仍保留在事件和当日统计中；从下一 tick 不再参与。
 
 ### 阶段 F：网络重构
 

@@ -126,6 +126,27 @@ describe('validateRunConfig', () => {
     expect(codesOf(wrongFirst)).toContain(errorCodes.CONFIG_OUT_OF_RANGE);
   });
 
+  it('keeps hardLifeFloor guard-only across the legal hard domain', () => {
+    const tooHigh = cloneConfig();
+    tooHigh['lifespan']['hardLifeFloor'] = 0.95;
+    expect(codesOf(tooHigh)).toContain(errorCodes.CONFIG_OUT_OF_RANGE);
+    expect(pathsOf(tooHigh)).toContain('$.lifespan.hardLifeFloor');
+
+    const boundary = cloneConfig();
+    boundary['lifespan']['hardLifeFloor'] = 0.88;
+    expect(codesOf(boundary)).toEqual([]);
+
+    const zeroFactor = cloneConfig();
+    zeroFactor['lifespan']['hardLifeFactor'] = 0;
+    zeroFactor['lifespan']['hardLifeFloor'] = 1;
+    expect(codesOf(zeroFactor)).toEqual([]);
+
+    const higherHardMin = cloneConfig();
+    higherHardMin['attributes']['hard'] = { sigma: 0.5, median: 1.2, min: 1.2, max: 3 };
+    higherHardMin['lifespan']['hardLifeFloor'] = 0.9;
+    expect(codesOf(higherHardMin)).toEqual([]);
+  });
+
   it('enforces distribution ordering', () => {
     const lognormal = cloneConfig();
     lognormal['attributes']['ge']['min'] = 2;

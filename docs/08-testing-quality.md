@@ -54,7 +54,7 @@
 
 ### 3.4 寿命、网络与慢变量
 
-- hard 寿命因子在合法 hard∈[0.2,3.0] 内为 [0.88,1.30]；`hardLifeFloor` 只作数值护栏，不得写成可达的业务分支；阶级变化只影响后续；remainingLife=0 当天死亡且不可复活。
+- hard 寿命因子在合法 hard 域内不低于 `hardLifeFloor`（由 `hardLifeFactor` 与 `attributes.hard.min` 的配置约束保证），`hardLifeFloor` 只作数值护栏，不得写成可达的业务分支；阶级变化只影响后续；remainingLife=0 当天死亡且不可复活。
 - `initialAgeMode=uniform` 的默认 3650 tick 实验死亡率 `>=0.05`；`newborn` 对照在 3650 tick 内死亡率 `<=0.01`；两种模式都要覆盖快照恢复。该阈值是机制可观测性下限，不是现实死亡率承诺。
 - 死亡者 ties 被移除，不参与下一 tick 任何候选/中位数/竞争。
 - 重构无候选恢复旧边；每 agent 每周期最多一条；O 改变权重符合公式。
@@ -80,7 +80,7 @@
 11. S 在 `[-1,1]`、edgeCount 一致；Mup/Mdown 在 `[0,1]` 且只统计存活者；空网络/空人口不产生 NaN。
 12. `seed` 不改变 `configHash`/`paramsHash`，但改变 `initialPopulationHash`；`initialAgeMode=uniform|newborn` 在同 seed 下产生不同 `initialPopulationHash` 且都消费 `init_age`。
 13. `preregistrationHash` 在提交 experiment 前后、以及服务端生成 `experimentId/createdAt` 后重算一致；运行后填充 `observedResponseModels` 不改变该 hash。
-14. `hardLifeFloor` 在合法 `hard∈[0.2,3.0]` 内不改变输出，且在 `hard` 超出合法域时阻止非正寿命。
+14. `hardLifeFloor` 在合法 `hard` 域内不改变输出（配置违反关系上界时被拒绝），且在 `hard` 超出合法域时阻止非正寿命。
 
 失败时输出最小化 seed、配置和 fixture，加入永久回归集。
 
