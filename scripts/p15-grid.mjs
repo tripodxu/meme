@@ -20,27 +20,35 @@ import {
 import { runSingle } from '../dist/runner/run-cell.js';
 import { asSeed } from '../dist/core/control/ids.js';
 import {
-  zScoreMatrix,
+  euclidean,
+  fitStandardizer,
   chooseKBySilhouette,
   bisectStability,
+  minClusterSize,
   seededShuffle,
 } from '../dist/runner/cluster.js';
 
 const args = process.argv.slice(2);
 const stage = args.includes('--stage') ? args[args.indexOf('--stage') + 1] : 'screen';
 
-function euclideanDist(a, b) {
-  let sum = 0;
-  for (let i = 0; i < a.length; i += 1) {
-    const d = (a[i] ?? 0) - (b[i] ?? 0);
-    sum += d * d;
-  }
-  return Math.sqrt(sum);
-}
-
 function log(message) {
   process.stderr.write(`[p15] ${message}\n`);
 }
+
+/** 聚类特征向量（07 §8.1）：窗口均值 P[c]、G、top10、Mup、Mdown、S、O。 */
+function featureVector(window) {
+  return [
+    ...window.classShares,
+    window.gini,
+    window.topWealthShare,
+    window.mUp,
+    window.mDown,
+    window.segregation,
+    window.openness,
+  ];
+}
+
+const STABILITY_SEED_OFFSETS = [20261103, 20261104, 20261105];
 
 const manifest = buildPreregManifest();
 const preregistrationHash = computePreregistrationHash(manifest);
@@ -104,46 +112,47 @@ for (const cell of manifest.cells) {
   cellResults.push({ cellKey: cell.cellKey, hypothesis: cell.hypothesis, seeds: seedResults });
 }
 
-// 聚类（仅 full 阶段）：w1+w3 特征点 → z-score → Ward k∈[2,5]；同 run 双窗应同簇。
+// 聚类（仅 full 阶段）：预注册全部特征窗口（默认 w3）特征点 → z-score → Ward k∈[2,5]；
+// 同 run 的 w2b 特征点用同一标尺标准化后按最近质心分配，与 w3 簇比较得到吸引子一致性。
 let clustering = null;
 if (stage === 'full') {
+  const featureWindows = manifest.clustering.featureWindows;
   const points = [];
   const pointMeta = [];
-  const featureWindow = manifest.clustering.featureWindows[0] ?? 'w3';
   for (const cell of cellResults) {
     for (const seedResult of cell.seeds) {
-      for (const key of [featureWindow]) {
+      for (const key of featureWindows) {
         const w = seedResult[key];
         if (w !== null && w.available) {
-          points.push([
-            ...w.classShares,
-            w.gini,
-            w.topWealthShare,
-            w.mUp,
-            w.mDown,
-            w.segregation,
-            w.openness,
-          ]);
+          points.push(featureVector(w));
           pointMeta.push({ cell: cell.cellKey, seed: seedResult.seed, window: key });
         }
       }
     }
   }
-  // 时间稳定性：同一 (cell,seed) 的 w1/w3 簇一致性。
-  const byRun = new Map();
-  for (const p of pointMeta) {
-    const key = p.cell + '|' + p.seed;
-    byRun.set(key, (byRun.get(key) ?? 0) + 1);
-  }
-  log(`clustering points=${points.length}`);
+  log(`clustering points=${points.length} windows=${featureWindows.join(',')}`);
   if (points.length >= 8) {
-    const z = zScoreMatrix(points);
+    // z-score 标尺只在 pooled 特征矩阵上拟合一次；w2b 复用同一标尺，禁止原始值混入。
+    const scaler = fitStandardizer(points);
+    const z = points.map((row) => scaler.standardize(row));
     const choice = chooseKBySilhouette(z);
-    const stability = bisectStability(z, choice.k, [seededShuffle(points.length, 20261103)]);
+    const stabilityRuns = STABILITY_SEED_OFFSETS.map((seed) =>
+      bisectStability(
+        z,
+        choice.k,
+        [seededShuffle(z.length, seed)],
+        manifest.clustering.stabilityMinAri,
+      ),
+    );
+    const stabilityAri = Math.max(...stabilityRuns.map((run) => run.ari));
+    const minAri = Math.min(...stabilityRuns.map((run) => run.ari));
+    const meanAri = stabilityRuns.reduce((sum, run) => sum + run.ari, 0) / stabilityRuns.length;
     const clusterSizes = new Map();
     for (const a of choice.assignment) {
       clusterSizes.set(a, (clusterSizes.get(a) ?? 0) + 1);
     }
+    const smallestCluster = minClusterSize(choice.assignment);
+    const minClusterMet = smallestCluster >= manifest.clustering.minClusterRuns;
     // 吸引子稳定性诊断（预注册 warmupDiagnostic）：每 run 的 w2b 特征点按
     // w3 聚类质心最近分配，与该 run 的 w3 簇比较一致率。
     let temporalConsistency = null;
@@ -152,7 +161,7 @@ if (stage === 'full') {
       const centroidCount = new Map();
       for (let index = 0; index < pointMeta.length; index += 1) {
         const cluster = choice.assignment[index];
-        const vector = points[index];
+        const vector = z[index];
         const bucket = (centroidAcc.get(cluster) ?? new Array(vector.length).fill(0)).map((v) => v);
         for (let j = 0; j < vector.length; j += 1) bucket[j] += vector[j];
         centroidAcc.set(cluster, bucket);
@@ -176,19 +185,11 @@ if (stage === 'full') {
           const alt = seedResult.w2b;
           const w3Assign = w3ByKey.get(cell.cellKey + '|' + seedResult.seed);
           if (!alt || !alt.available || w3Assign === undefined) continue;
-          const vector = [
-            ...alt.classShares,
-            alt.gini,
-            alt.topWealthShare,
-            alt.mUp,
-            alt.mDown,
-            alt.segregation,
-            alt.openness,
-          ];
+          const vector = scaler.standardize(featureVector(alt));
           let best = null;
           let bestDistance = Number.POSITIVE_INFINITY;
           for (const [cluster, centroid] of centroids) {
-            const d = euclideanDist(vector, centroid);
+            const d = euclidean(vector, centroid);
             if (d < bestDistance) {
               bestDistance = d;
               best = cluster;
@@ -210,8 +211,15 @@ if (stage === 'full') {
     clustering = {
       k: choice.k,
       silhouette: Math.round(choice.score * 1000) / 1000,
-      stabilityAri: Math.round(stability.ari * 1000) / 1000,
-      stabilityStable: stability.stable,
+      stabilityAri: Math.round(stabilityAri * 1000) / 1000,
+      stabilityAriMin: Math.round(minAri * 1000) / 1000,
+      stabilityAriMean: Math.round(meanAri * 1000) / 1000,
+      stabilityMinAri: manifest.clustering.stabilityMinAri,
+      stabilityShuffles: STABILITY_SEED_OFFSETS.length,
+      stabilityStable: minClusterMet && minAri >= manifest.clustering.stabilityMinAri,
+      minClusterSize: smallestCluster,
+      minClusterRuns: manifest.clustering.minClusterRuns,
+      minClusterMet,
       temporalConsistency,
       clusterSizes: Object.fromEntries([...clusterSizes.entries()].map(([k, v]) => [`c${k}`, v])),
       assignment: choice.assignment.map((cluster, index) => ({
