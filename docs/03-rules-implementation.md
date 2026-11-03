@@ -1,6 +1,6 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v5`；相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（新参数 `ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v6`；相对 v5 的修订（D-06 选项 A′，changes/0008）：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价（新参数 `need.referenceMode`，`'own'` 逐位退回 v5；`need.referenceSmoothing` EMA 平滑；`need.graceDays` 只控判定计时），状态 schema 升至 `stratify-state-v2`（SocietyState 增补 `refIncome`）。相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（`ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 
@@ -17,36 +17,37 @@
 
 ### 2.1 AgentState
 
-| 字段                             | 类型/单位     | 说明                                                                                                             |
-| -------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `id`                             | 稳定字符串    | 初始化后不变，禁止复用死亡者 ID                                                                                  |
-| `alive`                          | boolean       | 死亡后不可逆                                                                                                     |
-| `classIndex`                     | int `[0,C-1]` | 当前阶级                                                                                                         |
-| `maxClassIndex`                  | int           | 历史最高阶级，初始等于初始阶级，只升不降                                                                         |
-| `value`                          | number >=0    | 当前财富                                                                                                         |
-| `ge/hard`                        | number >0     | 天赋/努力，运行期不变                                                                                            |
-| `initialLife/remainingLife`      | 日            | 初始寿命预算与剩余寿命                                                                                           |
-| `classAge`                       | 日            | 当前阶级已完成停留日数，进入当日结算后为 1                                                                       |
-| `baselineSum`                    | Value         | 当前阶级历史基准积累积分                                                                                         |
-| `belowNeedStreak`                | tick          | 连续低于 `need.threshold×need` 的次数                                                                            |
-| `lastAscentTick/lastDescentTick` | tick or null  | 最近一次上升/下降（含被动跌落与主动降阶）的 tick，用于 `metrics.mobilityWindowDays` 流动参与率；死亡后保留审计值 |
-| `ties`                           | AgentId[]     | 无向关系，序列化时排序，最大 `network.maxDegree`                                                                 |
-| `deathTick/deathReason`          | nullable      | 死亡审计信息；`deathReason` 为枚举，MVP 只有 `'age'`（V1 新增原因必须升级 `rulesVersion`，不得写自由文本）       |
+| 字段                             | 类型/单位     | 说明                                                                                                                             |
+| -------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                             | 稳定字符串    | 初始化后不变，禁止复用死亡者 ID                                                                                                  |
+| `alive`                          | boolean       | 死亡后不可逆                                                                                                                     |
+| `classIndex`                     | int `[0,C-1]` | 当前阶级                                                                                                                         |
+| `maxClassIndex`                  | int           | 历史最高阶级，初始等于初始阶级，只升不降                                                                                         |
+| `value`                          | number >=0    | 当前财富                                                                                                                         |
+| `ge/hard`                        | number >0     | 天赋/努力，运行期不变                                                                                                            |
+| `initialLife/remainingLife`      | 日            | 初始寿命预算与剩余寿命                                                                                                           |
+| `classAge`                       | 日            | 当前阶级已完成停留日数，进入当日结算后为 1                                                                                       |
+| `baselineSum`                    | Value         | 当前阶级历史基准积累积分；仅 `need.referenceMode='own'` 的需求线读取（v5 语义），`'class'` 模式不读取但仍按阶段 C 累加与升降清零 |
+| `belowNeedStreak`                | tick          | 连续低于 `need.threshold×need` 的次数                                                                                            |
+| `lastAscentTick/lastDescentTick` | tick or null  | 最近一次上升/下降（含被动跌落与主动降阶）的 tick，用于 `metrics.mobilityWindowDays` 流动参与率；死亡后保留审计值                 |
+| `ties`                           | AgentId[]     | 无向关系，序列化时排序，最大 `network.maxDegree`                                                                                 |
+| `deathTick/deathReason`          | nullable      | 死亡审计信息；`deathReason` 为枚举，MVP 只有 `'age'`（V1 新增原因必须升级 `rulesVersion`，不得写自由文本）                       |
 
 ### 2.2 SocietyState
 
-| 字段                     | 说明                                                                        |
-| ------------------------ | --------------------------------------------------------------------------- |
-| `tick`                   | 下一个待结算 tick                                                           |
-| `agents`                 | 全部个体，含死亡者；按 ID 排序序列化                                        |
-| `E[C]`                   | 当前 tick 使用的有效阶级机会系数                                            |
-| `O`                      | 当前社会开放度                                                              |
-| `P0[C]`                  | 初始人口占比，以实际人数计算，不直接用配置理想比例                          |
-| `G/P/S/Mup/Mdown`        | 最近完成 tick 的宏观值；`S` 为调整后同层边占比，`Mup/Mdown` 为 365 日参与率 |
-| `edgeCount`              | 最近完成 tick 的存活网络边数；用于解释 `S=0` 是无边还是随机混合             |
-| `flowMatrix`             | `metrics.flowWindowDays` 窗口内阶级转移计数；窗口规则版本化                 |
-| `lastOpennessUpdateTick` | 计算开放度的 Δt，防止重复更新                                               |
-| `ruleset/config/seed`    | 完整不可变输入及 hash                                                       |
+| 字段                     | 说明                                                                                               |
+| ------------------------ | -------------------------------------------------------------------------------------------------- |
+| `tick`                   | 下一个待结算 tick                                                                                  |
+| `agents`                 | 全部个体，含死亡者；按 ID 排序序列化                                                               |
+| `E[C]`                   | 当前 tick 使用的有效阶级机会系数                                                                   |
+| `refIncome[C]`           | 需求参照系（v6）：上期各阶级人均收入的 EMA，初值 `B×env0[c]`；`'own'` 模式不读取不更新（保持初值） |
+| `O`                      | 当前社会开放度                                                                                     |
+| `P0[C]`                  | 初始人口占比，以实际人数计算，不直接用配置理想比例                                                 |
+| `G/P/S/Mup/Mdown`        | 最近完成 tick 的宏观值；`S` 为调整后同层边占比，`Mup/Mdown` 为 365 日参与率                        |
+| `edgeCount`              | 最近完成 tick 的存活网络边数；用于解释 `S=0` 是无边还是随机混合                                    |
+| `flowMatrix`             | `metrics.flowWindowDays` 窗口内阶级转移计数；窗口规则版本化                                        |
+| `lastOpennessUpdateTick` | 计算开放度的 Δt，防止重复更新                                                                      |
+| `ruleset/config/seed`    | 完整不可变输入及 hash                                                                              |
 
 事件、日志、视图缓存和 wall-clock 时间不得进入权威状态哈希。快照必须包含未来结算所需的全部上述字段。
 
@@ -249,29 +250,39 @@ Value += gain
 baselineSum += B×E[t,class]
 classAge += 1
 ψ_eff[c] = needMultiplier[c]×(env0[c]/env0[0])^φ            # v4 阶级环境持有人乘子，φ=need.envExponent
-need = buffer(classAge)×baselineSum×ψ_eff[class]
+
+# 需求参照系（rules-v6，D-06 选项 A′）分派：
+if need.referenceMode == 'class':
+    need = refIncome[class]×bufferDays×ψ_eff[class]         # 持有标尺=阶级标准，不乘 buffer(classAge)
+else:  # 'own'：v5 语义，逐位一致（G-D 硬门禁）
+    need = buffer(classAge)×baselineSum×ψ_eff[class]
 ```
+
+**refIncome 更新（v6）**：阶段 C 全部 `gain` 算完之后、同 tick 末尾执行——
+
+```text
+refGain[c](t)  = mean{ gain_i(t) : i 存活且 class_i(t)=c }    # 空阶级不参与（保持上期值）
+refIncome[c](t+1) = (1-α)·refIncome[c](t) + α·refGain[c](t)  # α = need.referenceSmoothing
+```
+
+本 tick 的 `need`/`ascendCost` 一律使用**上期** `refIncome`（先算后用，禁止同期值，否则引入 agent 顺序依赖）。
+`refIncome` 属于权威状态（`stratify-state-v2`），初值 `B×env0[c]` 由 `(config, seed)` 纯函数派生；
+`'own'` 模式**不读取也不更新**（保持初值），保证与 v5 逐位一致（G-D）。
+`bufferDays` 在两种模式下语义不同：`'class'` 为持有标尺天数（`need` 对其等比缩放），`'own'` 为缓冲爬坡长度
+（`buffer(classAge)` 在 `bufferDays` 日后达到 1）；同一参数不另设 `need.needDays`。
+`baselineSum` 在两种模式下都按本阶段累加并在升降时清零，但 `'class'` 模式不读取它。
 
 `φ=0` 时 `ψ_eff=needMultiplier`，精确退回 v3 语义。乘子锚定 `env0[0]`（不是 `env0` 均值或 `E` 均值），使「顶层相对底层的机会差」成为持有成本的唯一环境来源；`E` 的实时变化只通过 `gain` 与 `cushion` 影响个体，不直接改写需求线。
 
-> **已知缺陷（D-06，待 rules-v6 修）**：上式中的 `baselineSum` **不是个体自身收入**——它只累加
-> `B×E[t,class]`，按 `rule.md` 第 37 条是「`ge=hard=1`、无网络加成者在相同历史环境中存活相同时间的积累」，
-> 即**一个阶级基准个体（参照人）的累计积分**。而升阶与降阶都把它与 `classAge` 一并清零，
-> 于是有两个叠加后果：
->
-> 1. **免租期**：`buffer(0)=0` 且 `baselineSum` 归零 ⇒ 升阶后 `need` 从 0 重新长，
->    30 天内无持有义务；升阶不是代价，而是清空持有义务。
-> 2. **标尺无界**：`buffer=1` 后 `need = D×B×E[c]×ψ[c]`（`D` 为停留天数）随停留时间线性增长，
->    而个体收入因 `ge`/`effort`/`opportunity` 折扣增长更慢，久居者被自己的计时器赶下去。
->    净效果是持有能力退化为「生产率是否高于 `threshold×ψ[c]`」的绝对测试，**不是相对位置测试**，
->    阶级分布因此缺少自我锚定的力。
->
-> 实测后果：`mUp≈0.95`、底层占比由 0.45 降至 w3 的 0.003、最粗 k=2 的半样本 ARI 与随机无异。
-> 修法见 D-06 选项 **A′**：`need` 与 `ascendCost` 统一以阶级参照收入 `refIncome[c]` 计价，
-> 且 `need` 不再乘 `buffer(classAge)`（宽限期改由 `graceDays` 只控判定计时）。
-> 诊断与门禁见 [`research/2026-11-03-p15-diagnosis-and-next-round.md`](research/2026-11-03-p15-diagnosis-and-next-round.md)，
+> **D-06 已修（rules-v6，changes/0008）**：v3–v5 语义中 `need` 乘 `buffer(classAge)` 且累加个体
+> `baselineSum`（它不是个体自身收入，而是阶级参照人的累计积分），叠加「升降清零」产生两个缺陷：
+> **免租期**（升阶清空持有义务，30 天无持有成本）与**标尺无界**（`need=D×B×E[c]×ψ[c]` 随停留天数线性
+> 增长，久居者被自己的计时器赶下去；持有能力退化为绝对生产率测试而非相对位置测试）。实测后果：
+> `mUp≈0.95`、底层占比 0.45→w3 0.003、最粗 k=2 半样本 ARI 与随机无异（诊断见
+> [`research/2026-11-03-p15-diagnosis-and-next-round.md`](research/2026-11-03-p15-diagnosis-and-next-round.md)）。
+> v6 按选项 **A′** 修断：`need` 与 `ascendCost` 统一以阶级参照收入 `refIncome[c]` 计价、`need` 不再乘
+> `buffer(classAge)`，判定计时拆给 `graceDays`；`'own'` 模式逐位保留 v5 语义作消融对照（G-D）。
 > 施工说明见 [`research/2026-11-03-p15-w0-w1-handoff.md`](research/2026-11-03-p15-w0-w1-handoff.md)。
-> 在 rules-v6 落地前，本节语义为 rules-v5 的**现行事实**，不得据其推断结构可达性。
 
 `F(h)=(1-exp(-FShape×h))/(1-exp(-FShape))` 必须用 `expm1` 实现稳定形式 `expm1(-FShape×h)/expm1(-FShape)`；否则 `FShape` 接近 0 时分子分母同时下溢为 0，产生 NaN。
 
@@ -286,10 +297,15 @@ need = buffer(classAge)×baselineSum×ψ_eff[class]
 仅对未成功主动变动阶级的存活者：
 
 ```text
-if Value < needThreshold×need: belowNeedStreak += 1
+if need.referenceMode=='class' and classAge <= graceDays:
+    belowNeedStreak = 0                       # 宽限期只控判定计时，不影响 need 数值
+elif Value < needThreshold×need: belowNeedStreak += 1
 else: belowNeedStreak = 0
 if belowNeedStreak >= belowNeedLimit and classIndex > 0: classIndex -= 1
 ```
+
+`graceDays` 仅在 `'class'` 模式生效（默认 30，域 `[0,120]`）；`'own'` 模式按 0 处理——不读配置、
+不走宽限分支，与 v5 判定计时逐位一致（G-D）。
 
 跌落后重置 classAge=0、baselineSum=0、belowNeedStreak=0，记 `lastDescentTick=t`，maxClass 不变；每次最多跌一层。最低层即使持续低于需求也不跌落；其 `belowNeedStreak` 仍按上式递增，但必须在达到 `belowNeedLimit` 后钳制为该值，不得无界增长。需求为 0 时严格比较 `Value<0`，因此不会触发。
 

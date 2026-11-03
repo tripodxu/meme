@@ -7,7 +7,7 @@
 - 不以覆盖率替代语义验收，但核心关键分支应接近全覆盖，目标 statements/branches >=95%。
 - 覆盖率门禁覆盖**两层**，两条命令独立，阈值不合并（合并会稀释核心强度）：
   - `pnpm test:coverage` → `src/core`，`statements>=95`、`branches>=95`；
-  - `pnpm test:coverage:runner` → `src/runner`（窗口统计、标签、预注册、聚类、均值场），
+  - `pnpm test:coverage:runner` → `src/runner`（窗口统计、标签、预注册、聚类、均值场、机制门禁），
     `statements>=95`、`branches>=78`。`branches` 为**棘轮**：只允许上调。
   - `src/runner` 长期不在门禁内，直接后果是预注册哈希漏字段、全灭日污染窗口均值、
     均值场漏传观测 E 三类缺陷都没有测试拦截（changes/0007）。

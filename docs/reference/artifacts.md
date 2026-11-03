@@ -20,11 +20,12 @@
 
 ## 2. 当前登记
 
-| 路径                        | 大小     | sha256（文件级）     | 关键指标                                                                                                                                                                               | 状态                  |
-| --------------------------- | -------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| `out/p15-full.json`         | 3.88 MiB | `dc6e85f9…eac1685`   | runCount=840、prereg=`sha256:4dc141e4…`、k=4、silhouette 0.370、ARI min 0.366 / mean 0.579 / max 0.702（门槛 0.70 → **未过**）、temporalConsistency 0.893、w2b/w3 全 840 可用、107 min | 有效证据（G1.5 未过） |
-| `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                                                                                                                         | 历史存档              |
-| `out/p15-screen.json`       | 95.1 KiB | `9b5723d4…21214fe`   | 28 run × 400 tick；`cellsByDesign={baseline:1,single:25,interaction:2}`；w2b/w3 均 `available=false`；budgets.ok                                                                       | 预检通过              |
+| 路径                        | 大小     | sha256（文件级）     | 关键指标                                                                                                                                                                                                         | 状态                                                                                                                        |
+| --------------------------- | -------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `out/p15-full.json`         | 3.88 MiB | `dc6e85f9…eac1685`   | runCount=840、prereg=`sha256:4dc141e4…`、k=4、silhouette 0.370、ARI min 0.366 / mean 0.579 / max 0.702（门槛 0.70 → **未过**）、temporalConsistency 0.893、w2b/w3 全 840 可用、107 min                           | **历史存档（rules-v5 口径）**：rules-v6 起 `rulesVersion`/状态字段/参照系语义已变，不可与新 run 直接比较（changes/0008 §5） |
+| `out/p15-gates.json`        | <10 KiB  | （以入库版本为准）   | W1 机制门禁实测：G-D 通过（own 5/5 逐位 + class 往返）；G-A 未过（P0(w3)=0.0000）；G-C 未过（L1=0.1624）；G-B 见 B 节。schema `p15-gates-v1`，按 gate 分节合并写入，判据来自 `src/runner/gates.ts` GATE_CRITERIA | 有效证据（W1 门禁，changes/0008 §6）                                                                                        |
+| `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                                                                                                                                                   | 历史存档                                                                                                                    |
+| `out/p15-screen.json`       | 95.1 KiB | `9b5723d4…21214fe`   | 28 run × 400 tick；`cellsByDesign={baseline:1,single:25,interaction:2}`；w2b/w3 均 `available=false`；budgets.ok                                                                                                 | 预检通过                                                                                                                    |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
@@ -138,6 +139,14 @@ node scripts/p15-diagnose.mjs            # 默认读 out/p15-full.json，约 3�
 输出五段：特征空间 PCA 谱与 Hopkins 统计量、k∈[2,5] 的轮廓与半样本 ARI 分布、
 基线阶级占比轨迹、cell 均值空间的 PC1 排序、初始条件敏感性。
 用途是**下一轮预注册的设计输入**，属 07 §6.1 的探索性分析，不得用于 G1.5 判定。
+
+### 4.6 W1 门禁与轨迹诊断（2026-11-04，rules-v6）
+
+- `scripts/p15-gates.mjs`：W1 机制门禁 G-A/G-B/G-C/G-D（判据在 `src/runner/gates.ts` GATE_CRITERIA），
+  结果分节合并写入 `out/p15-gates.json`（已入库白名单）。G-D 对照基准为
+  `test/fixtures/engine/rules-v5-own-reference.json`（rules-v5 构建冻结，见 changes/0008 §6/§9）。
+- `scripts/p15-gates-diagnose.mjs`：只读轨迹诊断（baseline 3 种子的 P/G/mUp/mDown 分窗轨迹），
+  属 07 §6.1 探索性分析，不用于判定；G-A 未过的机制解释记录于 changes/0008 §6。
 
 ## 5. 测试 fixture 的版本约定
 

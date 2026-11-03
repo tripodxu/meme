@@ -32,3 +32,4 @@ out/*
 !out/p15-full.json
 !out/p15-full-v4draft.json
 !out/p15-screen.json
+!out/p15-gates.json
