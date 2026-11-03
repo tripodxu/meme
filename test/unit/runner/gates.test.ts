@@ -57,12 +57,11 @@ function makeRun(
   return { seed, w2b: makeWindow('w2b', w2b), w3: makeWindow('w3', w3) };
 }
 
-describe('GATE_CRITERIA（handoff §4.1 冻结判据）', () => {
+describe('GATE_CRITERIA（diagnosis §5，2026-11-04 D-10 修订口径）', () => {
   it('判据与种子集登记固定', () => {
     expect(GATE_CRITERIA).toEqual({
       p0MeanMin: 0.15,
-      mUpMeanMax: 0.6,
-      p4RangeMin: 0.4,
+      netFlowMax: 0.1,
       pL1PairMin: 0.1,
       minDistinctPairs: 2,
       w2bW3L1Max: 0.1,
@@ -72,27 +71,30 @@ describe('GATE_CRITERIA（handoff §4.1 冻结判据）', () => {
   });
 });
 
-describe('G-A：baseline P0(w3)/mUp(w3) 均值门槛', () => {
-  it('P0≥0.15 且 mUp≤0.60 → 通过', () => {
+describe('G-A：baseline P0(w3) 均值 + 净流量门槛（D-10）', () => {
+  it('P0≥0.15 且净流量≤0.10 → 通过（高毛流量环流不误判）', () => {
     const runs = Array.from({ length: 30 }, (_, i) =>
-      makeRun(`s${i}`, { classShares: [0.3, 0.2, 0.2, 0.2, 0.1], mUp: 0.5 }),
+      makeRun(`s${i}`, { classShares: [0.3, 0.2, 0.2, 0.2, 0.1], mUp: 0.5, mDown: 0.5 }),
     );
     const result = evaluateGateA(runs);
     expect(result.passed).toBe(true);
     expect(result.p0Mean).toBeCloseTo(0.3, 12);
     expect(result.mUpMean).toBeCloseTo(0.5, 12);
+    expect(result.netFlowMean).toBeCloseTo(0, 12);
     expect(result.extinctCount).toBe(0);
   });
 
-  it('P0 偏低或 mUp 偏高 → 未通过', () => {
+  it('P0 偏低或净流量偏高（单向抽空）→ 未通过', () => {
     const lowP0 = evaluateGateA([
-      makeRun('s', { classShares: [0.1, 0.2, 0.2, 0.2, 0.3], mUp: 0.5 }),
+      makeRun('s', { classShares: [0.1, 0.2, 0.2, 0.2, 0.3], mUp: 0.5, mDown: 0.5 }),
     ]);
     expect(lowP0.passed).toBe(false);
-    const highMup = evaluateGateA([
-      makeRun('s', { classShares: [0.3, 0.2, 0.2, 0.2, 0.1], mUp: 0.7 }),
+    // 单向扶梯病理：mUp 高、mDown 低（v5 实测形态）
+    const escalator = evaluateGateA([
+      makeRun('s', { classShares: [0.3, 0.2, 0.2, 0.2, 0.1], mUp: 0.7, mDown: 0.1 }),
     ]);
-    expect(highMup.passed).toBe(false);
+    expect(escalator.passed).toBe(false);
+    expect(escalator.netFlowMean).toBeCloseTo(0.6, 12);
   });
 
   it('全灭 run 排除出均值但计入 extinctCount；全部不可用 → 未通过', () => {

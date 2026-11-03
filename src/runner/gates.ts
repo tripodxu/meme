@@ -8,19 +8,28 @@ import type { WindowSummary } from './window-stats.js';
  * I/O（跑批、读写 out/）在 `scripts/p15-gates.mjs`；本模块保持纯函数可测。
  */
 
-/** 门禁冻结判据（handoff §4.1；改判据＝预注册级变更，必须先改 handoff/07）。 */
+/** 门禁判据（diagnosis §5，2026-11-04 按 07 §8.1 修订程序重推定，见 D-10；新旧口径同报）。 */
 export const GATE_CRITERIA = Object.freeze({
-  /** G-A：baseline 30 种子均值 P0(w3) 下限。 */
+  /** G-A：baseline 30 种子均值 P0(w3) 下限（2026-11-03 原口径，不变）。 */
   p0MeanMin: 0.15,
-  /** G-A：baseline 30 种子均值 mUp(w3) 上限。 */
-  mUpMeanMax: 0.6,
-  /** G-B：P4 均值极差下限。 */
-  p4RangeMin: 0.4,
-  /** G-B：相邻参数档位间 ‖ΔP‖₁ 门槛。 */
+  /**
+   * G-A 净流量上界（2026-11-04 D-10 重推定，替代原 `mUpMeanMax=0.6`）：
+   * 原「mUp≤0.60 扶梯降速」针对的病理是**单向抽空**（v5：mUp 0.95 且 P0→0）；
+   * 位移准入引入 1:1 零和环流后，毛流量不再度量该病理（环流下 mUp≈mDown≈0.95
+   * 而底层为储水池）。改用净流量 `mean(|mUp−mDown|) ≤ 0.10` 直接度量单向性：
+   * 病理量级 0.92（v5），健康环流 ≈0.001，阈值取低一个数量级。
+   */
+  netFlowMax: 0.1,
+  /**
+   * G-B 响应面判据（2026-11-04 D-10 重推定）：≥2 个相邻参数档位间 ‖ΔP‖₁ ≥ 0.10。
+   * 原「P4 极差 ≥0.40」子句废弃为描述性报告：1:1 位移把顶层占比结构性钉死
+   *（v8 全网格 P4 极差 0.0065 而 8/10 对 ‖ΔP‖₁≥0.10——形状响应移至中产轴），
+   * 该子句在任何 1:1 位移变体下不可满足。
+   */
   pL1PairMin: 0.1,
   /** G-B：达到 ‖ΔP‖₁ 门槛的相邻档位对数量下限。 */
   minDistinctPairs: 2,
-  /** G-C：‖P(w2b)−P(w3)‖₁ 均值上限（吸引子平稳性）。 */
+  /** G-C：‖P(w2b)−P(w3)‖₁ 均值上限（吸引子平稳性，不变）。 */
   w2bW3L1Max: 0.1,
 } as const);
 
@@ -43,17 +52,21 @@ export interface GateAResult {
   readonly seedCount: number;
   readonly extinctCount: number;
   readonly p0Mean: number;
+  /** 毛流量（原口径 mUpMeanMax=0.6 的输入，D-10 起仅报告不判定）。 */
   readonly mUpMean: number;
-  readonly criteria: { readonly p0MeanMin: number; readonly mUpMeanMax: number };
+  /** 判定量（D-10）：净流量 mean(|mUp−mDown|)。 */
+  readonly netFlowMean: number;
+  readonly criteria: { readonly p0MeanMin: number; readonly netFlowMax: number };
   readonly detail: string;
 }
 
 /**
- * G-A：baseline 30 种子均值 `P0(w3) ≥ 0.15` 且 `mUp(w3) ≤ 0.60`。
+ * G-A（D-10 修订口径）：baseline 30 种子均值 `P0(w3) ≥ 0.15` 且净流量
+ * `mean(|mUp−mDown|) ≤ 0.10`（无单向抽空；原 mUp≤0.60 口径同报不判定）。
  * 全灭 run（07 §5 排除规则）不计入均值但必须报告——全灭比例过高本身就是未通过信号。
  */
 export function evaluateGateA(runs: readonly GateRunWindows[], classIndex = 0): GateAResult {
-  const criteria = { p0MeanMin: GATE_CRITERIA.p0MeanMin, mUpMeanMax: GATE_CRITERIA.mUpMeanMax };
+  const criteria = { p0MeanMin: GATE_CRITERIA.p0MeanMin, netFlowMax: GATE_CRITERIA.netFlowMax };
   const available = runs.filter((run) => run.w3.missingTicks === 0 && !run.w3.networkEmpty);
   const extinct = runs.length - available.length;
   if (available.length === 0) {
@@ -64,13 +77,15 @@ export function evaluateGateA(runs: readonly GateRunWindows[], classIndex = 0): 
       extinctCount: extinct,
       p0Mean: Number.NaN,
       mUpMean: Number.NaN,
+      netFlowMean: Number.NaN,
       criteria,
       detail: '无可用 w3 窗口',
     };
   }
   const p0Mean = mean(available.map((run) => run.w3.classShares[classIndex] ?? 0));
   const mUpMean = mean(available.map((run) => run.w3.mUp));
-  const passed = p0Mean >= criteria.p0MeanMin && mUpMean <= criteria.mUpMeanMax;
+  const netFlowMean = mean(available.map((run) => Math.abs(run.w3.mUp - run.w3.mDown)));
+  const passed = p0Mean >= criteria.p0MeanMin && netFlowMean <= criteria.netFlowMax;
   return {
     gate: 'A',
     passed,
@@ -78,8 +93,9 @@ export function evaluateGateA(runs: readonly GateRunWindows[], classIndex = 0): 
     extinctCount: extinct,
     p0Mean,
     mUpMean,
+    netFlowMean,
     criteria,
-    detail: `P0(w3)=${round(p0Mean)} mUp(w3)=${round(mUpMean)}（${available.length}/${runs.length} 可用）`,
+    detail: `P0(w3)=${round(p0Mean)} 净流量=${round(netFlowMean)}（毛 mUp=${round(mUpMean)}，${available.length}/${runs.length} 可用）`,
   };
 }
 
@@ -144,10 +160,10 @@ export interface GateBPair {
 export interface GateBResult {
   readonly gate: 'B';
   readonly passed: boolean;
+  /** 描述性报告（D-10 起不判定）：顶层占比在网格上的极差（1:1 位移下结构性钉死）。 */
   readonly p4Range: number;
   readonly distinctPairs: GateBPair[];
   readonly criteria: {
-    readonly p4RangeMin: number;
     readonly pL1PairMin: number;
     readonly minDistinctPairs: number;
   };
@@ -155,13 +171,14 @@ export interface GateBResult {
 }
 
 /**
- * G-B：形状可被参数拉开——`P4` 均值极差 ≥ 0.40，且至少 2 个相邻参数档位间
+ * G-B（D-10 修订口径）：形状可被参数拉开——至少 2 个相邻参数档位间
  * `‖ΔP‖₁ ≥ 0.10`。相邻档位（level0↔level1、level1↔level2）而非极值对：
  * 极值对达标可能只是两个端点各自塌缩。
+ * 原「P4 极差 ≥0.40」子句（handoff §4.1）废弃为描述性报告：1:1 位移把顶层
+ * 占比结构性钉死，P4 轴在任何位移变体下都不可张开（0009/0010 实测）。
  */
 export function evaluateGateB(levels: readonly GateBLevel[]): GateBResult {
   const criteria = {
-    p4RangeMin: GATE_CRITERIA.p4RangeMin,
     pL1PairMin: GATE_CRITERIA.pL1PairMin,
     minDistinctPairs: GATE_CRITERIA.minDistinctPairs,
   };
@@ -202,8 +219,7 @@ export function evaluateGateB(levels: readonly GateBLevel[]): GateBResult {
       }
     }
   }
-  const passed =
-    p4Range >= criteria.p4RangeMin && distinctPairs.length >= criteria.minDistinctPairs;
+  const passed = distinctPairs.length >= criteria.minDistinctPairs;
   return {
     gate: 'B',
     passed,
