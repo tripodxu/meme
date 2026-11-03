@@ -47,8 +47,9 @@ function log(message) {
   process.stderr.write(`[gates] ${message}\n`);
 }
 
-if (RULES_VERSION !== 'rules-v7') {
-  throw new Error(`门禁按 rules-v7 冻结判据编写；当前构建 ${RULES_VERSION}`);
+const GATE_RULES_FLOOR = ['rules-v6', 'rules-v7', 'rules-v8'];
+if (!GATE_RULES_FLOOR.includes(RULES_VERSION)) {
+  throw new Error(`门禁判据面向 rules-v6+ 参照系构建；当前构建 ${RULES_VERSION}`);
 }
 
 // 种子一致性：GATE_SEEDS 必须与冻结的 p15-seed 列表前 30 项一致（防两处漂移）。

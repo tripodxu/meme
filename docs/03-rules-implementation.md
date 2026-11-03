@@ -1,6 +1,6 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v6`；相对 v5 的修订（D-06 选项 A′，changes/0008）：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价（新参数 `need.referenceMode`，`'own'` 逐位退回 v5；`need.referenceSmoothing` EMA 平滑；`need.graceDays` 只控判定计时），状态 schema 升至 `stratify-state-v2`（SocietyState 增补 `refIncome`）。相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（`ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v8`；相对 v7 的修订（D-09，changes/0010）：位移准入——'class' 参照系下上升须击败目标阶级在位者，被击败者降级（零和下行流）。相对 v6 的修订（changes/0009）：裕度与需求线同参照系（'class' 模式 `ρ×refIncome×ψ_eff`）。相对 v5 的修订（D-06 选项 A′，changes/0008）：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价（新参数 `need.referenceMode`，`'own'` 逐位退回 v5；`need.referenceSmoothing` EMA 平滑；`need.graceDays` 只控判定计时），状态 schema 升至 `stratify-state-v2`（SocietyState 增补 `refIncome`）。相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（`ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 
@@ -218,11 +218,27 @@ discount = d==0 ? 0 : d==1 ? returnDiscount[0] : d==2 ? returnDiscount[1] : retu
 # d=0 首次上升无减免；d=1/2/>=3 分别读取 returnDiscount[0]/[1]/[2]
 openMultiplier = clamp(exp(λO×(0.5-O)), opennessMultiplierMin, opennessMultiplierMax)
 cost = crossBase×(1-discount)×openMultiplier
-# v5 持有裕度（changes/0005）：只作余额门槛，不支付
+# 持有裕度（changes/0005 引入；rules-v7 起参照量随 need.referenceMode 分派）：只作余额门槛，不支付
 ψ_eff[target] = needMultiplier[target]×(env0[target]/env0[0])^φ
-cushion = ρ×B×E[t,target]×ψ_eff[target]                    # ρ = ascent.holdingCushionDays，ρ=0 时为 0
+cushion = referenceMode=='class' ? ρ×refIncome[t,target]×ψ_eff[target] : ρ×B×E[t,target]×ψ_eff[target]
+          # ρ = ascent.holdingCushionDays，ρ=0 时为 0；'own' 与 v5 逐位一致（G-D）
 合法 ⇔ classIndex < C-1 且 value >= cost + cushion
 ```
+
+**位移准入（rules-v8，D-09）**：`'class'` 参照系下，通过费用+裕度复核后还须击败目标阶级
+**在位者**——按 `R(seed,t,agentId,"displacement_target",0)` 从目标阶级当前存活者均匀抽样一名
+对手，对决复用本节「竞争」结算（含财富转移，消费攻击方的 `competition_resolve` 地址）：
+
+```text
+if 目标阶级无存活者: 无对决，直接准入（边界扩张）
+elif 对决攻击方获胜: 在位者降级到攻击方原阶级（classIndex-=1、计时字段清零、
+                     lastDescentTick=t 计入 Mdown、maxClass 不变、事件 reason='passive'），
+                     攻击方支付 cost 并升阶
+else（在位者守擂成功）: 攻击方不支付、不升阶，事件 action_invalid/displacement_lost、
+                     执行记录 stale_invalid/displacement_lost（对决财富转移已结算）
+```
+
+'own' 模式不进入该分支、不消费 `displacement_target` 地址（RNG 流与 v5 逐位一致，G-D）。
 
 支付 cost，`classIndex+=1`，更新 maxClass，重置 classAge=0、baselineSum=0、belowNeedStreak=0，记 `lastAscentTick=t`。一次只能上升一层。
 
