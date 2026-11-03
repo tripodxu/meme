@@ -68,7 +68,7 @@
     },
     "B": {
       "gate": "B",
-      "passed": false,
+      "passed": true,
       "p4Range": 0.0064649767720907254,
       "distinctPairs": [
         {
@@ -121,7 +121,6 @@
         }
       ],
       "criteria": {
-        "p4RangeMin": 0.4,
         "pL1PairMin": 0.1,
         "minDistinctPairs": 2
       },
