@@ -126,7 +126,7 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 ```
 
 - 输入只含 JSON 数据；对象键按 JCS 排序，数组顺序具有语义，不得随意排序。非有限数、undefined、bigint、函数在 canonicalization 前拒绝；`-0` 统一为 0，Unicode 不先做不兼容的本地化转换。
-- `configHash`：domain `stratify-config-v1`，覆盖完整冻结 RunConfig，排除 `seed`、Key/token、wall-clock 和上传状态。
+- `configHash`：domain `stratify-config-v1`，覆盖完整冻结 RunConfig，排除 `seed`、Key/token、wall-clock 和上传状态。注意该域前缀是**哈希契约**，与配置字段的 `CONFIG_SCHEMA_VERSION`（如 `stratify-config-v2`）是两条独立的轴：配置加字段只升后者，改前者会作废全部历史向量。
 - `paramsHash`：domain `stratify-params-v1`，覆盖参数注册表解析后的全部业务参数名、值与单位；同样排除 seed、Key/token 和 wall-clock。用于 golden fixture 和“参数变化是否影响行为”的对照。
 - `initialPopulationHash`：domain `stratify-initial-population-v1`，覆盖按 id 排序的初始 agents、初始 ties 和 seed。
 - `stateHash`（决策）：domain `stratify-decision-state-v1`，覆盖 04 定义的完整序列化 state，不是整个 SimState。
@@ -167,6 +167,16 @@ configHash, paramsHash, initialPopulationHash, codeSha
 - API 向后不兼容：URL/Schema 主版本升级；D1 迁移只追加。
 - 重构若声称不改变行为，必须用 golden fixtures 证明哈希一致。
 - artifact 读取器按 schemaVersion 分派；无法识别时拒绝，不猜测字段。
+
+**配置 schema 迁移**：`CONFIG_SCHEMA_VERSION` 当前为 `stratify-config-v2`。v2 相对 v1 的唯一差异是
+`openness.updateMode` 由隐式变为必填（P1-10 开放度消融开关）。v1 配置由 `validateRunConfig`
+入口迁移：缺失的 `updateMode` 补 `dynamic`（v1 时期 O 恒为动态更新，迁移保持原语义），
+迁移后 `schemaVersion` 记为 v2；未知版本拒绝。
+
+由于 `encodeSimState` 把完整 `config` 纳入权威状态（§8 `finalStateHash`），
+配置 schema 升版会让**所有历史 `finalStateHash` 失效**——这是刻意的：哈希必须能区分
+"哪个 schema 下产生的状态"。`restoreSnapshot` 只校验结构，不要求 `schemaVersion` 相等，
+因此旧快照仍可恢复，但恢复后的状态哈希不得与新产物直接比较，必须按 schema 版本分组。
 
 ## 11. 故障边界
 

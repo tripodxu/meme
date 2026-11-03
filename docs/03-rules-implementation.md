@@ -195,6 +195,8 @@ compete:<agentId>       # 最多 competition.candidateCount 个由代码采样�
 - 候选排序稳定，先按行动类型，再按 agentId；行动类型顺序固定为 `accumulate<ascend<descend<compete`，同类内按 agentId 的 UTF-8 字节序升序。该顺序同时决定 `legalActions` 请求顺序、`actionSetHash`、mock 加权抽样顺序和 topK 并列规则；展示顺序不得改变 RNG 结果。任何排序语义变化必须升级 `promptVersion`。
 - Jev 只看见这些合法行动。执行顺序按 4.4 的每 agent `action_order` 随机键排序。
 - 因前序竞争导致费用不足、目标已被作为目标、目标死亡或关系已变化时，执行前重新校验；失效行动记 `stale_invalid`，不执行主动行动，仍进入日常积累。失效行动不占用 `targetedAgents`、不改变 Value/阶级/网络，只写执行记录。目标占用集合为 `targetedAgents`：作为发起方不阻止其另作为目标；A→B 后 B→C 合法，但任何再次以 B 为目标的行动非法。
+- `stale_invalid` 的 `reason` 取值固定为：`insufficient_cushion`（上升费用或裕度不足）、`insufficient_value`（降阶费用不足）、`self_target`（决策层传入自身为目标）、`target_dead`、`target_taken`。新增取值必须同时更新本节与事件断言；不得用自由文本代替。
+- 竞争目标必须匹配 `AGENT_ID_PATTERN`（`a-<≥4 位数字>`）；`compete:<任意字符串>` 在解析阶段即抛不变量错误，不得进入执行端。
 - `accumulate` 不收取额外费用，只表示本 tick 不做升降/竞争。
 
 ## 6. 单 tick 唯一结算顺序
@@ -215,6 +217,10 @@ discount = d==0 ? 0 : d==1 ? returnDiscount[0] : d==2 ? returnDiscount[1] : retu
 # d=0 首次上升无减免；d=1/2/>=3 分别读取 returnDiscount[0]/[1]/[2]
 openMultiplier = clamp(exp(λO×(0.5-O)), opennessMultiplierMin, opennessMultiplierMax)
 cost = crossBase×(1-discount)×openMultiplier
+# v5 持有裕度（changes/0005）：只作余额门槛，不支付
+ψ_eff[target] = needMultiplier[target]×(env0[target]/env0[0])^φ
+cushion = ρ×B×E[t,target]×ψ_eff[target]                    # ρ = ascent.holdingCushionDays，ρ=0 时为 0
+合法 ⇔ classIndex < C-1 且 value >= cost + cushion
 ```
 
 支付 cost，`classIndex+=1`，更新 maxClass，重置 classAge=0、baselineSum=0、belowNeedStreak=0，记 `lastAscentTick=t`。一次只能上升一层。
@@ -242,8 +248,11 @@ gain = B×E[t,class]×ge×F(hard)×Opportunity
 Value += gain
 baselineSum += B×E[t,class]
 classAge += 1
-need = buffer(classAge)×baselineSum×needMultiplier[class]
+ψ_eff[c] = needMultiplier[c]×(env0[c]/env0[0])^φ            # v4 阶级环境持有人乘子，φ=need.envExponent
+need = buffer(classAge)×baselineSum×ψ_eff[class]
 ```
+
+`φ=0` 时 `ψ_eff=needMultiplier`，精确退回 v3 语义。乘子锚定 `env0[0]`（不是 `env0` 均值或 `E` 均值），使「顶层相对底层的机会差」成为持有成本的唯一环境来源；`E` 的实时变化只通过 `gain` 与 `cushion` 影响个体，不直接改写需求线。
 
 `F(h)=(1-exp(-FShape×h))/(1-exp(-FShape))` 必须用 `expm1` 实现稳定形式 `expm1(-FShape×h)/expm1(-FShape)`；否则 `FShape` 接近 0 时分子分母同时下溢为 0，产生 NaN。
 
@@ -359,4 +368,6 @@ O=O+(Otarget-O)×(1-exp(-Δt/τO))
 
 ## 9. 事件最小字段
 
-所有事件含 `schemaVersion/runId/tick/seq/type`。Value 变化事件另含 `agentId/before/delta/after/cause/referenceId`；竞争含双方、power、pA、winner、loss、gain；阶级事件含 from/to/cost/reason；决策失效含原行动和原因。事件 seq 按固定管线递增，不能使用 wall-clock 排序。
+所有事件含 `schemaVersion/runId/tick/seq/type`。Value 变化事件另含 `agentId/before/delta/after/cause/referenceId`；竞争含双方、power、pA、winner、loss、gain；阶级事件含 from/to/cost/reason；决策失效含原行动和原因（取值见 §5）。事件 seq 按固定管线递增，不能使用 wall-clock 排序。
+
+竞争事件中的 `pA` 必须有限且位于 `(0,1)`：`power` 全程在 log 空间计算，跨层乘子只接受严格正值（`(0,1.25]`，端点 0 被配置校验拒绝）。任一 power 或乘子非有限属于不变量失败，必须抛错而非 clamp；否则 `-Inf−(−Inf)=NaN` 会让 `r<pA` 恒假，静默地把发起方判为必败。

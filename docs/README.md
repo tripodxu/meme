@@ -66,6 +66,7 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 - [评审记录](reviews/2026-11-02-p0-review.md)：P0 评审发现、契约漂移与修复顺序。
 - [第二轮契约与架构评审](reviews/2026-11-02-contract-architecture-review.md)：计划依赖、实验方法、运行时可复现性与规模风险。
 - [2026-11-03 zcodes 晚间推送审查](reviews/2026-11-03-zcodes-nightly-audit.md)：证据链、w2b 窗口、聚类空间、P2 越闸门与 P5a 交付缺口。
+- [2026-11-03 提交级审查](reviews/2026-11-03-commit-audit.md)：逐提交核查 27 个提交，6 处高危（窗口统计污染、extinct 漏判、均值场未锚 E、w2b 进不了聚类、预注册哈希缺 6 项、P2 夹带）与修复状态。
 
 ### 3.5 根目录文件
 

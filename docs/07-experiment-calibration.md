@@ -82,6 +82,28 @@
 - 覆盖：`schemaVersion`、`hypothesis`、`primaryMetric`、`experimentType`、`rulesVersion/engineVersion/decisionSchemaVersion/policyVersion/promptVersion/promptStyle`、`baseConfigHash`、`artifactProfile`、`cells[].cellKey/overrides/fullConfigHash`、`seeds`、`pairing`、`warmupTicks`、`warmupDiagnostic`、`windows`、`labelThresholdVersion`、`labelThresholdsHash`、`budgets` 和预注册排除规则。
 - 排除：`experimentId`、`createdAt`、`observedResponseModels`、`runtimeVersions`、运行结果、失败次数等创建后或运行后字段。
 
+排除规则必须是**可判定的字段**，不能只是散文：
+
+```json
+{
+  "excludeExtinctRuns": true,
+  "excludeUnavailableWindows": true,
+  "excludeNetworkEmptyFromSegregation": true,
+  "maxTechnicalRetries": 1
+}
+```
+
+`baseConfigHash` 是 base config（默认配置 + 预注册人口与调度，**不含任何 cell overrides**）的
+`configHash`；`cells[].fullConfigHash` 是该 cell 深合并并校验后完整配置的 `configHash`。
+二者都必须进预注册哈希：只记录 `overrides` 时，默认配置变化会让产物变化而哈希不变。
+
+使用 `mock`/`random` 策略时 `promptVersion` 取显式的 `prompt-none-v1`（不是 `null`
+也不是空串），`promptStyle` 取 `neutral`：字段必须存在于哈希输入，接入 Jev 后替换为真实版本
+并新建 `experimentId`。
+
+`HASH_DOMAINS.config` 的域前缀 `stratify-config-v1` 是**哈希契约**，与
+`CONFIG_SCHEMA_VERSION`（配置字段 schema）是两条独立的轴，后者升版不改变前者。
+
 运行后不得因结果不理想删除种子；技术失败可重跑，但必须保留失败原因和次数。任何预注册内容变化必须新建 `experimentId`，不得覆盖旧实验。
 
 ## 4. 配对与共同随机数
@@ -113,6 +135,7 @@ w2b: 1825–2554   w3: 2555–3284
 每个窗口输出：均值、中位数、标准差、30 日块序列、末值和缺失率；P/G/top10/Mup/Mdown/S/O/edgeCount 必须同时保留。窗口标量的唯一算法如下：
 
 - P/G/top10/Mup/Mdown/S/O/E：对窗口内全分辨率 tick 数据取算术平均；仅当该 run 的 `statsStride=1` 时才可直接从 D1 `tick_stats` 复算。D1 的采样行只用于展示，不得把采样均值冒充每日均值。30 日块只用于观察自相关和稳定性，不再二次加权。D 和标签使用这些日均值。
+- 全死亡日的处理是硬约束：结构均值只对 `aliveCount>0` 的行求平均，`aliveCount=0` 的行（含「末 tick 才全死亡、`endReason=scheduled` 但 `finalAliveCount=0`」）既不计入分子也不计入分母，并计入 `missingTicks`。窗口摘要必须同时给出 `observedTicks`（实有行数）与 `deadTicks`（其中全死亡行数），以便区分「未跑到」与「跑到但全死」。死亡暴露量与竞争损耗仍按全部实有行累计——全死亡 tick 的死亡数是窗口事件，不得因结构均值剔除而漏计。
 - 转移矩阵：按 `metrics.flowWindowDays` 窗口累计事件计数；另给行暴露量（各 tick 期初处于该行阶级的存活人日数），行转移率=该行各去向计数/行暴露量，暴露量为 0 时比率为 null，不能填 0 冒充无转移。
 - 死亡率=窗口死亡数/窗口存活人日暴露量（基于全分辨率 tick 数据）；竞争损耗率=Σ(loss-gain)/Σloss，分母 0 时为 0；回退率=fallback 决策数/非 cancelled 到期决策数，分母 0 时为 null。
 - Mup/Mdown 的 D 输入是每日 `metrics.mobilityWindowDays` 日参与率的窗口均值，不用窗口事件另算替代；可另报 `metrics.mobilityWindowDays×ΣupEvents/aliveExposure` 作为诊断。
@@ -203,6 +226,7 @@ D 只用于筛选。初始实际差异门槛（可在预注册时调整）：
 “结构聚类”不是标签计数。预注册必须固定以下内容；未固定即不得声称“三类结构”：
 
 - **特征向量**：窗口均值 `P[c]`、`G`、`top10`、`Mup`、`Mdown`、`S`、`O`（可选 `edgeCount`/平均度）；标准化方法固定（如 z-score，均值/方差来源固定），不得按结果挑特征。
+- **特征窗口**：`clustering.featureWindows` 列出每个 run 贡献特征点的窗口（v5 轮 2 为 `['w2b','w3']`）。全部特征点在**同一** z-score 空间聚类；同一 run 的多个特征点落入同一簇的比例即吸引子稳定性，门槛由 `clustering.temporalConsistencyMinRate`（默认 0.8）预注册。不得把某一窗口的特征点投影到另一窗口的质心来代替入簇，也不得在运行后只保留有利窗口。
 - **距离与算法**：默认建议 Ward 层次聚类 + Euclidean（待议 D-03，需科学负责人确认）；允许改用其他方法，但必须预注册并说明理由。
 - **k 与选择**：`k∈[2,5]`，用 gap statistic/轮廓系数与跨种子稳定性选择；不得运行后按结果改 k。
 - **稳定性**：按种子集随机二分重聚类，调整 Rand 指数 `>=0.70`；每个聚类至少包含 5 个 run（或预注册的最小值）。
@@ -230,6 +254,8 @@ D 只用于筛选。初始实际差异门槛（可在预注册时调整）：
 | 顶层过重   | P[4]>=0.50 且不满足金字塔/橄榄；报告为“未归类-顶层过重”，不得算作金字塔                   |
 
 首轮 `monotonicTolerance=0.02`、`modeTolerance=0.02`，上表已给出比较方向；标签配置必须显式保存这两个值，不能靠目视。`S` 是调整后同层边占比（范围 `[-1,1]`），不是未调整的同层边比例；阈值为首轮筛查值，须在确认扫描前冻结。这里的 P 是窗口内阶级占比，与 03 的初始分布 `P0[C]` 不是同一变量。标签表必须做覆盖/重叠审计：同一状态可多标签，但“三种结构”按指纹聚类计数，不按标签计数；若标签阈值与结构判异冲突，以原始指标和预注册统计口径为准。
+
+“至少 80% 的 30 日块成立”必须逐块判定：O/Mup/S（以及 `edgeCount>0`）要在**同一个块内**同时满足，再统计成立块占比；用整窗均值套每个块等于放弃块级判定（任一块 O 低就通过）。因此 30 日块必须携带 `mUp`、`segregation`、`edgeCountAverage`，而不只是 `gini/openness/classShares`。`networkEmpty`（**整窗** `edgeCount=0`，不看末行）的窗口不产出 `closedStratified`/`highFlowNetwork`。
 
 ## 11. 消融与 Jev 对照
 
