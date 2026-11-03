@@ -202,7 +202,7 @@ describe('Jev 客户端故障注入（04 §4/§6/§7）', () => {
         },
       },
     );
-    const result = await callJev(
+    const retried = await callJev(
       input,
       apiKey,
       baseOptions(),
@@ -212,6 +212,7 @@ describe('Jev 客户端故障注入（04 §4/§6/§7）', () => {
     );
     expect(sleeps).toContain(2000);
     expect(calls).toBeGreaterThanOrEqual(2);
+    expect(retried.fellBack).toBe(true);
 
     let calls2 = 0;
     const deps2 = depsWith(async () => {
@@ -398,7 +399,6 @@ describe('Jev 客户端故障注入（04 §4/§6/§7）', () => {
     );
     expect(calls).toBe(0);
     expect(result.record.fallbackReason).not.toBeNull();
-    void result;
   });
 
   it('请求体白名单：state/model/questions(action)，criteria 与 legalActions 一致', async () => {
