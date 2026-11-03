@@ -113,7 +113,14 @@ export interface PreregManifest {
   readonly labelThresholdVersion: typeof LABEL_THRESHOLDS_VERSION;
   readonly labelThresholdsHash: string;
   readonly clustering: {
-    readonly algorithm: 'ward+euclidean';
+    /** 距离度量（07 §8.1）；与 `algorithm` 分列，避免旧组合字符串掩盖实现标识。 */
+    readonly distance: 'euclidean';
+    /**
+     * 聚类实现标识（07 §8.1 实现敏感性约束，W0-2）：实现是分析管线的一部分，
+     * 更换实现＝分析管线变更＝新 `experimentId`；并列或 1 ulp 级近并列的
+     * 合并取舍依赖数值路径，跨实现比较簇号没有意义。
+     */
+    readonly algorithm: 'ward-lw-v1';
     readonly standardization: 'z-score(pooled)';
     /**
      * 聚类特征窗口（07 §8.1 特征向量来源）：每个 run 在这些窗口各贡献一个特征点，
@@ -123,10 +130,12 @@ export interface PreregManifest {
     readonly featureWindows: readonly WindowLabel[];
     readonly kRange: readonly [2, 5];
     readonly stabilityMinAri: 0.7;
+    /** 半样本重聚类次数（07 §8.1 W0-3 冻结口径：判定量 = median，必报 min）。 */
+    readonly stabilityShuffles: 20;
     readonly minClusterRuns: number;
     /** 吸引子稳定性门槛：同 run 的 w2b/w3 特征点落同簇的最低比例（07 §5 v5 修订）。 */
     readonly temporalConsistencyMinRate: number;
-    /** D-03 未关闭：以下为文档默认建议，非已确认的科学口径。 */
+    /** D-03 已随本 manifest 冻结（关闭证据 = manifest 的 algorithm/标准化/k/稳定性参数）。 */
     readonly d03Note: string;
   };
   readonly differenceThresholds: {
@@ -487,7 +496,8 @@ export function buildPreregManifest(): PreregManifest {
     labelThresholdVersion: LABEL_THRESHOLDS_VERSION,
     labelThresholdsHash: computeLabelThresholdsHash(),
     clustering: {
-      algorithm: 'ward+euclidean',
+      distance: 'euclidean',
+      algorithm: 'ward-lw-v1',
       standardization: 'z-score(pooled)',
       // 每个 run 在 w2b（主分析窗）与 w3（紧邻后续窗）各贡献一个特征点，
       // 全部特征点在同一 z-score 空间聚类——这是 07 §5「同一 run 的 w2b/w3
@@ -495,10 +505,13 @@ export function buildPreregManifest(): PreregManifest {
       featureWindows: ['w2b', 'w3'],
       kRange: [2, 5],
       stabilityMinAri: 0.7,
+      // W0-3 冻结口径：20 次半样本重聚类，判定量 = median，产物必报 min（07 §8.1）。
+      stabilityShuffles: 20,
       minClusterRuns: 5,
       temporalConsistencyMinRate: 0.8,
       d03Note:
-        'Ward+Euclidean 为 07 §8.1 文档默认建议；待议 D-03 未关闭，不得声称已获科学负责人确认。',
+        '聚类协议已按 07 §8.1 随本 manifest 冻结：Ward(Lance–Williams, ward-lw-v1) + Euclidean、' +
+        'z-score(pooled)、k∈[2,5]、稳定性 20 次取 median 且必报 min；更换实现＝新 experimentId。',
     },
     differenceThresholds: { gini: 0.03, tv: 0.1, mUp: 0.05, segregation: 0.05, openness: 0.05 },
     // 本机预研护栏（07 §3：budgets 示例为占位值；D-04 的正式 P6 预算另行冻结）。

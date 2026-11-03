@@ -35,7 +35,21 @@ function log(message) {
   process.stderr.write(`[p15] ${message}\n`);
 }
 
-const STABILITY_SEED_OFFSETS = [20261103, 20261104, 20261105];
+// W0-3 冻结口径（07 §8.1）：20 次确定性洗牌，判定量 = median，必报 min。
+// 洗牌种子是任意但固定的字面量；修改它们＝分析管线变更＝新 experimentId。
+const STABILITY_SEED_OFFSETS = [
+  20261103, 20261104, 20261105, 20261106, 20261107, 20261108, 20261109, 20261110, 20261111,
+  20261112, 20261113, 20261114, 20261115, 20261116, 20261117, 20261118, 20261119, 20261120,
+  20261121, 20261122,
+];
+
+/** 偶数长度取中间两数均值（与 core `median` 同口径）。 */
+function medianOf(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[middle];
+  return (sorted[middle - 1] + sorted[middle]) / 2;
+}
 
 const manifest = buildPreregManifest();
 const preregistrationHash = computePreregistrationHash(manifest);
@@ -150,6 +164,12 @@ if (stage === 'full') {
     const scaler = fitStandardizer(points);
     const z = points.map((row) => scaler.standardize(row));
     const choice = chooseKBySilhouette(z);
+    const stabilityShuffles = manifest.clustering.stabilityShuffles;
+    if (STABILITY_SEED_OFFSETS.length !== stabilityShuffles) {
+      throw new Error(
+        `洗牌种子数 ${STABILITY_SEED_OFFSETS.length} 与预注册 stabilityShuffles=${stabilityShuffles} 不一致`,
+      );
+    }
     const stabilityRuns = STABILITY_SEED_OFFSETS.map((seed) =>
       bisectStability(
         z,
@@ -158,9 +178,11 @@ if (stage === 'full') {
         manifest.clustering.stabilityMinAri,
       ),
     );
-    const stabilityAri = Math.max(...stabilityRuns.map((run) => run.ari));
-    const minAri = Math.min(...stabilityRuns.map((run) => run.ari));
-    const meanAri = stabilityRuns.reduce((sum, run) => sum + run.ari, 0) / stabilityRuns.length;
+    const ariValues = stabilityRuns.map((run) => run.ari);
+    // 判定量 = median（07 §8.1 W0-3）；min 必须同报，不得只引用 max。
+    const medianAri = medianOf(ariValues);
+    const minAri = Math.min(...ariValues);
+    const maxAri = Math.max(...ariValues);
     const clusterSizes = new Map();
     for (const a of choice.assignment) {
       clusterSizes.set(a, (clusterSizes.get(a) ?? 0) + 1);
@@ -200,12 +222,14 @@ if (stage === 'full') {
     clustering = {
       k: choice.k,
       silhouette: Math.round(choice.score * 1000) / 1000,
-      stabilityAri: Math.round(stabilityAri * 1000) / 1000,
+      // `stabilityAri` 是判定量（median）；min/max 同报，不得只引用最大值（07 §8.1）。
+      stabilityAri: Math.round(medianAri * 1000) / 1000,
+      stabilityAriMedian: Math.round(medianAri * 1000) / 1000,
       stabilityAriMin: Math.round(minAri * 1000) / 1000,
-      stabilityAriMean: Math.round(meanAri * 1000) / 1000,
+      stabilityAriMax: Math.round(maxAri * 1000) / 1000,
       stabilityMinAri: manifest.clustering.stabilityMinAri,
-      stabilityShuffles: STABILITY_SEED_OFFSETS.length,
-      stabilityStable: minClusterMet && minAri >= manifest.clustering.stabilityMinAri,
+      stabilityShuffles,
+      stabilityStable: minClusterMet && medianAri >= manifest.clustering.stabilityMinAri,
       minClusterSize: smallestCluster,
       minClusterRuns: manifest.clustering.minClusterRuns,
       minClusterMet,

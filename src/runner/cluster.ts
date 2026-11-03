@@ -1,15 +1,15 @@
 /**
  * 结构指纹聚类协议（07 §8.1）。
  *
- * 默认实现（待议 D-03 的文档建议，预注册时显式记录）：
+ * 默认实现（W0 已按 07 §8.1 冻结，D-03 关闭证据 = 预注册 manifest）：
  * - 特征：窗口均值 P[c]、G、top10、Mup、Mdown、S、O（`featureVector`）；
  * - 标准化：z-score，均值/方差来自本次预注册特征矩阵（不得按结果挑特征）；
- * - 距离/算法：Euclidean + Ward 层次聚合；
+ * - 距离/算法：Euclidean + Ward 层次聚合，实现标识 `'ward-lw-v1'`（Lance–Williams 递推）；
+ *   更换实现＝分析管线变更＝新 `experimentId`（07 §8.1 实现敏感性约束）；
  * - k：`k∈[2,5]`，按轮廓系数选择；
- * - 稳定性：种子集随机二分重聚类，调整 Rand 指数 >=0.70；
+ * - 稳定性：种子集随机二分重聚类 20 次（`clustering.stabilityShuffles`），判定量 = median，
+ *   产物必须同时报告 min（07 §8.1 W0-3 冻结口径）；
  * - 每个聚类至少 5 个 run（或预注册最小值）。
- *
- * D-03 未关闭前：Ward+Euclidean 只是文档默认建议，不得声称已获科学负责人确认。
  */
 
 /** Euclidean 距离。 */
@@ -103,11 +103,127 @@ export function zScoreMatrix(matrix: readonly (readonly number[])[]): number[][]
   return matrix.map((row) => standardize(row));
 }
 
+/** Ward 聚类完整结果：最终分配 + 每次合并的 SSE 增量序列（W0-1 等价性验收用）。 */
+export interface WardClustering {
+  /** 长度 n 的簇号数组；簇号只保证「同簇同号」，不同实现/调用间不保证标签一致。 */
+  readonly assignment: number[];
+  /** 合并代价（SSE 增量）序列，长度 n-k，按合并先后排列。 */
+  readonly mergeCosts: number[];
+}
+
 /**
- * Ward 层次聚合（最小化全离差平方和增量），返回 cut 后的分配。
- * 实现：朴素合并——每轮找 SSE 增量最小的簇对；n<=数百时足够。
+ * Ward 层次聚合（最小化全离差平方和增量），返回 cut 后的分配与合并代价序列。
+ *
+ * 实现（W0-1）：Lance–Williams 递推——
+ * `d(k,i∪j) = ((n_i+n_k)·d(k,i) + (n_j+n_k)·d(k,j) − n_k·d(i,j)) / (n_i+n_j+n_k)`，
+ * 其中 `d` 为合并的 SSE 增量（初始单点簇 `d(i,j)=‖p_i−p_j‖²/2`）。
+ * 每次合并的代价更新为 O(active)，最小对扫描 O(active²)；内存 O(n²)（Float64Array）。
+ * 朴素参考实现保留在 `wardClusterReference`（成员遍历重算 SSE，O(n³) 大常数），
+ * 两者数学等价但**并列或近并列（1 ulp 级）的合并取舍可能不同**（07 §8.1 实现敏感性），
+ * 等价性验收是「无并列数据 ARI=1.0 + 代价序列逐项相对误差 ≤1e-12」，不是划分逐位一致。
  */
+export function wardClusterWithCosts(
+  points: readonly (readonly number[])[],
+  k: number,
+): WardClustering {
+  const n = points.length;
+  if (k < 1 || k > n) {
+    throw new Error(`k 必须位于 [1, n]: k=${k}, n=${n}`);
+  }
+  // 距离矩阵（全对称写入，行主序）；size/active 按初始点索引编号，合并保留较小索引。
+  const distance = new Float64Array(n * n);
+  for (let i = 0; i < n; i += 1) {
+    for (let j = i + 1; j < n; j += 1) {
+      const d = euclidean(points[i] ?? [], points[j] ?? []);
+      const cost = (d * d) / 2; // 单点簇合并的 SSE 增量 = ‖p_i−p_j‖²×(1·1)/(1+1)
+      distance[i * n + j] = cost;
+      distance[j * n + i] = cost;
+    }
+  }
+  const size = new Float64Array(n).fill(1);
+  const active = new Array<boolean>(n).fill(true);
+  // 簇成员（按合并保留的簇索引记录），用于最终分配。
+  const members: number[][] = Array.from({ length: n }, (_, index) => [index]);
+  const mergeCosts: number[] = [];
+  let activeCount = n;
+  while (activeCount > k) {
+    // 最小对扫描：按 (i,j) 升序，严格小于取首个最小值（确定性并列取舍）。
+    let bestI = -1;
+    let bestJ = -1;
+    let bestCost = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < n; i += 1) {
+      if (!active[i]) {
+        continue;
+      }
+      const rowOffset = i * n;
+      for (let j = i + 1; j < n; j += 1) {
+        if (!active[j]) {
+          continue;
+        }
+        const cost = distance[rowOffset + j] as number;
+        if (cost < bestCost) {
+          bestCost = cost;
+          bestI = i;
+          bestJ = j;
+        }
+      }
+    }
+    if (bestI < 0 || bestJ < 0) {
+      break;
+    }
+    mergeCosts.push(bestCost);
+    // 合并 (bestI, bestJ)：保留 bestI，按 Lance–Williams 更新其对其余活跃簇的距离。
+    const sizeI = size[bestI] as number;
+    const sizeJ = size[bestJ] as number;
+    for (let c = 0; c < n; c += 1) {
+      if (!active[c] || c === bestI || c === bestJ) {
+        continue;
+      }
+      const sizeC = size[c] as number;
+      const denominator = sizeI + sizeJ + sizeC;
+      const updated =
+        ((sizeI + sizeC) * (distance[bestI * n + c] as number) +
+          (sizeJ + sizeC) * (distance[bestJ * n + c] as number) -
+          sizeC * bestCost) /
+        denominator;
+      distance[bestI * n + c] = updated;
+      distance[c * n + bestI] = updated;
+    }
+    size[bestI] = sizeI + sizeJ;
+    members[bestI] = [...(members[bestI] ?? []), ...(members[bestJ] ?? [])];
+    members[bestJ] = [];
+    active[bestJ] = false;
+    activeCount -= 1;
+  }
+  // 活跃簇按索引升序重编号（标签不含信息，ARI 等比较对重标号不变）。
+  const assignment = new Array<number>(n).fill(-1);
+  let clusterIndex = 0;
+  for (let i = 0; i < n; i += 1) {
+    if (!active[i]) {
+      continue;
+    }
+    for (const member of members[i] ?? []) {
+      assignment[member] = clusterIndex;
+    }
+    clusterIndex += 1;
+  }
+  return { assignment, mergeCosts };
+}
+
+/** Ward 聚类（Lance–Williams 实现，W0-1）：只返回分配。 */
 export function wardCluster(points: readonly (readonly number[])[], k: number): number[] {
+  return wardClusterWithCosts(points, k).assignment;
+}
+
+/**
+ * 朴素参考实现（07 §8.1 实现敏感性的对照锚点）：每轮重算簇内 SSE 找最小增量对，
+ * O(n³) 大常数。保留原因：Lance–Williams 实现的等价性验收需要它作对照
+ * （无并列数据 ARI=1.0、合并代价序列逐项相对误差 ≤1e-12）。
+ */
+export function wardClusterReferenceWithCosts(
+  points: readonly (readonly number[])[],
+  k: number,
+): WardClustering {
   const n = points.length;
   if (k < 1 || k > n) {
     throw new Error(`k 必须位于 [1, n]: k=${k}, n=${n}`);
@@ -130,6 +246,7 @@ export function wardCluster(points: readonly (readonly number[])[], k: number): 
     }
     return sum;
   };
+  const mergeCosts: number[] = [];
   while (clusters.length > k) {
     let bestPair: [number, number] | null = null;
     let bestCost = Number.POSITIVE_INFINITY;
@@ -159,6 +276,7 @@ export function wardCluster(points: readonly (readonly number[])[], k: number): 
     if (ca === undefined || cb === undefined) {
       break;
     }
+    mergeCosts.push(bestCost);
     clusters[a] = [...ca, ...cb];
     clusters.splice(b, 1);
   }
@@ -168,7 +286,12 @@ export function wardCluster(points: readonly (readonly number[])[], k: number): 
       assignment[i] = clusterIndex;
     }
   }
-  return assignment;
+  return { assignment, mergeCosts };
+}
+
+/** 朴素参考实现：只返回分配。 */
+export function wardClusterReference(points: readonly (readonly number[])[], k: number): number[] {
+  return wardClusterReferenceWithCosts(points, k).assignment;
 }
 
 /** 轮廓系数（Euclidean）；单簇返回 0。 */
