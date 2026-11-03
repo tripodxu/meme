@@ -22,37 +22,85 @@ export function euclidean(a: readonly number[], b: readonly number[]): number {
   return Math.sqrt(sum);
 }
 
-/** z-score 标准化；方差为 0 的维度保持 0（避免除零，且该维度无判别力）。 */
-export function zScoreMatrix(matrix: readonly (readonly number[])[]): number[][] {
-  if (matrix.length === 0) {
-    return [];
+/** 可复用的 z-score 标尺（均值/总体标准差，方差为 0 的维度输出 0）。 */
+export interface Standardizer {
+  readonly means: readonly number[];
+  readonly sigmas: readonly number[];
+  readonly standardize: (vector: readonly number[]) => number[];
+}
+
+/**
+ * 仅在 `trainMatrix` 上拟合均值/标准差，返回标尺。
+ * 其余向量（如 w2b）必须用同一标尺标准化，禁止各自重算或混用原始值。
+ */
+export function fitStandardizer(trainMatrix: readonly (readonly number[])[]): Standardizer {
+  if (trainMatrix.length === 0) {
+    return { means: [], sigmas: [], standardize: (vector) => [...vector] };
   }
-  const dims = matrix[0]?.length ?? 0;
+  const dims = trainMatrix[0]?.length ?? 0;
   const means = new Array<number>(dims).fill(0);
-  const variances = new Array<number>(dims).fill(0);
-  for (const row of matrix) {
+  for (const row of trainMatrix) {
     for (let j = 0; j < dims; j += 1) {
-      means[j] = (means[j] as number) + (row[j] as number);
+      means[j] = (means[j] as number) + (row[j] ?? 0);
     }
   }
   for (let j = 0; j < dims; j += 1) {
-    means[j] = (means[j] as number) / matrix.length;
+    means[j] = (means[j] as number) / trainMatrix.length;
   }
-  for (const row of matrix) {
+  const variances = new Array<number>(dims).fill(0);
+  for (const row of trainMatrix) {
     for (let j = 0; j < dims; j += 1) {
-      const d = (row[j] as number) - (means[j] as number);
+      const d = (row[j] ?? 0) - (means[j] as number);
       variances[j] = (variances[j] as number) + d * d;
     }
   }
-  for (let j = 0; j < dims; j += 1) {
-    variances[j] = Math.sqrt((variances[j] as number) / matrix.length);
+  const sigmas = variances.map((sum) => Math.sqrt(sum / trainMatrix.length));
+  return {
+    means,
+    sigmas,
+    standardize: (vector) =>
+      Array.from({ length: dims }, (_, j) => {
+        const sigma = sigmas[j] as number;
+        return sigma > 0 ? ((vector[j] ?? 0) - (means[j] as number)) / sigma : 0;
+      }),
+  };
+}
+
+/** 用 `trainMatrix` 拟合的标尺标准化单个向量（如 w2b）。 */
+export function standardizeWith(
+  trainMatrix: readonly (readonly number[])[],
+  vector: readonly number[],
+): number[] {
+  return fitStandardizer(trainMatrix).standardize(vector);
+}
+
+/** 最小簇规模（空分配返回 0）。 */
+export function minClusterSize(assignment: readonly number[]): number {
+  if (assignment.length === 0) {
+    return 0;
   }
-  return matrix.map((row) =>
-    Array.from({ length: dims }, (_, j) => {
-      const sigma = variances[j] as number;
-      return sigma > 0 ? ((row[j] as number) - (means[j] as number)) / sigma : 0;
-    }),
-  );
+  const sizes = new Map<number, number>();
+  for (const cluster of assignment) {
+    sizes.set(cluster, (sizes.get(cluster) ?? 0) + 1);
+  }
+  let smallest = Number.POSITIVE_INFINITY;
+  for (const size of sizes.values()) {
+    if (size < smallest) {
+      smallest = size;
+    }
+  }
+  return smallest;
+}
+
+/** 是否每个簇的规模均 >= `minRuns`（预注册 minClusterRuns 门槛）。 */
+export function meetsMinClusterSize(assignment: readonly number[], minRuns: number): boolean {
+  return minClusterSize(assignment) >= minRuns;
+}
+
+/** z-score 标准化；方差为 0 的维度保持 0（避免除零，且该维度无判别力）。 */
+export function zScoreMatrix(matrix: readonly (readonly number[])[]): number[][] {
+  const { standardize } = fitStandardizer(matrix);
+  return matrix.map((row) => standardize(row));
 }
 
 /**

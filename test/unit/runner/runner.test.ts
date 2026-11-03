@@ -14,13 +14,17 @@ import {
   adjustedRandIndex,
   bisectStability,
   chooseKBySilhouette,
+  fitStandardizer,
+  meetsMinClusterSize,
+  minClusterSize,
   seededShuffle,
   silhouetteScore,
+  standardizeWith,
   wardCluster,
   zScoreMatrix,
 } from '../../../src/runner/cluster.js';
 import { runSingle } from '../../../src/runner/run-cell.js';
-import type { WindowSummary } from '../../../src/runner/window-stats.js';
+import { ANALYSIS_WINDOWS, type WindowSummary } from '../../../src/runner/window-stats.js';
 
 const SEED = asSeed('runner-seed');
 
@@ -325,10 +329,70 @@ describe('runSingle 冒烟（P1.5-01 契约字段）', () => {
     expect(outcome.stats.length).toBe(40);
     expect(outcome.report.aliveAtEnd).toBeGreaterThan(0);
     expect(outcome.report.extinct).toBe(false);
-    expect(outcome.report.windows.length).toBe(3);
+    expect(outcome.report.windows.length).toBe(ANALYSIS_WINDOWS.length);
     for (const window of outcome.report.windows) {
       expect(window.missingTicks).toBeGreaterThan(0); // 40 tick 不足以覆盖预注册窗口
     }
     expect(outcome.report.finalStateHash).toMatch(/^sha256:/);
+  });
+
+  it('报告包含 v5 预注册窗口 w2b（1825–2554）且正常 run 可用', () => {
+    const config = createDemoConfig({
+      population: { initialPopulation: 8 },
+      schedule: { totalTicks: 2555, statsStride: 1, snapshotStride: 2555 },
+    });
+    const outcome = runSingle(config, SEED, { policy: 'mock-weighted-v1' });
+    const w2b = outcome.report.windows.find((window) => window.label === 'w2b');
+    expect(w2b).toBeDefined();
+    expect(w2b?.start).toBe(1825);
+    expect(w2b?.end).toBe(2554);
+    expect(w2b?.tickCount).toBe(730);
+    expect(w2b?.missingTicks).toBe(0);
+    expect(outcome.report.extinct).toBe(false);
+    expect(outcome.report.labelsByWindow['w2b']).toBeDefined();
+  });
+});
+
+describe('聚类标尺与最小簇（复用同一 z-score）', () => {
+  it('standardizeWith 与 zScoreMatrix 对训练矩阵逐行一致', () => {
+    const train = [
+      [0, 10],
+      [1, 20],
+      [2, 30],
+    ];
+    const z = zScoreMatrix(train);
+    for (const row of train) {
+      expect(standardizeWith(train, row)).toEqual(z[train.indexOf(row)]);
+    }
+  });
+
+  it('外部向量按训练集均值/标准差标准化，而非自身重算', () => {
+    const train = [[0], [2]];
+    const { means, sigmas } = fitStandardizer(train);
+    expect(means[0]).toBe(1);
+    expect(sigmas[0]).toBe(1);
+    // 外部向量 [4]：用训练标尺 → (4-1)/1 = 3，不是 0。
+    expect(standardizeWith(train, [4])).toEqual([3]);
+  });
+
+  it('零方差维度保持 0，空输入不抛错', () => {
+    expect(
+      standardizeWith(
+        [
+          [5, 1],
+          [5, 3],
+        ],
+        [5, 5],
+      ),
+    ).toEqual([0, 3]);
+    expect(standardizeWith([], [1, 2])).toEqual([1, 2]);
+    expect(zScoreMatrix([])).toEqual([]);
+  });
+
+  it('minClusterSize 与 minClusterMet 判定', () => {
+    expect(minClusterSize([])).toBe(0);
+    expect(minClusterSize([0, 0, 1, 1, 1])).toBe(2);
+    expect(meetsMinClusterSize([0, 0, 1, 1, 1], 2)).toBe(true);
+    expect(meetsMinClusterSize([0, 0, 1, 1, 1], 3)).toBe(false);
   });
 });

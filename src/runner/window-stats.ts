@@ -6,10 +6,14 @@ import type { TickStats } from '../core/macros/tick-metrics.js';
  * 不使用 D1 采样行近似。30 日块只用于自相关观察，不二次加权。
  */
 
-/** 预注册窗口（07 §5 建议）：w1/w2/w3。 */
+/**
+ * 预注册窗口（07 §5 / v5 预注册）：w2b（1825–2554）是 v5 burn-in 后的主分析窗口；
+ * w1/w2 仅作诊断（非平稳/极限环观察），不参与结构主判定。w3 为紧邻的后续窗口。
+ */
 export const ANALYSIS_WINDOWS = [
   { label: 'w1', start: 365, end: 1094 },
   { label: 'w2', start: 1095, end: 1824 },
+  { label: 'w2b', start: 1825, end: 2554 },
   { label: 'w3', start: 2555, end: 3284 },
 ] as const;
 
