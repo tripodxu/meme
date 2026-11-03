@@ -1,55 +1,55 @@
 {
   "schemaVersion": "p15-grid-v2",
   "stage": "screen",
-  "preregistrationHash": "sha256:4dc141e4b7bce47e5686f227daa5967236fed2b8e24e3b8899e123efef16722a",
-  "runCount": 28,
+  "preregistrationHash": "sha256:2ed70da52bf45b6cb5d1555b718a615cb0b6e7a0089641f7ad72a758d24d84ed",
+  "runCount": 26,
   "wallMinutes": 0,
   "manifest": {
     "schemaVersion": "experiment-v2",
-    "hypothesis": "rules-v5（持有裕度 + 需求解耦 + θM 再平衡）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。",
+    "hypothesis": "rules-v8（位移准入）体制下，预注册参数网格内存在 >=2 类可复现（20 次半样本 ARI median>=0.70，含 k=2 硬门槛）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场方向预测与仿真一致（全 cell P0(w3)>=0.15 且 ‖P(w2b)-P(w3)‖1<0.10）。",
     "primaryMetric": "TV(P)",
     "experimentType": "rule_sensitivity",
-    "rulesVersion": "rules-v5",
-    "engineVersion": "engine-v0.3.0",
+    "rulesVersion": "rules-v8",
+    "engineVersion": "engine-v0.6.0",
     "decisionSchemaVersion": "stratify-decision-v1",
     "policyVersion": "mock-weighted-v1",
     "promptVersion": "prompt-none-v1",
     "promptStyle": "neutral",
     "populationSize": 40,
     "totalTicks": 3650,
-    "baseConfigHash": "sha256:ff00821ed454b144694d54b23ac947d4720bbabd37e53e6edd482194bbb83184",
+    "baseConfigHash": "sha256:1117bbc7f9a9028472d850ccfbf61a5f014f2f2a86c3f1c26f8c0c82117adb02",
     "artifactProfile": "full",
     "seeds": [
-      "p15-seed-001",
-      "p15-seed-002",
-      "p15-seed-003",
-      "p15-seed-004",
-      "p15-seed-005",
-      "p15-seed-006",
-      "p15-seed-007",
-      "p15-seed-008",
-      "p15-seed-009",
-      "p15-seed-010",
-      "p15-seed-011",
-      "p15-seed-012",
-      "p15-seed-013",
-      "p15-seed-014",
-      "p15-seed-015",
-      "p15-seed-016",
-      "p15-seed-017",
-      "p15-seed-018",
-      "p15-seed-019",
-      "p15-seed-020",
-      "p15-seed-021",
-      "p15-seed-022",
-      "p15-seed-023",
-      "p15-seed-024",
-      "p15-seed-025",
-      "p15-seed-026",
-      "p15-seed-027",
-      "p15-seed-028",
-      "p15-seed-029",
-      "p15-seed-030"
+      "p15r3-seed-001",
+      "p15r3-seed-002",
+      "p15r3-seed-003",
+      "p15r3-seed-004",
+      "p15r3-seed-005",
+      "p15r3-seed-006",
+      "p15r3-seed-007",
+      "p15r3-seed-008",
+      "p15r3-seed-009",
+      "p15r3-seed-010",
+      "p15r3-seed-011",
+      "p15r3-seed-012",
+      "p15r3-seed-013",
+      "p15r3-seed-014",
+      "p15r3-seed-015",
+      "p15r3-seed-016",
+      "p15r3-seed-017",
+      "p15r3-seed-018",
+      "p15r3-seed-019",
+      "p15r3-seed-020",
+      "p15r3-seed-021",
+      "p15r3-seed-022",
+      "p15r3-seed-023",
+      "p15r3-seed-024",
+      "p15r3-seed-025",
+      "p15r3-seed-026",
+      "p15r3-seed-027",
+      "p15r3-seed-028",
+      "p15r3-seed-029",
+      "p15r3-seed-030"
     ],
     "pairing": "same-seed-derived-initial-population-and-addressed-random",
     "warmupTicks": 1825,
@@ -69,7 +69,8 @@
     "labelThresholdVersion": "labels-v3",
     "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
     "clustering": {
-      "algorithm": "ward+euclidean",
+      "distance": "euclidean",
+      "algorithm": "ward-lw-v1",
       "standardization": "z-score(pooled)",
       "featureWindows": [
         "w2b",
@@ -80,9 +81,10 @@
         5
       ],
       "stabilityMinAri": 0.7,
+      "stabilityShuffles": 20,
       "minClusterRuns": 5,
       "temporalConsistencyMinRate": 0.8,
-      "d03Note": "Ward+Euclidean 为 07 §8.1 文档默认建议；待议 D-03 未关闭，不得声称已获科学负责人确认。"
+      "d03Note": "聚类协议按 07 §8.1 冻结：Ward(Lance–Williams, ward-lw-v1) + Euclidean、z-score(pooled)、k∈[2,5]、稳定性 20 次取 median 且必报 min；更换实现＝新 experimentId。"
     },
     "differenceThresholds": {
       "gini": 0.03,
@@ -92,8 +94,8 @@
       "openness": 0.05
     },
     "budgets": {
-      "maxRuns": 840,
-      "maxWallMinutes": 480,
+      "maxRuns": 780,
+      "maxWallMinutes": 240,
       "maxStorageBytes": 2000000000
     },
     "exclusionRules": {
@@ -106,267 +108,15 @@
       {
         "cellKey": "baseline",
         "design": "baseline",
-        "hypothesis": "默认参数下的基准结构",
+        "hypothesis": "位移准入体制默认参数下的基准结构（预测：底重稳态金字塔）",
         "overrides": {},
         "changedPaths": [],
-        "fullConfigHash": "sha256:ff00821ed454b144694d54b23ac947d4720bbabd37e53e6edd482194bbb83184"
+        "fullConfigHash": "sha256:1117bbc7f9a9028472d850ccfbf61a5f014f2f2a86c3f1c26f8c0c82117adb02"
       },
       {
-        "cellKey": "needMultiplier=flat",
+        "cellKey": "envExponent=0",
         "design": "single",
-        "hypothesis": "扁平持有成本削弱阶级分离",
-        "overrides": {
-          "need": {
-            "needMultiplier": [
-              1,
-              1.5,
-              1.5,
-              1.5,
-              1.5
-            ]
-          }
-        },
-        "changedPaths": [
-          "need.needMultiplier"
-        ],
-        "fullConfigHash": "sha256:26cfc49aa4f448a174c7f42e06eb6f0bb29e16a51e2b45d182f9be10b044f7c0"
-      },
-      {
-        "cellKey": "needMultiplier=steeper",
-        "design": "single",
-        "hypothesis": "更陡持有成本强化分层",
-        "overrides": {
-          "need": {
-            "needMultiplier": [
-              1,
-              1.4,
-              2.1,
-              3,
-              4.2
-            ]
-          }
-        },
-        "changedPaths": [
-          "need.needMultiplier"
-        ],
-        "fullConfigHash": "sha256:2b375d47ad7cf6e3ac265092363c2bfccc6ecbc2c49e73e22936d22d885b6b4c"
-      },
-      {
-        "cellKey": "needThreshold=0.3",
-        "design": "single",
-        "hypothesis": "宽松需求线减少被动跌落",
-        "overrides": {
-          "need": {
-            "threshold": 0.3
-          }
-        },
-        "changedPaths": [
-          "need.threshold"
-        ],
-        "fullConfigHash": "sha256:d457b0b29df914e04f8cd205e2ea87acdabf0ddbce61c94c1838a243c448e39d"
-      },
-      {
-        "cellKey": "needThreshold=0.9",
-        "design": "single",
-        "hypothesis": "严格需求线加剧跌落",
-        "overrides": {
-          "need": {
-            "threshold": 0.9
-          }
-        },
-        "changedPaths": [
-          "need.threshold"
-        ],
-        "fullConfigHash": "sha256:555a934d6bc2681b5300b07c3001d60f1b9978fd6b2063423571e1369fc3b7f6"
-      },
-      {
-        "cellKey": "env0=compressed",
-        "design": "single",
-        "hypothesis": "压缩阶级机会差削弱分层",
-        "overrides": {
-          "opportunity": {
-            "env0": [
-              1,
-              1.2,
-              1.5,
-              1.9,
-              2.4
-            ]
-          }
-        },
-        "changedPaths": [
-          "opportunity.env0"
-        ],
-        "fullConfigHash": "sha256:476e45a94aa6f164d13577ac798bdccf024a1271507920f5c5f810a395859f1a"
-      },
-      {
-        "cellKey": "env0=expanded",
-        "design": "single",
-        "hypothesis": "扩大阶级机会差强化分层",
-        "overrides": {
-          "opportunity": {
-            "env0": [
-              1,
-              2,
-              3.5,
-              5,
-              7
-            ]
-          }
-        },
-        "changedPaths": [
-          "opportunity.env0"
-        ],
-        "fullConfigHash": "sha256:4c02943dc78920883946840ef78d6177a1e133e6e3143e58cac76ca1f9d01657"
-      },
-      {
-        "cellKey": "ablation:beta=0",
-        "design": "single",
-        "hypothesis": "无网络机会（消融 β=0）",
-        "overrides": {
-          "networkOpportunity": {
-            "beta": 0
-          }
-        },
-        "changedPaths": [
-          "networkOpportunity.beta"
-        ],
-        "fullConfigHash": "sha256:624142d41d737344a4c286e4f13fc1aeeae7f3969595aa1f3612372671b4b30b"
-      },
-      {
-        "cellKey": "ablation:O=fixed",
-        "design": "single",
-        "hypothesis": "无制度反馈（O 固定，P1-10 开关）",
-        "overrides": {
-          "openness": {
-            "updateMode": "fixed"
-          }
-        },
-        "changedPaths": [
-          "openness.updateMode"
-        ],
-        "fullConfigHash": "sha256:61e843df9dfdc86ffd2336f481179711c0c4555b77769c13a14a41fe8f7fc8ba"
-      },
-      {
-        "cellKey": "ablation:eta=0",
-        "design": "single",
-        "hypothesis": "无阶级拥挤（消融 η=0）",
-        "overrides": {
-          "dynamics": {
-            "congestionExponent": 0
-          }
-        },
-        "changedPaths": [
-          "dynamics.congestionExponent"
-        ],
-        "fullConfigHash": "sha256:7f9d93e4caa366753d130fc4978edc3622e24f4ab656a0bf6f5b724f4f81bb39"
-      },
-      {
-        "cellKey": "ablation:kappa=0",
-        "design": "single",
-        "hypothesis": "无贫富分化反馈（消融 κ=0）",
-        "overrides": {
-          "dynamics": {
-            "polarizationExponent": 0
-          }
-        },
-        "changedPaths": [
-          "dynamics.polarizationExponent"
-        ],
-        "fullConfigHash": "sha256:f2c99844aff093684e942d91d568d73d898e624773a4ee8733176380d59547a4"
-      },
-      {
-        "cellKey": "ablation:psi=1",
-        "design": "single",
-        "hypothesis": "无阶级持有成本（消融 ψ=1，预期顶层塌缩）",
-        "overrides": {
-          "need": {
-            "needMultiplier": [
-              1,
-              1,
-              1,
-              1,
-              1
-            ]
-          }
-        },
-        "changedPaths": [
-          "need.needMultiplier"
-        ],
-        "fullConfigHash": "sha256:7ad1015fe89a0486566bea142a31b5902fdbbaeb3d6ea511a414eb3897b878b9"
-      },
-      {
-        "cellKey": "initialShares=bottom-heavy",
-        "design": "single",
-        "hypothesis": "底层更重的初始分布",
-        "overrides": {
-          "population": {
-            "classShares": [
-              0.6,
-              0.25,
-              0.1,
-              0.04,
-              0.01
-            ]
-          }
-        },
-        "changedPaths": [
-          "population.classShares"
-        ],
-        "fullConfigHash": "sha256:fdb9c239b850195f00cc352bb516607ffe102412c4f5a4438f17b384c4e24c51"
-      },
-      {
-        "cellKey": "initialShares=middle-heavy",
-        "design": "single",
-        "hypothesis": "中层更重的初始分布",
-        "overrides": {
-          "population": {
-            "classShares": [
-              0.2,
-              0.3,
-              0.3,
-              0.15,
-              0.05
-            ]
-          }
-        },
-        "changedPaths": [
-          "population.classShares"
-        ],
-        "fullConfigHash": "sha256:1f7edbb058f5c16b5b6359ed20abf438b6cc3a0c37b2337226d071e84537dbe0"
-      },
-      {
-        "cellKey": "lambdaO=0",
-        "design": "single",
-        "hypothesis": "开放度不影响跨越成本",
-        "overrides": {
-          "openness": {
-            "ascentCostWeight": 0
-          }
-        },
-        "changedPaths": [
-          "openness.ascentCostWeight"
-        ],
-        "fullConfigHash": "sha256:152a42efb0f74ef900f022e1dbcb5019848cc837b47eed80a6a130389ba2fdf1"
-      },
-      {
-        "cellKey": "rewireProb=0.2",
-        "design": "single",
-        "hypothesis": "更高网络流动",
-        "overrides": {
-          "network": {
-            "rewireProb": 0.2
-          }
-        },
-        "changedPaths": [
-          "network.rewireProb"
-        ],
-        "fullConfigHash": "sha256:3fc12bcb885240871b4185669ee7cdc42f3fa330c24ee4b1959b1dc79e36666b"
-      },
-      {
-        "cellKey": "v4:envExponent=0",
-        "design": "single",
-        "hypothesis": "φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）",
+        "hypothesis": "分离面定位：φ=0 时持有标尺的环境梯度改变（1.0 为基准）",
         "overrides": {
           "need": {
             "envExponent": 0
@@ -375,12 +125,26 @@
         "changedPaths": [
           "need.envExponent"
         ],
-        "fullConfigHash": "sha256:99ffaa7c0a52797cef2147a5f5f6e4f9a3e523738c0a43ad5fe2ef4152ce0869"
+        "fullConfigHash": "sha256:3176196b5b1f61d2d0539e554853f93897b8bbab4f6540172abb47ebea89badc"
       },
       {
-        "cellKey": "v4:envExponent=0.5",
+        "cellKey": "envExponent=0.3",
         "design": "single",
-        "hypothesis": "弱环境持有成本",
+        "hypothesis": "分离面定位：φ=0.3 时持有标尺的环境梯度改变（1.0 为基准）",
+        "overrides": {
+          "need": {
+            "envExponent": 0.3
+          }
+        },
+        "changedPaths": [
+          "need.envExponent"
+        ],
+        "fullConfigHash": "sha256:87f3acc17f485bdb14a8d8ec6e405bfe6645fd4c244386f8e5edcefc9efbfc6d"
+      },
+      {
+        "cellKey": "envExponent=0.5",
+        "design": "single",
+        "hypothesis": "分离面定位：φ=0.5 时持有标尺的环境梯度改变（1.0 为基准）",
         "overrides": {
           "need": {
             "envExponent": 0.5
@@ -389,12 +153,40 @@
         "changedPaths": [
           "need.envExponent"
         ],
-        "fullConfigHash": "sha256:826f611c328a990261c4c2a8c687d4adc59bf3e7d977792f23656d0dbfb34ba4"
+        "fullConfigHash": "sha256:10653ece66c7c08cf6630dc80366bf3f8580dcd3ba5983ce41d6f0797f2766e2"
       },
       {
-        "cellKey": "v4:envExponent=1.5",
+        "cellKey": "envExponent=0.7",
         "design": "single",
-        "hypothesis": "强环境持有成本",
+        "hypothesis": "分离面定位：φ=0.7 时持有标尺的环境梯度改变（1.0 为基准）",
+        "overrides": {
+          "need": {
+            "envExponent": 0.7
+          }
+        },
+        "changedPaths": [
+          "need.envExponent"
+        ],
+        "fullConfigHash": "sha256:494ca9b57176a404e77bc4e79934576afb00af6ae577b01761d3864a3af3dcef"
+      },
+      {
+        "cellKey": "envExponent=1.2",
+        "design": "single",
+        "hypothesis": "分离面定位：φ=1.2 时持有标尺的环境梯度改变（1.0 为基准）",
+        "overrides": {
+          "need": {
+            "envExponent": 1.2
+          }
+        },
+        "changedPaths": [
+          "need.envExponent"
+        ],
+        "fullConfigHash": "sha256:cd34329397deae0a6b89d6a320a7242f091ad1b277d26d1d2483bdbcbe0c89a6"
+      },
+      {
+        "cellKey": "envExponent=1.5",
+        "design": "single",
+        "hypothesis": "分离面定位：φ=1.5 时持有标尺的环境梯度改变（1.0 为基准）",
         "overrides": {
           "need": {
             "envExponent": 1.5
@@ -403,74 +195,12 @@
         "changedPaths": [
           "need.envExponent"
         ],
-        "fullConfigHash": "sha256:a58f22c82b72dfb0628ac80fcd4da8294d9e7f244cb65987b67dc8cafa4b03c8"
+        "fullConfigHash": "sha256:bd7d5a420cb76a3f1c3bdfba2ac031bb473defd93aae7ce4a98dd0e80acaae32"
       },
       {
-        "cellKey": "v4:thetaM=8",
+        "cellKey": "envExponent=2",
         "design": "single",
-        "hypothesis": "v3 值 θM=8 对照（预期 O 钉在高位）",
-        "overrides": {
-          "openness": {
-            "mobilityWeight": 8
-          }
-        },
-        "changedPaths": [
-          "openness.mobilityWeight"
-        ],
-        "fullConfigHash": "sha256:0e44d791a40ade558c3eb08d8fdee9eabc5a173473aec58323bb6696154d0cf7"
-      },
-      {
-        "cellKey": "v4:geMedian=0.8",
-        "design": "single",
-        "hypothesis": "中位生产力轻度低于持有标准（G 上升、O 下降）",
-        "overrides": {
-          "attributes": {
-            "ge": {
-              "median": 0.8
-            }
-          }
-        },
-        "changedPaths": [
-          "attributes.ge.median"
-        ],
-        "fullConfigHash": "sha256:f7a41c80b1f03e947451e42294604e00ad4650d80e2847c3151d6d674d9c7285"
-      },
-      {
-        "cellKey": "v4:geMedian=0.7",
-        "design": "single",
-        "hypothesis": "中位生产力进一步下降（中间层重心、高 G）",
-        "overrides": {
-          "attributes": {
-            "ge": {
-              "median": 0.7
-            }
-          }
-        },
-        "changedPaths": [
-          "attributes.ge.median"
-        ],
-        "fullConfigHash": "sha256:6a51af9a480246cd75f828cd54c9588c86dae74ae69c5b46b0cd8b750b8fb337"
-      },
-      {
-        "cellKey": "v4:geMedian=0.6",
-        "design": "single",
-        "hypothesis": "强生产力约束（橄榄型倾向、O 低位）",
-        "overrides": {
-          "attributes": {
-            "ge": {
-              "median": 0.6
-            }
-          }
-        },
-        "changedPaths": [
-          "attributes.ge.median"
-        ],
-        "fullConfigHash": "sha256:afd71fe66f2e5f22d107ebbdcdb4db066f1f96e795b15a72194391796091b7d6"
-      },
-      {
-        "cellKey": "v4:envExponent=2",
-        "design": "single",
-        "hypothesis": "极强环境持有成本（顶部快速流失）",
+        "hypothesis": "分离面定位：φ=2 时持有标尺的环境梯度改变（1.0 为基准）",
         "overrides": {
           "need": {
             "envExponent": 2
@@ -479,73 +209,311 @@
         "changedPaths": [
           "need.envExponent"
         ],
-        "fullConfigHash": "sha256:b152cf2b39152c7a80ff02bf3be1b55b11ed7512913325133956630111e2dbdc"
+        "fullConfigHash": "sha256:eea08178565d00aea4301f175656517e79ce16bdc9613811122e2de1ca25f78c"
       },
       {
-        "cellKey": "v5:cushionDays=0",
+        "cellKey": "referenceSmoothing=0.05",
         "design": "single",
-        "hypothesis": "ρ=0 退回 v4 语义（消融对照）",
+        "hypothesis": "参照强度：α=0.05 时 refIncome 跟随速度改变（0.2 为基准）",
         "overrides": {
-          "ascent": {
-            "holdingCushionDays": 0
-          }
-        },
-        "changedPaths": [
-          "ascent.holdingCushionDays"
-        ],
-        "fullConfigHash": "sha256:ed367f77ab8822504f0be6bc4c2d27a0b4fdbfef6c058ec59c2f0e81240dc344"
-      },
-      {
-        "cellKey": "v5:cushionDays=90",
-        "design": "single",
-        "hypothesis": "强裕度封锁顶部（预期 c3 重心或封闭结构）",
-        "overrides": {
-          "ascent": {
-            "holdingCushionDays": 90
-          }
-        },
-        "changedPaths": [
-          "ascent.holdingCushionDays"
-        ],
-        "fullConfigHash": "sha256:48be7a3d47ed8ab0bb2b8a6347344c886d2a9188e3d1847bb913bea5856e0d75"
-      },
-      {
-        "cellKey": "v5:cushionDays=90+phi=0",
-        "design": "interaction",
-        "hypothesis": "强裕度×v3 需求（预期富人俱乐部顶层）；双变量联合条件，不得单轴归因",
-        "overrides": {
-          "ascent": {
-            "holdingCushionDays": 90
-          },
           "need": {
-            "envExponent": 0
+            "referenceSmoothing": 0.05
           }
         },
         "changedPaths": [
-          "ascent.holdingCushionDays",
-          "need.envExponent"
+          "need.referenceSmoothing"
         ],
-        "fullConfigHash": "sha256:8a0d52aded34bbf4ebf96374dd4dbf453b2d9c0996c284dc30917dc4fbf66fa2"
+        "fullConfigHash": "sha256:b85e65c7e779fb37a4bdbf0314ebf13723afe77f0ef8e415795c0f3ebd3bf1b7"
       },
       {
-        "cellKey": "v5:cushionDays=90+geMedian=0.7",
-        "design": "interaction",
-        "hypothesis": "裕度×生产力双约束（预期封闭分层可达）；双变量联合条件，不得单轴归因",
+        "cellKey": "referenceSmoothing=0.6",
+        "design": "single",
+        "hypothesis": "参照强度：α=0.6 时 refIncome 跟随速度改变（0.2 为基准）",
         "overrides": {
-          "ascent": {
-            "holdingCushionDays": 90
-          },
-          "attributes": {
-            "ge": {
-              "median": 0.7
-            }
+          "need": {
+            "referenceSmoothing": 0.6
           }
         },
         "changedPaths": [
-          "ascent.holdingCushionDays",
-          "attributes.ge.median"
+          "need.referenceSmoothing"
         ],
-        "fullConfigHash": "sha256:8371c6287be260da569d33d8642530d180f9365bd548975ce402110b3d9c5a0e"
+        "fullConfigHash": "sha256:120cfd1abc6e43f3f0d753df8fc93dd462c5e6252d5907cf856e0e24e9301c74"
+      },
+      {
+        "cellKey": "needMultiplier×0.7",
+        "design": "single",
+        "hypothesis": "ψ 尺度 ×0.7：持有标尺整体抬升/压低（1.0 为基准）",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1,
+              1.26,
+              1.75,
+              2.4499999999999997
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:dab05c8641ee5693f9c4e3d06a10f11df5962a4fa076a7c603f6ec128b238d65"
+      },
+      {
+        "cellKey": "needMultiplier×1.4",
+        "design": "single",
+        "hypothesis": "ψ 尺度 ×1.4：持有标尺整体抬升/压低（1.0 为基准）",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.8199999999999998,
+              2.52,
+              3.5,
+              4.8999999999999995
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:dca31f0531dec352168355c2fc501da0a168bbece1c430b7d04c2a23f9b15e81"
+      },
+      {
+        "cellKey": "alpha=0.05+psi×0.7",
+        "design": "interaction",
+        "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.05, ×0.7）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "referenceSmoothing": 0.05,
+            "needMultiplier": [
+              1,
+              1,
+              1.26,
+              1.75,
+              2.4499999999999997
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier",
+          "need.referenceSmoothing"
+        ],
+        "fullConfigHash": "sha256:48b5063323fef5af6438277fe5c2835cae7942ca964e1fa6008edf0c3eafacba"
+      },
+      {
+        "cellKey": "alpha=0.05+psi×1.4",
+        "design": "interaction",
+        "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.05, ×1.4）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "referenceSmoothing": 0.05,
+            "needMultiplier": [
+              1,
+              1.8199999999999998,
+              2.52,
+              3.5,
+              4.8999999999999995
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier",
+          "need.referenceSmoothing"
+        ],
+        "fullConfigHash": "sha256:1aebf8a763ff1cfc4cf74c870b5b7206f9faf32b47b367c7233cc6463ebff611"
+      },
+      {
+        "cellKey": "alpha=0.6+psi×0.7",
+        "design": "interaction",
+        "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.6, ×0.7）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "referenceSmoothing": 0.6,
+            "needMultiplier": [
+              1,
+              1,
+              1.26,
+              1.75,
+              2.4499999999999997
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier",
+          "need.referenceSmoothing"
+        ],
+        "fullConfigHash": "sha256:54ad6eca3abdd77909979028531787ccd79fad9186bce66e68ce6e9ccef97bbf"
+      },
+      {
+        "cellKey": "alpha=0.6+psi×1.4",
+        "design": "interaction",
+        "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.6, ×1.4）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "referenceSmoothing": 0.6,
+            "needMultiplier": [
+              1,
+              1.8199999999999998,
+              2.52,
+              3.5,
+              4.8999999999999995
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier",
+          "need.referenceSmoothing"
+        ],
+        "fullConfigHash": "sha256:e21ec75b62a483136d6d20966c8445495edeb3681a81cb237df5a0ad74e18bb0"
+      },
+      {
+        "cellKey": "bufferDays=10",
+        "design": "single",
+        "hypothesis": "持有标尺天数 10（30 为基准）",
+        "overrides": {
+          "need": {
+            "bufferDays": 10
+          }
+        },
+        "changedPaths": [
+          "need.bufferDays"
+        ],
+        "fullConfigHash": "sha256:42b4f529f2d6893b2a4eb9ea4968452957de928a97e0de49396a10da5173d567"
+      },
+      {
+        "cellKey": "bufferDays=60",
+        "design": "single",
+        "hypothesis": "持有标尺天数 60（30 为基准）",
+        "overrides": {
+          "need": {
+            "bufferDays": 60
+          }
+        },
+        "changedPaths": [
+          "need.bufferDays"
+        ],
+        "fullConfigHash": "sha256:6b49e33f2ac13116ca300770076b02b466541f94880c2f9fbc0411e6e76c8602"
+      },
+      {
+        "cellKey": "belowNeedLimit=7",
+        "design": "single",
+        "hypothesis": "跌落判定时长 7（14 为基准）",
+        "overrides": {
+          "need": {
+            "belowNeedLimit": 7
+          }
+        },
+        "changedPaths": [
+          "need.belowNeedLimit"
+        ],
+        "fullConfigHash": "sha256:db8dac1070d87719b9591ec4a1e507278b465829ef17429aa18dfa1bd6706ae4"
+      },
+      {
+        "cellKey": "belowNeedLimit=30",
+        "design": "single",
+        "hypothesis": "跌落判定时长 30（14 为基准）",
+        "overrides": {
+          "need": {
+            "belowNeedLimit": 30
+          }
+        },
+        "changedPaths": [
+          "need.belowNeedLimit"
+        ],
+        "fullConfigHash": "sha256:e4c0f60c58baa805097eff046e6abe2ff31521a258c260ae6b34eb5206bde83a"
+      },
+      {
+        "cellKey": "bufferDays=10+limit=7",
+        "design": "interaction",
+        "hypothesis": "持有标准联合条件（bufferDays=10, limit=7）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "bufferDays": 10,
+            "belowNeedLimit": 7
+          }
+        },
+        "changedPaths": [
+          "need.belowNeedLimit",
+          "need.bufferDays"
+        ],
+        "fullConfigHash": "sha256:1ac86a9ae7dddb4dabd3bf4db06dea01afc058673c03fbf886fbe371ebaa4536"
+      },
+      {
+        "cellKey": "bufferDays=10+limit=30",
+        "design": "interaction",
+        "hypothesis": "持有标准联合条件（bufferDays=10, limit=30）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "bufferDays": 10,
+            "belowNeedLimit": 30
+          }
+        },
+        "changedPaths": [
+          "need.belowNeedLimit",
+          "need.bufferDays"
+        ],
+        "fullConfigHash": "sha256:07b7a757e58a530632d1e1aea6957bdfc61243d7e9bb45894195341fe5947d8e"
+      },
+      {
+        "cellKey": "bufferDays=60+limit=7",
+        "design": "interaction",
+        "hypothesis": "持有标准联合条件（bufferDays=60, limit=7）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "bufferDays": 60,
+            "belowNeedLimit": 7
+          }
+        },
+        "changedPaths": [
+          "need.belowNeedLimit",
+          "need.bufferDays"
+        ],
+        "fullConfigHash": "sha256:b5598cc5a59fd785f6226dacc740d926400a56ce1a28beb0b63d7df4d8d79912"
+      },
+      {
+        "cellKey": "bufferDays=60+limit=30",
+        "design": "interaction",
+        "hypothesis": "持有标准联合条件（bufferDays=60, limit=30）；双变量，不得单轴归因",
+        "overrides": {
+          "need": {
+            "bufferDays": 60,
+            "belowNeedLimit": 30
+          }
+        },
+        "changedPaths": [
+          "need.belowNeedLimit",
+          "need.bufferDays"
+        ],
+        "fullConfigHash": "sha256:b03611f4ad18959a97e01f8034ce66b260ed84553a0657a0f5bf01caa3b64101"
+      },
+      {
+        "cellKey": "needThreshold=0.3",
+        "design": "single",
+        "hypothesis": "需求线判定比例 0.3（0.5 为基准）：检查 P0 是否被托住",
+        "overrides": {
+          "need": {
+            "threshold": 0.3
+          }
+        },
+        "changedPaths": [
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:7405b48e1583bed3b665d870693066ed2468688868c2a67933fb8805aa23f785"
+      },
+      {
+        "cellKey": "needThreshold=0.8",
+        "design": "single",
+        "hypothesis": "需求线判定比例 0.8（0.5 为基准）：检查 P0 是否被托住",
+        "overrides": {
+          "need": {
+            "threshold": 0.8
+          }
+        },
+        "changedPaths": [
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:45d21ad85e04162c7af6264d8b2b57f86b3fd6a05fd9ba6d802023f0ae5d67dc"
       }
     ]
   },
@@ -553,16 +521,16 @@
     "stage": "screen",
     "totalTicks": 400,
     "seeds": [
-      "p15-seed-001"
+      "p15r3-seed-001"
     ],
-    "runCount": 28,
+    "runCount": 26,
     "warmupTicks": 1825
   },
   "clustering": null,
   "cellsByDesign": {
     "baseline": 1,
-    "single": 25,
-    "interaction": 2
+    "single": 17,
+    "interaction": 8
   },
   "cellDistinctness": null,
   "cells": [
@@ -570,37 +538,37 @@
       "cellKey": "baseline",
       "design": "baseline",
       "changedPaths": [],
-      "hypothesis": "默认参数下的基准结构",
+      "hypothesis": "位移准入体制默认参数下的基准结构（预测：底重稳态金字塔）",
       "seeds": [
         {
-          "seed": "p15-seed-001",
-          "elapsedMs": 257,
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 233,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:d224899cfe3c63e13adb99e069b72a3bcc26c2b8c9eba05c3ba812b1455d49f8",
-          "configHash": "sha256:c22b7b881e63d68c3a0aa4fe748b312c6714bcc4b57f0bb1c3202d10a4f5d6a9",
-          "paramsHash": "sha256:13d73afc5e7321592cffff24ab6d014addce91532315c013847099d77a7c2522",
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:1b06f7ccc6ad713860fbbf6b5609f15e608569f95a1f53b6e2df0b09907fa9ac",
+          "configHash": "sha256:0772f0035680355f04e41d64268b641ed8ca00fe57a88469cceabb5a8c4218ca",
+          "paramsHash": "sha256:6e9818371f6ac5cdb65b60f786dba7d3c4c58eaa38872d35a3b2d4728fec259f",
           "w1": {
             "label": "w1",
             "available": false,
             "missingTicks": 695,
             "classShares": [
-              0.07857142857142853,
-              0.39571428571428585,
-              0.4614285714285713,
-              0.06428571428571425,
+              0.5384615384615387,
+              0.35897435897435903,
+              0.07692307692307694,
+              0.025641025641025654,
               0
             ],
-            "gini": 0.4711757820325022,
-            "topWealthShare": 0.31553806700408576,
-            "mUp": 0.9214285714285716,
-            "mDown": 0.41785714285714304,
-            "segregation": 0.20936624684042016,
-            "openness": 0.7196330533478987,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.4891774891774891,
+            "gini": 0.45417784289282964,
+            "topWealthShare": 0.31117703114740736,
+            "mUp": 0.5567765567765568,
+            "mDown": 0.6190476190476192,
+            "segregation": 0.11950392285060495,
+            "openness": 0.5810918409267329,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.5059523809523808,
             "deathRate": 0,
             "networkEmpty": false,
             "labels": [],
@@ -664,42 +632,42 @@
       ]
     },
     {
-      "cellKey": "needMultiplier=flat",
+      "cellKey": "envExponent=0",
       "design": "single",
       "changedPaths": [
-        "need.needMultiplier"
+        "need.envExponent"
       ],
-      "hypothesis": "扁平持有成本削弱阶级分离",
+      "hypothesis": "分离面定位：φ=0 时持有标尺的环境梯度改变（1.0 为基准）",
       "seeds": [
         {
-          "seed": "p15-seed-001",
-          "elapsedMs": 209,
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 215,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:beb4848344c79b6832197bb5cf8b9264c6b45db8747cba1e67f0fd114f99c9b4",
-          "configHash": "sha256:eda6390edca645d890a89782b2109c2fc6847257fae7d0529f0332c463602859",
-          "paramsHash": "sha256:324b70a50c94f2ddf5891988ffb2e19074d6b6178131d5a325c1627770d18e2e",
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:649bd9a9a60f73239efd0073744de082e8895754c12f02a12e166d74a389b2d9",
+          "configHash": "sha256:9006cea431057462a1aa5001e03936cdb3eb287869a08d1f8be13bdbb6db29a9",
+          "paramsHash": "sha256:13c1632e6d1f8e233093737e02395df7e7cc15413e140ec753df2a3660f150ef",
           "w1": {
             "label": "w1",
             "available": false,
             "missingTicks": 695,
             "classShares": [
-              0.2857142857142857,
-              0.18928571428571425,
-              0.24285714285714285,
-              0.22499999999999984,
-              0.05714285714285714
+              0.48717948717948706,
+              0.30769230769230776,
+              0.12820512820512817,
+              0.05128205128205131,
+              0.025641025641025654
             ],
-            "gini": 0.46299577517409063,
-            "topWealthShare": 0.330852826756431,
-            "mUp": 0.7285714285714282,
-            "mDown": 0.4535714285714285,
-            "segregation": 0.12625675719073126,
-            "openness": 0.6634899754629773,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.6715728715728714,
+            "gini": 0.4512260812660189,
+            "topWealthShare": 0.32042562908044864,
+            "mUp": 0.6373626373626377,
+            "mDown": 0.6043956043956045,
+            "segregation": 0.18578749103997308,
+            "openness": 0.6194989650003259,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.5278195488721801,
             "deathRate": 0,
             "networkEmpty": false,
             "labels": [],
@@ -763,42 +731,2129 @@
       ]
     },
     {
-      "cellKey": "needMultiplier=steeper",
+      "cellKey": "envExponent=0.3",
       "design": "single",
       "changedPaths": [
-        "need.needMultiplier"
+        "need.envExponent"
       ],
-      "hypothesis": "更陡持有成本强化分层",
+      "hypothesis": "分离面定位：φ=0.3 时持有标尺的环境梯度改变（1.0 为基准）",
       "seeds": [
         {
-          "seed": "p15-seed-001",
-          "elapsedMs": 188,
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 193,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:c928a68d808b202d9f55aee3e71e097d3bd71bd373d9f69255fd5dd2e6986e69",
-          "configHash": "sha256:0ecbbc85a1652dee9e83bbacfe34d391a4aea9fdd017c3052c00cde0eb031392",
-          "paramsHash": "sha256:4a749233e18e837a413db69c6a3f96ac82a0f85206603128b961697d7cb5bc7e",
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:3c8f2458c59b99b91767f6c6c25b17d02cabd37e568ddc2ba5ddb8a502bc5287",
+          "configHash": "sha256:a659e61c0851ac551b1ececf15d8ea81b4525a15e38c84170af8f6ae86a8dbc2",
+          "paramsHash": "sha256:d102a22bc5fdc6ac16d887ecd82765779cb621bee2f670a46cdf310b2b739098",
           "w1": {
             "label": "w1",
             "available": false,
             "missingTicks": 695,
             "classShares": [
-              0.10357142857142865,
-              0.4000000000000002,
-              0.4785714285714286,
-              0.017857142857142863,
+              0.48717948717948706,
+              0.3333333333333334,
+              0.13919413919413912,
+              0.018315018315018323,
+              0.02197802197802199
+            ],
+            "gini": 0.439988015722926,
+            "topWealthShare": 0.3268105826395877,
+            "mUp": 0.6410256410256412,
+            "mDown": 0.5860805860805862,
+            "segregation": 0.2243155383089852,
+            "openness": 0.5691920443581115,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.4893617021276596,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
               0
             ],
-            "gini": 0.4644614171566434,
-            "topWealthShare": 0.331022804827972,
-            "mUp": 0.8964285714285715,
-            "mDown": 0.39571428571428563,
-            "segregation": 0.12321436024494758,
-            "openness": 0.7291916988132866,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5252525252525251,
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "envExponent=0.5",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
+      "hypothesis": "分离面定位：φ=0.5 时持有标尺的环境梯度改变（1.0 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 191,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:2d89a7d680d8253c140f35217b46f4e01100c58c9fa9b37f4e6d19c5706ea299",
+          "configHash": "sha256:90726a47ea9e699a40da71d491d4e1bd7cb825134c2d3fe51d967817ae1afc33",
+          "paramsHash": "sha256:1ee9a9286bf15027c8b092f951272ff091d663fd29b664165353c41757ec5280",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5128205128205127,
+              0.30769230769230776,
+              0.15384615384615388,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.47253397081574844,
+            "topWealthShare": 0.35248131842147484,
+            "mUp": 0.5311355311355312,
+            "mDown": 0.5787545787545788,
+            "segregation": 0.14669372049408275,
+            "openness": 0.5108538817563066,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.5273556231003038,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "envExponent=0.7",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
+      "hypothesis": "分离面定位：φ=0.7 时持有标尺的环境梯度改变（1.0 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 182,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:fa2d71f43bec0cff5fa10abea68fc68bf157df353312b9d9a668ed5ff8d99f6a",
+          "configHash": "sha256:e0943ab598952f6f2c4876d1774f0294eab603e8dd5ed1ec948d03cf7fdd756e",
+          "paramsHash": "sha256:0fd1778d0486e7478a53c0767d1f365fae1a375675f2dc243e26df86922532c6",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5384615384615387,
+              0.30769230769230776,
+              0.12820512820512817,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.4647962539624801,
+            "topWealthShare": 0.33697193303134626,
+            "mUp": 0.5567765567765568,
+            "mDown": 0.6336996336996338,
+            "segregation": 0.16554242749731476,
+            "openness": 0.5724832229838892,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.4992481203007518,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "envExponent=1.2",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
+      "hypothesis": "分离面定位：φ=1.2 时持有标尺的环境梯度改变（1.0 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 174,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:601a0dd6d28ecc2a8e8e29baa98478c141ea9d11dfab4060694b19c8944dd152",
+          "configHash": "sha256:dc73ff9509c4f1195cdc43ad376b41f820806acc1803087725e00c91021db13a",
+          "paramsHash": "sha256:6e8e0e5a0e2352ab94b9e9ee65eb02e410d7821582437a43db982fbfad2c87f9",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5384615384615387,
+              0.38461538461538486,
+              0.07692307692307694,
+              0,
+              0
+            ],
+            "gini": 0.42890282669726576,
+            "topWealthShare": 0.3030304670162209,
+            "mUp": 0.4688644688644689,
+            "mDown": 0.5714285714285715,
+            "segregation": 0.010239428358129382,
+            "openness": 0.626669297952965,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.5488721804511276,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "envExponent=1.5",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
+      "hypothesis": "分离面定位：φ=1.5 时持有标尺的环境梯度改变（1.0 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 173,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:a853829b3896f5642dc9ea30781d85249cd757bdbdb6e34b726aaa9a4b2f2391",
+          "configHash": "sha256:082ab9406823ab4510923e5178544293ead80f7c7d7924c6e9dc2369e4aa5b2a",
+          "paramsHash": "sha256:85408d3d8a5e771ceb5f204d2aff59dec5c4cb77237bb818c5d0c4bb900459f4",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5641025641025642,
+              0.35897435897435903,
+              0.07692307692307694,
+              0,
+              0
+            ],
+            "gini": 0.45152130797908535,
+            "topWealthShare": 0.28106500163960496,
+            "mUp": 0.2161172161172161,
+            "mDown": 0.43589743589743607,
+            "segregation": 0.11858258928571426,
+            "openness": 0.30053874433007743,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.48214285714285715,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "envExponent=2",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
+      "hypothesis": "分离面定位：φ=2 时持有标尺的环境梯度改变（1.0 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 172,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:93aa977ccc3e90df59184c852758fe6b7e9bf0132757b617dbe3dcff95595b9f",
+          "configHash": "sha256:64c68f22c3ff5cc38c618d419ea664003ab6ac6b8afaa2f95572d8fcab310959",
+          "paramsHash": "sha256:55aef171cb16b2bb08f19a7776d7440fe5b5a3e4cefe498853fabe7b6383659d",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5641025641025642,
+              0.41025641025641046,
+              0.025641025641025654,
+              0,
+              0
+            ],
+            "gini": 0.4227968384518742,
+            "topWealthShare": 0.30011573045078016,
+            "mUp": 0.13919413919413917,
+            "mDown": 0.44322344322344337,
+            "segregation": 0.2581203007518797,
+            "openness": 0.21404806277985217,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.3804511278195488,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "referenceSmoothing=0.05",
+      "design": "single",
+      "changedPaths": [
+        "need.referenceSmoothing"
+      ],
+      "hypothesis": "参照强度：α=0.05 时 refIncome 跟随速度改变（0.2 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 173,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:4ab47dc58196c2135cd60b1abb6aadc914bee43ddbb6c281b1f1171792f77bd8",
+          "configHash": "sha256:49ca66c7a5567263a65285eb405aca0567f50a1479ab4d4a1ee27e7e09187442",
+          "paramsHash": "sha256:2accb1b559cbf9d6566eba18012eec480515add7dbe9900892c647b4435b0041",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5384615384615387,
+              0.35897435897435903,
+              0.07692307692307694,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.4570148616479924,
+            "topWealthShare": 0.3147096071067072,
+            "mUp": 0.5567765567765568,
+            "mDown": 0.6190476190476192,
+            "segregation": 0.11950392285060495,
+            "openness": 0.5849824195968072,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.5059523809523808,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "referenceSmoothing=0.6",
+      "design": "single",
+      "changedPaths": [
+        "need.referenceSmoothing"
+      ],
+      "hypothesis": "参照强度：α=0.6 时 refIncome 跟随速度改变（0.2 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 164,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:7dba10aad12d0137e750647fce740724f34651cf9cb535fa912a7827e01c4cdc",
+          "configHash": "sha256:ae27b085ab3c40e821f81580bca58995fdc81c196ec985b352707393903d4c9e",
+          "paramsHash": "sha256:f46256a66a1f091eeb2aa39df602dd403c20886aa559f3ebd734b60cc1e1237a",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5384615384615387,
+              0.35897435897435903,
+              0.07692307692307694,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.45409649456551576,
+            "topWealthShare": 0.3111322804015638,
+            "mUp": 0.5567765567765568,
+            "mDown": 0.6190476190476192,
+            "segregation": 0.11950392285060495,
+            "openness": 0.5811370729798037,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.5059523809523808,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "needMultiplier×0.7",
+      "design": "single",
+      "changedPaths": [
+        "need.needMultiplier"
+      ],
+      "hypothesis": "ψ 尺度 ×0.7：持有标尺整体抬升/压低（1.0 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 168,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:1c766d85b6255f2be92cf92bf50b701a8804801c2e3673ef5f1c3a6b443fc20d",
+          "configHash": "sha256:07823702cf423579a647c806a501f747dc225bbb9892ab7b5ac13b4ff26285dc",
+          "paramsHash": "sha256:790993ad5dab086537e40d56d1b400f37ed7bc5aa5548d03d0e0bcedcf24e8d2",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.48717948717948706,
+              0.35897435897435903,
+              0.12820512820512817,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.419113768059121,
+            "topWealthShare": 0.2996253618937371,
+            "mUp": 0.5128205128205129,
+            "mDown": 0.49816849816849823,
+            "segregation": 0.13994562575744807,
+            "openness": 0.5857922287601883,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.5303951367781151,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "needMultiplier×1.4",
+      "design": "single",
+      "changedPaths": [
+        "need.needMultiplier"
+      ],
+      "hypothesis": "ψ 尺度 ×1.4：持有标尺整体抬升/压低（1.0 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 163,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:de350217d40d850455f4919ced9f4b09d6236805cf8fd96fa196cda485dafe03",
+          "configHash": "sha256:8b96b85f72dca8e84be5a6924252e4f570804edcb80c79a4626ebe909cae0cdc",
+          "paramsHash": "sha256:c8c9bf19172afa6872ccf3103604f8fb2a5479a36843d71c9b90ee4ddfa98d11",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5641025641025642,
+              0.35897435897435903,
+              0.07692307692307694,
+              0,
+              0
+            ],
+            "gini": 0.43840677825216023,
+            "topWealthShare": 0.2867325810615211,
+            "mUp": 0.16117216117216118,
+            "mDown": 0.41025641025641046,
+            "segregation": 0.12402343749999997,
+            "openness": 0.3559346368264308,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.4791666666666665,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "alpha=0.05+psi×0.7",
+      "design": "interaction",
+      "changedPaths": [
+        "need.needMultiplier",
+        "need.referenceSmoothing"
+      ],
+      "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.05, ×0.7）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 172,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:c62c3b55fe973aed191235193ee47537132aedbfa19c33c5d40686f23d93a9b3",
+          "configHash": "sha256:75c507f7807c4344124b9547925d73f998ec126059d05064f65edafddb709934",
+          "paramsHash": "sha256:1f1f9c9452a0fc19d0d663416e52b7b03e319697af5e823f828600360b2b9f58",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.48717948717948706,
+              0.3333333333333334,
+              0.15384615384615388,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.4514994812247394,
+            "topWealthShare": 0.3188995143971145,
+            "mUp": 0.5054945054945056,
+            "mDown": 0.523809523809524,
+            "segregation": 0.2004071801341973,
+            "openness": 0.5123598640843935,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.5015197568389058,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "alpha=0.05+psi×1.4",
+      "design": "interaction",
+      "changedPaths": [
+        "need.needMultiplier",
+        "need.referenceSmoothing"
+      ],
+      "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.05, ×1.4）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 170,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:b213c97548ded03eb13b48e184ee85eabbc83dbc2d6fd2152902ae367a421959",
+          "configHash": "sha256:02ebaad493f239b73014eb7f4a3d8fee089273d2b3c07693d49fdc07a3205a43",
+          "paramsHash": "sha256:ac40d4d092146e3899e93e6ecd1e5fe17ebf03eff30694db05c8154ea904a31d",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5641025641025642,
+              0.35897435897435903,
+              0.07692307692307694,
+              0,
+              0
+            ],
+            "gini": 0.41730548193577,
+            "topWealthShare": 0.2554534399039364,
+            "mUp": 0.18681318681318687,
+            "mDown": 0.4835164835164834,
+            "segregation": 0.14034598214285712,
+            "openness": 0.3344823141305372,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.4702380952380953,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "alpha=0.6+psi×0.7",
+      "design": "interaction",
+      "changedPaths": [
+        "need.needMultiplier",
+        "need.referenceSmoothing"
+      ],
+      "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.6, ×0.7）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 164,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:a834f15663a728a454f60b58c55ebfee7e025a985e8392ba8db751bce348b352",
+          "configHash": "sha256:8ef98a4d3e40aae973802919ee845475c50630009e25d7c1015d8205dfd85491",
+          "paramsHash": "sha256:794a042e667ed1c0ec97fc5e8427eb3f9064a43c24821de2f5fd56572d0d22ee",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.48717948717948706,
+              0.35897435897435903,
+              0.12820512820512817,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.41526419702221457,
+            "topWealthShare": 0.30003401920770106,
+            "mUp": 0.5201465201465202,
+            "mDown": 0.5128205128205129,
+            "segregation": 0.14980298248229115,
+            "openness": 0.5852505426601086,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.5243161094224922,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "alpha=0.6+psi×1.4",
+      "design": "interaction",
+      "changedPaths": [
+        "need.needMultiplier",
+        "need.referenceSmoothing"
+      ],
+      "hypothesis": "参照强度 × ψ 尺度联合条件（α=0.6, ×1.4）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 157,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:6dda7a1e45765a6d96812b6790dc2641c075d238596da5d76f897e90f2e3139a",
+          "configHash": "sha256:4c72e01c59bbcb0c2f60f605e0573154351fcab6601d2c5696e69c7e65b39af0",
+          "paramsHash": "sha256:5aaa5685fdde5f3fbdef442d2cc48861eb5f107f53520a89a79410cf9f13a719",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5641025641025642,
+              0.35897435897435903,
+              0.07692307692307694,
+              0,
+              0
+            ],
+            "gini": 0.43843566718069715,
+            "topWealthShare": 0.2867958736845819,
+            "mUp": 0.16117216117216118,
+            "mDown": 0.41025641025641046,
+            "segregation": 0.12402343749999997,
+            "openness": 0.35589240726540994,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.4791666666666665,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "bufferDays=10",
+      "design": "single",
+      "changedPaths": [
+        "need.bufferDays"
+      ],
+      "hypothesis": "持有标尺天数 10（30 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 167,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:2a0db6532add66c5bba038e3cde1527064c6c0c5a5cbccb8fcfb2d2469d9a4b5",
+          "configHash": "sha256:69348e85c74db33ecc00d84077f43b698c70ab6da1551999bcb330af0419b486",
+          "paramsHash": "sha256:c07bdf785b9b58e6b2290c24f4e902ecf04ff2df91d0a9b89c2a6e52509002a1",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.4615384615384616,
+              0.2820512820512821,
+              0.17948717948717952,
+              0.07692307692307694,
+              0
+            ],
+            "gini": 0.4510616542617376,
+            "topWealthShare": 0.3135038975510667,
+            "mUp": 0.4322344322344323,
+            "mDown": 0.4432234432234433,
+            "segregation": 0.19291590653943314,
+            "openness": 0.5038473933946089,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.5401785714285717,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "bufferDays=60",
+      "design": "single",
+      "changedPaths": [
+        "need.bufferDays"
+      ],
+      "hypothesis": "持有标尺天数 60（30 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 185,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:2954d817851fd2e9b4025d6e71850d49ff7c847409e63f676e60504f0a3c4e7a",
+          "configHash": "sha256:3f8f39fdb50db68b78bb38fd5eae6839bdd90d8464eaefb44109c81e85563880",
+          "paramsHash": "sha256:7cceab8c65c61c6a3893ba72cfd7ecabe39f0476c55d9dc6aec96471cac17725",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.7179487179487181,
+              0.25641025641025633,
+              0.025641025641025654,
+              0,
+              0
+            ],
+            "gini": 0.4097564834821975,
+            "topWealthShare": 0.27722754140666644,
+            "mUp": 0.4871794871794873,
+            "mDown": 0.6666666666666669,
+            "segregation": 0.02304989092694962,
+            "openness": 0.5663068560672415,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.4092261904761905,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "belowNeedLimit=7",
+      "design": "single",
+      "changedPaths": [
+        "need.belowNeedLimit"
+      ],
+      "hypothesis": "跌落判定时长 7（14 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 167,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:a6d782afe3133664463de1fe2ad5788e4ac69671cfc774f3b68a13ce051a1278",
+          "configHash": "sha256:45e16784919ab7fb77ca2f175ff5b244fe2a0f0fb3b7fcf5ee466177cecd29a8",
+          "paramsHash": "sha256:264ad55b14637ee76b769b539e392f5afab2b969d1688d4b82c838f567b99970",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5641025641025642,
+              0.35897435897435903,
+              0.07692307692307694,
+              0,
+              0
+            ],
+            "gini": 0.4463159158577123,
+            "topWealthShare": 0.3252468841047869,
+            "mUp": 0.5677655677655679,
+            "mDown": 0.5824175824175826,
+            "segregation": 0.12205547112462001,
+            "openness": 0.5821520537128446,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.4802431610942249,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "belowNeedLimit=30",
+      "design": "single",
+      "changedPaths": [
+        "need.belowNeedLimit"
+      ],
+      "hypothesis": "跌落判定时长 30（14 为基准）",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 156,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:9660b3b1580e9516c168e80bb0568bc9c39e9350126d4595e77fe053aed27d39",
+          "configHash": "sha256:d28093bb1ad7e98d8fd790f1f60606c062a73a31d4d8d28a19857d82d81ef66a",
+          "paramsHash": "sha256:50622ddacd5377a3b27bc01dc621cb8f3f357ba1d1339482300c095fc5a41dc8",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.48717948717948706,
+              0.38461538461538486,
+              0.10622710622710628,
+              0.02197802197802199,
+              0
+            ],
+            "gini": 0.43145691234676603,
+            "topWealthShare": 0.3145127319985862,
+            "mUp": 0.42124542124542136,
+            "mDown": 0.5421245421245422,
+            "segregation": 0.09697352625260634,
+            "openness": 0.5497271628915539,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.544360902255639,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "bufferDays=10+limit=7",
+      "design": "interaction",
+      "changedPaths": [
+        "need.belowNeedLimit",
+        "need.bufferDays"
+      ],
+      "hypothesis": "持有标准联合条件（bufferDays=10, limit=7）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 163,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:fa4873856c30a8909b59abce03bd0586777ee4f5abb7ee74f2ae821dc1625919",
+          "configHash": "sha256:2cad6a589b1bd8e81d2331b1e746a373814cce8edce40a8f9b49da14533bcff5",
+          "paramsHash": "sha256:6daf2182daf0cb974c6b43a345d1d401b6307d29cfe6b807ba6cbe5b02d76823",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.4615384615384616,
+              0.2820512820512821,
+              0.17948717948717952,
+              0.07692307692307694,
+              0
+            ],
+            "gini": 0.4512541066467891,
+            "topWealthShare": 0.31392014278738983,
+            "mUp": 0.4322344322344323,
+            "mDown": 0.4432234432234433,
+            "segregation": 0.19291590653943314,
+            "openness": 0.5036467836112435,
+            "edgeCountAverage": 96,
+            "crossClassEdgeShare": 0.5401785714285717,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "bufferDays=10+limit=30",
+      "design": "interaction",
+      "changedPaths": [
+        "need.belowNeedLimit",
+        "need.bufferDays"
+      ],
+      "hypothesis": "持有标准联合条件（bufferDays=10, limit=30）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 162,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:fe4db19886a231af320f8b9f941d35bb62011bdd1ebd5dcc36cb7c333cf46ad3",
+          "configHash": "sha256:06cafeb0ac8931a2806326b8e09ac9166409cf99c73db726ac11ae2c5e2c28ce",
+          "paramsHash": "sha256:b57695554f0ec86ce14077fc9c23320aae5c806148e19c808acd239196e1afbf",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.43589743589743607,
+              0.30769230769230776,
+              0.17948717948717952,
+              0.07692307692307694,
+              0
+            ],
+            "gini": 0.46643664869235396,
+            "topWealthShare": 0.3198001298601483,
+            "mUp": 0.5531135531135531,
+            "mDown": 0.5934065934065935,
+            "segregation": 0.13174538287466234,
+            "openness": 0.5228940058286605,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.5879699248120296,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "bufferDays=60+limit=7",
+      "design": "interaction",
+      "changedPaths": [
+        "need.belowNeedLimit",
+        "need.bufferDays"
+      ],
+      "hypothesis": "持有标准联合条件（bufferDays=60, limit=7）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 163,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:4b643d78c5819b092e1adf12ef563ad523a92dca84b3f38efc599464138b721b",
+          "configHash": "sha256:2511ac506dc675a08c0cf6fb0b4809d6f6566c8fd54aea9d01f0934e3f6e869e",
+          "paramsHash": "sha256:8b8d28523beae6c5de25c5aa0d6880588d514601be1d1e7e52ba9e7ae91b67ce",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.7692307692307697,
+              0.20512820512820523,
+              0.025641025641025654,
+              0,
+              0
+            ],
+            "gini": 0.41104346685366994,
+            "topWealthShare": 0.30347726570969114,
+            "mUp": 0.5018315018315018,
+            "mDown": 0.6666666666666669,
+            "segregation": -0.04939472100686374,
+            "openness": 0.6801853647948845,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.3984962406015039,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "bufferDays=60+limit=30",
+      "design": "interaction",
+      "changedPaths": [
+        "need.belowNeedLimit",
+        "need.bufferDays"
+      ],
+      "hypothesis": "持有标准联合条件（bufferDays=60, limit=30）；双变量，不得单轴归因",
+      "seeds": [
+        {
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 157,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:8ec42bd1f5a03b696213c83e854012ad1d9203f7c6abe37b63a00b7e4638d886",
+          "configHash": "sha256:417a2f15224e958053d1718ba41e40de590f3d819eab908df29a812dd78c4443",
+          "paramsHash": "sha256:eb536d65efddab7c6caca49e9d40097fb43e6f2239158a1e38aed6a0fa411629",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.6923076923076925,
+              0.25641025641025633,
+              0.043956043956043946,
+              0.007326007326007325,
+              0
+            ],
+            "gini": 0.4568802241075172,
+            "topWealthShare": 0.33548037966565547,
+            "mUp": 0.27472527472527475,
+            "mDown": 0.5604395604395606,
+            "segregation": 0.09313962991401663,
+            "openness": 0.34839881007994367,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.41052631578947385,
             "deathRate": 0,
             "networkEmpty": false,
             "labels": [],
@@ -867,37 +2922,37 @@
       "changedPaths": [
         "need.threshold"
       ],
-      "hypothesis": "宽松需求线减少被动跌落",
+      "hypothesis": "需求线判定比例 0.3（0.5 为基准）：检查 P0 是否被托住",
       "seeds": [
         {
-          "seed": "p15-seed-001",
-          "elapsedMs": 200,
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 155,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:7ca27a93ea64b15bcd46e019c40c4c1d2ec94de0f3017ca3b8cad219fde7fae8",
-          "configHash": "sha256:83d72694bc8739bddfb57b8aad1024afb20d0f73760e042a87d8c98d85236029",
-          "paramsHash": "sha256:352f149c00c4e7acdc3691ab488eb5f348b10953ddc8a37ed0e68402852422de",
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:253a3714ddf6c6e97b23f5c2260aa72dd77d0c7ebbaced6f3daf0262e87f3bf9",
+          "configHash": "sha256:23e0af7ddaec8aeed09834ba6ce75da6d0658b5ed56c1caba9efe9ddc0f41bf2",
+          "paramsHash": "sha256:48687dd84d528959d05f4905b3ae35440bc79986d34ce896ffd65fd7940a366b",
           "w1": {
             "label": "w1",
             "available": false,
             "missingTicks": 695,
             "classShares": [
-              0.18928571428571447,
-              0.23571428571428577,
-              0.4785714285714286,
-              0.09642857142857147,
+              0.48717948717948706,
+              0.3333333333333334,
+              0.15384615384615388,
+              0.025641025641025654,
               0
             ],
-            "gini": 0.4839917330488926,
-            "topWealthShare": 0.3287884967980739,
-            "mUp": 0.7857142857142855,
-            "mDown": 0.3871428571428573,
-            "segregation": 0.11055798807996896,
-            "openness": 0.6202827621153997,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5945165945165944,
+            "gini": 0.44623908605707274,
+            "topWealthShare": 0.3271045696173298,
+            "mUp": 0.4871794871794873,
+            "mDown": 0.5494505494505495,
+            "segregation": 0.04533463325113267,
+            "openness": 0.564797406633124,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.5987841945288753,
             "deathRate": 0,
             "networkEmpty": false,
             "labels": [],
@@ -961,2322 +3016,43 @@
       ]
     },
     {
-      "cellKey": "needThreshold=0.9",
+      "cellKey": "needThreshold=0.8",
       "design": "single",
       "changedPaths": [
         "need.threshold"
       ],
-      "hypothesis": "严格需求线加剧跌落",
+      "hypothesis": "需求线判定比例 0.8（0.5 为基准）：检查 P0 是否被托住",
       "seeds": [
         {
-          "seed": "p15-seed-001",
-          "elapsedMs": 190,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:53874005991b650e16768aa422e72be2af6a586abb9374e0bab9ab527fccb36a",
-          "configHash": "sha256:cab55dcdc372b739bb561d8ac4904f4cafcddf89bd8afbf32740a52a8801addc",
-          "paramsHash": "sha256:9d864f210b540e5af612aa786504d34caa4fdcdefcd8cc09349bdbd3a44c778b",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.20857142857142846,
-              0.2857142857142857,
-              0.4742857142857144,
-              0.03142857142857143,
-              0
-            ],
-            "gini": 0.4402896984452526,
-            "topWealthShare": 0.30203964356012153,
-            "mUp": 0.9642857142857149,
-            "mDown": 0.730714285714286,
-            "segregation": 0.07692829023820973,
-            "openness": 0.8381643986923715,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5890331890331886,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "env0=compressed",
-      "design": "single",
-      "changedPaths": [
-        "opportunity.env0"
-      ],
-      "hypothesis": "压缩阶级机会差削弱分层",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 201,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:b91434352141473dd688ea4c52fa998d098b07d84e87580472769b638695ca5f",
-          "configHash": "sha256:3ffc40c09a6b3b1a1f531f34d977bf0ff2bca191f7fe45fe8cf32ddffbf0dc65",
-          "paramsHash": "sha256:3382c7066e9aae3f991e2d6c27c3891d6947b97980476580cec90cfd699011c1",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0,
-              0.1192857142857143,
-              0.332142857142857,
-              0.35214285714285715,
-              0.1964285714285713
-            ],
-            "gini": 0.41767813123265973,
-            "topWealthShare": 0.2890981596769621,
-            "mUp": 1,
-            "mDown": 0.41642857142857115,
-            "segregation": 0.10883611231930644,
-            "openness": 0.89250805857603,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.6326118326118328,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "env0=expanded",
-      "design": "single",
-      "changedPaths": [
-        "opportunity.env0"
-      ],
-      "hypothesis": "扩大阶级机会差强化分层",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 187,
+          "seed": "p15r3-seed-001",
+          "elapsedMs": 164,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 39,
-          "finalStateHash": "sha256:8fd50a9078401a3672241bd7f67c7ebfb9febcf3328ba5ee47952a40cd0886df",
-          "configHash": "sha256:3d4c64fc6d6d9ec10d3adef01b14130364b5dbcea312e9e20b045b62686ce0d1",
-          "paramsHash": "sha256:394f13be46b8bd63629ec85eff79a441576d300f2d0d6996dbc468238fa225c6",
+          "finalStateHash": "sha256:91e05a2253789ec955c7e77e12dcbdc5c886f4bc2dbcb80145453c5ee1620248",
+          "configHash": "sha256:5310e0e85c5252eaa2b441e86fcbc70f5cdc8eaf7c853e962fd13562a30bb7c5",
+          "paramsHash": "sha256:6fd7d3e2ed6bc933973958354434f951d87751538137fcf341f8db56521c0ccd",
           "w1": {
             "label": "w1",
             "available": false,
             "missingTicks": 695,
             "classShares": [
-              0.2906959706959709,
-              0.5850915750915752,
-              0.1242124542124542,
-              0,
+              0.5897435897435899,
+              0.3333333333333334,
+              0.06959706959706953,
+              0.007326007326007325,
               0
             ],
-            "gini": 0.4979469384107162,
-            "topWealthShare": 0.34527691400247434,
-            "mUp": 0.5946336996336998,
-            "mDown": 0.41194139194139184,
-            "segregation": -0.01089099492947384,
-            "openness": 0.512019888384917,
-            "edgeCountAverage": 97.8,
-            "crossClassEdgeShare": 0.5610203416655031,
-            "deathRate": 0.0007173601147776184,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
+            "gini": 0.4544943014257619,
+            "topWealthShare": 0.32422130978776875,
+            "mUp": 0.40659340659340676,
+            "mDown": 0.5897435897435899,
+            "segregation": 0.07690582101854787,
+            "openness": 0.48895311363057886,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.4947368421052633,
             "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "ablation:beta=0",
-      "design": "single",
-      "changedPaths": [
-        "networkOpportunity.beta"
-      ],
-      "hypothesis": "无网络机会（消融 β=0）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 202,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:8ea389d6fa5000a8739963771b6223962fe067f7d25014a83f030a4668c9948f",
-          "configHash": "sha256:44d73033f25c2b8dcaf25a7d84824f4808baa1fb5d1abd28a5a6982e894cd1a7",
-          "paramsHash": "sha256:f107ff68da1c15157e3b4b84a64c6332f145214bf7c9cb43e2c63e9331b6abd1",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.07214285714285713,
-              0.33642857142857147,
-              0.5700000000000004,
-              0.02142857142857144,
-              0
-            ],
-            "gini": 0.35689031889930894,
-            "topWealthShare": 0.2480837241345535,
-            "mUp": 1,
-            "mDown": 0.5685714285714284,
-            "segregation": 0.17920868875451196,
-            "openness": 0.9018246062157032,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.4545454545454549,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "ablation:O=fixed",
-      "design": "single",
-      "changedPaths": [
-        "openness.updateMode"
-      ],
-      "hypothesis": "无制度反馈（O 固定，P1-10 开关）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 187,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:669c3073a25d25fdea2e47d31b1651ec2efd7098e51781cdede9873f6f71be6a",
-          "configHash": "sha256:e4d3760bdc143854c8fc12be9a1f416165ab97dddf060d91288964fb68aed327",
-          "paramsHash": "sha256:8ea9561a2b363e67758c69250d9c6bc2457a997d2dfcf35f597df2638f47924e",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.18428571428571422,
-              0.22642857142857128,
-              0.5250000000000004,
-              0.06428571428571425,
-              0
-            ],
-            "gini": 0.46866612540732555,
-            "topWealthShare": 0.3198523021504449,
-            "mUp": 0.8500000000000005,
-            "mDown": 0.5028571428571428,
-            "segregation": 0.12211376955912527,
-            "openness": 0.5,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5567099567099569,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "ablation:eta=0",
-      "design": "single",
-      "changedPaths": [
-        "dynamics.congestionExponent"
-      ],
-      "hypothesis": "无阶级拥挤（消融 η=0）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 173,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:ff6b7d57ef3bc84081af0ac6cbbc042c3ab65e0e163aa72a54e3706e6bf475a1",
-          "configHash": "sha256:96e3fe33b983e21b8b42a00cda3ce880d27dc81ad7434b19ae95eb3d42af466e",
-          "paramsHash": "sha256:5222d7ee3f6dd2d2f5c1d1a3488f9d4cc879a2483b4fb0a903d524105fb20285",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.16071428571428567,
-              0.34785714285714303,
-              0.3535714285714288,
-              0.13785714285714284,
-              0
-            ],
-            "gini": 0.447383850595199,
-            "topWealthShare": 0.2902178306971083,
-            "mUp": 0.8821428571428568,
-            "mDown": 0.4407142857142857,
-            "segregation": 0.20508859632030207,
-            "openness": 0.7553183756968709,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.559307359307359,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "ablation:kappa=0",
-      "design": "single",
-      "changedPaths": [
-        "dynamics.polarizationExponent"
-      ],
-      "hypothesis": "无贫富分化反馈（消融 κ=0）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 185,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:b241522f912d8130da00aa56561c6c607bc10e3a578396eecf6641a615148fbc",
-          "configHash": "sha256:d9ba7991067d164e19dc571ebb3bef0f14e855321a727cee35e83ae8de7a621c",
-          "paramsHash": "sha256:230379597d8ccd0aeb94d99c92c835d0e26cd22d8117fea160dafc2873d6a9cf",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.10357142857142865,
-              0.29642857142857143,
-              0.47857142857142837,
-              0.12142857142857143,
-              0
-            ],
-            "gini": 0.4596430212494377,
-            "topWealthShare": 0.3148263973702557,
-            "mUp": 0.9214285714285716,
-            "mDown": 0.4235714285714286,
-            "segregation": 0.09376911467805607,
-            "openness": 0.7782846263592045,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5945165945165947,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "ablation:psi=1",
-      "design": "single",
-      "changedPaths": [
-        "need.needMultiplier"
-      ],
-      "hypothesis": "无阶级持有成本（消融 ψ=1，预期顶层塌缩）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 180,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:cd20d48479555f32362bd3becedcdada97d4ccca03aa3a6af1b0e77473af5f5e",
-          "configHash": "sha256:1666f28e1f9194dd03fa4c793695ad741f1ca24e463e294c97c949db7772c065",
-          "paramsHash": "sha256:b442944d6539e43d43dd9cac55876ee5af28ababdd03287ce80fc9329e9b94c3",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.1428571428571428,
-              0.17928571428571427,
-              0.27071428571428574,
-              0.10357142857142863,
-              0.30357142857142844
-            ],
-            "gini": 0.5059385988564323,
-            "topWealthShare": 0.351003762095253,
-            "mUp": 0.8571428571428572,
-            "mDown": 0.30357142857142855,
-            "segregation": 0.21158850903967394,
-            "openness": 0.6717789419836643,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.6063492063492062,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "initialShares=bottom-heavy",
-      "design": "single",
-      "changedPaths": [
-        "population.classShares"
-      ],
-      "hypothesis": "底层更重的初始分布",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 188,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:0136faf46877ed855f441ba4c535bbf164b3de67667ece6aa5c0e86b78d2a69a",
-          "configHash": "sha256:ff1517dee370ebba1bd91ea9eb5c4a1c9777a45aa6a3f5f024505a2983d830e2",
-          "paramsHash": "sha256:5f7f4bd19d813350b1ae8275ff131200ec11cd541908700967a628523eaaa932",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.10500000000000004,
-              0.2807142857142858,
-              0.5642857142857147,
-              0,
-              0.050000000000000024
-            ],
-            "gini": 0.4300425757133022,
-            "topWealthShare": 0.2737357308634912,
-            "mUp": 0.9499999999999996,
-            "mDown": 0.3678571428571428,
-            "segregation": 0.06961683749093006,
-            "openness": 0.8250611547133168,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5468975468975469,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "initialShares=middle-heavy",
-      "design": "single",
-      "changedPaths": [
-        "population.classShares"
-      ],
-      "hypothesis": "中层更重的初始分布",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 174,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 39,
-          "finalStateHash": "sha256:3122816b581bc1cc239d64d18fca8c63db46a69b955321cb86420cf92c07d4af",
-          "configHash": "sha256:f6abc4dc5ab4f65fbc60e0d071d9d4b42d85cc1ace30c7f6bcc703c6e93a0df9",
-          "paramsHash": "sha256:20b51cc5acc1ea1ab81912118805479efc8c976d9e6baf2117075ac336cb5ab0",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.32402930402930424,
-              0.2684798534798533,
-              0.217032967032967,
-              0.19045787545787554,
-              0
-            ],
-            "gini": 0.5214418118287885,
-            "topWealthShare": 0.30992898973647476,
-            "mUp": 0.7128205128205128,
-            "mDown": 0.6365567765567767,
-            "segregation": 0.23440969601339254,
-            "openness": 0.48389892239471705,
-            "edgeCountAverage": 98.62857142857143,
-            "crossClassEdgeShare": 0.5650395136778112,
-            "deathRate": 0.0007178750897343862,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "lambdaO=0",
-      "design": "single",
-      "changedPaths": [
-        "openness.ascentCostWeight"
-      ],
-      "hypothesis": "开放度不影响跨越成本",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 185,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:d91c1f1f8525071c5e57d41c99206bde0f7746f7a29448789cc83b8aae6d3028",
-          "configHash": "sha256:1e4374bccc2b9223f16b85d9beb46625844ebdedba8901e95139b4d1a06e9f95",
-          "paramsHash": "sha256:999a0bdb0aea3a7eb8a24f7f50d5cbfd20e524979a6752a35a5adfc0d6c1ffbc",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.20500000000000002,
-              0.19285714285714287,
-              0.5342857142857141,
-              0.06785714285714281,
-              0
-            ],
-            "gini": 0.4577983474384058,
-            "topWealthShare": 0.3157947469485342,
-            "mUp": 0.8249999999999995,
-            "mDown": 0.45285714285714274,
-            "segregation": 0.08326521366100595,
-            "openness": 0.7875539981797631,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5774891774891776,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "rewireProb=0.2",
-      "design": "single",
-      "changedPaths": [
-        "network.rewireProb"
-      ],
-      "hypothesis": "更高网络流动",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 199,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:a48f7560ce33d98853e660221b9d625aad8fb19a306f4f5820b7579a7bbda3be",
-          "configHash": "sha256:4d972ffe557541773d974846f2c61f5a5a6ae2d9a4ee5bf84cdd097ca1eae73e",
-          "paramsHash": "sha256:c8779586df9a9781e1203f37bc311cb618f11e5107d1549214bfba3f895e21a2",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.045714285714285735,
-              0.33999999999999986,
-              0.5392857142857144,
-              0.07500000000000002,
-              0
-            ],
-            "gini": 0.4610690519008288,
-            "topWealthShare": 0.310024408243311,
-            "mUp": 0.9821428571428573,
-            "mDown": 0.44714285714285706,
-            "segregation": 0.08520368119402745,
-            "openness": 0.7967564246531994,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5284271284271284,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:envExponent=0",
-      "design": "single",
-      "changedPaths": [
-        "need.envExponent"
-      ],
-      "hypothesis": "φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 183,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:31912fa78d20f33a599ae2da9e308ad96c5301a7941a9e1ac3b6aa2a7c54cac7",
-          "configHash": "sha256:98e063afa7e0341b3dd44e010eb1893bf547110223792a64cfd33c86ce174557",
-          "paramsHash": "sha256:ccbd228d21be18e8632233d61dbaa0f8316e30b963a7f6074f6b0595f9e76d79",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.019285714285714295,
-              0.33071428571428585,
-              0.10000000000000005,
-              0.1928571428571429,
-              0.35714285714285726
-            ],
-            "gini": 0.5082249979510968,
-            "topWealthShare": 0.34293602495461634,
-            "mUp": 1,
-            "mDown": 0.26071428571428584,
-            "segregation": 0.1979830862393628,
-            "openness": 0.7289328088811267,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5711399711399706,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:envExponent=0.5",
-      "design": "single",
-      "changedPaths": [
-        "need.envExponent"
-      ],
-      "hypothesis": "弱环境持有成本",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 179,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:b797d441a1b7603e7a4aed708eca8c3ce5528f7db473bff83d961115f21f1387",
-          "configHash": "sha256:dcbd70f9b87bb9d61fa944530d75cffa54f084fad193a63c037a5ca1931c05ad",
-          "paramsHash": "sha256:b617eb3a62c666d62755c95cf4eb2b8f792a9fdb5ae45890710947c035c23a28",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.17857142857142863,
-              0.20357142857142843,
-              0.25,
-              0.3428571428571428,
-              0.025000000000000012
-            ],
-            "gini": 0.4799955356763367,
-            "topWealthShare": 0.31903302678387135,
-            "mUp": 0.8214285714285716,
-            "mDown": 0.3414285714285715,
-            "segregation": 0.13874507482556356,
-            "openness": 0.6960933464582967,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.6406926406926405,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:envExponent=1.5",
-      "design": "single",
-      "changedPaths": [
-        "need.envExponent"
-      ],
-      "hypothesis": "强环境持有成本",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 180,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 39,
-          "finalStateHash": "sha256:db4f93ae6c6c9938b0b039be05562a8f14450f8ee22c3272916ecd1ddb2c5df9",
-          "configHash": "sha256:ee025906aeb91007f598eecf32e764535197048afe7fdc6f99bf43124d51446b",
-          "paramsHash": "sha256:bbe8739ffa75f9d2d54d6b374088777815e077b73ea3070f9424e1b9ea831098",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.09435897435897442,
-              0.6004212454212454,
-              0.3052197802197801,
-              0,
-              0
-            ],
-            "gini": 0.43654855552576005,
-            "topWealthShare": 0.2966899255332891,
-            "mUp": 0.9213919413919415,
-            "mDown": 0.4738827838827838,
-            "segregation": 0.11820798091752062,
-            "openness": 0.751919813596473,
-            "edgeCountAverage": 98.85714285714286,
-            "crossClassEdgeShare": 0.4722943722943721,
-            "deathRate": 0.0007142857142857143,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:thetaM=8",
-      "design": "single",
-      "changedPaths": [
-        "openness.mobilityWeight"
-      ],
-      "hypothesis": "v3 值 θM=8 对照（预期 O 钉在高位）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 183,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:a3ac62bbda77f8f0d20c794a73bbca133d506afea85894b7cb81eb14f9966e18",
-          "configHash": "sha256:b566d766744a70f8260083c6693861d7ee8286a59d42027fb45ec66d1a74c061",
-          "paramsHash": "sha256:c7869d0ec9a4928f25c3166398dc8c8664c28c1b28dbe491208cc9781e0edeae",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.057142857142857155,
-              0.33571428571428574,
-              0.5428571428571429,
-              0.06428571428571425,
-              0
-            ],
-            "gini": 0.4775785826172038,
-            "topWealthShare": 0.3301191082840324,
-            "mUp": 0.9642857142857149,
-            "mDown": 0.4085714285714287,
-            "segregation": 0.09280718352350445,
-            "openness": 0.9269492408276789,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5238095238095241,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:geMedian=0.8",
-      "design": "single",
-      "changedPaths": [
-        "attributes.ge.median"
-      ],
-      "hypothesis": "中位生产力轻度低于持有标准（G 上升、O 下降）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 180,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:67d4cfe9fec82fb76cc252f7d6f0ceed6a26504fbf224d9d1b593053112ab6c5",
-          "configHash": "sha256:8e03bff0902f47c3b55f57f48f68198f664397b568394867539ae0a840475beb",
-          "paramsHash": "sha256:64436c0ffbf2f049e204ea76c945c17248aa206d60996f00eddd4f42436c2d76",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.24642857142857133,
-              0.3107142857142858,
-              0.4178571428571428,
-              0.025000000000000012,
-              0
-            ],
-            "gini": 0.4837790691960665,
-            "topWealthShare": 0.32306511496344303,
-            "mUp": 0.7535714285714281,
-            "mDown": 0.39499999999999985,
-            "segregation": 0.1949275422889381,
-            "openness": 0.6093787509179297,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5353535353535352,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:geMedian=0.7",
-      "design": "single",
-      "changedPaths": [
-        "attributes.ge.median"
-      ],
-      "hypothesis": "中位生产力进一步下降（中间层重心、高 G）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 185,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:177b5f50bdee3e15baf9230800bc09691cbbbbffc99562a9a5a5f1f4791f32f0",
-          "configHash": "sha256:060dac2683a542e3bb13903ba18caf21272ca246e715b729b1ef30d9f3ec882d",
-          "paramsHash": "sha256:5aab39cf6f2cb94c3c404d73ad5dfb873969979dc1977b317ceb94fc64a5935f",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.2857142857142859,
-              0.3950000000000001,
-              0.2942857142857141,
-              0.025000000000000012,
-              0
-            ],
-            "gini": 0.4737058101360537,
-            "topWealthShare": 0.3278971572417167,
-            "mUp": 0.7142857142857147,
-            "mDown": 0.4342857142857144,
-            "segregation": 0.1281433622297719,
-            "openness": 0.639428701005495,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5870129870129871,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:geMedian=0.6",
-      "design": "single",
-      "changedPaths": [
-        "attributes.ge.median"
-      ],
-      "hypothesis": "强生产力约束（橄榄型倾向、O 低位）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 185,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 39,
-          "finalStateHash": "sha256:ac4cc9b90847952c502387c58a89fe27d5d7a1026a56e55924e2a3223fbfee48",
-          "configHash": "sha256:9fb71fb7fb71c247ffa430bc8baad5c69f60b3d05bc5f06a41c250f7a91c4c19",
-          "paramsHash": "sha256:fb7f8b6c5b7bb9321e1acd2c16b578a05dddc9e8275b76714babf772ca82067d",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.3079487179487181,
-              0.5516849816849816,
-              0.14036630036630032,
-              0,
-              0
-            ],
-            "gini": 0.4587686575880833,
-            "topWealthShare": 0.34247019082684865,
-            "mUp": 0.6920512820512822,
-            "mDown": 0.4479487179487181,
-            "segregation": 0.14966443244722702,
-            "openness": 0.6225386410876262,
-            "edgeCountAverage": 98.31428571428572,
-            "crossClassEdgeShare": 0.4921658986175114,
-            "deathRate": 0.0007158196134574087,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v4:envExponent=2",
-      "design": "single",
-      "changedPaths": [
-        "need.envExponent"
-      ],
-      "hypothesis": "极强环境持有成本（顶部快速流失）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 176,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 39,
-          "finalStateHash": "sha256:6a1f6eb75f16fcdf158db397a3ebc8003c75d89ab7e6a5160e899b5b886afd94",
-          "configHash": "sha256:eb6cb8bbd2c245d8c03bad5395689f382cf7886a3ba891f9d3cac21f257995ee",
-          "paramsHash": "sha256:f2fe4ec81929a01f73457dad3c3cacfbde79a34f24e0b5031a1f99043ce7c703",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.2969413919413917,
-              0.5819047619047619,
-              0.12115384615384614,
-              0,
-              0
-            ],
-            "gini": 0.4314517465262246,
-            "topWealthShare": 0.2931881388146996,
-            "mUp": 0.6829304029304033,
-            "mDown": 0.4143589743589744,
-            "segregation": 0.09549457948484477,
-            "openness": 0.6358594316479113,
-            "edgeCountAverage": 97.4,
-            "crossClassEdgeShare": 0.5008794714057874,
-            "deathRate": 0.0007209805335255948,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v5:cushionDays=0",
-      "design": "single",
-      "changedPaths": [
-        "ascent.holdingCushionDays"
-      ],
-      "hypothesis": "ρ=0 退回 v4 语义（消融对照）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 174,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:4b8e4c20caa6ac4156769407f768719b258d166fd1cecc133eef622929a5af08",
-          "configHash": "sha256:2563fa4986c213d9950632fd448fc08d7b2c34d4d8763a7d2765912611de1953",
-          "paramsHash": "sha256:b019dde849222fb8c04c1dfd054973ee5600198f7c7e94ea20b0f19fa4cf9405",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.031428571428571445,
-              0.14642857142857138,
-              0.16642857142857145,
-              0.26000000000000006,
-              0.39571428571428574
-            ],
-            "gini": 0.5393698379167634,
-            "topWealthShare": 0.34936471160380667,
-            "mUp": 1,
-            "mDown": 0.9750000000000006,
-            "segregation": 0.033455821013656524,
-            "openness": 0.8683066640440406,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.6958152958152954,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v5:cushionDays=90",
-      "design": "single",
-      "changedPaths": [
-        "ascent.holdingCushionDays"
-      ],
-      "hypothesis": "强裕度封锁顶部（预期 c3 重心或封闭结构）",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 170,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 39,
-          "finalStateHash": "sha256:e4830c7dd2d0f6200b61bdff445cb544d6b268c4e13fb641d5a16ef8b59bd0b2",
-          "configHash": "sha256:e720b7a77d4dbcb52967ac57a7be6b69fcf865f45f5710edb46bd68f4aa24c14",
-          "paramsHash": "sha256:8e675279248f83ff05012ac2557eebeb728dc6a1b9581a7956da05d917c99417",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.5880219780219781,
-              0.36901098901098894,
-              0.042967032967032956,
-              0,
-              0
-            ],
-            "gini": 0.4563170989369236,
-            "topWealthShare": 0.307860127085533,
-            "mUp": 0.16527472527472525,
-            "mDown": 0.40040293040293035,
-            "segregation": 0.22122635548820033,
-            "openness": 0.24225110404782982,
-            "edgeCountAverage": 98.14285714285714,
-            "crossClassEdgeShare": 0.39812102790826187,
-            "deathRate": 0.0007168458781362007,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v5:cushionDays=90+phi=0",
-      "design": "interaction",
-      "changedPaths": [
-        "ascent.holdingCushionDays",
-        "need.envExponent"
-      ],
-      "hypothesis": "强裕度×v3 需求（预期富人俱乐部顶层）；双变量联合条件，不得单轴归因",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 170,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:a5ae2ba00c8e7bb55c787518daf21531a97ce3e0c95032b9b70a432b0f684d41",
-          "configHash": "sha256:4e1134933e4d415ba9e218fdc0889a304a356edc090327b1a80358373c4cab51",
-          "paramsHash": "sha256:ee2aee3f054869944633a1d18a42dec517898ef2dbf5ac1f3f2cc64f04d3ed81",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.39999999999999997,
-              0.29999999999999993,
-              0.050000000000000024,
-              0.22857142857142843,
-              0.02142857142857144
-            ],
-            "gini": 0.48630700764041523,
-            "topWealthShare": 0.3527532170012913,
-            "mUp": 0.4714285714285714,
-            "mDown": 0.26071428571428584,
-            "segregation": 0.23031923583366337,
-            "openness": 0.34326995640712243,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.531024531024531,
-            "deathRate": 0,
-            "networkEmpty": false,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=695"
-            }
-          },
-          "w3": {
-            "label": "w3",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          },
-          "w2b": {
-            "label": "w2b",
-            "available": false,
-            "missingTicks": 730,
-            "classShares": [
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "gini": 0,
-            "topWealthShare": 0,
-            "mUp": 0,
-            "mDown": 0,
-            "segregation": 0,
-            "openness": 0,
-            "edgeCountAverage": 0,
-            "crossClassEdgeShare": 0,
-            "deathRate": 0,
-            "networkEmpty": true,
-            "labels": [],
-            "evidence": {
-              "window": "missingTicks=730"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cellKey": "v5:cushionDays=90+geMedian=0.7",
-      "design": "interaction",
-      "changedPaths": [
-        "ascent.holdingCushionDays",
-        "attributes.ge.median"
-      ],
-      "hypothesis": "裕度×生产力双约束（预期封闭分层可达）；双变量联合条件，不得单轴归因",
-      "seeds": [
-        {
-          "seed": "p15-seed-001",
-          "elapsedMs": 175,
-          "extinct": false,
-          "endReason": null,
-          "endTick": 399,
-          "aliveAtEnd": 39,
-          "finalStateHash": "sha256:d56814c7f78b20e897aa03d6cb29e80bc344333aeb62a02f804dc312b422f269",
-          "configHash": "sha256:52102e78e7f99d85024d10a1b7f99e35c48d467b4906920699e4f0479086f4c6",
-          "paramsHash": "sha256:239b10c4c6ed635e04fb9afb980025c5d2008dd0ca733103336ff8b739eacdce",
-          "w1": {
-            "label": "w1",
-            "available": false,
-            "missingTicks": 695,
-            "classShares": [
-              0.7245787545787548,
-              0.2754212454212456,
-              0,
-              0,
-              0
-            ],
-            "gini": 0.451324305375591,
-            "topWealthShare": 0.30310032349839744,
-            "mUp": 0.09875457875457881,
-            "mDown": 0.4329670329670329,
-            "segregation": 0.30122722350016734,
-            "openness": 0.1985727503217067,
-            "edgeCountAverage": 96.77142857142857,
-            "crossClassEdgeShare": 0.2788623562817111,
-            "deathRate": 0.0007204610951008645,
             "networkEmpty": false,
             "labels": [],
             "evidence": {
@@ -3340,13 +3116,13 @@
     }
   ],
   "budgets": {
-    "maxRuns": 840,
-    "maxWallMinutes": 480,
+    "maxRuns": 780,
+    "maxWallMinutes": 240,
     "maxStorageBytes": 2000000000,
     "observed": {
-      "runCount": 28,
+      "runCount": 26,
       "wallMinutes": 0,
-      "storageBytes": 97173
+      "storageBytes": 92625
     },
     "ok": true,
     "violations": []
