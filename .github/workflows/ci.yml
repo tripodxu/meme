@@ -15,7 +15,7 @@ concurrency:
 jobs:
   quality:
     name: 质量门禁
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: 检出代码
