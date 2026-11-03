@@ -1,8 +1,17 @@
 # src/decision
 
-Jev 决策适配层。按 [01 实施计划](../../docs/01-implementation-plan.md)，`mock`/`random` 策略与 `legal-actions` 已被 P1.5 使用；`policy`/`serialize`/`jev-client`/`live` 属 P2，当前实现超前于 G1.5 闸门，**尚未接入 runner，不得视为已完成或可用于正式实验**（见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`）。
+决策策略层。**P1.5 实际使用**：`mock`（`mock-weighted-v1`）与 `random`（`random-uniform-v1`）；
+两者由 `src/runner/run-cell.ts` 直接调用，产出 `decision-v1` 记录。
 
-计划模块：`legal-actions`、`serialize`、`policy`、`jev-client`、`mock`、`replay`、`fallback`。
+`types.ts` 是策略层共享契约（`DecisionRecord`/`DecisionInput`/`FallbackReason`/`PromptStyle`），
+生产与实验模块共用。
+
+## 已迁出
+
+`policy`/`serialize`/`jev-client`/`live`（P2-03~05 脚手架）已移入
+[`src/experimental/p2-decision`](../experimental/p2-decision/README.md)：
+它们实现超前于 G1.5 闸门，此前曾以「清理未用变量」的提交夹带进 `src/decision/`，
+在仓库内零引用。隔离后仍可测试，但生产路径无法导入。
 
 ## 边界
 

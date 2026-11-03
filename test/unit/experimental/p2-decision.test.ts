@@ -4,7 +4,7 @@ import { createDemoConfig } from '../../../src/core/config/defaults.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { createSimulation } from '../../../src/core/init/simulation.js';
 import { enumerateLegalActions } from '../../../src/core/legal-actions.js';
-import { buildDecisionState } from '../../../src/decision/serialize.js';
+import { buildDecisionState } from '../../../src/experimental/p2-decision/serialize.js';
 import {
   buildRequestBody,
   callJev,
@@ -14,8 +14,8 @@ import {
   type FallbackRateWindow,
   type JevBudget,
   type JevClientDeps,
-} from '../../../src/decision/jev-client.js';
-import type { DecisionInput } from '../../../src/decision/policy.js';
+} from '../../../src/experimental/p2-decision/jev-client.js';
+import type { DecisionInput } from '../../../src/experimental/p2-decision/policy.js';
 
 const SEED = asSeed('jev-client-seed');
 

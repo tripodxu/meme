@@ -1,4 +1,4 @@
-import { errorCodes, StratifyError } from '../core/control/errors.js';
+import { errorCodes, StratifyError } from '../../core/control/errors.js';
 import type { DecisionInput, DecisionPolicy } from './policy.js';
 import {
   callJev,
@@ -8,7 +8,7 @@ import {
   type JevClientDeps,
   type JevClientOptions,
 } from './jev-client.js';
-import type { DecisionRecord } from './types.js';
+import type { DecisionRecord } from '../../decision/types.js';
 
 /**
  * P2-01/05：live 策略适配器——把 `DecisionPolicy` 接到 Jev HTTP 客户端。

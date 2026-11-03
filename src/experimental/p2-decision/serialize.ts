@@ -1,15 +1,15 @@
-import type { RunConfig } from '../core/config/types.js';
-import { errorCodes, StratifyError } from '../core/control/errors.js';
-import type { AgentId } from '../core/control/ids.js';
-import { DECISION_SCHEMA_VERSION } from '../core/control/versions.js';
-import { HASH_DOMAINS } from '../core/hash/domains.js';
-import { hashValue } from '../core/hash/hash.js';
-import type { TickEvent } from '../core/events.js';
-import type { SimState } from '../core/model/state.js';
-import type { LegalActionSet } from '../core/legal-actions.js';
-import { computeAscendCost, computeDescendCost } from '../core/legal-actions.js';
-import { computeNeed } from '../core/engine/settlement.js';
-import { POLICY_VERSION_MOCK } from './mock.js';
+import type { RunConfig } from '../../core/config/types.js';
+import { errorCodes, StratifyError } from '../../core/control/errors.js';
+import type { AgentId } from '../../core/control/ids.js';
+import { DECISION_SCHEMA_VERSION } from '../../core/control/versions.js';
+import { HASH_DOMAINS } from '../../core/hash/domains.js';
+import { hashValue } from '../../core/hash/hash.js';
+import type { TickEvent } from '../../core/events.js';
+import type { SimState } from '../../core/model/state.js';
+import type { LegalActionSet } from '../../core/legal-actions.js';
+import { computeAscendCost, computeDescendCost } from '../../core/legal-actions.js';
+import { computeNeed } from '../../core/engine/settlement.js';
+import { POLICY_VERSION_MOCK } from '../../decision/mock.js';
 
 /**
  * P2-02：决策 state 序列化（04 §3）。

@@ -1,7 +1,7 @@
-import type { RunConfig } from '../core/config/types.js';
-import type { AgentId, Seed } from '../core/control/ids.js';
-import type { LegalActionSet } from '../core/legal-actions.js';
-import type { DecisionRecord } from './types.js';
+import type { RunConfig } from '../../core/config/types.js';
+import type { AgentId, Seed } from '../../core/control/ids.js';
+import type { LegalActionSet } from '../../core/legal-actions.js';
+import type { DecisionRecord } from '../../decision/types.js';
 
 /**
  * P2-01：决策策略统一接口（02 §4 / 04 §2）。

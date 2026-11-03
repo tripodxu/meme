@@ -7,6 +7,7 @@ import { RNG_EVENT_TAGS } from '../core/rng/tags.js';
 import { weightedSampleIndex } from '../core/rng/sampling.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import type { ActionKey, LegalActionSet } from '../core/legal-actions.js';
+import { agentIndexFromId } from '../core/model/agent.js';
 import type { DecisionRecord } from './types.js';
 
 /**
@@ -68,8 +69,10 @@ function mockWeights(
  * 概率为归一化权重（probabilitySource=derived）；不读取 Jev、不使用 topK。
  */
 export function decideMockWeighted(input: MockDecisionInput): DecisionRecord {
-  const agent = input.state.society.agents.find((candidate) => candidate.id === input.agentId);
-  if (agent === undefined || !agent.alive) {
+  // agents 恒按 id 升序且 id 为顺序分配：用序号 O(1) 定位，避免每次决策 O(N) 扫描
+  //（P1.5 每 tick 对全部存活个体调用，O(N²) 会主导运行时间）。
+  const agent = input.state.society.agents[agentIndexFromId(input.agentId)];
+  if (agent === undefined || agent.id !== input.agentId || !agent.alive) {
     throw new StratifyError(
       errorCodes.INVARIANT_VIOLATED,
       `mock 决策个体不存在或已死亡: ${input.agentId}`,

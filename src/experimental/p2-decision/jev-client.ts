@@ -1,9 +1,9 @@
-import type { RunConfig } from '../core/config/types.js';
-import { errorCodes, StratifyError } from '../core/control/errors.js';
-import { DECISION_SCHEMA_VERSION } from '../core/control/versions.js';
+import type { RunConfig } from '../../core/config/types.js';
+import { errorCodes, StratifyError } from '../../core/control/errors.js';
+import { DECISION_SCHEMA_VERSION } from '../../core/control/versions.js';
 import type { DecisionInput } from './policy.js';
 import { buildActionCriteria, buildInstructions, PROMPT_VERSION } from './serialize.js';
-import type { DecisionRecord, FallbackReason, PromptStyle } from './types.js';
+import type { DecisionRecord, FallbackReason, PromptStyle } from '../../decision/types.js';
 
 /**
  * P2-03~05：Jev HTTP 客户端（04 §3.3/§4/§6/§7）。
