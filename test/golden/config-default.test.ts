@@ -27,10 +27,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v6.json');
-const golden = readJson('../fixtures/config/default-rules-v6.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v7.json');
+const golden = readJson('../fixtures/config/default-rules-v7.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v6 default config', () => {
+describe('golden: rules-v7 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -46,14 +46,15 @@ describe('golden: rules-v6 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v6.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v7.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
-  it('v6 默认参照系为 class 模式（changes/0008）', () => {
+  it('v7 默认参照系为 class 模式且裕度同参照系（changes/0008/0009）', () => {
     expect(DEFAULT_RUN_CONFIG.need.referenceMode).toBe('class');
     expect(DEFAULT_RUN_CONFIG.need.graceDays).toBe(30);
     expect(DEFAULT_RUN_CONFIG.need.referenceSmoothing).toBe(0.2);
+    expect(DEFAULT_RUN_CONFIG.ascent.holdingCushionDays).toBe(30);
   });
 
   it('matches the pinned configHash', () => {
@@ -119,7 +120,7 @@ describe('golden: 历史 fixture（v3/v4/v5 只读，累加式）', () => {
     // 本用例锁定迁移链对 schemaVersion v2 + rulesVersion v5 的行为——
     // rulesVersion 仍被拒（版本轴不含 v5），但 schema 迁移本身必须无副作用。
     const migrated = JSON.parse(JSON.stringify(v5Fixture)) as Record<string, unknown>;
-    migrated['rulesVersion'] = 'rules-v6';
+    migrated['rulesVersion'] = 'rules-v7';
     const result = validateRunConfig(migrated);
     expect(result.ok).toBe(true);
     if (result.ok) {

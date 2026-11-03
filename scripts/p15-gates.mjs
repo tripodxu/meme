@@ -47,8 +47,8 @@ function log(message) {
   process.stderr.write(`[gates] ${message}\n`);
 }
 
-if (RULES_VERSION !== 'rules-v6') {
-  throw new Error(`门禁按 rules-v6 冻结判据编写；当前构建 ${RULES_VERSION}`);
+if (RULES_VERSION !== 'rules-v7') {
+  throw new Error(`门禁按 rules-v7 冻结判据编写；当前构建 ${RULES_VERSION}`);
 }
 
 // 种子一致性：GATE_SEEDS 必须与冻结的 p15-seed 列表前 30 项一致（防两处漂移）。
@@ -193,6 +193,8 @@ function runGateD() {
     const config = validateOrThrow(
       mergeConfig(DEFAULT_RUN_CONFIG, {
         ...rest,
+        schemaVersion: 'stratify-config-v3',
+        rulesVersion: RULES_VERSION,
         need: {
           ...reference.config.need,
           referenceMode: 'own',

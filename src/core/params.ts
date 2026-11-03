@@ -405,12 +405,15 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
   {
     name: 'ascent.holdingCushionDays',
     unit: 'days',
-    formulaRef: '03 §5 合法行动 / rule.md 9（rules-v5）',
+    formulaRef:
+      '03 §5 合法行动 / rule.md 9（rules-v5 引入；rules-v7 起参照量随 need.referenceMode 分派：' +
+      "'class' 为 ρ×refIncome[target]×ψ_eff[target]，'own' 为 ρ×B×E[t,target]×ψ_eff[target]）",
     domain: { kind: 'number', min: 0, max: 365, integer: true },
     guardOnly: false,
     affectsBehavior: true,
     wireTest:
-      'ρ=0 与 v4 逐位一致；ρ>0 时裕度不足的个体失去 ascend 行动，引擎复核抛 insufficient_cushion。',
+      'ρ=0 与 v4 逐位一致；ρ>0 时裕度不足的个体失去 ascend 行动，引擎复核抛 insufficient_cushion；' +
+      "'class' 模式下 refIncome 变化改变裕度（与需求线同参照系），'own' 模式与 v5 逐位一致。",
   },
   {
     name: 'competition.powerValueExponent',

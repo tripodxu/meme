@@ -239,31 +239,47 @@ describe('rules-v6 需求参照系防御路径（含既有护栏补测）', () =
     ).toThrowError(/refIncome 缺少阶级 2/);
   });
 
-  it('computeAscendCushion 守卫：ρ=0、E/ψ 缺阶级、env0 非法、非有限裕度', () => {
+  it('computeAscendCushion 守卫与参照系分派（rules-v7）：class 按 refIncome，own 按 B×E 逐位', () => {
+    const E5 = [1, 1.5, 2.2, 3.2, 4.5];
+    const REF = [3, 5, 7, 11, 13];
     const rho0 = {
       ...CLASS_CONFIG,
       ascent: { ...CLASS_CONFIG.ascent, holdingCushionDays: 0 },
     };
-    expect(computeAscendCushion(rho0, 2, [1, 1.5, 2.2, 3.2, 4.5])).toBe(0);
-    expect(() => computeAscendCushion(CLASS_CONFIG, 9, [1, 1.5, 2.2, 3.2, 4.5])).toThrowError(
-      /E 缺少阶级 9/,
+    expect(computeAscendCushion(rho0, 2, E5, REF)).toBe(0);
+    // class 模式：cushion = ρ×refIncome[2]×ψ[2]×(env0[2]/env0[0])^φ = 30×7×1.8×2.2
+    expect(computeAscendCushion(CLASS_CONFIG, 2, E5, REF)).toBe(30 * 7 * 1.8 * 2.2);
+    expect(() => computeAscendCushion(CLASS_CONFIG, 9, E5, REF)).toThrowError(
+      /needMultiplier 缺少阶级 9/,
+    );
+    expect(() => computeAscendCushion(CLASS_CONFIG, 2, E5, [3, 5])).toThrowError(
+      /refIncome 缺少阶级 2/,
     );
     const badPsi = {
       ...CLASS_CONFIG,
       need: { ...CLASS_CONFIG.need, needMultiplier: [1, 1.3] },
     } as typeof CLASS_CONFIG;
-    expect(() => computeAscendCushion(badPsi, 2, [1, 1.5, 2.2, 3.2, 4.5])).toThrowError(
+    expect(() => computeAscendCushion(badPsi, 2, E5, REF)).toThrowError(
       /needMultiplier 缺少阶级 2/,
     );
     const badEnv0 = {
       ...CLASS_CONFIG,
       opportunity: { ...CLASS_CONFIG.opportunity, env0: [1, 1.5] },
     } as typeof CLASS_CONFIG;
-    expect(() => computeAscendCushion(badEnv0, 2, [1, 1.5, 2.2, 3.2, 4.5])).toThrowError(
-      /env0 非法/,
-    );
+    expect(() => computeAscendCushion(badEnv0, 2, E5, REF)).toThrowError(/env0 非法/);
     expect(() =>
-      computeAscendCushion(CLASS_CONFIG, 2, [1, 1.5, Number.NaN, 3.2, 4.5]),
+      computeAscendCushion(CLASS_CONFIG, 2, E5, [3, 5, Number.NaN, 11, 13]),
+    ).toThrowError(/持有裕度非有限/);
+    // own 模式：v5 旧式逐位（G-D）
+    const OWN_CONFIG = {
+      ...CLASS_CONFIG,
+      need: { ...CLASS_CONFIG.need, referenceMode: 'own' as const },
+    };
+    expect(computeAscendCushion(OWN_CONFIG, 2, E5, REF)).toBe(30 * 2 * 2.2 * 1.8 * 2.2);
+    // own 模式 E 缺阶级：ψ[4] 存在而 eByClass 截短时才可达（psi 检查先于分支）
+    expect(() => computeAscendCushion(OWN_CONFIG, 4, [1, 1.5], REF)).toThrowError(/E 缺少阶级 4/);
+    expect(() =>
+      computeAscendCushion(OWN_CONFIG, 2, [1, 1.5, Number.NaN, 3.2, 4.5], REF),
     ).toThrowError(/持有裕度非有限/);
   });
 

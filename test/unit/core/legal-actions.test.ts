@@ -73,7 +73,12 @@ describe('合法行动枚举（03 §5）', () => {
       state.society.refIncome,
     );
     if (cost === null || !Number.isFinite(cost) || cost <= 0) throw new Error('费用计算异常');
-    const cushion = computeAscendCushion(state.config, 2, state.society.eByClass);
+    const cushion = computeAscendCushion(
+      state.config,
+      2,
+      state.society.eByClass,
+      state.society.refIncome,
+    );
     agent.value = cost + cushion;
     expect(enumerateLegalActions(state, agent.id).actions).toContain('ascend');
     const epsilon = Math.max(cost, cushion, 1) * 1e-9;

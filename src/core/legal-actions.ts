@@ -80,22 +80,24 @@ export function computeAscendCost(
 }
 
 /**
- * v5 持有裕度门槛（rule.md 9 / changes/0005）：上升要求支付 cross 后仍保有
- * `ρ×B×E[t,target]×ψ_eff[target]` 的余额；裕度不支付、只作余额门槛。
+ * 持有裕度门槛（rule.md 9 / changes/0005、0009）：上升要求支付 cross 后仍保有
+ * `ρ × 参照量[target] × ψ_eff[target]` 的余额；裕度不支付、只作余额门槛。
+ * 参照量随 `need.referenceMode` 分派（rules-v7 完成需求参照系统一计价）：
+ * - `'class'`：`ρ×refIncome[target]×ψ_eff[target]`——裕度与持有标尺同参照系，
+ *   新升阶者支付后余额恰为 `ρ/bufferDays × need`（ρ=bufferDays=30 时 = need），
+ *   不再天然高于需求线，跌落通道恢复（changes/0008 §6 尺度错位修断）；
+ * - `'own'`：`ρ×B×E[t,target]×ψ_eff[target]`，与 v5 逐位一致（G-D 硬门禁）。
  * `ρ=0` 时裕度为 0，与 v4 逐位一致。
  */
 export function computeAscendCushion(
   config: RunConfig,
   targetClassIndex: number,
   eByClass: readonly number[],
+  refIncome: readonly number[],
 ): number {
   const rho = config.ascent.holdingCushionDays;
   if (rho === 0) {
     return 0;
-  }
-  const env = eByClass[targetClassIndex];
-  if (env === undefined) {
-    throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `E 缺少阶级 ${targetClassIndex}`);
   }
   const psi = config.need.needMultiplier[targetClassIndex];
   if (psi === undefined) {
@@ -114,7 +116,23 @@ export function computeAscendCushion(
     }
     envMultiplier = Math.pow(own / bottom, phi);
   }
-  const cushion = rho * config.opportunity.dailyBase * env * psi * envMultiplier;
+  let cushion: number;
+  if (config.need.referenceMode === 'class') {
+    const ref = refIncome[targetClassIndex];
+    if (ref === undefined) {
+      throw new StratifyError(
+        errorCodes.INVARIANT_VIOLATED,
+        `refIncome 缺少阶级 ${targetClassIndex}`,
+      );
+    }
+    cushion = rho * ref * psi * envMultiplier;
+  } else {
+    const env = eByClass[targetClassIndex];
+    if (env === undefined) {
+      throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `E 缺少阶级 ${targetClassIndex}`);
+    }
+    cushion = rho * config.opportunity.dailyBase * env * psi * envMultiplier;
+  }
   if (!Number.isFinite(cushion)) {
     // 裕度参与 `value >= cost + cushion` 判定；NaN 会让枚举与复核两侧
     // 对「是否可上升」给出相反答案，必须立即停止而不是静默放行。
@@ -164,7 +182,9 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
   const descendCost = computeDescendCost(config, agent, eByClass);
   const canAscend =
     ascendCost !== null &&
-    agent.value >= ascendCost + computeAscendCushion(config, agent.classIndex + 1, eByClass);
+    agent.value >=
+      ascendCost +
+        computeAscendCushion(config, agent.classIndex + 1, eByClass, state.society.refIncome);
   const canDescend = descendCost !== null && agent.value >= descendCost;
 
   const targets = sampleCompetitionTargets(state, agent);

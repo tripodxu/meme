@@ -71,7 +71,13 @@ describe('mock-weighted-v1（04 §2.1）', () => {
     );
     if (fee === null) throw new Error('ascend 费用应为数值');
     agent.value =
-      fee + computeAscendCushion(state.config, agent.classIndex + 1, state.society.eByClass);
+      fee +
+      computeAscendCushion(
+        state.config,
+        agent.classIndex + 1,
+        state.society.eByClass,
+        state.society.refIncome,
+      );
     const fresh = enumerateLegalActions(state, agent.id);
     if (!fresh.actions.includes('ascend')) throw new Error('ascend 应合法（ρ=1 窗口）');
     agent.belowNeedStreak = 0;

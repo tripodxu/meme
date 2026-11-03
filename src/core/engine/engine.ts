@@ -506,7 +506,9 @@ function executeAction(input: ExecuteActionInput): void {
     // 执行前复核：费用 + 持有裕度与当前 Value（前序竞争可能已消耗）。
     const cost = computeAscendCost(config, agent, eByClass, openness, state.society.refIncome);
     const cushion =
-      cost === null ? 0 : computeAscendCushion(config, agent.classIndex + 1, eByClass);
+      cost === null
+        ? 0
+        : computeAscendCushion(config, agent.classIndex + 1, eByClass, state.society.refIncome);
     // 反向比较写 `!(value >= cost + cushion)`：NaN（如 E 缺失）时枚举侧拒绝、
     // 复核侧也必须拒绝，不能因 `NaN < x` 为 false 而放行。
     if (cost === null || !(agent.value >= cost + cushion)) {

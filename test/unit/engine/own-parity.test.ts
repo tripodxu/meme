@@ -48,8 +48,8 @@ const fixture = JSON.parse(
 ) as V5ReferenceFixture;
 
 /**
- * 把 v5 config（schemaVersion v2 + rulesVersion v5）按迁移语义升到 rules-v6 own 模式：
- * schemaVersion v3、rulesVersion v6、need 补 referenceMode='own'/graceDays=0/
+ * 把 v5 config（schemaVersion v2 + rulesVersion v5）按迁移语义升到当前构建 own 模式：
+ * schemaVersion v3、rulesVersion=当前版本（rules-v7）、need 补 referenceMode='own'/graceDays=0/
  * referenceSmoothing=0.2——与 validateRunConfig 的 v2→v3 迁移完全同口径。
  */
 function toV6Own(rawConfig: Record<string, unknown>): ReturnType<typeof validateOrThrow> {
@@ -60,8 +60,10 @@ function toV6Own(rawConfig: Record<string, unknown>): ReturnType<typeof validate
   return validateOrThrow(
     mergeConfig(DEFAULT_RUN_CONFIG, {
       ...(rest as DeepPartialConfig),
+      schemaVersion: 'stratify-config-v3',
+      rulesVersion: 'rules-v7',
       need: { ...need, referenceMode: 'own', referenceSmoothing: 0.2, graceDays: 0 } as never,
-    }),
+    } as DeepPartialConfig),
   );
 }
 

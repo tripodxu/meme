@@ -425,7 +425,7 @@
     {
       "name": "ascent.holdingCushionDays",
       "unit": "days",
-      "formulaRef": "03 §5 合法行动 / rule.md 9（rules-v5）",
+      "formulaRef": "03 §5 合法行动 / rule.md 9（rules-v5 引入；rules-v7 起参照量随 need.referenceMode 分派：'class' 为 ρ×refIncome[target]×ψ_eff[target]，'own' 为 ρ×B×E[t,target]×ψ_eff[target]）",
       "domain": {
         "kind": "number",
         "min": 0,

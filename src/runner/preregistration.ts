@@ -469,7 +469,7 @@ export function buildPreregManifest(): PreregManifest {
   return {
     schemaVersion: 'experiment-v2',
     hypothesis:
-      'rules-v6（需求参照系 A′：refIncome 计价 + graceDays 判定计时）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70，判定量=median）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。W1 门禁 G-A 未过（P0=0），本 manifest 仅为版本轴同步占位；W2 确认轮启动前必须按 D-07/D-08 重新预注册并冻结新 experimentId。',
+      'rules-v7（裕度参照系统一计价）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70，判定量=median）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。W1 门禁 G-A/G-B 未过（rules-v6），rules-v7 裕度同参照系复测中；W2 确认轮启动前必须按 D-07/D-08 重新预注册并冻结新 experimentId。',
     primaryMetric: 'TV(P)',
     experimentType: 'rule_sensitivity',
     rulesVersion: RULES_VERSION,
