@@ -51,7 +51,16 @@
   "cells": [
     {
       "cellKey": "needMultiplier=default",
+      "design": "single",
+      "changedPaths": ["need.needMultiplier"],
       "overrides": { "need.needMultiplier": [1.0, 1.3, 1.8, 2.5, 3.5] },
+      "fullConfigHash": "sha256:..."
+    },
+    {
+      "cellKey": "v5:cushionDays=90+phi=0",
+      "design": "interaction",
+      "changedPaths": ["ascent.holdingCushionDays", "need.envExponent"],
+      "overrides": { "ascent": { "holdingCushionDays": 90 }, "need": { "envExponent": 0 } },
       "fullConfigHash": "sha256:..."
     }
   ],
@@ -71,6 +80,16 @@
 
 `cells[].overrides` 的键必须是 `RunConfig` 点路径（与 `src/core/params.ts` 的注册名一致），值为完整替换值：标量直接替换，数组整体替换，嵌套对象按字段深合并。应用方式为深拷贝 base config 后逐项赋值，结果必须通过 `validateRunConfig`；`fullConfigHash` 是合并后完整配置的 `configHash`。未登记的键、非法值或校验失败必须拒绝该 cell，不得跳过。`populationSize` 必须等于 base config 的 `population.initialPopulation`；若某个 cell 覆盖人口规模，必须作为独立 cell 记录并纳入 `fullConfigHash`，不得用同一 `populationSize` 冒充。
 
+`cells[].design` 是**可判定的归因声明**，取 `baseline|single|interaction`：
+
+- `baseline`：零覆盖，只作对照；`changedPaths` 必须为空。
+- `single`：恰好改变一个叶子参数（§6.2「每次只变一项」），其效应可单轴归因。
+- `interaction`：同时改变 ≥2 个叶子参数（§6.3 小型 factorial），**只回答「联合条件是否可达某结构」**，不得把该 cell 的差异归因到其中任一单轴。
+
+`cells[].changedPaths` 由 base config 与该 cell 合并后配置的实际差异**自动派生**（数组视为单个叶子，不按下标展开），不得手写；构造期校验 `design` 与 `changedPaths.length` 自洽（`baseline=0`、`single=1`、`interaction≥2`），不自洽直接抛错。同一网格内两个 cell 的 `fullConfigHash` 相同也属于非法（重复格点白耗预算），同样在构造期拒绝。
+
+该声明存在的理由：cell 名会谎报。`v5:geMedian=0.7+cushion30` 曾把 `holdingCushionDays` 写成 30，而 30 恰是默认值——该 cell 实际只改 `ge.median`，与 `v4:geMedian=0.7` 配置完全相同，既不是交互格点，也不是新信息（changes/0007）。
+
 `artifactProfile` 取 `full|metrics-only`：`full` 保存完整事件/决策/快照，用于审计与回放证据；`metrics-only` 只保存配置、初始/最终快照、全分辨率 tick metrics 和聚合，用于大规模扫描筛选。两者都不得伪造缺失数据；`replayable=true` 仍要求初始快照加全部到期决策。
 
 `budgets` 的示例数字是占位值；真实 `maxRuns/maxWallMinutes/maxStorageBytes` 必须由 P1.5 基准冻结（待议 D-04），不得直接用于正式 P6 扫描。
@@ -79,8 +98,10 @@
 
 `preregistrationHash` 的权威口径：
 
-- 覆盖：`schemaVersion`、`hypothesis`、`primaryMetric`、`experimentType`、`rulesVersion/engineVersion/decisionSchemaVersion/policyVersion/promptVersion/promptStyle`、`baseConfigHash`、`artifactProfile`、`cells[].cellKey/overrides/fullConfigHash`、`seeds`、`pairing`、`warmupTicks`、`warmupDiagnostic`、`windows`、`labelThresholdVersion`、`labelThresholdsHash`、`budgets` 和预注册排除规则。
+- 覆盖：`schemaVersion`、`hypothesis`、`primaryMetric`、`experimentType`、`rulesVersion/engineVersion/decisionSchemaVersion/policyVersion/promptVersion/promptStyle`、`baseConfigHash`、`artifactProfile`、`cells[].cellKey/design/changedPaths/overrides/fullConfigHash`、`seeds`、`pairing`、`warmupTicks`、`warmupDiagnostic`、`windows`、`labelThresholdVersion`、`labelThresholdsHash`、`clustering`、`differenceThresholds`、`budgets` 和预注册排除规则。
 - 排除：`experimentId`、`createdAt`、`observedResponseModels`、`runtimeVersions`、运行结果、失败次数等创建后或运行后字段。
+
+哈希预像由 `buildPreregHashInput()` 单独构造并导出，`computePreregistrationHash()` 只是对预像做域分隔哈希；测试直接枚举预像字段清单与 §3 权威口径比对。理由：`hashValue` 不校验字段，漏一个字段不会报错，只会让「设计变了而哈希不变」静默存在（changes/0006 曾漏 6 个字段）。
 
 排除规则必须是**可判定的字段**，不能只是散文：
 
@@ -177,12 +198,15 @@ w2b: 1825–2554   w3: 2555–3284
 
 在单参数扫描前先做一次全局筛选（Morris elementary effects 或小型 Sobol），覆盖上表及 `congestionMin/Max`、`polarizationMin/Max`、`Mref/Sref/θM/θS`。不得只凭直觉挑 8 个反馈参数而漏掉主导阶级分布的 `needMultiplier/needThreshold/env0/crossDays/decay`；`initialAgeMode` 作为初始化模式对照单独报告，不与连续参数混合做敏感性排序。每次只变一项，其他冻结；候选值可因护栏/先验试验调整，但要保留搜索历史。
 
+本节格点必须标 `design: 'single'`，且 `changedPaths` 恰好 1 项（§3）。参数值与默认值相同时该格点不产生差异——若格点名声称改变了某参数，而该参数已被默认值吸收，构造期会因 `changedPaths` 计数不符或 `fullConfigHash` 重复而拒绝，不得靠命名蒙混。
+
 ### 6.3 多参数与临界区
 
 - 从单参数结果选择影响方向和合理范围，做小型 factorial/Latin hypercube；不得直接无预算全笛卡尔积。
 - 在结构指纹变化大的相邻参数间细化网格，定位“参数小变化导致结构类别改变”的区域。
 - 同时选择远离边界的稳定区，验证扰动吸收。只找临界区而不验证稳定区不算完成。
 - 探索扫描与确认扫描分开；确认使用新的一组预注册种子，避免对同一批种子反复择优。
+- factorial 格点必须标 `design: 'interaction'` 并声明 ≥2 个 `changedPaths`；其结论只能表述为「该联合条件下结构 X 可达/不可达」，不得写成「参数 a 使结构变化」，因为交互格点的差异无法归因到单一轴。单轴因果证据只能来自 §6.2 的 `single` 格点。
 
 ## 7. 微扰协议
 

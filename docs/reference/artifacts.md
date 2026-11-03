@@ -9,14 +9,22 @@
 3. **可重建**：产物必须能用 §3 的命令从对应提交重建。不可重现的产物不得作为验收证据。
 4. **替换留痕**：覆盖同名产物时，提交信息必须写出新旧 sha256 与关键指标变化，便于回溯判定依据。
 5. **只读**：产物是证据而非源码，禁止手工编辑 `out/*.json`；需要修正数据应改代码后重跑。
+6. **迁移阈值**：满足以下任一条件时，`out/` 产物必须迁出仓库（R2），仓库只保留 `sha256` + URL + 生成命令：
+   - 单文件 > 5 MiB；
+   - `out/` 入库总量 > 50 MiB；
+   - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
+
+   当前入库 3 个文件、合计约 3.9 MiB（最大 `out/p15-full.json` 2.83 MB），**未达阈值，
+   故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
+   需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
 ## 2. 当前登记
 
-| 路径                        | 大小     | sha256（文件级）     | 关键指标                                                                                    | 状态     |
-| --------------------------- | -------- | -------------------- | ------------------------------------------------------------------------------------------- | -------- |
-| `out/p15-full.json`         | 2.70 MiB | `04512d7d…bea2c65b9` | runCount=840、prereg=`sha256:2c4843b4…`、k=2、silhouette 0.403、ARI 0.868、3650 tick、40 人 | 待重跑   |
-| `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                              | 历史存档 |
-| `out/p15-screen.json`       | 89.6 KiB | `503f535d…e43827ed`  | 28 run × 400 tick；w1/w2b/w3 均 `available=false`（missingTicks 695/730/730）；budgets.ok   | 预检通过 |
+| 路径                        | 大小     | sha256（文件级）     | 关键指标                                                                                                         | 状态     |
+| --------------------------- | -------- | -------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
+| `out/p15-full.json`         | 2.70 MiB | `04512d7d…bea2c65b9` | runCount=840、prereg=`sha256:2c4843b4…`、k=2、silhouette 0.403、ARI 0.868、3650 tick、40 人                      | 待重跑   |
+| `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                                                   | 历史存档 |
+| `out/p15-screen.json`       | 95.1 KiB | `9b5723d4…21214fe`   | 28 run × 400 tick；`cellsByDesign={baseline:1,single:25,interaction:2}`；w2b/w3 均 `available=false`；budgets.ok | 预检通过 |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
@@ -32,7 +40,8 @@ node -e "const d=require('./out/p15-screen.json');const{computePreregistrationHa
 78d1cd10c19764de030e12ec65180d0f6883ffe2013f523e7a7fd8ac89811477  out/p15-screen.json（2026-11-03 修复前，已替换）
 4a7fbbb26a62b26a1b2979291b8adc4382e954634cd50ef7ba4fa071aeb4d8f1  out/p15-screen.json（schema v1，已替换）
 925bb44bb4f2b08d4279b70fe7bb332e05e9c56fc4f00d66ff75c3e6389b316b  out/p15-screen.json（schema v2 首版，已替换）
-503f535d31949481a1e0fdeef2740cbdcc105c4ae63a125a23ddd5d8e43827ed  out/p15-screen.json
+503f535d31949481a1e0fdeef2740cbdcc105c4ae63a125a23ddd5d8e43827ed  out/p15-screen.json（prereg=ba64e87f…，已替换）
+9b5723d46769e50e94ed006fbc017172544434eeba8d347e2c845b71b21214fe  out/p15-screen.json
 ```
 
 校验方式：`sha256sum out/*.json`。
@@ -93,3 +102,47 @@ manifest 26 字段；budgets.ok=true（28/840 run、0/480 min、91547/2000000000
 **`out/p15-full.json` 未重跑**，其中 w2b 仍全为 `null`，且其
 `preregistrationHash=sha256:2c4843b4…` 已不属于当前口径。按 07 §3「任何预注册内容变化
 必须新建 experimentId」，它只能作为历史存档，不得用于 G1.5 判定。
+
+### 4.4 格点设计声明（2026-11-03，changes/0007）
+
+预注册**设计**发生一次变更（非口径修正）：退化的交互 cell
+`v5:geMedian=0.7+cushion30`（`cushion=30` 恰为默认值，实际与 `v4:geMedian=0.7`
+`fullConfigHash` 相同）改为 `v5:cushionDays=90+geMedian=0.7`。
+
+```text
+旧 sha256:ba64e87f…（screen 503f535d…）
+新 sha256:4dc141e4b7bce47e5686f227daa5967236fed2b8e24e3b8899e123efef16722a
+baseConfigHash 不变：sha256:ff00821e…
+```
+
+产物新增 `cells[].design` / `cells[].changedPaths` 与顶层 `cellsByDesign`：
+单轴格点（`single`）的效应可归因到单一参数，交互格点（`interaction`）只能表述
+「该联合条件下结构可达/不可达」。`out/p15-screen.json` 已按新口径重跑。
+
+## 5. 测试 fixture 的版本约定
+
+两类 fixture 的保留策略**不同**，此前文档混称导致「保留只读」的虚假声明：
+
+| fixture 族                                    | 约定                                                               | 现状                                  |
+| --------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------- |
+| `test/fixtures/config/default-rules-v*.json`  | **累加式**：升版新增文件，旧文件留在工作树                         | v3/v4/v5 三份并存，均可直接读取与断言 |
+| `test/fixtures/engine/mock-run-rules-v*.json` | **改名前滚**：升版 `git mv` 到新名并就地重算，工作树只保留当前版本 | 仅 v5；v3/v4 需按 commit 取回         |
+
+因此 `changes/0005`「v4 配置 fixture 保留只读」是**正确**的（指 config 族），
+而把同一句话套用到 engine golden 上是错的。engine golden 的历史版本按下列坐标取回：
+
+| 版本 | 最后所在提交（该提交**之前**的内容） | blob                                       | 取回命令                                                        |
+| ---- | ------------------------------------ | ------------------------------------------ | --------------------------------------------------------------- |
+| v3   | `192f551^`                           | `86c644313e24b17e0f40916ab82c2c886de8d895` | `git show 192f551^:test/fixtures/engine/mock-run-rules-v3.json` |
+| v4   | `63fcb87^`                           | `a15a6575baf8ad8ff19b9f8957749641a82cf996` | `git show 63fcb87^:test/fixtures/engine/mock-run-rules-v4.json` |
+
+取回的旧 golden **不能**在当前代码上断言：`validateRunConfig` 对旧 `rulesVersion`
+返回 `config_unknown_version`。它的用途是配合对应提交的代码做历史复核：
+
+```bash
+git worktree add /tmp/stratify-v4 192f551^
+# 在 worktree 内 pnpm install && pnpm test:coverage，再用上表哈希核对
+```
+
+不在工作树里保留旧 engine golden 是刻意选择：无测试会执行它，留着只会积累不会被读取的
+死文件；而按坐标取回是可验证的，且不可能与代码脱节（因为坐标里同时钉住了提交）。

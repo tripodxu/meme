@@ -19,7 +19,12 @@ import type { AgentId } from '../../src/core/control/ids.js';
  * golden：40 人默认 mock 运行（08 §5，rules-v5）。
  * fixture 冻结 tick 0/1/10/120/400 的状态哈希与聚合指标；
  * 更新必须人工审查差异并说明原因，不得一键覆盖。
- * v3 历史 fixture（mock-run-rules-v3.json）保留只读，不参与当前断言。
+ *
+ * 版本约定（docs/reference/artifacts.md §5）：engine golden 是**单个改名前滚**的
+ * 文件，升版时 `git mv` 到新版本名并就地重算，历史版本**不在工作树保留**。
+ * 旧版本 fixture 只能按 commit + blob 取回，例如
+ * `git show 63fcb87^:test/fixtures/engine/mock-run-rules-v4.json`。
+ * 与 `test/fixtures/config/default-rules-v*.json` 的累加式约定不同——两者不要混为一谈。
  */
 
 interface GoldenFixture {

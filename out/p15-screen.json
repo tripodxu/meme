@@ -1,7 +1,7 @@
 {
   "schemaVersion": "p15-grid-v2",
   "stage": "screen",
-  "preregistrationHash": "sha256:ba64e87f13a84e82e14326f0cd181460d788ffd46e9dd60289e1f917778fccf6",
+  "preregistrationHash": "sha256:4dc141e4b7bce47e5686f227daa5967236fed2b8e24e3b8899e123efef16722a",
   "runCount": 28,
   "wallMinutes": 0,
   "manifest": {
@@ -105,12 +105,15 @@
     "cells": [
       {
         "cellKey": "baseline",
+        "design": "baseline",
         "hypothesis": "默认参数下的基准结构",
         "overrides": {},
+        "changedPaths": [],
         "fullConfigHash": "sha256:ff00821ed454b144694d54b23ac947d4720bbabd37e53e6edd482194bbb83184"
       },
       {
         "cellKey": "needMultiplier=flat",
+        "design": "single",
         "hypothesis": "扁平持有成本削弱阶级分离",
         "overrides": {
           "need": {
@@ -123,10 +126,14 @@
             ]
           }
         },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
         "fullConfigHash": "sha256:26cfc49aa4f448a174c7f42e06eb6f0bb29e16a51e2b45d182f9be10b044f7c0"
       },
       {
         "cellKey": "needMultiplier=steeper",
+        "design": "single",
         "hypothesis": "更陡持有成本强化分层",
         "overrides": {
           "need": {
@@ -139,30 +146,42 @@
             ]
           }
         },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
         "fullConfigHash": "sha256:2b375d47ad7cf6e3ac265092363c2bfccc6ecbc2c49e73e22936d22d885b6b4c"
       },
       {
         "cellKey": "needThreshold=0.3",
+        "design": "single",
         "hypothesis": "宽松需求线减少被动跌落",
         "overrides": {
           "need": {
             "threshold": 0.3
           }
         },
+        "changedPaths": [
+          "need.threshold"
+        ],
         "fullConfigHash": "sha256:d457b0b29df914e04f8cd205e2ea87acdabf0ddbce61c94c1838a243c448e39d"
       },
       {
         "cellKey": "needThreshold=0.9",
+        "design": "single",
         "hypothesis": "严格需求线加剧跌落",
         "overrides": {
           "need": {
             "threshold": 0.9
           }
         },
+        "changedPaths": [
+          "need.threshold"
+        ],
         "fullConfigHash": "sha256:555a934d6bc2681b5300b07c3001d60f1b9978fd6b2063423571e1369fc3b7f6"
       },
       {
         "cellKey": "env0=compressed",
+        "design": "single",
         "hypothesis": "压缩阶级机会差削弱分层",
         "overrides": {
           "opportunity": {
@@ -175,10 +194,14 @@
             ]
           }
         },
+        "changedPaths": [
+          "opportunity.env0"
+        ],
         "fullConfigHash": "sha256:476e45a94aa6f164d13577ac798bdccf024a1271507920f5c5f810a395859f1a"
       },
       {
         "cellKey": "env0=expanded",
+        "design": "single",
         "hypothesis": "扩大阶级机会差强化分层",
         "overrides": {
           "opportunity": {
@@ -191,50 +214,70 @@
             ]
           }
         },
+        "changedPaths": [
+          "opportunity.env0"
+        ],
         "fullConfigHash": "sha256:4c02943dc78920883946840ef78d6177a1e133e6e3143e58cac76ca1f9d01657"
       },
       {
         "cellKey": "ablation:beta=0",
+        "design": "single",
         "hypothesis": "无网络机会（消融 β=0）",
         "overrides": {
           "networkOpportunity": {
             "beta": 0
           }
         },
+        "changedPaths": [
+          "networkOpportunity.beta"
+        ],
         "fullConfigHash": "sha256:624142d41d737344a4c286e4f13fc1aeeae7f3969595aa1f3612372671b4b30b"
       },
       {
         "cellKey": "ablation:O=fixed",
+        "design": "single",
         "hypothesis": "无制度反馈（O 固定，P1-10 开关）",
         "overrides": {
           "openness": {
             "updateMode": "fixed"
           }
         },
+        "changedPaths": [
+          "openness.updateMode"
+        ],
         "fullConfigHash": "sha256:61e843df9dfdc86ffd2336f481179711c0c4555b77769c13a14a41fe8f7fc8ba"
       },
       {
         "cellKey": "ablation:eta=0",
+        "design": "single",
         "hypothesis": "无阶级拥挤（消融 η=0）",
         "overrides": {
           "dynamics": {
             "congestionExponent": 0
           }
         },
+        "changedPaths": [
+          "dynamics.congestionExponent"
+        ],
         "fullConfigHash": "sha256:7f9d93e4caa366753d130fc4978edc3622e24f4ab656a0bf6f5b724f4f81bb39"
       },
       {
         "cellKey": "ablation:kappa=0",
+        "design": "single",
         "hypothesis": "无贫富分化反馈（消融 κ=0）",
         "overrides": {
           "dynamics": {
             "polarizationExponent": 0
           }
         },
+        "changedPaths": [
+          "dynamics.polarizationExponent"
+        ],
         "fullConfigHash": "sha256:f2c99844aff093684e942d91d568d73d898e624773a4ee8733176380d59547a4"
       },
       {
         "cellKey": "ablation:psi=1",
+        "design": "single",
         "hypothesis": "无阶级持有成本（消融 ψ=1，预期顶层塌缩）",
         "overrides": {
           "need": {
@@ -247,10 +290,14 @@
             ]
           }
         },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
         "fullConfigHash": "sha256:7ad1015fe89a0486566bea142a31b5902fdbbaeb3d6ea511a414eb3897b878b9"
       },
       {
         "cellKey": "initialShares=bottom-heavy",
+        "design": "single",
         "hypothesis": "底层更重的初始分布",
         "overrides": {
           "population": {
@@ -263,10 +310,14 @@
             ]
           }
         },
+        "changedPaths": [
+          "population.classShares"
+        ],
         "fullConfigHash": "sha256:fdb9c239b850195f00cc352bb516607ffe102412c4f5a4438f17b384c4e24c51"
       },
       {
         "cellKey": "initialShares=middle-heavy",
+        "design": "single",
         "hypothesis": "中层更重的初始分布",
         "overrides": {
           "population": {
@@ -279,70 +330,98 @@
             ]
           }
         },
+        "changedPaths": [
+          "population.classShares"
+        ],
         "fullConfigHash": "sha256:1f7edbb058f5c16b5b6359ed20abf438b6cc3a0c37b2337226d071e84537dbe0"
       },
       {
         "cellKey": "lambdaO=0",
+        "design": "single",
         "hypothesis": "开放度不影响跨越成本",
         "overrides": {
           "openness": {
             "ascentCostWeight": 0
           }
         },
+        "changedPaths": [
+          "openness.ascentCostWeight"
+        ],
         "fullConfigHash": "sha256:152a42efb0f74ef900f022e1dbcb5019848cc837b47eed80a6a130389ba2fdf1"
       },
       {
         "cellKey": "rewireProb=0.2",
+        "design": "single",
         "hypothesis": "更高网络流动",
         "overrides": {
           "network": {
             "rewireProb": 0.2
           }
         },
+        "changedPaths": [
+          "network.rewireProb"
+        ],
         "fullConfigHash": "sha256:3fc12bcb885240871b4185669ee7cdc42f3fa330c24ee4b1959b1dc79e36666b"
       },
       {
         "cellKey": "v4:envExponent=0",
+        "design": "single",
         "hypothesis": "φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）",
         "overrides": {
           "need": {
             "envExponent": 0
           }
         },
+        "changedPaths": [
+          "need.envExponent"
+        ],
         "fullConfigHash": "sha256:99ffaa7c0a52797cef2147a5f5f6e4f9a3e523738c0a43ad5fe2ef4152ce0869"
       },
       {
         "cellKey": "v4:envExponent=0.5",
+        "design": "single",
         "hypothesis": "弱环境持有成本",
         "overrides": {
           "need": {
             "envExponent": 0.5
           }
         },
+        "changedPaths": [
+          "need.envExponent"
+        ],
         "fullConfigHash": "sha256:826f611c328a990261c4c2a8c687d4adc59bf3e7d977792f23656d0dbfb34ba4"
       },
       {
         "cellKey": "v4:envExponent=1.5",
+        "design": "single",
         "hypothesis": "强环境持有成本",
         "overrides": {
           "need": {
             "envExponent": 1.5
           }
         },
+        "changedPaths": [
+          "need.envExponent"
+        ],
         "fullConfigHash": "sha256:a58f22c82b72dfb0628ac80fcd4da8294d9e7f244cb65987b67dc8cafa4b03c8"
       },
       {
         "cellKey": "v4:thetaM=8",
+        "design": "single",
         "hypothesis": "v3 值 θM=8 对照（预期 O 钉在高位）",
         "overrides": {
           "openness": {
             "mobilityWeight": 8
           }
         },
+        "changedPaths": [
+          "openness.mobilityWeight"
+        ],
         "fullConfigHash": "sha256:0e44d791a40ade558c3eb08d8fdee9eabc5a173473aec58323bb6696154d0cf7"
       },
       {
         "cellKey": "v4:geMedian=0.8",
+        "design": "single",
         "hypothesis": "中位生产力轻度低于持有标准（G 上升、O 下降）",
         "overrides": {
           "attributes": {
@@ -351,10 +430,14 @@
             }
           }
         },
+        "changedPaths": [
+          "attributes.ge.median"
+        ],
         "fullConfigHash": "sha256:f7a41c80b1f03e947451e42294604e00ad4650d80e2847c3151d6d674d9c7285"
       },
       {
         "cellKey": "v4:geMedian=0.7",
+        "design": "single",
         "hypothesis": "中位生产力进一步下降（中间层重心、高 G）",
         "overrides": {
           "attributes": {
@@ -363,10 +446,14 @@
             }
           }
         },
+        "changedPaths": [
+          "attributes.ge.median"
+        ],
         "fullConfigHash": "sha256:6a51af9a480246cd75f828cd54c9588c86dae74ae69c5b46b0cd8b750b8fb337"
       },
       {
         "cellKey": "v4:geMedian=0.6",
+        "design": "single",
         "hypothesis": "强生产力约束（橄榄型倾向、O 低位）",
         "overrides": {
           "attributes": {
@@ -375,41 +462,57 @@
             }
           }
         },
+        "changedPaths": [
+          "attributes.ge.median"
+        ],
         "fullConfigHash": "sha256:afd71fe66f2e5f22d107ebbdcdb4db066f1f96e795b15a72194391796091b7d6"
       },
       {
         "cellKey": "v4:envExponent=2",
+        "design": "single",
         "hypothesis": "极强环境持有成本（顶部快速流失）",
         "overrides": {
           "need": {
             "envExponent": 2
           }
         },
+        "changedPaths": [
+          "need.envExponent"
+        ],
         "fullConfigHash": "sha256:b152cf2b39152c7a80ff02bf3be1b55b11ed7512913325133956630111e2dbdc"
       },
       {
         "cellKey": "v5:cushionDays=0",
+        "design": "single",
         "hypothesis": "ρ=0 退回 v4 语义（消融对照）",
         "overrides": {
           "ascent": {
             "holdingCushionDays": 0
           }
         },
+        "changedPaths": [
+          "ascent.holdingCushionDays"
+        ],
         "fullConfigHash": "sha256:ed367f77ab8822504f0be6bc4c2d27a0b4fdbfef6c058ec59c2f0e81240dc344"
       },
       {
         "cellKey": "v5:cushionDays=90",
+        "design": "single",
         "hypothesis": "强裕度封锁顶部（预期 c3 重心或封闭结构）",
         "overrides": {
           "ascent": {
             "holdingCushionDays": 90
           }
         },
+        "changedPaths": [
+          "ascent.holdingCushionDays"
+        ],
         "fullConfigHash": "sha256:48be7a3d47ed8ab0bb2b8a6347344c886d2a9188e3d1847bb913bea5856e0d75"
       },
       {
         "cellKey": "v5:cushionDays=90+phi=0",
-        "hypothesis": "强裕度×v3 需求（预期富人俱乐部顶层）",
+        "design": "interaction",
+        "hypothesis": "强裕度×v3 需求（预期富人俱乐部顶层）；双变量联合条件，不得单轴归因",
         "overrides": {
           "ascent": {
             "holdingCushionDays": 90
@@ -418,14 +521,19 @@
             "envExponent": 0
           }
         },
+        "changedPaths": [
+          "ascent.holdingCushionDays",
+          "need.envExponent"
+        ],
         "fullConfigHash": "sha256:8a0d52aded34bbf4ebf96374dd4dbf453b2d9c0996c284dc30917dc4fbf66fa2"
       },
       {
-        "cellKey": "v5:geMedian=0.7+cushion30",
-        "hypothesis": "裕度×生产力双约束（预期封闭分层可达）",
+        "cellKey": "v5:cushionDays=90+geMedian=0.7",
+        "design": "interaction",
+        "hypothesis": "裕度×生产力双约束（预期封闭分层可达）；双变量联合条件，不得单轴归因",
         "overrides": {
           "ascent": {
-            "holdingCushionDays": 30
+            "holdingCushionDays": 90
           },
           "attributes": {
             "ge": {
@@ -433,7 +541,11 @@
             }
           }
         },
-        "fullConfigHash": "sha256:6a51af9a480246cd75f828cd54c9588c86dae74ae69c5b46b0cd8b750b8fb337"
+        "changedPaths": [
+          "ascent.holdingCushionDays",
+          "attributes.ge.median"
+        ],
+        "fullConfigHash": "sha256:8371c6287be260da569d33d8642530d180f9365bd548975ce402110b3d9c5a0e"
       }
     ]
   },
@@ -447,15 +559,22 @@
     "warmupTicks": 1825
   },
   "clustering": null,
+  "cellsByDesign": {
+    "baseline": 1,
+    "single": 25,
+    "interaction": 2
+  },
   "cellDistinctness": null,
   "cells": [
     {
       "cellKey": "baseline",
+      "design": "baseline",
+      "changedPaths": [],
       "hypothesis": "默认参数下的基准结构",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 253,
+          "elapsedMs": 257,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -546,11 +665,15 @@
     },
     {
       "cellKey": "needMultiplier=flat",
+      "design": "single",
+      "changedPaths": [
+        "need.needMultiplier"
+      ],
       "hypothesis": "扁平持有成本削弱阶级分离",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 216,
+          "elapsedMs": 209,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -641,11 +764,15 @@
     },
     {
       "cellKey": "needMultiplier=steeper",
+      "design": "single",
+      "changedPaths": [
+        "need.needMultiplier"
+      ],
       "hypothesis": "更陡持有成本强化分层",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 200,
+          "elapsedMs": 188,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -736,11 +863,15 @@
     },
     {
       "cellKey": "needThreshold=0.3",
+      "design": "single",
+      "changedPaths": [
+        "need.threshold"
+      ],
       "hypothesis": "宽松需求线减少被动跌落",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 187,
+          "elapsedMs": 200,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -831,11 +962,15 @@
     },
     {
       "cellKey": "needThreshold=0.9",
+      "design": "single",
+      "changedPaths": [
+        "need.threshold"
+      ],
       "hypothesis": "严格需求线加剧跌落",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 186,
+          "elapsedMs": 190,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -926,11 +1061,15 @@
     },
     {
       "cellKey": "env0=compressed",
+      "design": "single",
+      "changedPaths": [
+        "opportunity.env0"
+      ],
       "hypothesis": "压缩阶级机会差削弱分层",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 176,
+          "elapsedMs": 201,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1021,11 +1160,15 @@
     },
     {
       "cellKey": "env0=expanded",
+      "design": "single",
+      "changedPaths": [
+        "opportunity.env0"
+      ],
       "hypothesis": "扩大阶级机会差强化分层",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 171,
+          "elapsedMs": 187,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1116,11 +1259,15 @@
     },
     {
       "cellKey": "ablation:beta=0",
+      "design": "single",
+      "changedPaths": [
+        "networkOpportunity.beta"
+      ],
       "hypothesis": "无网络机会（消融 β=0）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 192,
+          "elapsedMs": 202,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1211,11 +1358,15 @@
     },
     {
       "cellKey": "ablation:O=fixed",
+      "design": "single",
+      "changedPaths": [
+        "openness.updateMode"
+      ],
       "hypothesis": "无制度反馈（O 固定，P1-10 开关）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 184,
+          "elapsedMs": 187,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1306,11 +1457,15 @@
     },
     {
       "cellKey": "ablation:eta=0",
+      "design": "single",
+      "changedPaths": [
+        "dynamics.congestionExponent"
+      ],
       "hypothesis": "无阶级拥挤（消融 η=0）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 172,
+          "elapsedMs": 173,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1401,11 +1556,15 @@
     },
     {
       "cellKey": "ablation:kappa=0",
+      "design": "single",
+      "changedPaths": [
+        "dynamics.polarizationExponent"
+      ],
       "hypothesis": "无贫富分化反馈（消融 κ=0）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 174,
+          "elapsedMs": 185,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1496,11 +1655,15 @@
     },
     {
       "cellKey": "ablation:psi=1",
+      "design": "single",
+      "changedPaths": [
+        "need.needMultiplier"
+      ],
       "hypothesis": "无阶级持有成本（消融 ψ=1，预期顶层塌缩）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 163,
+          "elapsedMs": 180,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1591,11 +1754,15 @@
     },
     {
       "cellKey": "initialShares=bottom-heavy",
+      "design": "single",
+      "changedPaths": [
+        "population.classShares"
+      ],
       "hypothesis": "底层更重的初始分布",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 181,
+          "elapsedMs": 188,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1686,11 +1853,15 @@
     },
     {
       "cellKey": "initialShares=middle-heavy",
+      "design": "single",
+      "changedPaths": [
+        "population.classShares"
+      ],
       "hypothesis": "中层更重的初始分布",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 171,
+          "elapsedMs": 174,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1781,11 +1952,15 @@
     },
     {
       "cellKey": "lambdaO=0",
+      "design": "single",
+      "changedPaths": [
+        "openness.ascentCostWeight"
+      ],
       "hypothesis": "开放度不影响跨越成本",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 162,
+          "elapsedMs": 185,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1876,11 +2051,15 @@
     },
     {
       "cellKey": "rewireProb=0.2",
+      "design": "single",
+      "changedPaths": [
+        "network.rewireProb"
+      ],
       "hypothesis": "更高网络流动",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 187,
+          "elapsedMs": 199,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1971,11 +2150,15 @@
     },
     {
       "cellKey": "v4:envExponent=0",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
       "hypothesis": "φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 184,
+          "elapsedMs": 183,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2066,11 +2249,15 @@
     },
     {
       "cellKey": "v4:envExponent=0.5",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
       "hypothesis": "弱环境持有成本",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 177,
+          "elapsedMs": 179,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2161,11 +2348,15 @@
     },
     {
       "cellKey": "v4:envExponent=1.5",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
       "hypothesis": "强环境持有成本",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 172,
+          "elapsedMs": 180,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2256,11 +2447,15 @@
     },
     {
       "cellKey": "v4:thetaM=8",
+      "design": "single",
+      "changedPaths": [
+        "openness.mobilityWeight"
+      ],
       "hypothesis": "v3 值 θM=8 对照（预期 O 钉在高位）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 172,
+          "elapsedMs": 183,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2351,11 +2546,15 @@
     },
     {
       "cellKey": "v4:geMedian=0.8",
+      "design": "single",
+      "changedPaths": [
+        "attributes.ge.median"
+      ],
       "hypothesis": "中位生产力轻度低于持有标准（G 上升、O 下降）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 175,
+          "elapsedMs": 180,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2446,11 +2645,15 @@
     },
     {
       "cellKey": "v4:geMedian=0.7",
+      "design": "single",
+      "changedPaths": [
+        "attributes.ge.median"
+      ],
       "hypothesis": "中位生产力进一步下降（中间层重心、高 G）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 175,
+          "elapsedMs": 185,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2541,11 +2744,15 @@
     },
     {
       "cellKey": "v4:geMedian=0.6",
+      "design": "single",
+      "changedPaths": [
+        "attributes.ge.median"
+      ],
       "hypothesis": "强生产力约束（橄榄型倾向、O 低位）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 178,
+          "elapsedMs": 185,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2636,11 +2843,15 @@
     },
     {
       "cellKey": "v4:envExponent=2",
+      "design": "single",
+      "changedPaths": [
+        "need.envExponent"
+      ],
       "hypothesis": "极强环境持有成本（顶部快速流失）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 165,
+          "elapsedMs": 176,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2731,11 +2942,15 @@
     },
     {
       "cellKey": "v5:cushionDays=0",
+      "design": "single",
+      "changedPaths": [
+        "ascent.holdingCushionDays"
+      ],
       "hypothesis": "ρ=0 退回 v4 语义（消融对照）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 189,
+          "elapsedMs": 174,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2826,11 +3041,15 @@
     },
     {
       "cellKey": "v5:cushionDays=90",
+      "design": "single",
+      "changedPaths": [
+        "ascent.holdingCushionDays"
+      ],
       "hypothesis": "强裕度封锁顶部（预期 c3 重心或封闭结构）",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 168,
+          "elapsedMs": 170,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2921,11 +3140,16 @@
     },
     {
       "cellKey": "v5:cushionDays=90+phi=0",
-      "hypothesis": "强裕度×v3 需求（预期富人俱乐部顶层）",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.holdingCushionDays",
+        "need.envExponent"
+      ],
+      "hypothesis": "强裕度×v3 需求（预期富人俱乐部顶层）；双变量联合条件，不得单轴归因",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 166,
+          "elapsedMs": 170,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -3015,39 +3239,44 @@
       ]
     },
     {
-      "cellKey": "v5:geMedian=0.7+cushion30",
-      "hypothesis": "裕度×生产力双约束（预期封闭分层可达）",
+      "cellKey": "v5:cushionDays=90+geMedian=0.7",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.holdingCushionDays",
+        "attributes.ge.median"
+      ],
+      "hypothesis": "裕度×生产力双约束（预期封闭分层可达）；双变量联合条件，不得单轴归因",
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 161,
+          "elapsedMs": 175,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
-          "aliveAtEnd": 40,
-          "finalStateHash": "sha256:177b5f50bdee3e15baf9230800bc09691cbbbbffc99562a9a5a5f1f4791f32f0",
-          "configHash": "sha256:060dac2683a542e3bb13903ba18caf21272ca246e715b729b1ef30d9f3ec882d",
-          "paramsHash": "sha256:5aab39cf6f2cb94c3c404d73ad5dfb873969979dc1977b317ceb94fc64a5935f",
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:d56814c7f78b20e897aa03d6cb29e80bc344333aeb62a02f804dc312b422f269",
+          "configHash": "sha256:52102e78e7f99d85024d10a1b7f99e35c48d467b4906920699e4f0479086f4c6",
+          "paramsHash": "sha256:239b10c4c6ed635e04fb9afb980025c5d2008dd0ca733103336ff8b739eacdce",
           "w1": {
             "label": "w1",
             "available": false,
             "missingTicks": 695,
             "classShares": [
-              0.2857142857142859,
-              0.3950000000000001,
-              0.2942857142857141,
-              0.025000000000000012,
+              0.7245787545787548,
+              0.2754212454212456,
+              0,
+              0,
               0
             ],
-            "gini": 0.4737058101360537,
-            "topWealthShare": 0.3278971572417167,
-            "mUp": 0.7142857142857147,
-            "mDown": 0.4342857142857144,
-            "segregation": 0.1281433622297719,
-            "openness": 0.639428701005495,
-            "edgeCountAverage": 99,
-            "crossClassEdgeShare": 0.5870129870129871,
-            "deathRate": 0,
+            "gini": 0.451324305375591,
+            "topWealthShare": 0.30310032349839744,
+            "mUp": 0.09875457875457881,
+            "mDown": 0.4329670329670329,
+            "segregation": 0.30122722350016734,
+            "openness": 0.1985727503217067,
+            "edgeCountAverage": 96.77142857142857,
+            "crossClassEdgeShare": 0.2788623562817111,
+            "deathRate": 0.0007204610951008645,
             "networkEmpty": false,
             "labels": [],
             "evidence": {
@@ -3117,7 +3346,7 @@
     "observed": {
       "runCount": 28,
       "wallMinutes": 0,
-      "storageBytes": 91547
+      "storageBytes": 97173
     },
     "ok": true,
     "violations": []

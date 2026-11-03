@@ -16,6 +16,9 @@
 
 - 本目录不得被 `src/core`、`src/runner`、`src/decision`、`scripts` 导入；
   一旦出现这样的导入，说明隔离已被破坏，必须改回生产目录并走正式版本轴。
+  该约束由 `test/unit/architecture.test.ts` 机器强制，不依赖人工 review。
 - 本目录代码不进入 `pnpm typecheck:core`（该命令只检查 `src/core`）。
 - 单元测试可以保留在 `test/unit/experimental/`，用于防止实现腐烂；
   测试通过不代表能力已启用。
+- 保留而非删除是已记录决策（`docs/adr/0002`），附删除条件：G1.5 通过并正式启动 P2、
+  决策层契约不兼容变更、或连续两个里程碑未启动 P2，三者任一成立即删除本目录内容。
