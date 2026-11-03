@@ -1,0 +1,288 @@
+{
+  "schemaVersion": "p15-gates-v1",
+  "rulesVersion": "rules-v6",
+  "engineVersion": "engine-v0.4.0",
+  "gates": {
+    "D": {
+      "gate": "D",
+      "passed": true,
+      "comparisons": [
+        {
+          "seed": "p15-seed-001",
+          "equal": true,
+          "firstDifference": null,
+          "refIncomeHeldInitial": true
+        },
+        {
+          "seed": "p15-seed-002",
+          "equal": true,
+          "firstDifference": null,
+          "refIncomeHeldInitial": true
+        },
+        {
+          "seed": "p15-seed-003",
+          "equal": true,
+          "firstDifference": null,
+          "refIncomeHeldInitial": true
+        },
+        {
+          "seed": "p15-seed-004",
+          "equal": true,
+          "firstDifference": null,
+          "refIncomeHeldInitial": true
+        },
+        {
+          "seed": "p15-seed-005",
+          "equal": true,
+          "firstDifference": null,
+          "refIncomeHeldInitial": true
+        }
+      ],
+      "classRoundTrip": true,
+      "detail": "own 模式全部种子逐位一致"
+    },
+    "A": {
+      "gate": "A",
+      "passed": false,
+      "seedCount": 30,
+      "extinctCount": 0,
+      "p0Mean": 0,
+      "mUpMean": 0.0415928879225512,
+      "criteria": {
+        "p0MeanMin": 0.15,
+        "mUpMeanMax": 0.6
+      },
+      "detail": "P0(w3)=0.0000 mUp(w3)=0.0416（30/30 可用）"
+    },
+    "C": {
+      "gate": "C",
+      "passed": false,
+      "seedCount": 30,
+      "l1Mean": 0.16238066343616903,
+      "l1Max": 1.2141275887690093,
+      "criteria": {
+        "w2bW3L1Max": 0.1
+      },
+      "detail": "‖P(w2b)−P(w3)‖₁ mean=0.1624 max=1.2141"
+    },
+    "B": {
+      "gate": "B",
+      "passed": false,
+      "p4Range": 0.30700998345947006,
+      "distinctPairs": [
+        {
+          "parameter": "need.bufferDays",
+          "fromLevel": 1,
+          "toLevel": 2,
+          "l1": 0.5596021052709566
+        },
+        {
+          "parameter": "need.threshold",
+          "fromLevel": 1,
+          "toLevel": 2,
+          "l1": 0.22829751455654448
+        },
+        {
+          "parameter": "need.graceDays",
+          "fromLevel": 0,
+          "toLevel": 1,
+          "l1": 0.11609746059564338
+        },
+        {
+          "parameter": "need.needMultiplier",
+          "fromLevel": 1,
+          "toLevel": 2,
+          "l1": 0.1835593675084601
+        }
+      ],
+      "criteria": {
+        "p4RangeMin": 0.4,
+        "pL1PairMin": 0.1,
+        "minDistinctPairs": 2
+      },
+      "detail": "P4 极差=0.3070，‖ΔP‖₁≥0.10 的相邻档位对 4 个"
+    },
+    "B_levels": [
+      {
+        "cellKey": "need.bufferDays=10",
+        "parameter": "need.bufferDays",
+        "levelIndex": 0,
+        "classSharesMean": [
+          0,
+          0,
+          0.04191313816307482,
+          0.001774187234037635,
+          0.9563126746028893
+        ]
+      },
+      {
+        "cellKey": "baseline(bufferDays=30)",
+        "parameter": "need.bufferDays",
+        "levelIndex": 1,
+        "classSharesMean": [
+          0,
+          0.0027380869415519174,
+          0.01976270984158303,
+          0.03452680846185685,
+          0.9429723947550104
+        ]
+      },
+      {
+        "cellKey": "need.bufferDays=60",
+        "parameter": "need.bufferDays",
+        "levelIndex": 2,
+        "classSharesMean": [
+          0,
+          0.00023465246067985731,
+          0.029936164506253436,
+          0.304154406432664,
+          0.6656747766004034
+        ]
+      },
+      {
+        "cellKey": "need.threshold=0.3",
+        "parameter": "need.threshold",
+        "levelIndex": 0,
+        "classSharesMean": [
+          0,
+          0.0009259259259259407,
+          0.033040633169477675,
+          0.010326004446026573,
+          0.9557074364585705
+        ]
+      },
+      {
+        "cellKey": "baseline(threshold=0.5)",
+        "parameter": "need.threshold",
+        "levelIndex": 1,
+        "classSharesMean": [
+          0,
+          0.0027380869415519174,
+          0.01976270984158303,
+          0.03452680846185685,
+          0.9429723947550104
+        ]
+      },
+      {
+        "cellKey": "need.threshold=0.8",
+        "parameter": "need.threshold",
+        "levelIndex": 2,
+        "classSharesMean": [
+          0,
+          0.0009173253488321977,
+          0.018551452389215982,
+          0.14867556574012866,
+          0.8318556565218245
+        ]
+      },
+      {
+        "cellKey": "need.graceDays=0",
+        "parameter": "need.graceDays",
+        "levelIndex": 0,
+        "classSharesMean": [
+          0,
+          0.0012117489309270244,
+          0.019159425012114588,
+          0.09257553875967847,
+          0.887053287297282
+        ]
+      },
+      {
+        "cellKey": "baseline(graceDays=30)",
+        "parameter": "need.graceDays",
+        "levelIndex": 1,
+        "classSharesMean": [
+          0,
+          0.0027380869415519174,
+          0.01976270984158303,
+          0.03452680846185685,
+          0.9429723947550104
+        ]
+      },
+      {
+        "cellKey": "need.graceDays=15",
+        "parameter": "need.graceDays",
+        "levelIndex": 2,
+        "classSharesMean": [
+          0,
+          0.0009375439673586444,
+          0.021844531681719726,
+          0.03262049938200368,
+          0.9445974249689214
+        ]
+      },
+      {
+        "cellKey": "need.referenceSmoothing=0.05",
+        "parameter": "need.referenceSmoothing",
+        "levelIndex": 0,
+        "classSharesMean": [
+          0,
+          0.0010884514651638016,
+          0.02406966634406716,
+          0.03382050505158365,
+          0.9410213771391863
+        ]
+      },
+      {
+        "cellKey": "baseline(referenceSmoothing=0.2)",
+        "parameter": "need.referenceSmoothing",
+        "levelIndex": 1,
+        "classSharesMean": [
+          0,
+          0.0027380869415519174,
+          0.01976270984158303,
+          0.03452680846185685,
+          0.9429723947550104
+        ]
+      },
+      {
+        "cellKey": "need.referenceSmoothing=0.6",
+        "parameter": "need.referenceSmoothing",
+        "levelIndex": 2,
+        "classSharesMean": [
+          0,
+          0.0017187440692678555,
+          0.03224499738867938,
+          0.0327159702494482,
+          0.9333202882926064
+        ]
+      },
+      {
+        "cellKey": "needMultiplier×0.7",
+        "parameter": "need.needMultiplier",
+        "levelIndex": 0,
+        "classSharesMean": [
+          0,
+          0.0009284264695223719,
+          0.012631006446106843,
+          0.013755807024499578,
+          0.9726847600598735
+        ]
+      },
+      {
+        "cellKey": "baseline(needMultiplier×1.0)",
+        "parameter": "need.needMultiplier",
+        "levelIndex": 1,
+        "classSharesMean": [
+          0,
+          0.0027380869415519174,
+          0.01976270984158303,
+          0.03452680846185685,
+          0.9429723947550104
+        ]
+      },
+      {
+        "cellKey": "needMultiplier×1.4",
+        "parameter": "need.needMultiplier",
+        "levelIndex": 2,
+        "classSharesMean": [
+          0,
+          0.0023918408608175124,
+          0.028899939525533484,
+          0.11716926253213655,
+          0.8515389570815148
+        ]
+      }
+    ]
+  }
+}
