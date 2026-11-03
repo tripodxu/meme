@@ -53,6 +53,7 @@ for (const cell of manifest.cells) {
     const elapsedMs = Math.round(performance.now() - runStart);
     const w1 = outcome.report.windows.find((window) => window.label === 'w1');
     const w3 = outcome.report.windows.find((window) => window.label === 'w3');
+    const w2b = outcome.report.windows.find((window) => window.label === 'w2b');
     const windowPayload = (window) =>
       window === undefined
         ? null
@@ -87,6 +88,7 @@ for (const cell of manifest.cells) {
       paramsHash: outcome.paramsHash,
       w1: windowPayload(w1),
       w3: windowPayload(w3),
+      w2b: windowPayload(w2b),
     });
   }
   log(`cell=${cell.cellKey} done (${seedResults.length} seeds)`);
@@ -98,9 +100,10 @@ let clustering = null;
 if (stage === 'full') {
   const points = [];
   const pointMeta = [];
+  const featureWindow = manifest.clustering.featureWindows[0] ?? 'w3';
   for (const cell of cellResults) {
     for (const seedResult of cell.seeds) {
-      for (const key of ['w1', 'w3']) {
+      for (const key of [featureWindow]) {
         const w = seedResult[key];
         if (w !== null && w.available) {
           points.push([
@@ -124,6 +127,46 @@ if (stage === 'full') {
     byRun.set(key, (byRun.get(key) ?? 0) + 1);
   }
   log(`clustering points=${points.length}`);
+  // 吸引子稳定性诊断：每 run 的 w2b 特征点按最近质心分配，与 w3 分配比较一致率。
+  let temporalConsistency = null;
+  {
+    const w2bPoints = [];
+    const w3AssignByKey = new Map();
+    for (const cell of cellResults) {
+      for (const seedResult of cell.seeds) {
+        const w3p = seedResult.w3;
+        const w2bp = seedResult.w2b;
+        if (w3p && w3p.available) {
+          w3AssignByKey.set(cell.cellKey + '|' + seedResult.seed, [
+            ...w3p.classShares,
+            w3p.gini,
+            w3p.topWealthShare,
+            w3p.mUp,
+            w3p.mDown,
+            w3p.segregation,
+            w3p.openness,
+          ]);
+        }
+        if (w2bp && w2bp.available) {
+          w2bPoints.push({
+            key: cell.cellKey + '|' + seedResult.seed,
+            vector: [
+              ...w2bp.classShares,
+              w2bp.gini,
+              w2bp.topWealthShare,
+              w2bp.mUp,
+              w2bp.mDown,
+              w2bp.segregation,
+              w2bp.openness,
+            ],
+          });
+        }
+      }
+    }
+    if (w2bPoints.length > 0) {
+      temporalConsistency = { pending: true, w2bPoints: w2bPoints.length, w3Runs: w3AssignByKey.size };
+    }
+  }
   if (points.length >= 8) {
     const z = zScoreMatrix(points);
     const choice = chooseKBySilhouette(z);
