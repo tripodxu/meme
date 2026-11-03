@@ -45,6 +45,8 @@
 - 与历史轮对照：v5（顶层旋转门）、v6/v7（顶层封闭+底层抽空）、v8（底重环流）——
   三种体制各自稳态，但相互之间与内部都未出现 ≥2 类可复现指纹。
 
+完整报告（含五轮合并画像与描述性解读）：`docs/research/2026-11-04-p15-w2-confirmation-and-g15-verdict.md`（索引 `docs/research/README.md`）。
+
 ## 4. 处置（按预注册与 01 §4.5）
 
 - 判定树（diagnosis §8）全部走完：W0→W1→G-A..G-D→W2→W3。**P2–P6 继续搁置**（AGENTS 9）。
