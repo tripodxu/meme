@@ -262,7 +262,7 @@ if (stage === 'full') {
                 (w2bWindow.classShares[c] ?? 0) - (seedResult.w3.classShares[c] ?? 0),
               );
             }
-            return sum + l1Sum / 2;
+            return sum + l1Sum; // ‖·‖₁ 纯 L1，与 G-C evaluateGateC 同口径
           }, 0) / w3.length;
       }
       return { cellKey: cell.cellKey, meanP0, drift };
