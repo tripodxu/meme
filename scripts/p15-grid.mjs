@@ -153,16 +153,17 @@ if (stage === 'full') {
       for (let index = 0; index < pointMeta.length; index += 1) {
         const cluster = choice.assignment[index];
         const vector = points[index];
-        const bucket = (centroidAcc.get(cluster) ?? new Array(vector.length).fill(0)).map(
-          (v) => v,
-        );
+        const bucket = (centroidAcc.get(cluster) ?? new Array(vector.length).fill(0)).map((v) => v);
         for (let j = 0; j < vector.length; j += 1) bucket[j] += vector[j];
         centroidAcc.set(cluster, bucket);
         centroidCount.set(cluster, (centroidCount.get(cluster) ?? 0) + 1);
       }
       const centroids = new Map();
       for (const [cluster, sum] of centroidAcc) {
-        centroids.set(cluster, sum.map((v) => v / (centroidCount.get(cluster) ?? 1)));
+        centroids.set(
+          cluster,
+          sum.map((v) => v / (centroidCount.get(cluster) ?? 1)),
+        );
       }
       const w3ByKey = new Map();
       for (let index = 0; index < pointMeta.length; index += 1) {
