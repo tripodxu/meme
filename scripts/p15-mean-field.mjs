@@ -18,15 +18,19 @@ function log(message) {
 }
 
 // ---- 1. 均值场验证（baseline, 5 种子）----
+// 顶层 margin 必须用仿真观测到的 E[c] 计算环境持有人乘子；不传 E 等价于
+// envMultiplier=1（v3 语义），会把「顶层可持续性裕度」高估数倍（changes/0004）。
 const baseline = DEFAULT_RUN_CONFIG;
-const margin = topClassMargin(baseline, [0.5, 1, 1, 1, 1, 2, 3], 1);
-log(`topClassMargin(median ge≈1,F≈1)=${margin.toFixed(3)} (<1 ⇒ 旋转门预测)`);
+const noEnvConfig = mergeConfig(DEFAULT_RUN_CONFIG, { need: { envExponent: 0 } });
+// 中位生产力探针：F(hard=1) 取自 effortFunction，ge 中位数为 1。
+const GE_PROBE = [0.5, 1, 1, 1, 1, 2, 3];
 
 const mfSeeds = ['mf-1', 'mf-2', 'mf-3', 'mf-4', 'mf-5'];
 let signOk = 0;
 let signTotal = 0;
-let p4Values = [];
-let mupValues = [];
+const p4Values = [];
+const mupValues = [];
+const eByClassSamples = [];
 for (const seed of mfSeeds) {
   const config = mergeConfig(DEFAULT_RUN_CONFIG, {
     schedule: { totalTicks: 3650, statsStride: 1, snapshotStride: 1000 },
@@ -42,8 +46,27 @@ for (const seed of mfSeeds) {
   }
   p4Values.push(w3.classShares[4]);
   mupValues.push(w3.mUp);
+  eByClassSamples.push(w3.eByClass);
 }
 const mean = (values) => values.reduce((a, b) => a + b, 0) / Math.max(values.length, 1);
+
+// E 的逐阶级均值（各阶级 E 的算术平均，与 07 §5 窗口均值口径一致）。
+const classCount = (eByClassSamples[0] ?? []).length;
+const meanEByClass = Array.from({ length: classCount }, (_, c) =>
+  mean(eByClassSamples.map((sample) => sample[c] ?? 0)),
+);
+const marginNoEnv = topClassMargin(noEnvConfig, GE_PROBE, 1);
+const marginWithEnv =
+  meanEByClass.length > 0 && (meanEByClass[0] ?? 0) > 0
+    ? topClassMargin(baseline, GE_PROBE, 1, meanEByClass)
+    : null;
+log(`topClassMargin(median ge≈1,F≈1) 无环境乘子(v3 对照)=${marginNoEnv.toFixed(3)}`);
+log(
+  marginWithEnv === null
+    ? 'topClassMargin(含 env0 乘子)=不可用（E 缺观测）'
+    : `topClassMargin(含 env0 乘子, E=w3 观测)=${marginWithEnv.toFixed(3)} (<1 ⇒ 旋转门预测)`,
+);
+log(`w3 E by class=${meanEByClass.map((value) => value.toFixed(2)).join(',')}`);
 log(`congestion sign matches: ${signOk}/${signTotal}`);
 log(`w3 P4 mean=${mean(p4Values).toFixed(3)}  w3 Mup mean=${mean(mupValues).toFixed(3)}`);
 
@@ -96,5 +119,19 @@ for (const cell of exploratoryCells) {
 }
 
 process.stdout.write(
-  `${JSON.stringify({ schemaVersion: 'p15-meanfield-v1', margin, signOk, signTotal, w3P4Mean: mean(p4Values), w3MupMean: mean(mupValues), exploratory: results }, null, 2)}\n`,
+  `${JSON.stringify(
+    {
+      schemaVersion: 'p15-meanfield-v2',
+      marginNoEnv,
+      marginWithEnv,
+      meanEByClass,
+      signOk,
+      signTotal,
+      w3P4Mean: mean(p4Values),
+      w3MupMean: mean(mupValues),
+      exploratory: results,
+    },
+    null,
+    2,
+  )}\n`,
 );

@@ -10,7 +10,7 @@
  *   { preregistrationHash, cells: [{cellKey, seeds: [{seed, window metrics, labels, aliveAtEnd, finalStateHash, elapsedMs}]}] }
  */
 import { performance } from 'node:perf_hooks';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, statSync } from 'node:fs';
 
 import {
   buildPreregManifest,
@@ -19,8 +19,8 @@ import {
 } from '../dist/core/../runner/preregistration.js';
 import { runSingle } from '../dist/runner/run-cell.js';
 import { asSeed } from '../dist/core/control/ids.js';
+import { featureVector, meetsInitialDifference } from '../dist/runner/distance.js';
 import {
-  euclidean,
   fitStandardizer,
   chooseKBySilhouette,
   bisectStability,
@@ -35,19 +35,6 @@ function log(message) {
   process.stderr.write(`[p15] ${message}\n`);
 }
 
-/** 聚类特征向量（07 §8.1）：窗口均值 P[c]、G、top10、Mup、Mdown、S、O。 */
-function featureVector(window) {
-  return [
-    ...window.classShares,
-    window.gini,
-    window.topWealthShare,
-    window.mUp,
-    window.mDown,
-    window.segregation,
-    window.openness,
-  ];
-}
-
 const STABILITY_SEED_OFFSETS = [20261103, 20261104, 20261105];
 
 const manifest = buildPreregManifest();
@@ -55,8 +42,20 @@ const preregistrationHash = computePreregistrationHash(manifest);
 log(`preregistrationHash=${preregistrationHash}`);
 log(`stage=${stage} cells=${manifest.cells.length} seeds=${manifest.seeds.length}`);
 
+// burn-in 必须止于首个分析窗口起点之前（07 §5）：否则窗口混入排序暂态。
+const firstWindowStart = Math.min(...manifest.windows.map((window) => window.start));
+if (manifest.warmupTicks > firstWindowStart) {
+  throw new Error(`warmupTicks=${manifest.warmupTicks} 超过首个分析窗口起点 ${firstWindowStart}`);
+}
+
 const seedsForStage = stage === 'screen' ? manifest.seeds.slice(0, 1) : manifest.seeds;
 const ticksForStage = stage === 'screen' ? 400 : manifest.totalTicks;
+
+// 预算护栏（07 §3）：超出即中止，不得把超预算批次当正式证据。
+const projectedRuns = manifest.cells.length * seedsForStage.length;
+if (projectedRuns > manifest.budgets.maxRuns) {
+  throw new Error(`预计 ${projectedRuns} run 超过 budgets.maxRuns=${manifest.budgets.maxRuns}`);
+}
 
 const cellResults = [];
 let runCount = 0;
@@ -112,8 +111,9 @@ for (const cell of manifest.cells) {
   cellResults.push({ cellKey: cell.cellKey, hypothesis: cell.hypothesis, seeds: seedResults });
 }
 
-// 聚类（仅 full 阶段）：预注册全部特征窗口（默认 w3）特征点 → z-score → Ward k∈[2,5]；
-// 同 run 的 w2b 特征点用同一标尺标准化后按最近质心分配，与 w3 簇比较得到吸引子一致性。
+// 聚类（仅 full 阶段）：预注册全部特征窗口（w2b + w3）的特征点 → z-score(pooled) →
+// Ward k∈[2,5]。同一 run 的 w2b/w3 都在同一空间聚类，直接比较簇号得到
+// 吸引子稳定性（07 §5 v5 修订），不再用「投影到 w3 质心」的近似。
 let clustering = null;
 if (stage === 'full') {
   const featureWindows = manifest.clustering.featureWindows;
@@ -153,60 +153,35 @@ if (stage === 'full') {
     }
     const smallestCluster = minClusterSize(choice.assignment);
     const minClusterMet = smallestCluster >= manifest.clustering.minClusterRuns;
-    // 吸引子稳定性诊断（预注册 warmupDiagnostic）：每 run 的 w2b 特征点按
-    // w3 聚类质心最近分配，与该 run 的 w3 簇比较一致率。
+    // 吸引子稳定性（07 §5 v5 修订）：同一 run 的 w2b 与 w3 特征点在同一 z-score
+    // 空间各自入簇，直接比较簇号是否一致；阈值来自预注册，不做事后择取。
     let temporalConsistency = null;
     {
-      const centroidAcc = new Map();
-      const centroidCount = new Map();
+      const windows = manifest.clustering.featureWindows;
+      const byRun = new Map();
       for (let index = 0; index < pointMeta.length; index += 1) {
-        const cluster = choice.assignment[index];
-        const vector = z[index];
-        const bucket = (centroidAcc.get(cluster) ?? new Array(vector.length).fill(0)).map((v) => v);
-        for (let j = 0; j < vector.length; j += 1) bucket[j] += vector[j];
-        centroidAcc.set(cluster, bucket);
-        centroidCount.set(cluster, (centroidCount.get(cluster) ?? 0) + 1);
-      }
-      const centroids = new Map();
-      for (const [cluster, sum] of centroidAcc) {
-        centroids.set(
-          cluster,
-          sum.map((v) => v / (centroidCount.get(cluster) ?? 1)),
-        );
-      }
-      const w3ByKey = new Map();
-      for (let index = 0; index < pointMeta.length; index += 1) {
-        w3ByKey.set(pointMeta[index].cell + '|' + pointMeta[index].seed, choice.assignment[index]);
+        const meta = pointMeta[index];
+        const key = `${meta.cell}|${meta.seed}`;
+        const entry = byRun.get(key) ?? {};
+        entry[meta.window] = choice.assignment[index];
+        byRun.set(key, entry);
       }
       let same = 0;
       let total = 0;
-      for (const cell of cellResults) {
-        for (const seedResult of cell.seeds) {
-          const alt = seedResult.w2b;
-          const w3Assign = w3ByKey.get(cell.cellKey + '|' + seedResult.seed);
-          if (!alt || !alt.available || w3Assign === undefined) continue;
-          const vector = scaler.standardize(featureVector(alt));
-          let best = null;
-          let bestDistance = Number.POSITIVE_INFINITY;
-          for (const [cluster, centroid] of centroids) {
-            const d = euclidean(vector, centroid);
-            if (d < bestDistance) {
-              bestDistance = d;
-              best = cluster;
-            }
-          }
-          total += 1;
-          if (best === w3Assign) same += 1;
-        }
+      for (const entry of byRun.values()) {
+        const clusters = windows.map((window) => entry[window]).filter((v) => v !== undefined);
+        if (clusters.length < 2) continue;
+        total += 1;
+        if (clusters.every((cluster) => cluster === clusters[0])) same += 1;
       }
-      temporalConsistency =
-        total === 0
-          ? null
-          : {
-              window: 'w2b',
-              sameClusterRate: Math.round((same / total) * 1000) / 1000,
-              total,
-            };
+      const rate = total === 0 ? null : Math.round((same / total) * 1000) / 1000;
+      temporalConsistency = {
+        windows: [...windows],
+        sameClusterRate: rate,
+        total,
+        minRate: manifest.clustering.temporalConsistencyMinRate,
+        met: rate !== null && rate >= manifest.clustering.temporalConsistencyMinRate,
+      };
     }
     clustering = {
       k: choice.k,
@@ -230,6 +205,33 @@ if (stage === 'full') {
   }
 }
 
+// 预注册 cell 必须与 baseline 有实际差异（07 §8），否则该 cell 无信息量。
+// 门槛取 manifest.differenceThresholds，运行后不得放宽。
+let cellDistinctness = null;
+if (stage === 'full') {
+  const pickWindow = (cellKey) => {
+    const cell = cellResults.find((entry) => entry.cellKey === cellKey);
+    return cell?.seeds.find((seedResult) => seedResult.w2b?.available)?.w2b ?? null;
+  };
+  const baselineWindow = pickWindow('baseline');
+  if (baselineWindow !== null) {
+    cellDistinctness = cellResults
+      .filter((cell) => cell.cellKey !== 'baseline')
+      .map((cell) => {
+        const probe = pickWindow(cell.cellKey);
+        if (probe === null) {
+          return { cellKey: cell.cellKey, met: null, detail: '无可用 w2b，无法比较' };
+        }
+        const { met, detail } = meetsInitialDifference(
+          probe,
+          baselineWindow,
+          manifest.differenceThresholds,
+        );
+        return { cellKey: cell.cellKey, met, detail };
+      });
+  }
+}
+
 const wallMinutes = Math.round((performance.now() - startedAt) / 60000);
 const output = {
   schemaVersion: 'p15-grid-v2',
@@ -243,11 +245,46 @@ const output = {
     totalTicks: ticksForStage,
     seeds: seedsForStage,
     runCount,
+    warmupTicks: manifest.warmupTicks,
   },
   clustering,
+  cellDistinctness,
   cells: cellResults,
 };
 mkdirSync('out', { recursive: true });
-writeFileSync(`out/p15-${stage}.json`, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
+// 预算护栏（07 §3）：实际值必须落在预注册 budgets 内，超限不得当作正式证据。
+{
+  const sizeWithoutBudget = Buffer.byteLength(`${JSON.stringify(output, null, 2)}\n`, 'utf8');
+  const violations = [];
+  if (runCount > manifest.budgets.maxRuns) {
+    violations.push(`runCount=${runCount} > maxRuns=${manifest.budgets.maxRuns}`);
+  }
+  if (wallMinutes > manifest.budgets.maxWallMinutes) {
+    violations.push(
+      `wallMinutes=${wallMinutes} > maxWallMinutes=${manifest.budgets.maxWallMinutes}`,
+    );
+  }
+  if (sizeWithoutBudget > manifest.budgets.maxStorageBytes) {
+    violations.push(
+      `storageBytes=${sizeWithoutBudget} > maxStorageBytes=${manifest.budgets.maxStorageBytes}`,
+    );
+  }
+  output.budgets = {
+    maxRuns: manifest.budgets.maxRuns,
+    maxWallMinutes: manifest.budgets.maxWallMinutes,
+    maxStorageBytes: manifest.budgets.maxStorageBytes,
+    observed: { runCount, wallMinutes, storageBytes: sizeWithoutBudget },
+    ok: violations.length === 0,
+    violations,
+  };
+  if (violations.length > 0) {
+    log(`budgets 超限: ${violations.join('; ')}`);
+    process.exitCode = 2;
+  }
+}
+const serialized = `${JSON.stringify(output, null, 2)}\n`;
+writeFileSync(`out/p15-${stage}.json`, serialized, 'utf8');
 process.stdout.write(`${JSON.stringify(output)}\n`);
-log(`written out/p15-${stage}.json (${runCount} runs, ${wallMinutes}min)`);
+log(
+  `written out/p15-${stage}.json (${runCount} runs, ${wallMinutes}min, ${statSync(`out/p15-${stage}.json`).size} bytes)`,
+);

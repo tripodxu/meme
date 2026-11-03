@@ -1,7 +1,7 @@
 {
   "schemaVersion": "p15-grid-v2",
   "stage": "screen",
-  "preregistrationHash": "sha256:2c4843b4eec9d5d5d867cdd3df4cb7ef44241b3fcbfc202e3823aecf33361e1c",
+  "preregistrationHash": "sha256:ba64e87f13a84e82e14326f0cd181460d788ffd46e9dd60289e1f917778fccf6",
   "runCount": 28,
   "wallMinutes": 0,
   "manifest": {
@@ -10,11 +10,15 @@
     "primaryMetric": "TV(P)",
     "experimentType": "rule_sensitivity",
     "rulesVersion": "rules-v5",
-    "engineVersion": "engine-v0.2.0",
+    "engineVersion": "engine-v0.3.0",
     "decisionSchemaVersion": "stratify-decision-v1",
     "policyVersion": "mock-weighted-v1",
+    "promptVersion": "prompt-none-v1",
+    "promptStyle": "neutral",
     "populationSize": 40,
     "totalTicks": 3650,
+    "baseConfigHash": "sha256:ff00821ed454b144694d54b23ac947d4720bbabd37e53e6edd482194bbb83184",
+    "artifactProfile": "full",
     "seeds": [
       "p15-seed-001",
       "p15-seed-002",
@@ -68,6 +72,7 @@
       "algorithm": "ward+euclidean",
       "standardization": "z-score(pooled)",
       "featureWindows": [
+        "w2b",
         "w3"
       ],
       "kRange": [
@@ -76,6 +81,7 @@
       ],
       "stabilityMinAri": 0.7,
       "minClusterRuns": 5,
+      "temporalConsistencyMinRate": 0.8,
       "d03Note": "Ward+Euclidean 为 07 §8.1 文档默认建议；待议 D-03 未关闭，不得声称已获科学负责人确认。"
     },
     "differenceThresholds": {
@@ -90,11 +96,18 @@
       "maxWallMinutes": 480,
       "maxStorageBytes": 2000000000
     },
+    "exclusionRules": {
+      "excludeExtinctRuns": true,
+      "excludeUnavailableWindows": true,
+      "excludeNetworkEmptyFromSegregation": true,
+      "maxTechnicalRetries": 1
+    },
     "cells": [
       {
         "cellKey": "baseline",
         "hypothesis": "默认参数下的基准结构",
-        "overrides": {}
+        "overrides": {},
+        "fullConfigHash": "sha256:ff00821ed454b144694d54b23ac947d4720bbabd37e53e6edd482194bbb83184"
       },
       {
         "cellKey": "needMultiplier=flat",
@@ -109,7 +122,8 @@
               1.5
             ]
           }
-        }
+        },
+        "fullConfigHash": "sha256:26cfc49aa4f448a174c7f42e06eb6f0bb29e16a51e2b45d182f9be10b044f7c0"
       },
       {
         "cellKey": "needMultiplier=steeper",
@@ -124,7 +138,8 @@
               4.2
             ]
           }
-        }
+        },
+        "fullConfigHash": "sha256:2b375d47ad7cf6e3ac265092363c2bfccc6ecbc2c49e73e22936d22d885b6b4c"
       },
       {
         "cellKey": "needThreshold=0.3",
@@ -133,7 +148,8 @@
           "need": {
             "threshold": 0.3
           }
-        }
+        },
+        "fullConfigHash": "sha256:d457b0b29df914e04f8cd205e2ea87acdabf0ddbce61c94c1838a243c448e39d"
       },
       {
         "cellKey": "needThreshold=0.9",
@@ -142,7 +158,8 @@
           "need": {
             "threshold": 0.9
           }
-        }
+        },
+        "fullConfigHash": "sha256:555a934d6bc2681b5300b07c3001d60f1b9978fd6b2063423571e1369fc3b7f6"
       },
       {
         "cellKey": "env0=compressed",
@@ -157,7 +174,8 @@
               2.4
             ]
           }
-        }
+        },
+        "fullConfigHash": "sha256:476e45a94aa6f164d13577ac798bdccf024a1271507920f5c5f810a395859f1a"
       },
       {
         "cellKey": "env0=expanded",
@@ -172,7 +190,8 @@
               7
             ]
           }
-        }
+        },
+        "fullConfigHash": "sha256:4c02943dc78920883946840ef78d6177a1e133e6e3143e58cac76ca1f9d01657"
       },
       {
         "cellKey": "ablation:beta=0",
@@ -181,7 +200,8 @@
           "networkOpportunity": {
             "beta": 0
           }
-        }
+        },
+        "fullConfigHash": "sha256:624142d41d737344a4c286e4f13fc1aeeae7f3969595aa1f3612372671b4b30b"
       },
       {
         "cellKey": "ablation:O=fixed",
@@ -190,7 +210,8 @@
           "openness": {
             "updateMode": "fixed"
           }
-        }
+        },
+        "fullConfigHash": "sha256:61e843df9dfdc86ffd2336f481179711c0c4555b77769c13a14a41fe8f7fc8ba"
       },
       {
         "cellKey": "ablation:eta=0",
@@ -199,7 +220,8 @@
           "dynamics": {
             "congestionExponent": 0
           }
-        }
+        },
+        "fullConfigHash": "sha256:7f9d93e4caa366753d130fc4978edc3622e24f4ab656a0bf6f5b724f4f81bb39"
       },
       {
         "cellKey": "ablation:kappa=0",
@@ -208,7 +230,8 @@
           "dynamics": {
             "polarizationExponent": 0
           }
-        }
+        },
+        "fullConfigHash": "sha256:f2c99844aff093684e942d91d568d73d898e624773a4ee8733176380d59547a4"
       },
       {
         "cellKey": "ablation:psi=1",
@@ -223,7 +246,8 @@
               1
             ]
           }
-        }
+        },
+        "fullConfigHash": "sha256:7ad1015fe89a0486566bea142a31b5902fdbbaeb3d6ea511a414eb3897b878b9"
       },
       {
         "cellKey": "initialShares=bottom-heavy",
@@ -238,7 +262,8 @@
               0.01
             ]
           }
-        }
+        },
+        "fullConfigHash": "sha256:fdb9c239b850195f00cc352bb516607ffe102412c4f5a4438f17b384c4e24c51"
       },
       {
         "cellKey": "initialShares=middle-heavy",
@@ -253,7 +278,8 @@
               0.05
             ]
           }
-        }
+        },
+        "fullConfigHash": "sha256:1f7edbb058f5c16b5b6359ed20abf438b6cc3a0c37b2337226d071e84537dbe0"
       },
       {
         "cellKey": "lambdaO=0",
@@ -262,7 +288,8 @@
           "openness": {
             "ascentCostWeight": 0
           }
-        }
+        },
+        "fullConfigHash": "sha256:152a42efb0f74ef900f022e1dbcb5019848cc837b47eed80a6a130389ba2fdf1"
       },
       {
         "cellKey": "rewireProb=0.2",
@@ -271,7 +298,8 @@
           "network": {
             "rewireProb": 0.2
           }
-        }
+        },
+        "fullConfigHash": "sha256:3fc12bcb885240871b4185669ee7cdc42f3fa330c24ee4b1959b1dc79e36666b"
       },
       {
         "cellKey": "v4:envExponent=0",
@@ -280,7 +308,8 @@
           "need": {
             "envExponent": 0
           }
-        }
+        },
+        "fullConfigHash": "sha256:99ffaa7c0a52797cef2147a5f5f6e4f9a3e523738c0a43ad5fe2ef4152ce0869"
       },
       {
         "cellKey": "v4:envExponent=0.5",
@@ -289,7 +318,8 @@
           "need": {
             "envExponent": 0.5
           }
-        }
+        },
+        "fullConfigHash": "sha256:826f611c328a990261c4c2a8c687d4adc59bf3e7d977792f23656d0dbfb34ba4"
       },
       {
         "cellKey": "v4:envExponent=1.5",
@@ -298,7 +328,8 @@
           "need": {
             "envExponent": 1.5
           }
-        }
+        },
+        "fullConfigHash": "sha256:a58f22c82b72dfb0628ac80fcd4da8294d9e7f244cb65987b67dc8cafa4b03c8"
       },
       {
         "cellKey": "v4:thetaM=8",
@@ -307,7 +338,8 @@
           "openness": {
             "mobilityWeight": 8
           }
-        }
+        },
+        "fullConfigHash": "sha256:0e44d791a40ade558c3eb08d8fdee9eabc5a173473aec58323bb6696154d0cf7"
       },
       {
         "cellKey": "v4:geMedian=0.8",
@@ -318,7 +350,8 @@
               "median": 0.8
             }
           }
-        }
+        },
+        "fullConfigHash": "sha256:f7a41c80b1f03e947451e42294604e00ad4650d80e2847c3151d6d674d9c7285"
       },
       {
         "cellKey": "v4:geMedian=0.7",
@@ -329,7 +362,8 @@
               "median": 0.7
             }
           }
-        }
+        },
+        "fullConfigHash": "sha256:6a51af9a480246cd75f828cd54c9588c86dae74ae69c5b46b0cd8b750b8fb337"
       },
       {
         "cellKey": "v4:geMedian=0.6",
@@ -340,7 +374,8 @@
               "median": 0.6
             }
           }
-        }
+        },
+        "fullConfigHash": "sha256:afd71fe66f2e5f22d107ebbdcdb4db066f1f96e795b15a72194391796091b7d6"
       },
       {
         "cellKey": "v4:envExponent=2",
@@ -349,7 +384,8 @@
           "need": {
             "envExponent": 2
           }
-        }
+        },
+        "fullConfigHash": "sha256:b152cf2b39152c7a80ff02bf3be1b55b11ed7512913325133956630111e2dbdc"
       },
       {
         "cellKey": "v5:cushionDays=0",
@@ -358,7 +394,8 @@
           "ascent": {
             "holdingCushionDays": 0
           }
-        }
+        },
+        "fullConfigHash": "sha256:ed367f77ab8822504f0be6bc4c2d27a0b4fdbfef6c058ec59c2f0e81240dc344"
       },
       {
         "cellKey": "v5:cushionDays=90",
@@ -367,7 +404,8 @@
           "ascent": {
             "holdingCushionDays": 90
           }
-        }
+        },
+        "fullConfigHash": "sha256:48be7a3d47ed8ab0bb2b8a6347344c886d2a9188e3d1847bb913bea5856e0d75"
       },
       {
         "cellKey": "v5:cushionDays=90+phi=0",
@@ -379,7 +417,8 @@
           "need": {
             "envExponent": 0
           }
-        }
+        },
+        "fullConfigHash": "sha256:8a0d52aded34bbf4ebf96374dd4dbf453b2d9c0996c284dc30917dc4fbf66fa2"
       },
       {
         "cellKey": "v5:geMedian=0.7+cushion30",
@@ -393,7 +432,8 @@
               "median": 0.7
             }
           }
-        }
+        },
+        "fullConfigHash": "sha256:6a51af9a480246cd75f828cd54c9588c86dae74ae69c5b46b0cd8b750b8fb337"
       }
     ]
   },
@@ -403,9 +443,11 @@
     "seeds": [
       "p15-seed-001"
     ],
-    "runCount": 28
+    "runCount": 28,
+    "warmupTicks": 1825
   },
   "clustering": null,
+  "cellDistinctness": null,
   "cells": [
     {
       "cellKey": "baseline",
@@ -413,13 +455,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 294,
+          "elapsedMs": 253,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:42e41cefb589fe0f01a57c721e52a45f04366449409b079436c8eca9034c538c",
-          "configHash": "sha256:6d29ef88f4492670415bd3a513473a5718310cbd7cd607461443ab153188aae9",
+          "finalStateHash": "sha256:d224899cfe3c63e13adb99e069b72a3bcc26c2b8c9eba05c3ba812b1455d49f8",
+          "configHash": "sha256:c22b7b881e63d68c3a0aa4fe748b312c6714bcc4b57f0bb1c3202d10a4f5d6a9",
           "paramsHash": "sha256:13d73afc5e7321592cffff24ab6d014addce91532315c013847099d77a7c2522",
           "w1": {
             "label": "w1",
@@ -508,13 +550,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 227,
+          "elapsedMs": 216,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:d85de9551ff03980fdb3fd0b24ed4ec851edd741fdfc4ae410827b3ac176864b",
-          "configHash": "sha256:ee7268cb104d7604b6f3c359e47d70ebd40236d79a41d78f71830c0d3e5a7125",
+          "finalStateHash": "sha256:beb4848344c79b6832197bb5cf8b9264c6b45db8747cba1e67f0fd114f99c9b4",
+          "configHash": "sha256:eda6390edca645d890a89782b2109c2fc6847257fae7d0529f0332c463602859",
           "paramsHash": "sha256:324b70a50c94f2ddf5891988ffb2e19074d6b6178131d5a325c1627770d18e2e",
           "w1": {
             "label": "w1",
@@ -603,13 +645,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 204,
+          "elapsedMs": 200,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:2b0fcc45aa6180ae116d1869e01f1ad26d0c2313a969f216fd8ac568c47c0e5d",
-          "configHash": "sha256:5838f65dcdeb28c159322d49fc759474ad62eb04707d83481b7dad75cf38bb76",
+          "finalStateHash": "sha256:c928a68d808b202d9f55aee3e71e097d3bd71bd373d9f69255fd5dd2e6986e69",
+          "configHash": "sha256:0ecbbc85a1652dee9e83bbacfe34d391a4aea9fdd017c3052c00cde0eb031392",
           "paramsHash": "sha256:4a749233e18e837a413db69c6a3f96ac82a0f85206603128b961697d7cb5bc7e",
           "w1": {
             "label": "w1",
@@ -698,13 +740,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 202,
+          "elapsedMs": 187,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:e3b4ae46ba896c6b6d3cdab07e93e05827fef30e28bc8adc7b8ba4c747db5801",
-          "configHash": "sha256:407bc1d2b335a75927ba9c55f888528011ac4d6d1045c83490c4cb6a6df31a00",
+          "finalStateHash": "sha256:7ca27a93ea64b15bcd46e019c40c4c1d2ec94de0f3017ca3b8cad219fde7fae8",
+          "configHash": "sha256:83d72694bc8739bddfb57b8aad1024afb20d0f73760e042a87d8c98d85236029",
           "paramsHash": "sha256:352f149c00c4e7acdc3691ab488eb5f348b10953ddc8a37ed0e68402852422de",
           "w1": {
             "label": "w1",
@@ -793,13 +835,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 205,
+          "elapsedMs": 186,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:a1abbbab6df3db5a51e1fdf7f989e3deda85531abeec885c065ff80e342dc443",
-          "configHash": "sha256:4c047d3fbdab3b890a5923e46bec7d90e908333e574ecfc08c2260304a21b4fe",
+          "finalStateHash": "sha256:53874005991b650e16768aa422e72be2af6a586abb9374e0bab9ab527fccb36a",
+          "configHash": "sha256:cab55dcdc372b739bb561d8ac4904f4cafcddf89bd8afbf32740a52a8801addc",
           "paramsHash": "sha256:9d864f210b540e5af612aa786504d34caa4fdcdefcd8cc09349bdbd3a44c778b",
           "w1": {
             "label": "w1",
@@ -888,13 +930,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 214,
+          "elapsedMs": 176,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:f76162eb4b98c93430019cec9358d9c5f3b7f1c4d0781282af2de9c0ebf45a54",
-          "configHash": "sha256:49dae2b260b2d91d0c11486cf324365f97defb574e046bfd1584e90418fa050c",
+          "finalStateHash": "sha256:b91434352141473dd688ea4c52fa998d098b07d84e87580472769b638695ca5f",
+          "configHash": "sha256:3ffc40c09a6b3b1a1f531f34d977bf0ff2bca191f7fe45fe8cf32ddffbf0dc65",
           "paramsHash": "sha256:3382c7066e9aae3f991e2d6c27c3891d6947b97980476580cec90cfd699011c1",
           "w1": {
             "label": "w1",
@@ -983,13 +1025,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 212,
+          "elapsedMs": 171,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 39,
-          "finalStateHash": "sha256:43c753bc5d71dcdb54ba2875e57f6157080ee5c3aaabe47c1975e735a98207cd",
-          "configHash": "sha256:f5c36a4c697d87b1db8ade7aed98ff85d3b1c058d936f5e6c29d272836c0df62",
+          "finalStateHash": "sha256:8fd50a9078401a3672241bd7f67c7ebfb9febcf3328ba5ee47952a40cd0886df",
+          "configHash": "sha256:3d4c64fc6d6d9ec10d3adef01b14130364b5dbcea312e9e20b045b62686ce0d1",
           "paramsHash": "sha256:394f13be46b8bd63629ec85eff79a441576d300f2d0d6996dbc468238fa225c6",
           "w1": {
             "label": "w1",
@@ -1078,13 +1120,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 248,
+          "elapsedMs": 192,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:2d6f33e863b01e2e96133349d91b316883bb38d8f2876da5b97f75604e81a860",
-          "configHash": "sha256:89cf6d14f8a2c268c18d63fd0b2a2a80b5f00e571af37542c4d1ef38a6a026e1",
+          "finalStateHash": "sha256:8ea389d6fa5000a8739963771b6223962fe067f7d25014a83f030a4668c9948f",
+          "configHash": "sha256:44d73033f25c2b8dcaf25a7d84824f4808baa1fb5d1abd28a5a6982e894cd1a7",
           "paramsHash": "sha256:f107ff68da1c15157e3b4b84a64c6332f145214bf7c9cb43e2c63e9331b6abd1",
           "w1": {
             "label": "w1",
@@ -1173,13 +1215,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 210,
+          "elapsedMs": 184,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:51941f5320b4f1a70628c933170ad2b7f42c0021d17619be9a1e60f765c752ef",
-          "configHash": "sha256:c7dc0db95ecbb799aaabd0c31955ec4816b7aea0f71f7b9c98dda950e476818d",
+          "finalStateHash": "sha256:669c3073a25d25fdea2e47d31b1651ec2efd7098e51781cdede9873f6f71be6a",
+          "configHash": "sha256:e4d3760bdc143854c8fc12be9a1f416165ab97dddf060d91288964fb68aed327",
           "paramsHash": "sha256:8ea9561a2b363e67758c69250d9c6bc2457a997d2dfcf35f597df2638f47924e",
           "w1": {
             "label": "w1",
@@ -1268,13 +1310,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 181,
+          "elapsedMs": 172,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:e51714c86a5049b238aa0c7d93f031d029f76979df7e8081a3366086ea6e17c0",
-          "configHash": "sha256:aa1be82141ab3ffa0b8559c7dcbd55ea0c58133476691a235c5554f7d1a56f6d",
+          "finalStateHash": "sha256:ff6b7d57ef3bc84081af0ac6cbbc042c3ab65e0e163aa72a54e3706e6bf475a1",
+          "configHash": "sha256:96e3fe33b983e21b8b42a00cda3ce880d27dc81ad7434b19ae95eb3d42af466e",
           "paramsHash": "sha256:5222d7ee3f6dd2d2f5c1d1a3488f9d4cc879a2483b4fb0a903d524105fb20285",
           "w1": {
             "label": "w1",
@@ -1363,13 +1405,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 184,
+          "elapsedMs": 174,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:750c233b507016134c94ae938ee5cf99571e0d433201704c637b343f15ebbc13",
-          "configHash": "sha256:b450e634e4d9fd93de133b2047f7da1dcd295eb981cb047b3a1f57be167b27a6",
+          "finalStateHash": "sha256:b241522f912d8130da00aa56561c6c607bc10e3a578396eecf6641a615148fbc",
+          "configHash": "sha256:d9ba7991067d164e19dc571ebb3bef0f14e855321a727cee35e83ae8de7a621c",
           "paramsHash": "sha256:230379597d8ccd0aeb94d99c92c835d0e26cd22d8117fea160dafc2873d6a9cf",
           "w1": {
             "label": "w1",
@@ -1458,13 +1500,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 180,
+          "elapsedMs": 163,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:ef831485569ec217491ea51028662c51561a0ce25e6adaaf74a1819c3d39dd8e",
-          "configHash": "sha256:eb9c7604e2483234018119ddc665b1903d5b3f46675969b01852705d4568327a",
+          "finalStateHash": "sha256:cd20d48479555f32362bd3becedcdada97d4ccca03aa3a6af1b0e77473af5f5e",
+          "configHash": "sha256:1666f28e1f9194dd03fa4c793695ad741f1ca24e463e294c97c949db7772c065",
           "paramsHash": "sha256:b442944d6539e43d43dd9cac55876ee5af28ababdd03287ce80fc9329e9b94c3",
           "w1": {
             "label": "w1",
@@ -1553,13 +1595,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 191,
+          "elapsedMs": 181,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:5d5e8347e255598fc9cd2bd413c4b8e5c8ea3808ac1b6fe202616449e6514ffe",
-          "configHash": "sha256:d01c149b69330db20aab322a3c43303dca0a3b6cbb33a0072e825861154f584b",
+          "finalStateHash": "sha256:0136faf46877ed855f441ba4c535bbf164b3de67667ece6aa5c0e86b78d2a69a",
+          "configHash": "sha256:ff1517dee370ebba1bd91ea9eb5c4a1c9777a45aa6a3f5f024505a2983d830e2",
           "paramsHash": "sha256:5f7f4bd19d813350b1ae8275ff131200ec11cd541908700967a628523eaaa932",
           "w1": {
             "label": "w1",
@@ -1648,13 +1690,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 188,
+          "elapsedMs": 171,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 39,
-          "finalStateHash": "sha256:39182f730a52db7d7e5fca75aa2fa80ce4f5f2fb6fbc8bfe254580d5a9a1049b",
-          "configHash": "sha256:ed1c4a7b388f14a02cca1a61834986f8fe656eafb028751819ad0c09a708c40f",
+          "finalStateHash": "sha256:3122816b581bc1cc239d64d18fca8c63db46a69b955321cb86420cf92c07d4af",
+          "configHash": "sha256:f6abc4dc5ab4f65fbc60e0d071d9d4b42d85cc1ace30c7f6bcc703c6e93a0df9",
           "paramsHash": "sha256:20b51cc5acc1ea1ab81912118805479efc8c976d9e6baf2117075ac336cb5ab0",
           "w1": {
             "label": "w1",
@@ -1743,13 +1785,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 180,
+          "elapsedMs": 162,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:cf3410c9bdf062e5320fdf684c14c34e134796ad798894ffc7d5ad09ff6351e6",
-          "configHash": "sha256:222dd9918cd57738d24b694b5ad9bb7b46ae249b27204dc30a92483673566abe",
+          "finalStateHash": "sha256:d91c1f1f8525071c5e57d41c99206bde0f7746f7a29448789cc83b8aae6d3028",
+          "configHash": "sha256:1e4374bccc2b9223f16b85d9beb46625844ebdedba8901e95139b4d1a06e9f95",
           "paramsHash": "sha256:999a0bdb0aea3a7eb8a24f7f50d5cbfd20e524979a6752a35a5adfc0d6c1ffbc",
           "w1": {
             "label": "w1",
@@ -1838,13 +1880,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 188,
+          "elapsedMs": 187,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:5b79f180ffd886be13d8a929e4a707d363b0145fd1434910ec3180b19095238b",
-          "configHash": "sha256:ad262345c94a65c29cceab46a227268abd80ea69f2bb28bb0f4ea142d701c262",
+          "finalStateHash": "sha256:a48f7560ce33d98853e660221b9d625aad8fb19a306f4f5820b7579a7bbda3be",
+          "configHash": "sha256:4d972ffe557541773d974846f2c61f5a5a6ae2d9a4ee5bf84cdd097ca1eae73e",
           "paramsHash": "sha256:c8779586df9a9781e1203f37bc311cb618f11e5107d1549214bfba3f895e21a2",
           "w1": {
             "label": "w1",
@@ -1933,13 +1975,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 194,
+          "elapsedMs": 184,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:48689a95fcac8d4ef0d0b142cffe56520804299689bcd0ba11bea149d37639bb",
-          "configHash": "sha256:c3258df2552a1969c5632253404dd4a041e8c6d2efa93836e2a7a8f45315bf41",
+          "finalStateHash": "sha256:31912fa78d20f33a599ae2da9e308ad96c5301a7941a9e1ac3b6aa2a7c54cac7",
+          "configHash": "sha256:98e063afa7e0341b3dd44e010eb1893bf547110223792a64cfd33c86ce174557",
           "paramsHash": "sha256:ccbd228d21be18e8632233d61dbaa0f8316e30b963a7f6074f6b0595f9e76d79",
           "w1": {
             "label": "w1",
@@ -2028,13 +2070,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 174,
+          "elapsedMs": 177,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:c88b138afc1a556c023882c8731ee75340750804b042c8ff155650ec349dbb90",
-          "configHash": "sha256:91eb1b8874f41cf639db4f22480770e23619e096e65d74c6146ea8672cab08e2",
+          "finalStateHash": "sha256:b797d441a1b7603e7a4aed708eca8c3ce5528f7db473bff83d961115f21f1387",
+          "configHash": "sha256:dcbd70f9b87bb9d61fa944530d75cffa54f084fad193a63c037a5ca1931c05ad",
           "paramsHash": "sha256:b617eb3a62c666d62755c95cf4eb2b8f792a9fdb5ae45890710947c035c23a28",
           "w1": {
             "label": "w1",
@@ -2123,13 +2165,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 193,
+          "elapsedMs": 172,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 39,
-          "finalStateHash": "sha256:e7f306f96aba16e8ea2d6aa811372dd9de30c49dffd8c7929d6e9b2157a3a794",
-          "configHash": "sha256:f41c88f8375e791c2c38d91178cb399a0dcee430db948959fa62ab8c60fcf82b",
+          "finalStateHash": "sha256:db4f93ae6c6c9938b0b039be05562a8f14450f8ee22c3272916ecd1ddb2c5df9",
+          "configHash": "sha256:ee025906aeb91007f598eecf32e764535197048afe7fdc6f99bf43124d51446b",
           "paramsHash": "sha256:bbe8739ffa75f9d2d54d6b374088777815e077b73ea3070f9424e1b9ea831098",
           "w1": {
             "label": "w1",
@@ -2218,13 +2260,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 177,
+          "elapsedMs": 172,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:50171b0efd809c54b0ac5ab4ec6481fa689a52f8642035cb0d114db4fe5fe215",
-          "configHash": "sha256:9710f060cac81a328266d031268e076f05990824c83c7abfa364bb8d339e5b24",
+          "finalStateHash": "sha256:a3ac62bbda77f8f0d20c794a73bbca133d506afea85894b7cb81eb14f9966e18",
+          "configHash": "sha256:b566d766744a70f8260083c6693861d7ee8286a59d42027fb45ec66d1a74c061",
           "paramsHash": "sha256:c7869d0ec9a4928f25c3166398dc8c8664c28c1b28dbe491208cc9781e0edeae",
           "w1": {
             "label": "w1",
@@ -2313,13 +2355,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 186,
+          "elapsedMs": 175,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:7b55d6fa03f19c9f9a4a64a4d24ec1bc7494d5468f2cf3cc641700363cc0db2c",
-          "configHash": "sha256:e974bdcff741ed57707e58b04557ddb579c946d5589942b3b7ed8cf3ff4f74a8",
+          "finalStateHash": "sha256:67d4cfe9fec82fb76cc252f7d6f0ceed6a26504fbf224d9d1b593053112ab6c5",
+          "configHash": "sha256:8e03bff0902f47c3b55f57f48f68198f664397b568394867539ae0a840475beb",
           "paramsHash": "sha256:64436c0ffbf2f049e204ea76c945c17248aa206d60996f00eddd4f42436c2d76",
           "w1": {
             "label": "w1",
@@ -2408,13 +2450,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 188,
+          "elapsedMs": 175,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:dcaa27f098c4770d2cb3fb5f238093444228423fc51770db9684967c17d3ed01",
-          "configHash": "sha256:f9337cb458b94c649f6ad9174d483b877e569510cb7cc0c4ed46a85a1dc8778f",
+          "finalStateHash": "sha256:177b5f50bdee3e15baf9230800bc09691cbbbbffc99562a9a5a5f1f4791f32f0",
+          "configHash": "sha256:060dac2683a542e3bb13903ba18caf21272ca246e715b729b1ef30d9f3ec882d",
           "paramsHash": "sha256:5aab39cf6f2cb94c3c404d73ad5dfb873969979dc1977b317ceb94fc64a5935f",
           "w1": {
             "label": "w1",
@@ -2503,13 +2545,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 187,
+          "elapsedMs": 178,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 39,
-          "finalStateHash": "sha256:ca24edd5fd02ae33a190d215f87ae780789847823efc161d94972b2580895c97",
-          "configHash": "sha256:56ade4280fdea42e8be9c6c9809bb7cbd34627ba5567bd5254245e38a39d113b",
+          "finalStateHash": "sha256:ac4cc9b90847952c502387c58a89fe27d5d7a1026a56e55924e2a3223fbfee48",
+          "configHash": "sha256:9fb71fb7fb71c247ffa430bc8baad5c69f60b3d05bc5f06a41c250f7a91c4c19",
           "paramsHash": "sha256:fb7f8b6c5b7bb9321e1acd2c16b578a05dddc9e8275b76714babf772ca82067d",
           "w1": {
             "label": "w1",
@@ -2598,13 +2640,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 181,
+          "elapsedMs": 165,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 39,
-          "finalStateHash": "sha256:848a7602174d55cbe18cc32c89a1440cb43d160ae71bd2f04f0b3f522d4ca4f8",
-          "configHash": "sha256:569e6cfb6ec8b7b8c1b2ef777358c9c2d8230af0b0ef031cec238f7e004db81b",
+          "finalStateHash": "sha256:6a1f6eb75f16fcdf158db397a3ebc8003c75d89ab7e6a5160e899b5b886afd94",
+          "configHash": "sha256:eb6cb8bbd2c245d8c03bad5395689f382cf7886a3ba891f9d3cac21f257995ee",
           "paramsHash": "sha256:f2fe4ec81929a01f73457dad3c3cacfbde79a34f24e0b5031a1f99043ce7c703",
           "w1": {
             "label": "w1",
@@ -2693,13 +2735,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 176,
+          "elapsedMs": 189,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:9f9df6d51cd21755a6ebd7b790190a28c69e5d83a81f93934894d3a684120a38",
-          "configHash": "sha256:9034298732074c9704064bf24a62187fb7d6ea033b37bb1238c56971a5bfdce5",
+          "finalStateHash": "sha256:4b8e4c20caa6ac4156769407f768719b258d166fd1cecc133eef622929a5af08",
+          "configHash": "sha256:2563fa4986c213d9950632fd448fc08d7b2c34d4d8763a7d2765912611de1953",
           "paramsHash": "sha256:b019dde849222fb8c04c1dfd054973ee5600198f7c7e94ea20b0f19fa4cf9405",
           "w1": {
             "label": "w1",
@@ -2788,13 +2830,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 180,
+          "elapsedMs": 168,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 39,
-          "finalStateHash": "sha256:cfaa80045556f3e0af9e7fa161dfa5665579c54c45ba9ec46fe393dc01a5759e",
-          "configHash": "sha256:8eb5529a237880880b8fa7a436a353d1d6ba750062096e567f445213b9ed6cab",
+          "finalStateHash": "sha256:e4830c7dd2d0f6200b61bdff445cb544d6b268c4e13fb641d5a16ef8b59bd0b2",
+          "configHash": "sha256:e720b7a77d4dbcb52967ac57a7be6b69fcf865f45f5710edb46bd68f4aa24c14",
           "paramsHash": "sha256:8e675279248f83ff05012ac2557eebeb728dc6a1b9581a7956da05d917c99417",
           "w1": {
             "label": "w1",
@@ -2883,13 +2925,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 193,
+          "elapsedMs": 166,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:17c7bc801babb59f7ebfd6586d3045057ec9c5ca9a8442041406624cf94e5737",
-          "configHash": "sha256:f209e3508656dfc6ead5a194dd5295eb6a2e64f30c40f8aa461667c7012940e4",
+          "finalStateHash": "sha256:a5ae2ba00c8e7bb55c787518daf21531a97ce3e0c95032b9b70a432b0f684d41",
+          "configHash": "sha256:4e1134933e4d415ba9e218fdc0889a304a356edc090327b1a80358373c4cab51",
           "paramsHash": "sha256:ee2aee3f054869944633a1d18a42dec517898ef2dbf5ac1f3f2cc64f04d3ed81",
           "w1": {
             "label": "w1",
@@ -2978,13 +3020,13 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 183,
+          "elapsedMs": 161,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
           "aliveAtEnd": 40,
-          "finalStateHash": "sha256:dcaa27f098c4770d2cb3fb5f238093444228423fc51770db9684967c17d3ed01",
-          "configHash": "sha256:f9337cb458b94c649f6ad9174d483b877e569510cb7cc0c4ed46a85a1dc8778f",
+          "finalStateHash": "sha256:177b5f50bdee3e15baf9230800bc09691cbbbbffc99562a9a5a5f1f4791f32f0",
+          "configHash": "sha256:060dac2683a542e3bb13903ba18caf21272ca246e715b729b1ef30d9f3ec882d",
           "paramsHash": "sha256:5aab39cf6f2cb94c3c404d73ad5dfb873969979dc1977b317ceb94fc64a5935f",
           "w1": {
             "label": "w1",
@@ -3067,5 +3109,17 @@
         }
       ]
     }
-  ]
+  ],
+  "budgets": {
+    "maxRuns": 840,
+    "maxWallMinutes": 480,
+    "maxStorageBytes": 2000000000,
+    "observed": {
+      "runCount": 28,
+      "wallMinutes": 0,
+      "storageBytes": 91547
+    },
+    "ok": true,
+    "violations": []
+  }
 }

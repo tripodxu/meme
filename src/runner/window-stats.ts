@@ -23,9 +23,14 @@ export interface WindowSummary {
   readonly label: WindowLabel;
   readonly start: number;
   readonly end: number;
+  /** 参与均值计算的 tick 数（存活数 > 0 的行）。 */
   readonly tickCount: number;
-  /** 窗口内全死亡导致的缺失日数；>0 时该 run 标 extinct 且窗口不参与正常结构判异。 */
+  /** 窗口中缺失的结构日数（未跑到 + 跑到但全死亡）；>0 时该窗口不参与正常结构判异。 */
   readonly missingTicks: number;
+  /** 实际存在的 stats 行数（区分「未跑到」与「跑到但全死亡」）。 */
+  readonly observedTicks: number;
+  /** `observedTicks` 中存活数为 0 的行数（07 §5：其 P=0 不得补入均值）。 */
+  readonly deadTicks: number;
   /** P/G/topWealthShare/Mup/Mdown/S/O 的窗口日均值（07 §5 唯一算法）。 */
   readonly classShares: number[];
   readonly gini: number;
@@ -57,7 +62,10 @@ export interface WindowSummary {
     readonly start: number;
     readonly gini: number;
     readonly openness: number;
+    readonly mUp: number;
+    readonly segregation: number;
     readonly classShares: readonly number[];
+    readonly edgeCountAverage: number;
   }[];
   readonly partialBlockMerged: boolean;
 }
@@ -81,6 +89,8 @@ function unavailableWindow(
   start: number,
   end: number,
   missingTicks: number,
+  observedTicks: number,
+  deadTicks: number,
   classCount: number,
 ): WindowSummary {
   return {
@@ -89,6 +99,8 @@ function unavailableWindow(
     end,
     tickCount: 0,
     missingTicks,
+    observedTicks,
+    deadTicks,
     classShares: new Array<number>(classCount).fill(0),
     gini: 0,
     topWealthShare: 0,
@@ -125,30 +137,47 @@ export function summarizeWindow(
 ): WindowSummary {
   const { config, stats, flowsByTick, decisionsByTick } = inputs;
   const classCount = config.population.classCount;
-  const rows = stats.filter((row) => row.tick >= start && row.tick <= end);
   const expectedTicks = end - start + 1;
-  const missingTicks = expectedTicks - rows.length;
-  const n = rows.length;
+  // tick → 行 索引：避免对每个 tick 线性扫描 stats（O(window) 而非 O(window²)）。
+  const rowByTick = new Map<number, TickStats>();
+  for (const row of stats) {
+    rowByTick.set(row.tick, row);
+  }
+  const rows: TickStats[] = [];
+  for (let tick = start; tick <= end; tick += 1) {
+    const row = rowByTick.get(tick);
+    if (row !== undefined) {
+      rows.push(row);
+    }
+  }
+  // 07 §5：全死亡后的 P=0 日不得补入均值。结构均值只用存活数 > 0 的行；
+  // 全死亡行计入 missingTicks/deadTicks，使窗口退出正常结构判异。
+  const structRows = rows.filter((row) => row.aliveCount > 0);
+  const deadTicks = rows.length - structRows.length;
+  const missingTicks = expectedTicks - structRows.length;
+  const n = structRows.length;
   if (n === 0) {
-    // run 短于窗口（如冒烟/预检）：返回不可用摘要，missingTicks 覆盖全窗口，
+    // run 短于窗口（如冒烟/预检）或窗口内全死亡：返回不可用摘要，
     // 标签判定将其视为不参与结构判异。
-    return unavailableWindow(label, start, end, missingTicks, classCount);
+    return unavailableWindow(label, start, end, missingTicks, rows.length, deadTicks, classCount);
   }
   const mean = (pick: (row: TickStats) => number): number =>
-    rows.reduce((sum, row) => sum + pick(row), 0) / n;
+    structRows.reduce((sum, row) => sum + pick(row), 0) / n;
 
+  // 存活行上 aliveCount > 0 已由 structRows 保证，分母不再需要 max(...,1) 兜底
+  //（那是把全死亡行的 P=0 塞进均值的根因）。
   const classShares = Array.from(
     { length: classCount },
     (_, c) =>
-      rows.reduce((sum, row) => sum + (row.classCounts[c] ?? 0) / Math.max(row.aliveCount, 1), 0) /
-      n,
+      structRows.reduce((sum, row) => sum + (row.classCounts[c] ?? 0) / row.aliveCount, 0) / n,
   );
   const eByClass = Array.from(
     { length: classCount },
-    (_, c) => rows.reduce((sum, row) => sum + (row.eByClass[c] ?? 0), 0) / n,
+    (_, c) => structRows.reduce((sum, row) => sum + (row.eByClass[c] ?? 0), 0) / n,
   );
 
   // 死亡暴露量：各 tick 期初存活人日 = 当期期末存活数 + 当期死亡数。
+  // 此处必须用全部有数据行：全死亡 tick 的死亡数属于窗口事件，不得因结构均值剔除而漏计。
   const aliveExposure = rows.reduce((sum, row) => sum + row.aliveCount + row.deathCount, 0);
   const deaths = rows.reduce((sum, row) => sum + row.deathCount, 0);
   const lossTotal = rows.reduce((sum, row) => sum + row.competitionLoss, 0);
@@ -175,7 +204,7 @@ export function summarizeWindow(
   // 窗口首 tick 的期初取更早一行（stats 必须包含 start-1；tick 0 由初始化行兜底）。
   const rowExposure = new Array<number>(classCount).fill(0);
   for (let tick = start; tick <= end; tick += 1) {
-    const prev = stats.find((row) => row.tick === tick - 1);
+    const prev = rowByTick.get(tick - 1);
     if (prev !== undefined) {
       for (let c = 0; c < classCount; c += 1) {
         rowExposure[c] = (rowExposure[c] as number) + (prev.classCounts[c] ?? 0);
@@ -200,11 +229,16 @@ export function summarizeWindow(
   }
 
   // 30 日块：窗口起点起每 30 日一块；末尾残块并入前一块（partialBlockMerged）。
+  // 块内均值同样只用存活行（07 §5），并携带标签所需的 Mup/S/edgeCount，
+  // 使「至少 80% 的 30 日块成立」可在块内逐条判定，而不是用整窗均值套每块。
   const blocks30d: {
     start: number;
     gini: number;
     openness: number;
+    mUp: number;
+    segregation: number;
     classShares: number[];
+    edgeCountAverage: number;
   }[] = [];
   let partialBlockMerged = false;
   const blockStarts: number[] = [];
@@ -220,7 +254,7 @@ export function summarizeWindow(
     const blockStart = blockStarts[index] as number;
     const blockEnd =
       index === blockStarts.length - 1 ? end : (blockStarts[index + 1] as number) - 1;
-    const blockRows = rows.filter((row) => row.tick >= blockStart && row.tick <= blockEnd);
+    const blockRows = structRows.filter((row) => row.tick >= blockStart && row.tick <= blockEnd);
     const bn = blockRows.length;
     if (bn === 0) {
       continue;
@@ -229,24 +263,25 @@ export function summarizeWindow(
       start: blockStart,
       gini: blockRows.reduce((sum, row) => sum + row.gini, 0) / bn,
       openness: blockRows.reduce((sum, row) => sum + row.openness, 0) / bn,
+      mUp: blockRows.reduce((sum, row) => sum + row.mUp, 0) / bn,
+      segregation: blockRows.reduce((sum, row) => sum + row.segregation, 0) / bn,
       classShares: Array.from(
         { length: classCount },
         (_, c) =>
-          blockRows.reduce(
-            (sum, row) => sum + (row.classCounts[c] ?? 0) / Math.max(row.aliveCount, 1),
-            0,
-          ) / bn,
+          blockRows.reduce((sum, row) => sum + (row.classCounts[c] ?? 0) / row.aliveCount, 0) / bn,
       ),
+      edgeCountAverage: blockRows.reduce((sum, row) => sum + row.edgeCount, 0) / bn,
     });
   }
 
-  const lastRow = rows[n - 1] as TickStats;
   return {
     label,
     start,
     end,
     tickCount: n,
     missingTicks,
+    observedTicks: rows.length,
+    deadTicks,
     classShares,
     gini: mean((row) => row.gini),
     topWealthShare: mean((row) => row.topWealthShare),
@@ -262,7 +297,9 @@ export function summarizeWindow(
     fallbackRate: due === 0 ? null : fallbacks / due,
     flowCounts,
     flowRowRates,
-    networkEmpty: lastRow.edgeCount === 0,
+    // 07 §5：edgeCount=0 的窗口标记 networkEmpty。全窗口判定，不看末行
+    //（末行可能恰好在网络重建前为空，也可能恰好非空而整窗无连边）。
+    networkEmpty: structRows.every((row) => row.edgeCount === 0),
     edgeCountAverage: mean((row) => row.edgeCount),
     crossClassEdgeShare: mean((row) => row.crossClassEdgeShare),
     avgDegree: mean((row) => row.avgDegree),

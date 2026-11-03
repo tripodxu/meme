@@ -61,6 +61,15 @@ function flowsFromEvents(
 }
 
 /**
+ * 灭绝判定（07 §5）：引擎在最后一 tick 才全死亡时返回 `scheduled` 而非 `extinct`，
+ * 但 `finalAliveCount=0`；二者都必须标 extinct，否则该 run 会以「存活」身份
+ * 进入聚类与结构判异。
+ */
+export function deriveExtinct(endReason: string | null, aliveAtEnd: number): boolean {
+  return endReason === 'extinct' || aliveAtEnd === 0;
+}
+
+/**
  * 运行单个 (config, seed) 到结束（scheduled/extinct 或 maxTicks 护栏），
  * 收集全分辨率 stats、每 tick 转移矩阵与决策计数，并产出窗口聚合与标签。
  */
@@ -125,7 +134,13 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
       break;
     }
   }
-  const extinct = endReason === 'extinct';
+  const aliveAtEnd = state.society.agents.reduce(
+    (count, agent) => count + (agent.alive ? 1 : 0),
+    0,
+  );
+  // 07 §5：最后一 tick 才全死亡时引擎返回 scheduled 但 finalAliveCount=0，
+  // 必须同样标 extinct，否则该 run 会以「存活」身份进入聚类与结构判异。
+  const extinct = deriveExtinct(endReason, aliveAtEnd);
   const windows = ANALYSIS_WINDOWS.map((window) =>
     summarizeWindow(
       { config, stats, flowsByTick, decisionsByTick },
@@ -141,10 +156,6 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     labelsByWindow[window.label] = [...evaluation.labels];
     labelsEvidenceByWindow[window.label] = evaluation.evidence;
   }
-  const aliveAtEnd = state.society.agents.reduce(
-    (count, agent) => count + (agent.alive ? 1 : 0),
-    0,
-  );
   return {
     configHash: computeConfigHash(config),
     paramsHash: computeParamsHash(config),

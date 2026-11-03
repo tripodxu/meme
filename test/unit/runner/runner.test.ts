@@ -23,7 +23,7 @@ import {
   wardCluster,
   zScoreMatrix,
 } from '../../../src/runner/cluster.js';
-import { runSingle } from '../../../src/runner/run-cell.js';
+import { deriveExtinct, runSingle } from '../../../src/runner/run-cell.js';
 import { ANALYSIS_WINDOWS, type WindowSummary } from '../../../src/runner/window-stats.js';
 
 const SEED = asSeed('runner-seed');
@@ -67,6 +67,8 @@ function makeWindow(overrides: Partial<WindowSummary> = {}): WindowSummary {
     end: 1094,
     tickCount: 730,
     missingTicks: 0,
+    observedTicks: 730,
+    deadTicks: 0,
     classShares: [0.5, 0.25, 0.15, 0.08, 0.02],
     gini: 0.35,
     topWealthShare: 0.3,
@@ -172,6 +174,69 @@ describe('窗口聚合（07 §5）', () => {
     expect(summary.blocks30d).toHaveLength(1);
     expect(summary.blocks30d[0]?.start).toBe(365);
   });
+
+  it('全死亡 tick 不补入结构均值，计入 missingTicks/deadTicks（07 §5）', () => {
+    const config = createDemoConfig();
+    const stats = [
+      makeStatsRow(364),
+      makeStatsRow(365, { classCounts: [5, 5, 0, 0, 0] }),
+      makeStatsRow(366, { classCounts: [5, 5, 0, 0, 0] }),
+      // 末 tick 才全死亡：行存在但 aliveCount=0，P=0 不得补入均值
+      makeStatsRow(367, { aliveCount: 0, classCounts: [0, 0, 0, 0, 0], deathCount: 10 }),
+    ];
+    const summary = summarizeWindow(
+      { config, stats, flowsByTick: new Map(), decisionsByTick: new Map() },
+      'w1',
+      365,
+      367,
+    );
+    expect(summary.observedTicks).toBe(3);
+    expect(summary.deadTicks).toBe(1);
+    expect(summary.missingTicks).toBe(1);
+    expect(summary.tickCount).toBe(2);
+    // 若把全死亡日当 P=0 计入，class0 会变成 0.333；正确值是 0.5
+    expect(summary.classShares[0]).toBeCloseTo(0.5, 12);
+    expect(summary.classShares.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+  });
+
+  it('窗口内全死亡时返回不可用摘要（missingTicks 覆盖整窗）', () => {
+    const config = createDemoConfig();
+    const stats = [makeStatsRow(365, { aliveCount: 0, classCounts: [0, 0, 0, 0, 0] })];
+    const summary = summarizeWindow(
+      { config, stats, flowsByTick: new Map(), decisionsByTick: new Map() },
+      'w1',
+      365,
+      366,
+    );
+    expect(summary.tickCount).toBe(0);
+    expect(summary.missingTicks).toBe(2);
+    expect(summary.deadTicks).toBe(1);
+  });
+
+  it('networkEmpty 按整窗判定，不被末行掩护', () => {
+    const config = createDemoConfig();
+    const stats = [makeStatsRow(365, { edgeCount: 20 }), makeStatsRow(366, { edgeCount: 0 })];
+    const summary = summarizeWindow(
+      { config, stats, flowsByTick: new Map(), decisionsByTick: new Map() },
+      'w1',
+      365,
+      366,
+    );
+    // 末行 edgeCount=0 但整窗有边 → 不是空网络
+    expect(summary.networkEmpty).toBe(false);
+  });
+
+  it('全窗口无边才标 networkEmpty', () => {
+    const config = createDemoConfig();
+    const stats = [makeStatsRow(365, { edgeCount: 0 }), makeStatsRow(366, { edgeCount: 0 })];
+    const summary = summarizeWindow(
+      { config, stats, flowsByTick: new Map(), decisionsByTick: new Map() },
+      'w1',
+      365,
+      366,
+    );
+    expect(summary.networkEmpty).toBe(true);
+  });
 });
 
 describe('结构标签（07 §10）', () => {
@@ -198,6 +263,9 @@ describe('结构标签（07 §10）', () => {
       start: 365,
       gini: 0.3,
       openness: 0.1,
+      mUp: 0.02,
+      segregation: 0.8,
+      edgeCountAverage: 50,
       classShares: [0.6, 0.2, 0.1, 0.08, 0.02],
     };
     const window = makeWindow({
@@ -210,6 +278,55 @@ describe('结构标签（07 §10）', () => {
     });
     const result = evaluateLabels(window);
     expect(result.labels).toContain('closedStratified');
+  });
+
+  it('封闭分层按块内三指标判定，整窗均值不能替代（07 §10）', () => {
+    // 整窗 Mup 很低（0.02），但 10 个块里有 3 个块 Mup 超标 → 块支持率 0.70 < 0.80。
+    // 旧实现用整窗 Mup 判定，会让这 3 个块也「成立」，误判为 closedStratified。
+    const blocks = Array.from({ length: 10 }, (_, i) => ({
+      start: 365 + i * 30,
+      gini: 0.3,
+      openness: 0.1,
+      mUp: i < 3 ? 0.3 : 0.02,
+      segregation: 0.8,
+      edgeCountAverage: 50,
+      classShares: [0.6, 0.2, 0.1, 0.08, 0.02],
+    }));
+    const window = makeWindow({
+      classShares: [0.6, 0.2, 0.1, 0.08, 0.02],
+      openness: 0.1,
+      mUp: 0.02,
+      segregation: 0.8,
+      edgeCountAverage: 50,
+      blocks30d: blocks,
+    });
+    const result = evaluateLabels(window);
+    expect(result.labels).not.toContain('closedStratified');
+    expect(result.evidence['closedStratified']).toContain('blockSupport=0.70');
+  });
+
+  it('networkEmpty 窗口不参与依赖 S 的标签', () => {
+    const block = {
+      start: 365,
+      gini: 0.3,
+      openness: 0.1,
+      mUp: 0.02,
+      segregation: 0.8,
+      edgeCountAverage: 0,
+      classShares: [0.6, 0.2, 0.1, 0.08, 0.02],
+    };
+    const window = makeWindow({
+      classShares: [0.6, 0.2, 0.1, 0.08, 0.02],
+      openness: 0.1,
+      mUp: 0.02,
+      segregation: 0.8,
+      edgeCountAverage: 0,
+      networkEmpty: true,
+      blocks30d: Array.from({ length: 5 }, (_, i) => ({ ...block, start: 365 + i * 30 })),
+    });
+    const result = evaluateLabels(window);
+    expect(result.labels).not.toContain('closedStratified');
+    expect(result.evidence['networkEmpty']).toContain('edgeCount=0');
   });
 
   it('高流动网络命中 highFlowNetwork', () => {
@@ -318,6 +435,12 @@ describe('聚类协议（07 §8.1，D-03 默认建议）', () => {
 });
 
 describe('runSingle 冒烟（P1.5-01 契约字段）', () => {
+  it('末 tick 全死亡时 scheduled 也算 extinct（07 §5）', () => {
+    expect(deriveExtinct('extinct', 0)).toBe(true);
+    expect(deriveExtinct('scheduled', 0)).toBe(true);
+    expect(deriveExtinct('scheduled', 12)).toBe(false);
+    expect(deriveExtinct(null, 40)).toBe(false);
+  });
   it('短运行产出全部契约字段', () => {
     const config = createDemoConfig({
       population: { initialPopulation: 6 },

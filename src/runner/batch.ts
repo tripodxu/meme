@@ -193,7 +193,7 @@ export function buildBatchTasks(manifest: BatchManifest): BatchTask[] {
   manifest.cells.forEach((rawCell, index) => {
     const cell = parseCell(rawCell, index, seenCellKeys);
     const config = buildCellConfig(
-      { cellKey: cell.cellKey, hypothesis: '', overrides: cell.overrides as never },
+      { cellKey: cell.cellKey, overrides: cell.overrides as never },
       manifest.populationSize,
       manifest.totalTicks,
     );

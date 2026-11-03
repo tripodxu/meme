@@ -81,20 +81,17 @@ function evaluateBipolar(
 }
 
 function evaluateClosedStratified(
-  openness: number,
-  mUp: number,
-  segregation: number,
-  edgeCount: number,
+  window: WindowSummary,
   blockSupport: number,
   t: LabelThresholds,
   ev: Record<string, string>,
 ): boolean {
   const c = t.labels.closedStratified;
-  const base = openness <= c.opennessMax && mUp <= c.mUpMax && segregation >= c.segregationMin;
-  const edgesOk = !c.requiresEdgeCount || edgeCount > 0;
-  const ok = base && edgesOk && blockSupport >= c.blockSupportMin;
+  const edgesOk = !c.requiresEdgeCount || window.edgeCountAverage > 0;
+  const ok = edgesOk && blockSupport >= c.blockSupportMin;
   ev['closedStratified'] =
-    `O=${openness.toFixed(3)} Mup=${mUp.toFixed(3)} S=${segregation.toFixed(3)} edges=${edgeCount} blockSupport=${blockSupport.toFixed(2)}`;
+    `O=${window.openness.toFixed(3)} Mup=${window.mUp.toFixed(3)} S=${window.segregation.toFixed(3)} ` +
+    `edges=${window.edgeCountAverage.toFixed(2)} blockSupport=${blockSupport.toFixed(2)}`;
   return ok;
 }
 
@@ -139,10 +136,14 @@ function closedStratifiedBlockSupport(window: WindowSummary, t: LabelThresholds)
   }
   let satisfied = 0;
   for (const block of blocks) {
+    // 三个条件必须同时满足于同一 30 日块；用整窗均值套每块会把
+    // 「某个块 O 低但 Mup 高」误判为成立。
+    const edgesOk = !c.requiresEdgeCount || block.edgeCountAverage > 0;
     if (
       block.openness <= c.opennessMax &&
-      window.mUp <= c.mUpMax &&
-      window.segregation >= c.segregationMin
+      block.mUp <= c.mUpMax &&
+      block.segregation >= c.segregationMin &&
+      edgesOk
     ) {
       satisfied += 1;
     }
@@ -167,23 +168,28 @@ export function evaluateLabels(
   const pyramid = evaluatePyramid(p, thresholds, evidence);
   const olive = evaluateOlive(p, thresholds, evidence);
   const bipolar = evaluateBipolar(p, window.gini, thresholds, evidence);
-  const closed = evaluateClosedStratified(
-    window.openness,
-    window.mUp,
-    window.segregation,
-    window.edgeCountAverage,
-    closedStratifiedBlockSupport(window, thresholds),
-    thresholds,
-    evidence,
-  );
-  const highFlow = evaluateHighFlowNetwork(
-    window.mUp,
-    window.openness,
-    window.segregation,
-    window.crossClassEdgeShare,
-    thresholds,
-    evidence,
-  );
+  // 07 §5：networkEmpty 窗口不参与依赖 S 的标签判定（O 反馈诊断同理）。
+  const closed =
+    !window.networkEmpty &&
+    evaluateClosedStratified(
+      window,
+      closedStratifiedBlockSupport(window, thresholds),
+      thresholds,
+      evidence,
+    );
+  const highFlow =
+    !window.networkEmpty &&
+    evaluateHighFlowNetwork(
+      window.mUp,
+      window.openness,
+      window.segregation,
+      window.crossClassEdgeShare,
+      thresholds,
+      evidence,
+    );
+  if (window.networkEmpty) {
+    evidence['networkEmpty'] = 'edgeCount=0：closedStratified/highFlowNetwork 不成立';
+  }
   const topHeavy = evaluateTopHeavy(p, pyramid, olive, thresholds, evidence);
   const labels: string[] = [];
   if (pyramid) labels.push('pyramid');
