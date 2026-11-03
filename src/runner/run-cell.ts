@@ -1,6 +1,7 @@
 import { computeConfigHash, computeParamsHash } from '../core/config/hash.js';
 import { createSimulation } from '../core/init/simulation.js';
 import type { RunConfig } from '../core/config/types.js';
+import type { SimState } from '../core/model/state.js';
 import { asSeed, type AgentId, type Seed } from '../core/control/ids.js';
 import { step } from '../core/engine/engine.js';
 import { enumerateLegalActions } from '../core/legal-actions.js';
@@ -40,6 +41,8 @@ export interface RunOutcome {
     { readonly due: number; readonly fallbacks: number }
   >;
   readonly report: RunWindowReport;
+  /** run 结束时的权威状态（G-D own 逐位对照、微扰克隆等用途）。 */
+  readonly finalState: SimState;
 }
 
 function flowsFromEvents(
@@ -172,6 +175,7 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
       finalStateHash: computeAuthoritativeStateHash(state),
       aliveAtEnd,
     },
+    finalState: state,
   };
 }
 
