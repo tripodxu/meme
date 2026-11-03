@@ -16,14 +16,15 @@
 | --------------------------- | -------- | -------------------- | ------------------------------------------------------------------------------------------- | -------- |
 | `out/p15-full.json`         | 2.70 MiB | `04512d7d…bea2c65b9` | runCount=840、prereg=`sha256:2c4843b4…`、k=2、silhouette 0.403、ARI 0.868、3650 tick、40 人 | 待重跑   |
 | `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                              | 历史存档 |
-| `out/p15-screen.json`       | 28.1 KiB | `78d1cd10…c89811477` | 预检阶段输出（每 cell 1 种子）                                                              | 历史存档 |
+| `out/p15-screen.json`       | 76.9 KiB | `4a7fbbb2…aeb4d8f1`  | 28 run × 400 tick；w1/w2b/w3 均 `available=false`（missingTicks 695/730/730）；0 崩溃       | 预检通过 |
 
 完整 sha256：
 
 ```text
 04512d7dd41a4c7f6b419b481a975542c32a90d6b3e2a8329d4dac8bea2c65b9  out/p15-full.json
 7091777fb18825b81d2c55f75a334d59205f512a7100b66829a4f468cf12697a  out/p15-full-v4draft.json
-78d1cd10c19764de030e12ec65180d0f6883ffe2013f523e7a7fd8ac89811477  out/p15-screen.json
+78d1cd10c19764de030e12ec65180d0f6883ffe2013f523e7a7fd8ac89811477  out/p15-screen.json（2026-11-03 修复前，已由下表替换）
+4a7fbbb26a62b26a1b2979291b8adc4382e954634cd50ef7ba4fa071aeb4d8f1  out/p15-screen.json
 ```
 
 校验方式：`sha256sum out/*.json`。
@@ -43,3 +44,9 @@ node scripts/p15-grid.mjs --stage full     # 正式：按预注册 manifest 跑�
 `out/p15-full.json` 中 `w2b` 与 `temporalConsistency` 共 840 处取值均为 `null`：该产物由修复前代码（`ANALYSIS_WINDOWS` 尚不含 w2b）生成，对应 `preregistrationHash=sha256:2c4843b4…`。
 
 w2b 窗口的代码修复已随 `9a714f8` 落地，但**产物尚未重跑**。在按 §3 重跑并更新本表 sha256 之前，该文件不得用于 G1.5 判定（依据：`07-experiment-calibration.md` §8.1、`reviews/2026-11-03-zcodes-nightly-audit.md` §5）。
+
+### 4.1 预检重跑结果（2026-11-03）
+
+`out/p15-screen.json` 已用修复后代码重跑（`pnpm build` + `--stage screen`）：28 个 run 全部完成，0 崩溃/爆炸；`w2b` 由 `null` 变为结构完整对象，并携带 `available` / `missingTicks` 标记。
+
+但 screen 的 `totalTicks=400` 低于所有窗口下界，w1/w2b/w3 一律 `available=false`（missingTicks 695/730/730）。因此**预检只能证明计算路径与缺省语义正确，不能证明 w2b 产出数值**。数值验证必须走 `--stage full`（3650 tick，w2b 覆盖 1825–2554）；在此之前 `out/p15-full.json` 仍是修复前产物。
