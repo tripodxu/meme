@@ -32,15 +32,18 @@ cross = crossDays[c]×B×E[t,c+1]×(1−discount)×openMultiplier   （实际支
 
 ## 兼容性
 
-- `rules-v4` 及更早配置不再被接受（`config_unknown_version`）；v4 golden fixture 保留只读。
+- `rules-v4` 及更早配置不再被接受（`config_unknown_version`）；v4 配置 golden fixture 保留只读。
 - 默认配置 hash 变化（新增 `ascent.holdingCushionDays`）。
 - 合法行动集语义变化影响 `actionSetHash` 与 Jev state 的 `costs.ascend` 可用性
   （最高层或裕度不足时为 null）——P2 未实现，无兼容负担。
 
 ## golden 与测试
 
-- `default-rules-v5.json/.hashes.json` 新建；v4 fixture 保留只读。
-- `mock-run-rules-v5.json` 重新生成。
+- `default-rules-v5.json/.hashes.json` 新建；v4 配置 fixture 保留只读。
+- `mock-run-rules-v5.json` 重新生成。**兼容性缺口（2026-11-03 审查）**：`mock-run-rules-v4.json`
+  在 `e531bab` 中被重命名为 v5（R066），并非“保留只读”；v3 mock fixture 也不在仓库中，
+  与 `test/golden/engine-mock.test.ts` 的注释不符。恢复历史 fixture 或更正本节，二者择一，
+  见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`。
 - 参数快照重新生成（新增 `ascent.holdingCushionDays`）。
 - 接线测试：`ρ=0` 与 v4 逐位一致；`ρ>0` 时裕度不足的个体无 ascend 行动，
   引擎执行前复核抛 `insufficient_cushion`。

@@ -1,6 +1,6 @@
 # src/decision
 
-Jev 决策适配层。按 [01 实施计划](../../docs/01-implementation-plan.md) 预留，当前尚未实现。
+Jev 决策适配层。按 [01 实施计划](../../docs/01-implementation-plan.md)，`mock`/`random` 策略与 `legal-actions` 已被 P1.5 使用；`policy`/`serialize`/`jev-client`/`live` 属 P2，当前实现超前于 G1.5 闸门，**尚未接入 runner，不得视为已完成或可用于正式实验**（见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`）。
 
 计划模块：`legal-actions`、`serialize`、`policy`、`jev-client`、`mock`、`replay`、`fallback`。
 

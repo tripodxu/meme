@@ -1,8 +1,10 @@
 # src/runner
 
-Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 预留，当前尚未实现。
+Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用，P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）已落地基础实现；CLI、预算执行与上传仍未完成。
 
-计划模块：`batch-cli`、`checkpoint`、`rate-limit`、`budget`、`uploader`。
+已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`。
+
+计划模块：`batch-cli`、`rate-limit`、`budget`、`uploader`。
 
 ## 边界
 

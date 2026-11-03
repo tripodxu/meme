@@ -77,6 +77,8 @@ docs/              本施工文档与 adr/
 
 **P1.5 v4 复核（2026-11-03，用户授权自主规则负责人）**：按报告 §6 执行 changes/0004（rules-v4：需求线环境持有人乘子 `(env0[c]/env0[0])^φ` + θM 8→3 + engineVersion v0.1.0），重跑三轮预注册网格（20/20/24 cell × 30 种子；hash 4bf566b9/ad2d75fe/f1dc1bca）。φ 解耦有效（P4 梯度 0.29–0.92、olive 可达、ge.median 轴开启中重分布区域），但 **G1.5 仍未通过**：可达集为连续统，bisect-ARI∈[0.32,0.58] 全部 <0.70。机制根因已定位——旋转门引擎三要素（积累无上界、跌落携带财富并重置需求时钟、mock 无条件上升）使 Mup→1 与参数无关。**P2–P6 继续依闸门搁置**；rules-v5 候选方向（跌落财富清偿/上升持有资格/积累承载上限）已登记于报告 §8.4，待规则负责人决策。
 
+**P1.5 rules-v5 落地与轮 2（2026-11-03）**：按 D-05 方向 B 落地 changes/0005（`ascent.holdingCushionDays` 默认 30，ρ=0 退回 v4；`e531bab`），并登记 v5 预注册网格（`1a0eddf`，ρ∈{0,30,90}×φ）。轮 2 将 `warmupTicks` 延长至 1825、诊断改为吸引子稳定性、新增 w2b 窗口（`921c006`）。**但截至本记录 G1.5 仍未通过，且轮 2 证据不成立**：`921c006` 提交的 `out/p15-full.json` 是旧产物（`preregistrationHash=sha256:9d9de682…`、k=3、ARI 0.417），新产物（`sha256:2c4843b4…`、k=2、ARI 0.868）直到 `3a8c1ae` 才入库；`ANALYSIS_WINDOWS` 未含 w2b，`temporalConsistency` 恒为 null；两簇均含 topHeavy，c1 仅来自 5 个 cell（baseline 0/30）。详见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`。修复后必须用真实 w2b 数据重新预注册并重跑，方可用于 G1.5 判定。
+
 ## 5. P2：Jev 决策层
 
 | ID    | 工作                                      | 依赖        | 交付与验收                                                   |
@@ -205,6 +207,6 @@ CI 默认不运行 `smoke:live`，不保存真实 Key，不因外部模型不稳
 | D-04 | P6 真实预算数字                      | P1.5 基准后确定 `maxRuns/maxWallMinutes/maxStorageBytes`；不得沿用示例占位值                                     | 07 manifest、P6 扫描规模、存储与成本                        | P6-01 确认扫描前   | Runner/实验负责人 | P1.5 基准报告 + 冻结 manifest                  |
 | D-05 | rules-v5 旋转门修断方向              | A 被动跌落财富清偿（按比例罚没）；B 上升资格绑定持有能力裕度；C 积累承载上限/边际递减；D 组合                    | 03 §5/§6 行动与结算语义、rule.md 7/8/9、P1.5 全流程         | P1.5 重跑前        | 规则负责人        | rule.md/03 修订 + changes/0005 + P1.5 复跑报告 |
 
-**当前状态（事实，不是结论）**：D-01 的 P0 实现为选项 A；D-02 当前为选项 A；D-03 文档中的 Ward+Euclidean 只是默认建议，未获科学负责人确认；D-04 的 manifest 数字是占位值。四者均未关闭。D-05 由 P1.5 v4 复核（2026-11-03）登记：三轮预注册实验（1920 run）证明旋转门引擎与参数无关，必须由规则修订切断；方向未定。
+**当前状态（事实，不是结论）**：D-01 的 P0 实现为选项 A；D-02 当前为选项 A；D-03 文档中的 Ward+Euclidean 只是默认建议，未获科学负责人确认；D-04 的 manifest 数字是占位值。四者均未关闭。D-05 由 P1.5 v4 复核（2026-11-03）登记：三轮预注册实验（1920 run）证明旋转门引擎与参数无关，必须由规则修订切断。用户已授权按方向 B 落地 changes/0005（rules-v5，`e531bab`），但 D-05 **仍未关闭**：G1.5 尚未通过，rules-v5 的效果分离与轮 2 证据链仍有缺口（见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`）；关闭证据仍要求 rule.md/03 修订 + changes/0005 + P1.5 复跑报告。
 
 未关闭前：不得把 `hardLifeFloor`/sigma 当前域写成不可变契约；不得声称聚类方法已定；不得用示例预算运行正式 P6 扫描。
