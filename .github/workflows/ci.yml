@@ -43,6 +43,8 @@ jobs:
         run: pnpm audit --prod --audit-level high --registry=https://registry.npmjs.org/
       - name: 单元、性质与 golden 测试（核心覆盖率不低于 95%）
         run: pnpm test:coverage
+      - name: 运行层覆盖率门禁（证据链模块）
+        run: pnpm test:coverage:runner
       - name: 集成测试
         run: pnpm test:integration
       - name: 端到端测试

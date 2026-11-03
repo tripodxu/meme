@@ -5,6 +5,12 @@
 - 先写规则边界和失败用例，再实现结算；bug 必须有回归测试。
 - 核心正确性不依赖真实 Jev；外部模型测试与确定性 CI 分离。
 - 不以覆盖率替代语义验收，但核心关键分支应接近全覆盖，目标 statements/branches >=95%。
+- 覆盖率门禁覆盖**两层**，两条命令独立，阈值不合并（合并会稀释核心强度）：
+  - `pnpm test:coverage` → `src/core`，`statements>=95`、`branches>=95`；
+  - `pnpm test:coverage:runner` → `src/runner`（窗口统计、标签、预注册、聚类、均值场），
+    `statements>=95`、`branches>=78`。`branches` 为**棘轮**：只允许上调。
+  - `src/runner` 长期不在门禁内，直接后果是预注册哈希漏字段、全灭日污染窗口均值、
+    均值场漏传观测 E 三类缺陷都没有测试拦截（changes/0007）。
 - 每个阶段提供命令、环境、commit、结果和 artifact；截图只能辅助，不能代替机器校验。
 
 ## 2. 测试层次
@@ -148,7 +154,7 @@ golden 包含版本、`paramsHash`、输入、输出 hash 和必要可读差异�
 
 ## 10. CI 与发布证据
 
-PR 必跑：format、lint、typecheck、`typecheck:core`（不含 Node 类型）、unit/property、core golden、build、Worker 集成（契约相关时）、依赖审计 `pnpm audit --prod --audit-level high`。核心覆盖率门禁（statements/branches >=95%）在 unit/property 任务中执行；主分支增加 E2E 和基准；live 冒烟仅手动/受控计划，使用独立低预算 secret。密钥扫描在 P7 发布门禁与仓库 secret scanning 执行，不阻塞每个 PR。
+PR 必跑：format、lint、typecheck、`typecheck:core`（不含 Node 类型）、unit/property、core golden、build、Worker 集成（契约相关时）、依赖审计 `pnpm audit --prod --audit-level high`。覆盖率门禁在 unit/property 任务中执行两条命令：`pnpm test:coverage`（`src/core`，statements/branches >=95%）与 `pnpm test:coverage:runner`（`src/runner`，statements>=95、branches>=78，棘轮只升不降）；主分支增加 E2E 和基准；live 冒烟仅手动/受控计划，使用独立低预算 secret。密钥扫描在 P7 发布门禁与仓库 secret scanning 执行，不阻塞每个 PR。
 
 发布证据包：
 
