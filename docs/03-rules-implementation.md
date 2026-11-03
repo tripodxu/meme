@@ -254,6 +254,14 @@ need = buffer(classAge)×baselineSum×ψ_eff[class]
 
 `φ=0` 时 `ψ_eff=needMultiplier`，精确退回 v3 语义。乘子锚定 `env0[0]`（不是 `env0` 均值或 `E` 均值），使「顶层相对底层的机会差」成为持有成本的唯一环境来源；`E` 的实时变化只通过 `gain` 与 `cushion` 影响个体，不直接改写需求线。
 
+> **已知缺陷（D-06，待 rules-v6 修）**：上式中的 `baselineSum` 是个体自升入本阶级以来的累计收入，
+> 而升阶与降阶都把它与 `classAge` 一并清零，于是**升阶等于「需求归零 + 缓冲重起算」的免租期**；
+> 同时 `need` 与自身累计收入成正比，使 `Value/need` 近似与阶级无关，只能靠固定阶梯
+> `needMultiplier` 撑住持有标准。实测后果：`mUp≈0.95`、底层占比由 0.45 降至 w3 的 0.003。
+> 修法是改用阶级参照收入计价（选项 A），诊断与门禁见
+> [`research/2026-11-03-p15-diagnosis-and-next-round.md`](research/2026-11-03-p15-diagnosis-and-next-round.md)。
+> 在 rules-v6 落地前，本节语义为 rules-v5 的**现行事实**，不得据其推断结构可达性。
+
 `F(h)=(1-exp(-FShape×h))/(1-exp(-FShape))` 必须用 `expm1` 实现稳定形式 `expm1(-FShape×h)/expm1(-FShape)`；否则 `FShape` 接近 0 时分子分母同时下溢为 0，产生 NaN。
 
 - 邻居只取当前存活者；无邻居 Opportunity=1。
