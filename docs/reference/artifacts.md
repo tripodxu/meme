@@ -16,7 +16,13 @@
 | --------------------------- | -------- | -------------------- | ------------------------------------------------------------------------------------------- | -------- |
 | `out/p15-full.json`         | 2.70 MiB | `04512d7d…bea2c65b9` | runCount=840、prereg=`sha256:2c4843b4…`、k=2、silhouette 0.403、ARI 0.868、3650 tick、40 人 | 待重跑   |
 | `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                              | 历史存档 |
-| `out/p15-screen.json`       | 76.9 KiB | `4a7fbbb2…aeb4d8f1`  | 28 run × 400 tick；w1/w2b/w3 均 `available=false`（missingTicks 695/730/730）；0 崩溃       | 预检通过 |
+| `out/p15-screen.json`       | 86.2 KiB | `925bb44b…6389b316b` | schema v2；28 run × 400 tick；w1/w2b/w3 均 `available=false`（missingTicks 695/730/730）    | 预检通过 |
+
+schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（21 字段，含 `totalTicks` / `seeds` / `windows`），`execution` 记录本次实际执行参数。两者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
+
+```bash
+node -e "const d=require('./out/p15-screen.json');const{computePreregistrationHash}=require('./dist/runner/preregistration.js');console.log(computePreregistrationHash(d.manifest)===d.preregistrationHash)"
+```
 
 完整 sha256：
 
@@ -24,7 +30,8 @@
 04512d7dd41a4c7f6b419b481a975542c32a90d6b3e2a8329d4dac8bea2c65b9  out/p15-full.json
 7091777fb18825b81d2c55f75a334d59205f512a7100b66829a4f468cf12697a  out/p15-full-v4draft.json
 78d1cd10c19764de030e12ec65180d0f6883ffe2013f523e7a7fd8ac89811477  out/p15-screen.json（2026-11-03 修复前，已由下表替换）
-4a7fbbb26a62b26a1b2979291b8adc4382e954634cd50ef7ba4fa071aeb4d8f1  out/p15-screen.json
+4a7fbbb26a62b26a1b2979291b8adc4382e954634cd50ef7ba4fa071aeb4d8f1  out/p15-screen.json（schema v1，已由下表替换）
+925bb44bb4f2b08d4279b70fe7bb332e05e9c56fc4f00d66ff75c3e6389b316b  out/p15-screen.json
 ```
 
 校验方式：`sha256sum out/*.json`。
@@ -50,3 +57,9 @@ w2b 窗口的代码修复已随 `9a714f8` 落地，但**产物尚未重跑**。�
 `out/p15-screen.json` 已用修复后代码重跑（`pnpm build` + `--stage screen`）：28 个 run 全部完成，0 崩溃/爆炸；`w2b` 由 `null` 变为结构完整对象，并携带 `available` / `missingTicks` 标记。
 
 但 screen 的 `totalTicks=400` 低于所有窗口下界，w1/w2b/w3 一律 `available=false`（missingTicks 695/730/730）。因此**预检只能证明计算路径与缺省语义正确，不能证明 w2b 产出数值**。数值验证必须走 `--stage full`（3650 tick，w2b 覆盖 1825–2554）；在此之前 `out/p15-full.json` 仍是修复前产物。
+
+### 4.2 预检顺带修复的 schema 缺陷
+
+首次重跑暴露出 `scripts/p15-grid.mjs` 写出的 `manifest` 只有 5 个字段，而 `PreregManifest` 定义 21 个——产物与哈希不自洽，第三方拿到 artifact 无法复算，违反 `07-experiment-calibration.md` §2「完整 manifest」要求。同时 screen 的实际执行参数（400 tick / 1 种子）被写进 `manifest`，与哈希所依据的 3650 tick × 30 种子矛盾。
+
+`p15-grid-v2` 的处理：`manifest` 写完整预注册设计，`execution` 独立记录实际执行参数。修复后 hash 保持 `sha256:2c4843b4…` 不变（预注册设计未变），复算断言为真。

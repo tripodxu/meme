@@ -232,17 +232,17 @@ if (stage === 'full') {
 
 const wallMinutes = Math.round((performance.now() - startedAt) / 60000);
 const output = {
-  schemaVersion: 'p15-grid-v1',
+  schemaVersion: 'p15-grid-v2',
   stage,
   preregistrationHash,
   runCount,
   wallMinutes,
-  manifest: {
-    populationSize: manifest.populationSize,
+  manifest,
+  execution: {
+    stage,
     totalTicks: ticksForStage,
     seeds: seedsForStage,
-    labelThresholdVersion: manifest.labelThresholdVersion,
-    labelThresholdsHash: manifest.labelThresholdsHash,
+    runCount,
   },
   clustering,
   cells: cellResults,

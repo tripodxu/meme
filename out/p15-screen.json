@@ -1,17 +1,409 @@
 {
-  "schemaVersion": "p15-grid-v1",
+  "schemaVersion": "p15-grid-v2",
   "stage": "screen",
   "preregistrationHash": "sha256:2c4843b4eec9d5d5d867cdd3df4cb7ef44241b3fcbfc202e3823aecf33361e1c",
   "runCount": 28,
   "wallMinutes": 0,
   "manifest": {
+    "schemaVersion": "experiment-v2",
+    "hypothesis": "rules-v5（持有裕度 + 需求解耦 + θM 再平衡）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。",
+    "primaryMetric": "TV(P)",
+    "experimentType": "rule_sensitivity",
+    "rulesVersion": "rules-v5",
+    "engineVersion": "engine-v0.2.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
     "populationSize": 40,
+    "totalTicks": 3650,
+    "seeds": [
+      "p15-seed-001",
+      "p15-seed-002",
+      "p15-seed-003",
+      "p15-seed-004",
+      "p15-seed-005",
+      "p15-seed-006",
+      "p15-seed-007",
+      "p15-seed-008",
+      "p15-seed-009",
+      "p15-seed-010",
+      "p15-seed-011",
+      "p15-seed-012",
+      "p15-seed-013",
+      "p15-seed-014",
+      "p15-seed-015",
+      "p15-seed-016",
+      "p15-seed-017",
+      "p15-seed-018",
+      "p15-seed-019",
+      "p15-seed-020",
+      "p15-seed-021",
+      "p15-seed-022",
+      "p15-seed-023",
+      "p15-seed-024",
+      "p15-seed-025",
+      "p15-seed-026",
+      "p15-seed-027",
+      "p15-seed-028",
+      "p15-seed-029",
+      "p15-seed-030"
+    ],
+    "pairing": "same-seed-derived-initial-population-and-addressed-random",
+    "warmupTicks": 1825,
+    "warmupDiagnostic": "attractor stability: same-run w2/w3 feature points fall in the same cluster (limit-cycle system)",
+    "windows": [
+      {
+        "label": "w2b",
+        "start": 1825,
+        "end": 2554
+      },
+      {
+        "label": "w3",
+        "start": 2555,
+        "end": 3284
+      }
+    ],
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "clustering": {
+      "algorithm": "ward+euclidean",
+      "standardization": "z-score(pooled)",
+      "featureWindows": [
+        "w3"
+      ],
+      "kRange": [
+        2,
+        5
+      ],
+      "stabilityMinAri": 0.7,
+      "minClusterRuns": 5,
+      "d03Note": "Ward+Euclidean 为 07 §8.1 文档默认建议；待议 D-03 未关闭，不得声称已获科学负责人确认。"
+    },
+    "differenceThresholds": {
+      "gini": 0.03,
+      "tv": 0.1,
+      "mUp": 0.05,
+      "segregation": 0.05,
+      "openness": 0.05
+    },
+    "budgets": {
+      "maxRuns": 840,
+      "maxWallMinutes": 480,
+      "maxStorageBytes": 2000000000
+    },
+    "cells": [
+      {
+        "cellKey": "baseline",
+        "hypothesis": "默认参数下的基准结构",
+        "overrides": {}
+      },
+      {
+        "cellKey": "needMultiplier=flat",
+        "hypothesis": "扁平持有成本削弱阶级分离",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          }
+        }
+      },
+      {
+        "cellKey": "needMultiplier=steeper",
+        "hypothesis": "更陡持有成本强化分层",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.4,
+              2.1,
+              3,
+              4.2
+            ]
+          }
+        }
+      },
+      {
+        "cellKey": "needThreshold=0.3",
+        "hypothesis": "宽松需求线减少被动跌落",
+        "overrides": {
+          "need": {
+            "threshold": 0.3
+          }
+        }
+      },
+      {
+        "cellKey": "needThreshold=0.9",
+        "hypothesis": "严格需求线加剧跌落",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          }
+        }
+      },
+      {
+        "cellKey": "env0=compressed",
+        "hypothesis": "压缩阶级机会差削弱分层",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              1.2,
+              1.5,
+              1.9,
+              2.4
+            ]
+          }
+        }
+      },
+      {
+        "cellKey": "env0=expanded",
+        "hypothesis": "扩大阶级机会差强化分层",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          }
+        }
+      },
+      {
+        "cellKey": "ablation:beta=0",
+        "hypothesis": "无网络机会（消融 β=0）",
+        "overrides": {
+          "networkOpportunity": {
+            "beta": 0
+          }
+        }
+      },
+      {
+        "cellKey": "ablation:O=fixed",
+        "hypothesis": "无制度反馈（O 固定，P1-10 开关）",
+        "overrides": {
+          "openness": {
+            "updateMode": "fixed"
+          }
+        }
+      },
+      {
+        "cellKey": "ablation:eta=0",
+        "hypothesis": "无阶级拥挤（消融 η=0）",
+        "overrides": {
+          "dynamics": {
+            "congestionExponent": 0
+          }
+        }
+      },
+      {
+        "cellKey": "ablation:kappa=0",
+        "hypothesis": "无贫富分化反馈（消融 κ=0）",
+        "overrides": {
+          "dynamics": {
+            "polarizationExponent": 0
+          }
+        }
+      },
+      {
+        "cellKey": "ablation:psi=1",
+        "hypothesis": "无阶级持有成本（消融 ψ=1，预期顶层塌缩）",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      },
+      {
+        "cellKey": "initialShares=bottom-heavy",
+        "hypothesis": "底层更重的初始分布",
+        "overrides": {
+          "population": {
+            "classShares": [
+              0.6,
+              0.25,
+              0.1,
+              0.04,
+              0.01
+            ]
+          }
+        }
+      },
+      {
+        "cellKey": "initialShares=middle-heavy",
+        "hypothesis": "中层更重的初始分布",
+        "overrides": {
+          "population": {
+            "classShares": [
+              0.2,
+              0.3,
+              0.3,
+              0.15,
+              0.05
+            ]
+          }
+        }
+      },
+      {
+        "cellKey": "lambdaO=0",
+        "hypothesis": "开放度不影响跨越成本",
+        "overrides": {
+          "openness": {
+            "ascentCostWeight": 0
+          }
+        }
+      },
+      {
+        "cellKey": "rewireProb=0.2",
+        "hypothesis": "更高网络流动",
+        "overrides": {
+          "network": {
+            "rewireProb": 0.2
+          }
+        }
+      },
+      {
+        "cellKey": "v4:envExponent=0",
+        "hypothesis": "φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）",
+        "overrides": {
+          "need": {
+            "envExponent": 0
+          }
+        }
+      },
+      {
+        "cellKey": "v4:envExponent=0.5",
+        "hypothesis": "弱环境持有成本",
+        "overrides": {
+          "need": {
+            "envExponent": 0.5
+          }
+        }
+      },
+      {
+        "cellKey": "v4:envExponent=1.5",
+        "hypothesis": "强环境持有成本",
+        "overrides": {
+          "need": {
+            "envExponent": 1.5
+          }
+        }
+      },
+      {
+        "cellKey": "v4:thetaM=8",
+        "hypothesis": "v3 值 θM=8 对照（预期 O 钉在高位）",
+        "overrides": {
+          "openness": {
+            "mobilityWeight": 8
+          }
+        }
+      },
+      {
+        "cellKey": "v4:geMedian=0.8",
+        "hypothesis": "中位生产力轻度低于持有标准（G 上升、O 下降）",
+        "overrides": {
+          "attributes": {
+            "ge": {
+              "median": 0.8
+            }
+          }
+        }
+      },
+      {
+        "cellKey": "v4:geMedian=0.7",
+        "hypothesis": "中位生产力进一步下降（中间层重心、高 G）",
+        "overrides": {
+          "attributes": {
+            "ge": {
+              "median": 0.7
+            }
+          }
+        }
+      },
+      {
+        "cellKey": "v4:geMedian=0.6",
+        "hypothesis": "强生产力约束（橄榄型倾向、O 低位）",
+        "overrides": {
+          "attributes": {
+            "ge": {
+              "median": 0.6
+            }
+          }
+        }
+      },
+      {
+        "cellKey": "v4:envExponent=2",
+        "hypothesis": "极强环境持有成本（顶部快速流失）",
+        "overrides": {
+          "need": {
+            "envExponent": 2
+          }
+        }
+      },
+      {
+        "cellKey": "v5:cushionDays=0",
+        "hypothesis": "ρ=0 退回 v4 语义（消融对照）",
+        "overrides": {
+          "ascent": {
+            "holdingCushionDays": 0
+          }
+        }
+      },
+      {
+        "cellKey": "v5:cushionDays=90",
+        "hypothesis": "强裕度封锁顶部（预期 c3 重心或封闭结构）",
+        "overrides": {
+          "ascent": {
+            "holdingCushionDays": 90
+          }
+        }
+      },
+      {
+        "cellKey": "v5:cushionDays=90+phi=0",
+        "hypothesis": "强裕度×v3 需求（预期富人俱乐部顶层）",
+        "overrides": {
+          "ascent": {
+            "holdingCushionDays": 90
+          },
+          "need": {
+            "envExponent": 0
+          }
+        }
+      },
+      {
+        "cellKey": "v5:geMedian=0.7+cushion30",
+        "hypothesis": "裕度×生产力双约束（预期封闭分层可达）",
+        "overrides": {
+          "ascent": {
+            "holdingCushionDays": 30
+          },
+          "attributes": {
+            "ge": {
+              "median": 0.7
+            }
+          }
+        }
+      }
+    ]
+  },
+  "execution": {
+    "stage": "screen",
     "totalTicks": 400,
     "seeds": [
       "p15-seed-001"
     ],
-    "labelThresholdVersion": "labels-v3",
-    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168"
+    "runCount": 28
   },
   "clustering": null,
   "cells": [
@@ -21,7 +413,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 273,
+          "elapsedMs": 294,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -116,7 +508,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 224,
+          "elapsedMs": 227,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -211,7 +603,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 190,
+          "elapsedMs": 204,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -306,7 +698,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 194,
+          "elapsedMs": 202,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -401,7 +793,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 195,
+          "elapsedMs": 205,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -496,7 +888,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 199,
+          "elapsedMs": 214,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -591,7 +983,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 181,
+          "elapsedMs": 212,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -686,7 +1078,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 228,
+          "elapsedMs": 248,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -781,7 +1173,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 190,
+          "elapsedMs": 210,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -876,7 +1268,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 176,
+          "elapsedMs": 181,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -971,7 +1363,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 179,
+          "elapsedMs": 184,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1066,7 +1458,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 175,
+          "elapsedMs": 180,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1161,7 +1553,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 184,
+          "elapsedMs": 191,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1256,7 +1648,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 177,
+          "elapsedMs": 188,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1351,7 +1743,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 177,
+          "elapsedMs": 180,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1446,7 +1838,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 183,
+          "elapsedMs": 188,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1541,7 +1933,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 189,
+          "elapsedMs": 194,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1636,7 +2028,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 179,
+          "elapsedMs": 174,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1731,7 +2123,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 174,
+          "elapsedMs": 193,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1826,7 +2218,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 170,
+          "elapsedMs": 177,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -1921,7 +2313,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 174,
+          "elapsedMs": 186,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2016,7 +2408,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 174,
+          "elapsedMs": 188,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2111,7 +2503,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 171,
+          "elapsedMs": 187,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2206,7 +2598,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 172,
+          "elapsedMs": 181,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2301,7 +2693,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 173,
+          "elapsedMs": 176,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2396,7 +2788,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 171,
+          "elapsedMs": 180,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2491,7 +2883,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 169,
+          "elapsedMs": 193,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
@@ -2586,7 +2978,7 @@
       "seeds": [
         {
           "seed": "p15-seed-001",
-          "elapsedMs": 173,
+          "elapsedMs": 183,
           "extinct": false,
           "endReason": null,
           "endTick": 399,
