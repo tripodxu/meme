@@ -29,6 +29,15 @@ import {
 const args = process.argv.slice(2);
 const stage = args.includes('--stage') ? args[args.indexOf('--stage') + 1] : 'screen';
 
+function euclideanDist(a, b) {
+  let sum = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    const d = (a[i] ?? 0) - (b[i] ?? 0);
+    sum += d * d;
+  }
+  return Math.sqrt(sum);
+}
+
 function log(message) {
   process.stderr.write(`[p15] ${message}\n`);
 }
@@ -127,46 +136,6 @@ if (stage === 'full') {
     byRun.set(key, (byRun.get(key) ?? 0) + 1);
   }
   log(`clustering points=${points.length}`);
-  // 吸引子稳定性诊断：每 run 的 w2b 特征点按最近质心分配，与 w3 分配比较一致率。
-  let temporalConsistency = null;
-  {
-    const w2bPoints = [];
-    const w3AssignByKey = new Map();
-    for (const cell of cellResults) {
-      for (const seedResult of cell.seeds) {
-        const w3p = seedResult.w3;
-        const w2bp = seedResult.w2b;
-        if (w3p && w3p.available) {
-          w3AssignByKey.set(cell.cellKey + '|' + seedResult.seed, [
-            ...w3p.classShares,
-            w3p.gini,
-            w3p.topWealthShare,
-            w3p.mUp,
-            w3p.mDown,
-            w3p.segregation,
-            w3p.openness,
-          ]);
-        }
-        if (w2bp && w2bp.available) {
-          w2bPoints.push({
-            key: cell.cellKey + '|' + seedResult.seed,
-            vector: [
-              ...w2bp.classShares,
-              w2bp.gini,
-              w2bp.topWealthShare,
-              w2bp.mUp,
-              w2bp.mDown,
-              w2bp.segregation,
-              w2bp.openness,
-            ],
-          });
-        }
-      }
-    }
-    if (w2bPoints.length > 0) {
-      temporalConsistency = { pending: true, w2bPoints: w2bPoints.length, w3Runs: w3AssignByKey.size };
-    }
-  }
   if (points.length >= 8) {
     const z = zScoreMatrix(points);
     const choice = chooseKBySilhouette(z);
@@ -175,11 +144,74 @@ if (stage === 'full') {
     for (const a of choice.assignment) {
       clusterSizes.set(a, (clusterSizes.get(a) ?? 0) + 1);
     }
+    // 吸引子稳定性诊断（预注册 warmupDiagnostic）：每 run 的 w2b 特征点按
+    // w3 聚类质心最近分配，与该 run 的 w3 簇比较一致率。
+    let temporalConsistency = null;
+    {
+      const centroidAcc = new Map();
+      const centroidCount = new Map();
+      for (let index = 0; index < pointMeta.length; index += 1) {
+        const cluster = choice.assignment[index];
+        const vector = points[index];
+        const bucket = (centroidAcc.get(cluster) ?? new Array(vector.length).fill(0)).map(
+          (v) => v,
+        );
+        for (let j = 0; j < vector.length; j += 1) bucket[j] += vector[j];
+        centroidAcc.set(cluster, bucket);
+        centroidCount.set(cluster, (centroidCount.get(cluster) ?? 0) + 1);
+      }
+      const centroids = new Map();
+      for (const [cluster, sum] of centroidAcc) {
+        centroids.set(cluster, sum.map((v) => v / (centroidCount.get(cluster) ?? 1)));
+      }
+      const w3ByKey = new Map();
+      for (let index = 0; index < pointMeta.length; index += 1) {
+        w3ByKey.set(pointMeta[index].cell + '|' + pointMeta[index].seed, choice.assignment[index]);
+      }
+      let same = 0;
+      let total = 0;
+      for (const cell of cellResults) {
+        for (const seedResult of cell.seeds) {
+          const alt = seedResult.w2b;
+          const w3Assign = w3ByKey.get(cell.cellKey + '|' + seedResult.seed);
+          if (!alt || !alt.available || w3Assign === undefined) continue;
+          const vector = [
+            ...alt.classShares,
+            alt.gini,
+            alt.topWealthShare,
+            alt.mUp,
+            alt.mDown,
+            alt.segregation,
+            alt.openness,
+          ];
+          let best = null;
+          let bestDistance = Number.POSITIVE_INFINITY;
+          for (const [cluster, centroid] of centroids) {
+            const d = euclideanDist(vector, centroid);
+            if (d < bestDistance) {
+              bestDistance = d;
+              best = cluster;
+            }
+          }
+          total += 1;
+          if (best === w3Assign) same += 1;
+        }
+      }
+      temporalConsistency =
+        total === 0
+          ? null
+          : {
+              window: 'w2b',
+              sameClusterRate: Math.round((same / total) * 1000) / 1000,
+              total,
+            };
+    }
     clustering = {
       k: choice.k,
       silhouette: Math.round(choice.score * 1000) / 1000,
       stabilityAri: Math.round(stability.ari * 1000) / 1000,
       stabilityStable: stability.stable,
+      temporalConsistency,
       clusterSizes: Object.fromEntries([...clusterSizes.entries()].map(([k, v]) => [`c${k}`, v])),
       assignment: choice.assignment.map((cluster, index) => ({
         ...pointMeta[index],
