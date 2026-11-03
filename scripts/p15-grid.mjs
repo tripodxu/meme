@@ -153,7 +153,12 @@ if (stage === 'full') {
         const w = seedResult[key];
         if (w !== null && w.available) {
           points.push(featureVector(w));
-          pointMeta.push({ cell: cell.cellKey, seed: seedResult.seed, window: key });
+          pointMeta.push({
+            cell: cell.cellKey,
+            seed: seedResult.seed,
+            window: key,
+            networkEmpty: w.networkEmpty === true,
+          });
         }
       }
     }
@@ -219,6 +224,59 @@ if (stage === 'full') {
         met: rate !== null && rate >= manifest.clustering.temporalConsistencyMinRate,
       };
     }
+    // G1.5 判定协议（diagnosis §6 预注册写死；07 §8.1 聚类口径不变）：
+    // k 由轮廓系数选择，但必须同时满足 k=2 的 ARI median ≥ 门槛，否则直接判定
+    // 「无宏观二态」，不得退而报告 k=4/k=5 充当通过。
+    const k2Runs = STABILITY_SEED_OFFSETS.map((seed) =>
+      bisectStability(z, 2, [seededShuffle(z.length, seed)], manifest.clustering.stabilityMinAri),
+    );
+    const k2MedianAri = medianOf(k2Runs.map((run) => run.ari));
+    const k2HardGateMet = k2MedianAri >= manifest.clustering.stabilityMinAri;
+    // 非退化簇：≥1 个簇至少含一个非空网络窗口的特征点（全死亡 run 已被窗口可用性排除）。
+    const clusterIds = [...new Set(choice.assignment)];
+    const nonDegenerateClusters = clusterIds.filter((cluster) =>
+      choice.assignment.some(
+        (assigned, index) => assigned === cluster && pointMeta[index]?.networkEmpty === false,
+      ),
+    ).length;
+    // 均值场方向预测（预注册写死）：位移平衡钉住底层（全部 cell P0(w3)≥0.15）
+    // 且分布稳态（全部 cell ‖P(w2b)−P(w3)‖₁<0.10）。
+    const perCellMeans = cellResults.map((cell) => {
+      const w3 = cell.seeds.filter((seedResult) => seedResult.w3?.available);
+      const w2b = cell.seeds.filter((seedResult) => seedResult.w2b?.available);
+      const meanP0 =
+        w3.length === 0
+          ? Number.NaN
+          : w3.reduce((sum, seedResult) => sum + (seedResult.w3.classShares[0] ?? 0), 0) /
+            w3.length;
+      let drift = Number.NaN;
+      if (w3.length > 0 && w2b.length > 0) {
+        const classCount = (w3[0].w3.classShares ?? []).length;
+        drift =
+          w3.reduce((sum, seedResult) => {
+            const w2bWindow = seedResult.w2b;
+            if (w2bWindow === null || !w2bWindow.available) return sum;
+            let l1Sum = 0;
+            for (let c = 0; c < classCount; c += 1) {
+              l1Sum += Math.abs(
+                (w2bWindow.classShares[c] ?? 0) - (seedResult.w3.classShares[c] ?? 0),
+              );
+            }
+            return sum + l1Sum / 2;
+          }, 0) / w3.length;
+      }
+      return { cellKey: cell.cellKey, meanP0, drift };
+    });
+    const worstP0 = Math.min(...perCellMeans.map((entry) => entry.meanP0));
+    const worstDrift = Math.max(...perCellMeans.map((entry) => entry.drift));
+    const meanFieldDirectionMet = worstP0 >= 0.15 && worstDrift < 0.1;
+    const g15Passed =
+      k2HardGateMet &&
+      minClusterMet &&
+      medianAri >= manifest.clustering.stabilityMinAri &&
+      temporalConsistency?.met === true &&
+      nonDegenerateClusters >= 1 &&
+      meanFieldDirectionMet;
     clustering = {
       k: choice.k,
       silhouette: Math.round(choice.score * 1000) / 1000,
@@ -239,6 +297,31 @@ if (stage === 'full') {
         ...pointMeta[index],
         cluster: `c${cluster}`,
       })),
+      g15: {
+        criteria: {
+          k2MinAri: manifest.clustering.stabilityMinAri,
+          stabilityMinAri: manifest.clustering.stabilityMinAri,
+          temporalConsistencyMinRate: manifest.clustering.temporalConsistencyMinRate,
+          minClusterRuns: manifest.clustering.minClusterRuns,
+          meanFieldP0Min: 0.15,
+          meanFieldDriftMax: 0.1,
+        },
+        k2StabilityAriMedian: Math.round(k2MedianAri * 1000) / 1000,
+        k2StabilityAriMin: Math.round(Math.min(...k2Runs.map((run) => run.ari)) * 1000) / 1000,
+        k2HardGateMet,
+        nonDegenerateClusters,
+        meanField: {
+          worstCellP0: Math.round(worstP0 * 1000) / 1000,
+          worstCellDrift: Math.round(worstDrift * 1000) / 1000,
+          met: meanFieldDirectionMet,
+        },
+        passed: g15Passed,
+        verdict: g15Passed
+          ? 'G1.5 通过：>=2 类可复现结构聚类'
+          : k2HardGateMet
+            ? 'G1.5 未通过：聚类协议子项不满足'
+            : '无宏观二态（k=2 ARI median < 门槛，不得以 k=4/k=5 充当通过）',
+      },
     };
   }
 }

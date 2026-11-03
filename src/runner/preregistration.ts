@@ -164,14 +164,28 @@ export interface PreregManifest {
   readonly cells: readonly PreregCell[];
 }
 
-/** P1.5 预注册的 30 个配对种子（冻结列表）。 */
+/** 探索轮预注册的 30 个配对种子（冻结列表；p15 探索层专用）。 */
 export const PREREG_SEEDS: readonly string[] = Array.from(
   { length: 30 },
   (_, index) => `p15-seed-${String(index + 1).padStart(3, '0')}`,
 );
 
 /**
- * P1.5 参数网格：覆盖主导阶级分布参数与全部五个消融（07 §6.2/§11）。
+ * W2 确认轮种子（D-07 已定）：`p15r3-seed-001…030`，与探索轮种子不重叠
+ *（07 §6.1 探索/确认分离）。门禁 GATE_SEEDS 沿用探索轮列表，不复用本列表。
+ */
+export const PREREG_SEEDS_R3: readonly string[] = Array.from(
+  { length: 30 },
+  (_, index) => `p15r3-seed-${String(index + 1).padStart(3, '0')}`,
+);
+
+/**
+ * W2 确认轮参数网格（diagnosis §6 重组，约 26 cell；D-07 种子）。
+ *
+ * 设计纪律（07 §6.2/§6.3）：单轴 cell 效应可归因到单一参数；双轴组合标
+ * `design:'interaction'`，只回答联合条件是否可达，不得单轴归因。
+ * 五个轴（diagnosis §6.1–6.4）：分离面（envExponent）、参照强度（α × ψ 尺度）、
+ * 持有标准（bufferDays × belowNeedLimit）、底层占位（threshold）。
  *
  * `fullConfigHash` 在此按 (populationSize, totalTicks) 合并后计算，
  * 使预注册哈希覆盖每个 cell 的完整配置（07 §3）。
@@ -180,180 +194,79 @@ export function buildPreregCells(
   populationSize: number,
   totalTicks: number,
 ): readonly PreregCell[] {
+  const base = buildBaseConfig(populationSize, totalTicks);
+  const psiScale = (scale: number): readonly number[] => {
+    // ψ[0]=1 是注册表结构约束；缩放 ψ[1..] 并钳制 [1,6]，保持非递减（同 p15-gates）。
+    const psi = base.need.needMultiplier as readonly number[];
+    return [1, ...psi.slice(1).map((value) => Math.min(6, Math.max(1, value * scale)))];
+  };
+
   const definitions: Omit<PreregCell, 'fullConfigHash' | 'changedPaths'>[] = [
     {
       cellKey: 'baseline',
       design: 'baseline',
-      hypothesis: '默认参数下的基准结构',
+      hypothesis: '位移准入体制默认参数下的基准结构（预测：底重稳态金字塔）',
       overrides: {},
     },
-    {
-      cellKey: 'needMultiplier=flat',
-      design: 'single',
-      hypothesis: '扁平持有成本削弱阶级分离',
-      overrides: { need: { needMultiplier: [1, 1.5, 1.5, 1.5, 1.5] } },
-    },
-    {
-      cellKey: 'needMultiplier=steeper',
-      design: 'single',
-      hypothesis: '更陡持有成本强化分层',
-      overrides: { need: { needMultiplier: [1, 1.4, 2.1, 3.0, 4.2] } },
-    },
-    {
-      cellKey: 'needThreshold=0.3',
-      design: 'single',
-      hypothesis: '宽松需求线减少被动跌落',
-      overrides: { need: { threshold: 0.3 } },
-    },
-    {
-      cellKey: 'needThreshold=0.9',
-      design: 'single',
-      hypothesis: '严格需求线加剧跌落',
-      overrides: { need: { threshold: 0.9 } },
-    },
-    {
-      cellKey: 'env0=compressed',
-      design: 'single',
-      hypothesis: '压缩阶级机会差削弱分层',
-      overrides: { opportunity: { env0: [1, 1.2, 1.5, 1.9, 2.4] } },
-    },
-    {
-      cellKey: 'env0=expanded',
-      design: 'single',
-      hypothesis: '扩大阶级机会差强化分层',
-      overrides: { opportunity: { env0: [1, 2, 3.5, 5, 7] } },
-    },
-    {
-      cellKey: 'ablation:beta=0',
-      design: 'single',
-      hypothesis: '无网络机会（消融 β=0）',
-      overrides: { networkOpportunity: { beta: 0 } },
-    },
-    {
-      cellKey: 'ablation:O=fixed',
-      design: 'single',
-      hypothesis: '无制度反馈（O 固定，P1-10 开关）',
-      overrides: { openness: { updateMode: 'fixed' } },
-    },
-    {
-      cellKey: 'ablation:eta=0',
-      design: 'single',
-      hypothesis: '无阶级拥挤（消融 η=0）',
-      overrides: { dynamics: { congestionExponent: 0 } },
-    },
-    {
-      cellKey: 'ablation:kappa=0',
-      design: 'single',
-      hypothesis: '无贫富分化反馈（消融 κ=0）',
-      overrides: { dynamics: { polarizationExponent: 0 } },
-    },
-    {
-      cellKey: 'ablation:psi=1',
-      design: 'single',
-      hypothesis: '无阶级持有成本（消融 ψ=1，预期顶层塌缩）',
-      overrides: { need: { needMultiplier: [1, 1, 1, 1, 1] } },
-    },
-    {
-      cellKey: 'initialShares=bottom-heavy',
-      design: 'single',
-      hypothesis: '底层更重的初始分布',
-      overrides: { population: { classShares: [0.6, 0.25, 0.1, 0.04, 0.01] } },
-    },
-    {
-      cellKey: 'initialShares=middle-heavy',
-      design: 'single',
-      hypothesis: '中层更重的初始分布',
-      overrides: { population: { classShares: [0.2, 0.3, 0.3, 0.15, 0.05] } },
-    },
-    {
-      cellKey: 'lambdaO=0',
-      design: 'single',
-      hypothesis: '开放度不影响跨越成本',
-      overrides: { openness: { ascentCostWeight: 0 } },
-    },
-    {
-      cellKey: 'rewireProb=0.2',
-      design: 'single',
-      hypothesis: '更高网络流动',
-      overrides: { network: { rewireProb: 0.2 } },
-    },
-    // v4 新增：φ 扫描与 θM 对照（changes/0004 的效果分离归因）
-    {
-      cellKey: 'v4:envExponent=0',
-      design: 'single',
-      hypothesis: 'φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）',
-      overrides: { need: { envExponent: 0 } },
-    },
-    {
-      cellKey: 'v4:envExponent=0.5',
-      design: 'single',
-      hypothesis: '弱环境持有成本',
-      overrides: { need: { envExponent: 0.5 } },
-    },
-    {
-      cellKey: 'v4:envExponent=1.5',
-      design: 'single',
-      hypothesis: '强环境持有成本',
-      overrides: { need: { envExponent: 1.5 } },
-    },
-    {
-      cellKey: 'v4:thetaM=8',
-      design: 'single',
-      hypothesis: 'v3 值 θM=8 对照（预期 O 钉在高位）',
-      overrides: { openness: { mobilityWeight: 8 } },
-    },
-    // v4 第二轮：中位生产力平衡轴（rule.md 45 双路径的机制旋钮）
-    {
-      cellKey: 'v4:geMedian=0.8',
-      design: 'single',
-      hypothesis: '中位生产力轻度低于持有标准（G 上升、O 下降）',
-      overrides: { attributes: { ge: { median: 0.8 } } },
-    },
-    {
-      cellKey: 'v4:geMedian=0.7',
-      design: 'single',
-      hypothesis: '中位生产力进一步下降（中间层重心、高 G）',
-      overrides: { attributes: { ge: { median: 0.7 } } },
-    },
-    {
-      cellKey: 'v4:geMedian=0.6',
-      design: 'single',
-      hypothesis: '强生产力约束（橄榄型倾向、O 低位）',
-      overrides: { attributes: { ge: { median: 0.6 } } },
-    },
-    {
-      cellKey: 'v4:envExponent=2',
-      design: 'single',
-      hypothesis: '极强环境持有成本（顶部快速流失）',
-      overrides: { need: { envExponent: 2 } },
-    },
-    // v5 新增：持有裕度轴（changes/0005，D-05 方向 B）
-    {
-      cellKey: 'v5:cushionDays=0',
-      design: 'single',
-      hypothesis: 'ρ=0 退回 v4 语义（消融对照）',
-      overrides: { ascent: { holdingCushionDays: 0 } },
-    },
-    {
-      cellKey: 'v5:cushionDays=90',
-      design: 'single',
-      hypothesis: '强裕度封锁顶部（预期 c3 重心或封闭结构）',
-      overrides: { ascent: { holdingCushionDays: 90 } },
-    },
-    {
-      cellKey: 'v5:cushionDays=90+phi=0',
-      design: 'interaction',
-      hypothesis: '强裕度×v3 需求（预期富人俱乐部顶层）；双变量联合条件，不得单轴归因',
-      overrides: { ascent: { holdingCushionDays: 90 }, need: { envExponent: 0 } },
-    },
-    {
-      cellKey: 'v5:cushionDays=90+geMedian=0.7',
-      design: 'interaction',
-      hypothesis: '裕度×生产力双约束（预期封闭分层可达）；双变量联合条件，不得单轴归因',
-      overrides: { ascent: { holdingCushionDays: 90 }, attributes: { ge: { median: 0.7 } } },
-    },
+    // 轴 1：分离面定位（diagnosis §6.1）
+    ...([0, 0.3, 0.5, 0.7, 1.2, 1.5, 2] as const).map((phi) => ({
+      cellKey: `envExponent=${phi}`,
+      design: 'single' as const,
+      hypothesis: `分离面定位：φ=${phi} 时持有标尺的环境梯度改变（1.0 为基准）`,
+      overrides: { need: { envExponent: phi } },
+    })),
+    // 轴 2：参照强度 α（diagnosis §6.2）
+    ...([0.05, 0.6] as const).map((alpha) => ({
+      cellKey: `referenceSmoothing=${alpha}`,
+      design: 'single' as const,
+      hypothesis: `参照强度：α=${alpha} 时 refIncome 跟随速度改变（0.2 为基准）`,
+      overrides: { need: { referenceSmoothing: alpha } },
+    })),
+    // 轴 2：ψ 尺度（diagnosis §6.2）
+    ...([0.7, 1.4] as const).map((scale) => ({
+      cellKey: `needMultiplier×${scale}`,
+      design: 'single' as const,
+      hypothesis: `ψ 尺度 ×${scale}：持有标尺整体抬升/压低（1.0 为基准）`,
+      overrides: { need: { needMultiplier: psiScale(scale) } },
+    })),
+    // 轴 2 交互：α × ψ 尺度（联合条件，不得单轴归因）
+    ...([0.05, 0.6] as const).flatMap((alpha) =>
+      ([0.7, 1.4] as const).map((scale) => ({
+        cellKey: `alpha=${alpha}+psi×${scale}`,
+        design: 'interaction' as const,
+        hypothesis: `参照强度 × ψ 尺度联合条件（α=${alpha}, ×${scale}）；双变量，不得单轴归因`,
+        overrides: { need: { referenceSmoothing: alpha, needMultiplier: psiScale(scale) } },
+      })),
+    ),
+    // 轴 3：持有标准 bufferDays × belowNeedLimit（diagnosis §6.3）
+    ...([10, 60] as const).map((days) => ({
+      cellKey: `bufferDays=${days}`,
+      design: 'single' as const,
+      hypothesis: `持有标尺天数 ${days}（30 为基准）`,
+      overrides: { need: { bufferDays: days } },
+    })),
+    ...([7, 30] as const).map((limit) => ({
+      cellKey: `belowNeedLimit=${limit}`,
+      design: 'single' as const,
+      hypothesis: `跌落判定时长 ${limit}（14 为基准）`,
+      overrides: { need: { belowNeedLimit: limit } },
+    })),
+    ...([10, 60] as const).flatMap((days) =>
+      ([7, 30] as const).map((limit) => ({
+        cellKey: `bufferDays=${days}+limit=${limit}`,
+        design: 'interaction' as const,
+        hypothesis: `持有标准联合条件（bufferDays=${days}, limit=${limit}）；双变量，不得单轴归因`,
+        overrides: { need: { bufferDays: days, belowNeedLimit: limit } },
+      })),
+    ),
+    // 轴 4：底层占位（diagnosis §6.4）
+    ...([0.3, 0.8] as const).map((threshold) => ({
+      cellKey: `needThreshold=${threshold}`,
+      design: 'single' as const,
+      hypothesis: `需求线判定比例 ${threshold}（0.5 为基准）：检查 P0 是否被托住`,
+      overrides: { need: { threshold: threshold } },
+    })),
   ];
-  const base = buildBaseConfig(populationSize, totalTicks);
   const cells = definitions.map((definition) => {
     const config = buildCellConfig(definition, populationSize, totalTicks);
     const changedPaths = diffConfigPaths(base, config);
@@ -462,14 +375,24 @@ export function computePreregistrationHash(manifest: PreregManifest): string {
   return hashValue(HASH_DOMAINS.preregistration, buildPreregHashInput(manifest));
 }
 
-/** P1.5 预注册 manifest（Stage A：40 人 × 3650 tick；冻结后再运行）。 */
+/**
+ * W2 确认轮预注册 manifest（diagnosis §6；D-07 种子 p15r3-001…030；冻结后再运行）。
+ *
+ * 假设与均值场方向预测（预注册写死，运行后不得调整）：
+ * - 位移准入体制下，网格内存在 ≥2 类可复现（20 次半样本 ARI median ≥0.70，含 k=2 硬门槛）
+ *   且非退化（非全死亡/空网络/未归类）的结构指纹聚类；
+ * - 均值场方向预测：位移平衡把 P0 钉在高位（全部 cell P0(w3) ≥ 0.15），
+ *   分布稳态（全部 cell ‖P(w2b)−P(w3)‖₁ < 0.10）——若系统性格点违反，则方向不一致。
+ */
 export function buildPreregManifest(): PreregManifest {
   const populationSize = 40;
   const totalTicks = 3650;
   return {
     schemaVersion: 'experiment-v2',
     hypothesis:
-      'rules-v7（裕度参照系统一计价）在预注册参数网格内能产生 >=2 类可复现（ARI>=0.70，判定量=median）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场预测与仿真方向一致。W1 门禁 G-A/G-B 未过（rules-v6），rules-v7 裕度同参照系复测中；W2 确认轮启动前必须按 D-07/D-08 重新预注册并冻结新 experimentId。',
+      'rules-v8（位移准入）体制下，预注册参数网格内存在 >=2 类可复现（20 次半样本 ARI median>=0.70，' +
+      '含 k=2 硬门槛）且非退化（非全死亡/空网络/未归类）的结构指纹聚类；均值场方向预测与仿真一致' +
+      '（全 cell P0(w3)>=0.15 且 ‖P(w2b)-P(w3)‖1<0.10）。',
     primaryMetric: 'TV(P)',
     experimentType: 'rule_sensitivity',
     rulesVersion: RULES_VERSION,
@@ -482,10 +405,9 @@ export function buildPreregManifest(): PreregManifest {
     totalTicks,
     baseConfigHash: computeConfigHash(buildBaseConfig(populationSize, totalTicks)),
     artifactProfile: 'full',
-    seeds: PREREG_SEEDS,
+    seeds: PREREG_SEEDS_R3,
     pairing: 'same-seed-derived-initial-population-and-addressed-random',
-    // v5 轮 2：w1 非平稳（90 日块 TV(P) 0.03-0.23 持续振荡，极限环）→ burn-in 延长至 1825，
-    // 诊断改为吸引子稳定性（07 §5 「不平稳则延长 burn-in 并重新预注册」）。
+    // burn-in 与窗口沿用探索轮冻结口径（1825 + w2b/w3）；变更须重新预注册。
     warmupTicks: 1825,
     warmupDiagnostic:
       'attractor stability: same-run w2/w3 feature points fall in the same cluster (limit-cycle system)',
@@ -499,9 +421,6 @@ export function buildPreregManifest(): PreregManifest {
       distance: 'euclidean',
       algorithm: 'ward-lw-v1',
       standardization: 'z-score(pooled)',
-      // 每个 run 在 w2b（主分析窗）与 w3（紧邻后续窗）各贡献一个特征点，
-      // 全部特征点在同一 z-score 空间聚类——这是 07 §5「同一 run 的 w2b/w3
-      // 特征点应落入同一簇」的唯一可判定实现，不再用质心投影近似。
       featureWindows: ['w2b', 'w3'],
       kRange: [2, 5],
       stabilityMinAri: 0.7,
@@ -510,12 +429,12 @@ export function buildPreregManifest(): PreregManifest {
       minClusterRuns: 5,
       temporalConsistencyMinRate: 0.8,
       d03Note:
-        '聚类协议已按 07 §8.1 随本 manifest 冻结：Ward(Lance–Williams, ward-lw-v1) + Euclidean、' +
+        '聚类协议按 07 §8.1 冻结：Ward(Lance–Williams, ward-lw-v1) + Euclidean、' +
         'z-score(pooled)、k∈[2,5]、稳定性 20 次取 median 且必报 min；更换实现＝新 experimentId。',
     },
     differenceThresholds: { gini: 0.03, tv: 0.1, mUp: 0.05, segregation: 0.05, openness: 0.05 },
-    // 本机预研护栏（07 §3：budgets 示例为占位值；D-04 的正式 P6 预算另行冻结）。
-    budgets: { maxRuns: 28 * 30, maxWallMinutes: 480, maxStorageBytes: 2_000_000_000 },
+    // 确认轮预算（07 §3：本机预研护栏；D-04 正式 P6 预算另行冻结）。
+    budgets: { maxRuns: 26 * 30, maxWallMinutes: 240, maxStorageBytes: 2_000_000_000 },
     exclusionRules: {
       excludeExtinctRuns: true,
       excludeUnavailableWindows: true,

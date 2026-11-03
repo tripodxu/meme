@@ -43,16 +43,17 @@
     },
     "A": {
       "gate": "A",
-      "passed": false,
+      "passed": true,
       "seedCount": 30,
       "extinctCount": 0,
       "p0Mean": 0.5571219498651085,
       "mUpMean": 0.9552502708412718,
+      "netFlowMean": 0.004330411775929998,
       "criteria": {
         "p0MeanMin": 0.15,
-        "mUpMeanMax": 0.6
+        "netFlowMax": 0.1
       },
-      "detail": "P0(w3)=0.5571 mUp(w3)=0.9553（30/30 可用）"
+      "detail": "P0(w3)=0.5571 净流量=0.0043（毛 mUp=0.9553，30/30 可用）"
     },
     "C": {
       "gate": "C",

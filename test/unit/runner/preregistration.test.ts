@@ -71,13 +71,38 @@ describe('预注册 cell 设计类型（07 §6.2 / §6.3）', () => {
     }
   });
 
-  it('设计类型计数与网格规模一致', () => {
+  it('设计类型计数与网格规模一致（diagnosis §6 W2 网格）', () => {
     const counts = { baseline: 0, single: 0, interaction: 0 };
     for (const cell of cells) {
       counts[cell.design] += 1;
     }
-    expect(counts).toEqual({ baseline: 1, single: 25, interaction: 2 });
-    expect(cells).toHaveLength(28);
+    // 1 baseline + 17 single（envExp 7、α 2、ψ 2、bufferDays 2、limit 2、threshold 2）
+    // + 8 interaction（α×ψ 4、bufferDays×limit 4）= 26
+    expect(counts).toEqual({ baseline: 1, single: 17, interaction: 8 });
+    expect(cells).toHaveLength(26);
+  });
+
+  it('W2 网格覆盖 diagnosis §6 的全部四个轴', () => {
+    const keys = cells.map((cell) => cell.cellKey);
+    for (const phi of ['0', '0.3', '0.5', '0.7', '1.2', '1.5', '2']) {
+      expect(keys).toContain(`envExponent=${phi}`);
+    }
+    for (const alpha of ['0.05', '0.6']) expect(keys).toContain(`referenceSmoothing=${alpha}`);
+    for (const scale of ['0.7', '1.4']) expect(keys).toContain(`needMultiplier×${scale}`);
+    for (const days of ['10', '60']) expect(keys).toContain(`bufferDays=${days}`);
+    for (const limit of ['7', '30']) expect(keys).toContain(`belowNeedLimit=${limit}`);
+    for (const threshold of ['0.3', '0.8']) expect(keys).toContain(`needThreshold=${threshold}`);
+    // 交互 cell 双轴组合齐全
+    for (const alpha of ['0.05', '0.6']) {
+      for (const scale of ['0.7', '1.4']) {
+        expect(keys).toContain(`alpha=${alpha}+psi×${scale}`);
+      }
+    }
+    for (const days of ['10', '60']) {
+      for (const limit of ['7', '30']) {
+        expect(keys).toContain(`bufferDays=${days}+limit=${limit}`);
+      }
+    }
   });
 
   it('不存在配置完全相同的重复格点', () => {
@@ -85,14 +110,21 @@ describe('预注册 cell 设计类型（07 §6.2 / §6.3）', () => {
     expect(new Set(hashes).size).toBe(hashes.length);
   });
 
-  it('回归：cell 名不得声明已被默认值吸收的旋钮', () => {
-    // 旧 cell `v5:geMedian=0.7+cushion30` 的 cushion=30 恰是默认值，实际只改 ge.median，
-    // 与 `v4:geMedian=0.7` 配置完全相同，属白耗 30 个种子预算的重复格点。
+  it('回归：交互 cell 与单轴 cell 的 changedPaths 自洽且不与默认值重合', () => {
     const keys = cells.map((cell) => cell.cellKey);
-    expect(keys).not.toContain('v5:geMedian=0.7+cushion30');
-    expect(cells.find((cell) => cell.cellKey === 'v4:geMedian=0.7')?.changedPaths).toEqual([
-      'attributes.ge.median',
-    ]);
+    // 交互 cell 必须恰好改两个参数（单轴 cell 已由设计类型校验覆盖）
+    const interactions = cells.filter((cell) => cell.design === 'interaction');
+    for (const cell of interactions) {
+      expect(cell.changedPaths, cell.cellKey).toHaveLength(2);
+    }
+    // 单轴 cell 不得落在默认值上（否则是白耗种子的重复格点，构建期已拒绝，
+    // 这里锁定基线默认值不入 cell 列表的回归线）
+    expect(keys).not.toContain('envExponent=1');
+    expect(keys).not.toContain('referenceSmoothing=0.2');
+    expect(keys).not.toContain('bufferDays=30');
+    expect(keys).not.toContain('belowNeedLimit=14');
+    expect(keys).not.toContain('needThreshold=0.5');
+    expect(keys).not.toContain('needMultiplier×1');
   });
 
   it('cell 不得借 overrides 改写预注册人口与调度', () => {
