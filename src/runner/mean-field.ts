@@ -45,10 +45,7 @@ export function equilibriumE(
   });
 }
 
-/**
- * 拥挤负反馈的符号检验：对每个初始占比为正的阶级，
- * 若仿真占比高于初始占比，则拥挤乘子应 <1（E 低于无拥挤基准）。
- */
+/** 单阶级的拥挤符号检验结果（字段语义见 `checkCongestionSigns`）。 */
 export interface CongestionSignCheck {
   readonly classIndex: number;
   readonly p0: number;
@@ -57,23 +54,35 @@ export interface CongestionSignCheck {
   readonly signMatches: boolean;
   /** 初始占比为 0 的阶级不参与检验（v3 无入口激励）。 */
   readonly applicable: boolean;
+  /** `P[c]` 低于空阶级地板，比较被 `Math.max(P, floor)` 吸收（Congestion 恒为 1）。 */
+  readonly floorBound: boolean;
+  /** 结果被 `[congestionMin, congestionMax]` 截断，观测值不再反映 P 的变化。 */
+  readonly clampBound: boolean;
 }
 
+/**
+ * 拥挤负反馈的符号检验：对每个初始占比为正的阶级，
+ * 若仿真占比高于初始占比，则拥挤乘子应 <1（E 低于无拥挤基准）。
+ *
+ * 被地板或截断吸收的格点标记为 `applicable=false`：此时 `Congestion` 由钳位而非
+ * `P0/P` 决定，代入符号检验只会制造伪不匹配（例：小阶级 `P` 跌破
+ * `emptyClassPopulationFloor=0.02` 时 `Congestion≡1`，看似"该降没降"）。
+ */
 export function checkCongestionSigns(
   config: RunConfig,
   classSharesObserved: readonly number[],
 ): CongestionSignCheck[] {
+  const floor = config.dynamics.emptyClassPopulationFloor;
   return config.population.classShares.map((p0, c) => {
     const p = classSharesObserved[c] ?? 0;
-    const congestion = clamp(
-      (p0 / Math.max(p, config.dynamics.emptyClassPopulationFloor)) **
-        config.dynamics.congestionExponent,
-      config.dynamics.congestionMin,
-      config.dynamics.congestionMax,
-    );
-    const applicable = p0 > 0 && Math.abs(p - p0) > 1e-9;
+    const denominator = Math.max(p, floor);
+    const raw = (p0 / denominator) ** config.dynamics.congestionExponent;
+    const congestion = clamp(raw, config.dynamics.congestionMin, config.dynamics.congestionMax);
+    const floorBound = p < floor;
+    const clampBound = congestion !== raw;
+    const applicable = p0 > 0 && Math.abs(p - p0) > 1e-9 && !floorBound && !clampBound;
     const signMatches = !applicable ? true : p > p0 ? congestion < 1 : congestion > 1;
-    return { classIndex: c, p0, p, congestion, signMatches, applicable };
+    return { classIndex: c, p0, p, congestion, signMatches, applicable, floorBound, clampBound };
   });
 }
 
@@ -92,7 +101,15 @@ export function topClassMargin(
   const top = config.population.classCount - 1;
   const psi = config.need.needMultiplier[top] ?? 1;
   let envMultiplier = 1;
-  if (eByClass !== undefined && config.need.envExponent !== 0) {
+  if (config.need.envExponent !== 0) {
+    // 「不含环境乘子」必须由 envExponent=0 表达。若允许 eByClass 缺省时静默取 1，
+    // 就等于让 envExponent≠0 的配置悄悄退回 v3 语义——changes/0004 的 4.5× 高估
+    // 正是这样产生的（调用方忘了传观测 E，函数不报错）。
+    if (eByClass === undefined) {
+      throw new Error(
+        'envExponent≠0 时必须提供观测到的 E[c]；不含环境乘子的对照请显式使用 envExponent=0',
+      );
+    }
     const own = eByClass[top];
     const bottom = eByClass[0];
     if (own === undefined || bottom === undefined || !(bottom > 0)) {

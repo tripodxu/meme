@@ -7,6 +7,7 @@ import {
   type DeepPartialConfig,
 } from '../core/config/defaults.js';
 import { computeConfigHash } from '../core/config/hash.js';
+import { diffConfigPaths } from '../core/config/diff.js';
 import { validateRunConfig } from '../core/config/validate.js';
 import {
   RULES_VERSION,
@@ -32,12 +33,52 @@ import type { WindowLabel } from './window-stats.js';
 export const PREREG_PROMPT_VERSION = 'prompt-none-v1' as const;
 export const PREREG_PROMPT_STYLE = 'neutral' as const;
 
+/**
+ * cell 的设计类型（07 §6.2 vs §6.3）：
+ * - `baseline`：零覆盖，作为对照基准；
+ * - `single`：恰好改变一个叶子参数，其效应可**单轴归因**（§6.2「每次只变一项」）；
+ * - `interaction`：同时改变 ≥2 个叶子参数，只回答「联合条件是否可达某结构」，
+ *   其效应**不得**归因到单个轴（§6.3 小型 factorial）。
+ *
+ * 该字段存在的唯一理由：预注册网格里同时含单轴格点与交互格点，
+ * 若不带标注，下游会把双变量 cell 当成单轴因果证据。标注后
+ * `changedPaths` 由代码从 base/cell 实际差异派生，二者数量必须自洽。
+ */
+export type PreregCellDesign = 'baseline' | 'single' | 'interaction';
+
 export interface PreregCell {
   readonly cellKey: string;
+  readonly design: PreregCellDesign;
+  /** `overrides` 实际生效的叶子点路径（相对 base），由代码派生并进预注册哈希。 */
+  readonly changedPaths: readonly string[];
   readonly hypothesis: string;
   readonly overrides: DeepPartialConfig;
   /** 合并后完整配置的 `configHash`（07 §3：cells[].fullConfigHash，进预注册哈希）。 */
   readonly fullConfigHash: string;
+}
+
+/** 设计类型与差异路径数量的自洽校验（07 §6.2/§6.3）。 */
+function assertCellDesign(
+  cellKey: string,
+  design: PreregCellDesign,
+  changedPaths: readonly string[],
+): void {
+  const expectedEmpty = design === 'baseline';
+  const expectedSingle = design === 'single';
+  if (expectedEmpty && changedPaths.length !== 0) {
+    throw new Error(`cell ${cellKey}: baseline 不得有任何覆盖，实际 ${changedPaths.length} 项`);
+  }
+  if (expectedSingle && changedPaths.length !== 1) {
+    throw new Error(
+      `cell ${cellKey}: single 设计必须恰好改变 1 个参数，实际 ${changedPaths.length} 项 ` +
+        `(${changedPaths.join(', ')})；同时改变多项须标 design='interaction'`,
+    );
+  }
+  if (design === 'interaction' && changedPaths.length < 2) {
+    throw new Error(
+      `cell ${cellKey}: interaction 设计必须改变 >=2 个参数，实际 ${changedPaths.length} 项`,
+    );
+  }
 }
 
 export interface PreregManifest {
@@ -130,151 +171,199 @@ export function buildPreregCells(
   populationSize: number,
   totalTicks: number,
 ): readonly PreregCell[] {
-  const definitions: Omit<PreregCell, 'fullConfigHash'>[] = [
-    { cellKey: 'baseline', hypothesis: '默认参数下的基准结构', overrides: {} },
+  const definitions: Omit<PreregCell, 'fullConfigHash' | 'changedPaths'>[] = [
+    {
+      cellKey: 'baseline',
+      design: 'baseline',
+      hypothesis: '默认参数下的基准结构',
+      overrides: {},
+    },
     {
       cellKey: 'needMultiplier=flat',
+      design: 'single',
       hypothesis: '扁平持有成本削弱阶级分离',
       overrides: { need: { needMultiplier: [1, 1.5, 1.5, 1.5, 1.5] } },
     },
     {
       cellKey: 'needMultiplier=steeper',
+      design: 'single',
       hypothesis: '更陡持有成本强化分层',
       overrides: { need: { needMultiplier: [1, 1.4, 2.1, 3.0, 4.2] } },
     },
     {
       cellKey: 'needThreshold=0.3',
+      design: 'single',
       hypothesis: '宽松需求线减少被动跌落',
       overrides: { need: { threshold: 0.3 } },
     },
     {
       cellKey: 'needThreshold=0.9',
+      design: 'single',
       hypothesis: '严格需求线加剧跌落',
       overrides: { need: { threshold: 0.9 } },
     },
     {
       cellKey: 'env0=compressed',
+      design: 'single',
       hypothesis: '压缩阶级机会差削弱分层',
       overrides: { opportunity: { env0: [1, 1.2, 1.5, 1.9, 2.4] } },
     },
     {
       cellKey: 'env0=expanded',
+      design: 'single',
       hypothesis: '扩大阶级机会差强化分层',
       overrides: { opportunity: { env0: [1, 2, 3.5, 5, 7] } },
     },
     {
       cellKey: 'ablation:beta=0',
+      design: 'single',
       hypothesis: '无网络机会（消融 β=0）',
       overrides: { networkOpportunity: { beta: 0 } },
     },
     {
       cellKey: 'ablation:O=fixed',
+      design: 'single',
       hypothesis: '无制度反馈（O 固定，P1-10 开关）',
       overrides: { openness: { updateMode: 'fixed' } },
     },
     {
       cellKey: 'ablation:eta=0',
+      design: 'single',
       hypothesis: '无阶级拥挤（消融 η=0）',
       overrides: { dynamics: { congestionExponent: 0 } },
     },
     {
       cellKey: 'ablation:kappa=0',
+      design: 'single',
       hypothesis: '无贫富分化反馈（消融 κ=0）',
       overrides: { dynamics: { polarizationExponent: 0 } },
     },
     {
       cellKey: 'ablation:psi=1',
+      design: 'single',
       hypothesis: '无阶级持有成本（消融 ψ=1，预期顶层塌缩）',
       overrides: { need: { needMultiplier: [1, 1, 1, 1, 1] } },
     },
     {
       cellKey: 'initialShares=bottom-heavy',
+      design: 'single',
       hypothesis: '底层更重的初始分布',
       overrides: { population: { classShares: [0.6, 0.25, 0.1, 0.04, 0.01] } },
     },
     {
       cellKey: 'initialShares=middle-heavy',
+      design: 'single',
       hypothesis: '中层更重的初始分布',
       overrides: { population: { classShares: [0.2, 0.3, 0.3, 0.15, 0.05] } },
     },
     {
       cellKey: 'lambdaO=0',
+      design: 'single',
       hypothesis: '开放度不影响跨越成本',
       overrides: { openness: { ascentCostWeight: 0 } },
     },
     {
       cellKey: 'rewireProb=0.2',
+      design: 'single',
       hypothesis: '更高网络流动',
       overrides: { network: { rewireProb: 0.2 } },
     },
     // v4 新增：φ 扫描与 θM 对照（changes/0004 的效果分离归因）
     {
       cellKey: 'v4:envExponent=0',
+      design: 'single',
       hypothesis: 'φ=0 退回 v3 语义（消融对照，预期仍为顶层旋转门）',
       overrides: { need: { envExponent: 0 } },
     },
     {
       cellKey: 'v4:envExponent=0.5',
+      design: 'single',
       hypothesis: '弱环境持有成本',
       overrides: { need: { envExponent: 0.5 } },
     },
     {
       cellKey: 'v4:envExponent=1.5',
+      design: 'single',
       hypothesis: '强环境持有成本',
       overrides: { need: { envExponent: 1.5 } },
     },
     {
       cellKey: 'v4:thetaM=8',
+      design: 'single',
       hypothesis: 'v3 值 θM=8 对照（预期 O 钉在高位）',
       overrides: { openness: { mobilityWeight: 8 } },
     },
     // v4 第二轮：中位生产力平衡轴（rule.md 45 双路径的机制旋钮）
     {
       cellKey: 'v4:geMedian=0.8',
+      design: 'single',
       hypothesis: '中位生产力轻度低于持有标准（G 上升、O 下降）',
       overrides: { attributes: { ge: { median: 0.8 } } },
     },
     {
       cellKey: 'v4:geMedian=0.7',
+      design: 'single',
       hypothesis: '中位生产力进一步下降（中间层重心、高 G）',
       overrides: { attributes: { ge: { median: 0.7 } } },
     },
     {
       cellKey: 'v4:geMedian=0.6',
+      design: 'single',
       hypothesis: '强生产力约束（橄榄型倾向、O 低位）',
       overrides: { attributes: { ge: { median: 0.6 } } },
     },
     {
       cellKey: 'v4:envExponent=2',
+      design: 'single',
       hypothesis: '极强环境持有成本（顶部快速流失）',
       overrides: { need: { envExponent: 2 } },
     },
     // v5 新增：持有裕度轴（changes/0005，D-05 方向 B）
     {
       cellKey: 'v5:cushionDays=0',
+      design: 'single',
       hypothesis: 'ρ=0 退回 v4 语义（消融对照）',
       overrides: { ascent: { holdingCushionDays: 0 } },
     },
     {
       cellKey: 'v5:cushionDays=90',
+      design: 'single',
       hypothesis: '强裕度封锁顶部（预期 c3 重心或封闭结构）',
       overrides: { ascent: { holdingCushionDays: 90 } },
     },
     {
       cellKey: 'v5:cushionDays=90+phi=0',
-      hypothesis: '强裕度×v3 需求（预期富人俱乐部顶层）',
+      design: 'interaction',
+      hypothesis: '强裕度×v3 需求（预期富人俱乐部顶层）；双变量联合条件，不得单轴归因',
       overrides: { ascent: { holdingCushionDays: 90 }, need: { envExponent: 0 } },
     },
     {
-      cellKey: 'v5:geMedian=0.7+cushion30',
-      hypothesis: '裕度×生产力双约束（预期封闭分层可达）',
-      overrides: { ascent: { holdingCushionDays: 30 }, attributes: { ge: { median: 0.7 } } },
+      cellKey: 'v5:cushionDays=90+geMedian=0.7',
+      design: 'interaction',
+      hypothesis: '裕度×生产力双约束（预期封闭分层可达）；双变量联合条件，不得单轴归因',
+      overrides: { ascent: { holdingCushionDays: 90 }, attributes: { ge: { median: 0.7 } } },
     },
   ];
-  return definitions.map((definition) => ({
-    ...definition,
-    fullConfigHash: computeConfigHash(buildCellConfig(definition, populationSize, totalTicks)),
-  }));
+  const base = buildBaseConfig(populationSize, totalTicks);
+  const cells = definitions.map((definition) => {
+    const config = buildCellConfig(definition, populationSize, totalTicks);
+    const changedPaths = diffConfigPaths(base, config);
+    assertCellDesign(definition.cellKey, definition.design, changedPaths);
+    return { ...definition, changedPaths, fullConfigHash: computeConfigHash(config) };
+  });
+  // 07 §3：同一网格内不应存在配置完全相同的两个 cell——那只是白耗预算的重复格点。
+  const seen = new Map<string, string>();
+  for (const cell of cells) {
+    const duplicate = seen.get(cell.fullConfigHash);
+    if (duplicate !== undefined) {
+      throw new Error(
+        `cell ${cell.cellKey} 与 ${duplicate} 的完整配置相同（fullConfigHash=${cell.fullConfigHash}），` +
+          '重复格点无信息量，须改参数或删除',
+      );
+    }
+    seen.set(cell.fullConfigHash, cell.cellKey);
+  }
+  return cells;
 }
 
 /** base config：默认配置 + 预注册人口与调度（不含任何 cell overrides）。 */
@@ -311,13 +400,14 @@ export function buildCellConfig(
 }
 
 /**
- * `preregistrationHash`（02 §8 / 07 §3 权威口径）：覆盖假设、主指标、版本轴、
- * base config、artifact profile、每个 cell 的完整配置哈希、种子、窗口、
- * 标签阈值、聚类协议、预算与排除规则；排除运行后字段
- *（experimentId/createdAt/observedResponseModels/runtimeVersions/结果/失败次数）。
+ * 预注册哈希的**预像**（07 §3 权威字段清单）。
+ *
+ * 单独暴露的理由：`hashValue` 不校验字段，漏一个字段不会报错，只会让
+ * 「设计变了 hash 不变」这一类缺陷静默存在（changes/0006 曾漏 6 个字段）。
+ * 预像可被测试直接枚举与比较，使字段清单成为可断言契约而非注释。
  */
-export function computePreregistrationHash(manifest: PreregManifest): string {
-  return hashValue(HASH_DOMAINS.preregistration, {
+export function buildPreregHashInput(manifest: PreregManifest) {
+  return {
     schemaVersion: manifest.schemaVersion,
     hypothesis: manifest.hypothesis,
     primaryMetric: manifest.primaryMetric,
@@ -334,6 +424,8 @@ export function computePreregistrationHash(manifest: PreregManifest): string {
     totalTicks: manifest.totalTicks,
     cells: manifest.cells.map((cell) => ({
       cellKey: cell.cellKey,
+      design: cell.design,
+      changedPaths: cell.changedPaths,
       overrides: cell.overrides,
       fullConfigHash: cell.fullConfigHash,
     })),
@@ -348,7 +440,17 @@ export function computePreregistrationHash(manifest: PreregManifest): string {
     differenceThresholds: manifest.differenceThresholds,
     budgets: manifest.budgets,
     exclusionRules: manifest.exclusionRules,
-  });
+  } as const;
+}
+
+/**
+ * `preregistrationHash`（02 §8 / 07 §3 权威口径）：覆盖假设、主指标、版本轴、
+ * base config、artifact profile、每个 cell 的完整配置哈希、种子、窗口、
+ * 标签阈值、聚类协议、预算与排除规则；排除运行后字段
+ *（experimentId/createdAt/observedResponseModels/runtimeVersions/结果/失败次数）。
+ */
+export function computePreregistrationHash(manifest: PreregManifest): string {
+  return hashValue(HASH_DOMAINS.preregistration, buildPreregHashInput(manifest));
 }
 
 /** P1.5 预注册 manifest（Stage A：40 人 × 3650 tick；冻结后再运行）。 */

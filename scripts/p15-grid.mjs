@@ -108,8 +108,22 @@ for (const cell of manifest.cells) {
     });
   }
   log(`cell=${cell.cellKey} done (${seedResults.length} seeds)`);
-  cellResults.push({ cellKey: cell.cellKey, hypothesis: cell.hypothesis, seeds: seedResults });
+  cellResults.push({
+    cellKey: cell.cellKey,
+    design: cell.design,
+    changedPaths: cell.changedPaths,
+    hypothesis: cell.hypothesis,
+    seeds: seedResults,
+  });
 }
+
+// 设计类型分布（07 §6.2/§6.3）：单轴 cell 的效应可归因到单个参数，
+// 交互 cell 只回答「联合条件是否可达」，产物必须自带该区分，避免下游误用。
+const cellsByDesign = { baseline: 0, single: 0, interaction: 0 };
+for (const cell of cellResults) {
+  cellsByDesign[cell.design] += 1;
+}
+log(`cellsByDesign=${JSON.stringify(cellsByDesign)}`);
 
 // 聚类（仅 full 阶段）：预注册全部特征窗口（w2b + w3）的特征点 → z-score(pooled) →
 // Ward k∈[2,5]。同一 run 的 w2b/w3 都在同一空间聚类，直接比较簇号得到
@@ -220,14 +234,19 @@ if (stage === 'full') {
       .map((cell) => {
         const probe = pickWindow(cell.cellKey);
         if (probe === null) {
-          return { cellKey: cell.cellKey, met: null, detail: '无可用 w2b，无法比较' };
+          return {
+            cellKey: cell.cellKey,
+            design: cell.design,
+            met: null,
+            detail: '无可用 w2b，无法比较',
+          };
         }
         const { met, detail } = meetsInitialDifference(
           probe,
           baselineWindow,
           manifest.differenceThresholds,
         );
-        return { cellKey: cell.cellKey, met, detail };
+        return { cellKey: cell.cellKey, design: cell.design, met, detail };
       });
   }
 }
@@ -248,6 +267,7 @@ const output = {
     warmupTicks: manifest.warmupTicks,
   },
   clustering,
+  cellsByDesign,
   cellDistinctness,
   cells: cellResults,
 };
