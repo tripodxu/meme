@@ -20,11 +20,11 @@
 
 ## 2. 当前登记
 
-| 路径                        | 大小     | sha256（文件级）     | 关键指标                                                                                                         | 状态     |
-| --------------------------- | -------- | -------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
-| `out/p15-full.json`         | 2.70 MiB | `04512d7d…bea2c65b9` | runCount=840、prereg=`sha256:2c4843b4…`、k=2、silhouette 0.403、ARI 0.868、3650 tick、40 人                      | 待重跑   |
-| `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                                                   | 历史存档 |
-| `out/p15-screen.json`       | 95.1 KiB | `9b5723d4…21214fe`   | 28 run × 400 tick；`cellsByDesign={baseline:1,single:25,interaction:2}`；w2b/w3 均 `available=false`；budgets.ok | 预检通过 |
+| 路径                        | 大小     | sha256（文件级）     | 关键指标                                                                                                                                                                               | 状态                  |
+| --------------------------- | -------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| `out/p15-full.json`         | 3.88 MiB | `dc6e85f9…eac1685`   | runCount=840、prereg=`sha256:4dc141e4…`、k=4、silhouette 0.370、ARI min 0.366 / mean 0.579 / max 0.702（门槛 0.70 → **未过**）、temporalConsistency 0.893、w2b/w3 全 840 可用、107 min | 有效证据（G1.5 未过） |
+| `out/p15-full-v4draft.json` | 1.08 MiB | `7091777f…8cf12697a` | rules-v4 初稿（E 期锚定，已由 `0282170` 勘误）                                                                                                                                         | 历史存档              |
+| `out/p15-screen.json`       | 95.1 KiB | `9b5723d4…21214fe`   | 28 run × 400 tick；`cellsByDesign={baseline:1,single:25,interaction:2}`；w2b/w3 均 `available=false`；budgets.ok                                                                       | 预检通过              |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
@@ -35,7 +35,8 @@ node -e "const d=require('./out/p15-screen.json');const{computePreregistrationHa
 完整 sha256：
 
 ```text
-04512d7dd41a4c7f6b419b481a975542c32a90d6b3e2a8329d4dac8bea2c65b9  out/p15-full.json
+dc6e85f9b7deadf40515d5f37ab3f4c6a1fb7640a133f9a381470c2baeac1685  out/p15-full.json
+04512d7dd41a4c7f6b419b481a975542c32a90d6b3e2a8329d4dac8bea2c65b9  out/p15-full.json（prereg=2c4843b4…，已替换）
 7091777fb18825b81d2c55f75a334d59205f512a7100b66829a4f468cf12697a  out/p15-full-v4draft.json
 78d1cd10c19764de030e12ec65180d0f6883ffe2013f523e7a7fd8ac89811477  out/p15-screen.json（2026-11-03 修复前，已替换）
 4a7fbbb26a62b26a1b2979291b8adc4382e954634cd50ef7ba4fa071aeb4d8f1  out/p15-screen.json（schema v1，已替换）
@@ -58,9 +59,15 @@ node scripts/p15-grid.mjs --stage full     # 正式：按预注册 manifest 跑�
 
 ## 4. 已知缺口
 
-`out/p15-full.json` 中 `w2b` 与 `temporalConsistency` 共 840 处取值均为 `null`：该产物由修复前代码（`ANALYSIS_WINDOWS` 尚不含 w2b）生成，对应 `preregistrationHash=sha256:2c4843b4…`。
+**已关闭（2026-11-03）**：`out/p15-full.json` 曾长期是修复前代码的产物（w2b 与
+`temporalConsistency` 共 840 处为 `null`，`preregistrationHash=sha256:2c4843b4…`）。
+现已按 `sha256:4dc141e4…` 重跑：w2b/w3 各 840/840 `available`，
+`temporalConsistency=0.893`，`extinct=0`。判读与遗留问题见
+[P1.5 报告 §10](../research/2026-11-03-p15-report.md)。
 
-w2b 窗口的代码修复已随 `9a714f8` 落地，但**产物尚未重跑**。在按 §3 重跑并更新本表 sha256 之前，该文件不得用于 G1.5 判定（依据：`07-experiment-calibration.md` §8.1、`reviews/2026-11-03-zcodes-nightly-audit.md` §5）。
+**当前缺口**：聚类稳定性的「3 次重聚类取 max / mean / min」未在预注册中冻结，
+实现取 min（最保守，0.366 < 0.70 → 未通过）。这是口径缺口而非产物缺陷；
+在下一次预注册显式冻结前，不得选择性引用 0.702。
 
 ### 4.1 预检重跑结果（2026-11-03）
 

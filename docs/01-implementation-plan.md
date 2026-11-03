@@ -79,6 +79,8 @@ docs/              本施工文档与 adr/
 
 **P1.5 rules-v5 落地与轮 2（2026-11-03）**：按 D-05 方向 B 落地 changes/0005（`ascent.holdingCushionDays` 默认 30，ρ=0 退回 v4；`e531bab`），并登记 v5 预注册网格（`1a0eddf`，ρ∈{0,30,90}×φ）。轮 2 将 `warmupTicks` 延长至 1825、诊断改为吸引子稳定性、新增 w2b 窗口（`921c006`）。**但截至本记录 G1.5 仍未通过，且轮 2 证据不成立**：`921c006` 提交的 `out/p15-full.json` 是旧产物（`preregistrationHash=sha256:9d9de682…`、k=3、ARI 0.417），新产物（`sha256:2c4843b4…`、k=2、ARI 0.868）直到 `3a8c1ae` 才入库；`ANALYSIS_WINDOWS` 未含 w2b，`temporalConsistency` 恒为 null；两簇均含 topHeavy，c1 仅来自 5 个 cell（baseline 0/30）。详见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`。修复后必须用真实 w2b 数据重新预注册并重跑，方可用于 G1.5 判定。
 
+**P1.5 轮 2 重跑（2026-11-03，changes/0006 + 0007 修复后首次有效证据）**：`preregistrationHash=sha256:4dc141e4…`，`out/p15-full.json` 4.07MB / `sha256:dc6e85f9…`，840 run × 3650 tick × 107 分钟；840/840 存活、w2b 与 w3 **各 840/840 available**（首份 w2b 有真实数值的产物）、`temporalConsistency=0.893`（门槛 0.80）、预算全达标、离线复算一致。**G1.5 判定：仍未通过**——k=4（轮廓 0.370），半样本重聚类 ARI 三次为 0.702 / 0.579 / **0.366**，按 07 §8.1 以最小值为准（0.366 < 0.70），即「未形成可复现结构」。描述性进展：四簇与参数存在可辨识对应（`envExponent=0`/`cushionDays=90+phi=0` 100% 落 c2「封闭分层」；`cushionDays=90`/`envExponent=2` 主要落 c3「顶部抽空」），但 67% 特征点集中在 c0。27 个非 baseline cell 中 24 个达到区分度门槛。详见 `docs/research/2026-11-03-p15-report.md` §10。遗留口径缺口：稳定性取 max/mean/min 未冻结（当前取 min）、`clustering.algorithm` 未记录实现标识、朴素 Ward 在 1680 点上占 107 分钟中的约 77 分钟。**P2–P6 继续依闸门搁置。**
+
 ## 5. P2：Jev 决策层
 
 | ID    | 工作                                      | 依赖        | 交付与验收                                                   |
