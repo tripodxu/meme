@@ -74,7 +74,17 @@ export function attemptRewire(
   }
   const weights = candidates.map((candidate) => rewireWeight(config, agent, candidate, openness));
   const index = weightedSampleIndex(weights, r2);
-  // 候选权重全部为正且候选非空，weightedSampleIndex 必然命中。
+  if (index < 0) {
+    // `rewireWeight` 的 exp(-H×|Δclass|×...) 在 classWeight 较大时可整体下溢为 0，
+    // 此时 weightedSampleIndex 返回 -1。必须恢复旧边并按「无候选」处理：
+    // 否则 `candidates[-1].id` 抛 TypeError，且旧边已被从双方移除、状态被破坏。
+    agent.ties.push(oldNeighbor);
+    other.ties.push(agent.id);
+    sortTies(agent);
+    sortTies(other);
+    emitRewire(events, agent.id, oldNeighbor, null, true);
+    return { removedNeighbor: oldNeighbor, addedNeighbor: null, restored: true };
+  }
   const chosen = candidates[index] as AgentState;
   agent.ties.push(chosen.id);
   chosen.ties.push(agent.id);

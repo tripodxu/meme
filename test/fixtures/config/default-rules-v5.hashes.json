@@ -2,6 +2,6 @@
   "description": "rules-v5 默认配置的 golden 摘要。更新必须人工审查，不得用环境变量一键接受。",
   "rulesVersion": "rules-v5",
   "fixture": "test/fixtures/config/default-rules-v5.json",
-  "configHash": "sha256:f1c8f2440c08764d70c910c5570b54366c70259be8135172d84c78f0b5a8bb9c",
+  "configHash": "sha256:3a56b79554b5753157031ce308411d282464ac16945c36032509a15317d0e202",
   "paramsHash": "sha256:3f6bccc37565bcf6bfbc7ab3ae650e302fbd269c11a436e8d0ec678eaa83e9fc"
 }

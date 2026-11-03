@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_RUN_CONFIG } from '../../../src/core/config/defaults.js';
 import { isValidRunConfig, validateRunConfig } from '../../../src/core/config/validate.js';
 import { errorCodes } from '../../../src/core/control/errors.js';
+import { CONFIG_SCHEMA_VERSION } from '../../../src/core/control/versions.js';
 import { PARAM_DEFINITIONS } from '../../../src/core/params.js';
 import type { ParamDomain } from '../../../src/core/params.js';
 
@@ -92,6 +93,27 @@ describe('validateRunConfig', () => {
     const config = cloneConfig();
     config['population']['initialAgeMode'] = 'oldest';
     expect(codesOf(config)).toContain(errorCodes.CONFIG_INVALID);
+  });
+
+  it('migrates a v1 config by filling openness.updateMode=dynamic (P1-10)', () => {
+    const v1 = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
+    v1['schemaVersion'] = 'stratify-config-v1';
+    const openness = v1['openness'] as Record<string, unknown>;
+    delete openness['updateMode'];
+    const result = validateRunConfig(v1);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+    expect(result.config.openness.updateMode).toBe('dynamic');
+  });
+
+  it('rejects an unknown config schema version', () => {
+    const bogus = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
+    bogus['schemaVersion'] = 'stratify-config-v99';
+    const result = validateRunConfig(bogus);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.issues.some((issue) => issue.path === '$.schemaVersion')).toBe(true);
   });
 
   it('enforces the openness.updateMode enum (P1-10)', () => {

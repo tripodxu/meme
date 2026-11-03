@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_RUN_CONFIG } from '../../src/core/config/defaults.js';
 import { computeParamsHash } from '../../src/core/config/hash.js';
 import { asSeed } from '../../src/core/control/ids.js';
-import { RULES_VERSION } from '../../src/core/control/versions.js';
+import { ENGINE_VERSION, RULES_VERSION } from '../../src/core/control/versions.js';
 import { createSimulation } from '../../src/core/init/simulation.js';
 import { enumerateLegalActions } from '../../src/core/legal-actions.js';
 import { step } from '../../src/core/engine/engine.js';
@@ -25,6 +25,8 @@ import type { AgentId } from '../../src/core/control/ids.js';
 interface GoldenFixture {
   readonly description: string;
   readonly rulesVersion: string;
+  /** 结算实现修订轴：与 rulesVersion 分离，用于区分「规则相同但实现不同」的产物。 */
+  readonly engineVersion: string;
   readonly paramsHash: string;
   readonly seed: string;
   readonly checkpoints: readonly {
@@ -137,7 +139,7 @@ function mortality3650(mode: 'uniform' | 'newborn'): number {
   return deathsAtEnd / state.society.agents.length;
 }
 
-describe('golden: 40 人默认 mock 运行（rules-v4）', () => {
+describe('golden: 40 人默认 mock 运行（rules-v5）', () => {
   const fixture = loadFixture();
 
   if (fixture === null || UPDATE) {
@@ -147,6 +149,7 @@ describe('golden: 40 人默认 mock 运行（rules-v4）', () => {
         description:
           '40 人默认 mock 运行（seed=golden-mock-seed）；更新必须人工审查差异并说明原因。',
         rulesVersion: RULES_VERSION,
+        engineVersion: ENGINE_VERSION,
         paramsHash: computeParamsHash(DEFAULT_RUN_CONFIG),
         seed: 'golden-mock-seed',
         checkpoints,
@@ -165,8 +168,10 @@ describe('golden: 40 人默认 mock 运行（rules-v4）', () => {
     return;
   }
 
-  it('rulesVersion 与 paramsHash 与当前代码一致', () => {
+  it('rulesVersion / engineVersion / paramsHash 与当前代码一致', () => {
     expect(fixture.rulesVersion).toBe(RULES_VERSION);
+    // engineVersion 必须进 golden：否则「规则相同、实现修订」的产物无法区分。
+    expect(fixture.engineVersion).toBe(ENGINE_VERSION);
     expect(fixture.paramsHash).toBe(computeParamsHash(DEFAULT_RUN_CONFIG));
   });
 

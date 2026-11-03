@@ -404,7 +404,8 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     name: 'competition.crossClassInitiatorMultiplier',
     unit: 'dimensionless',
     formulaRef: '03 §6 阶段 B / rule.md 16',
-    domain: { kind: 'number', min: 0, max: 1.25 },
+    // 该乘子进入 log 域（log-odds），0 会产出 -Infinity/NaN，故排除端点。
+    domain: { kind: 'number', min: 1e-6, max: 1.25 },
     guardOnly: false,
     affectsBehavior: true,
     wireTest: '跨层发起时 powerA 按该乘子改变。',
@@ -413,7 +414,8 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     name: 'competition.crossClassTargetMultiplier',
     unit: 'dimensionless',
     formulaRef: '03 §6 阶段 B / rule.md 17',
-    domain: { kind: 'number', min: 0, max: 1.25 },
+    // 同 crossClassInitiatorMultiplier：进入 log 域，端点 0 必须排除。
+    domain: { kind: 'number', min: 1e-6, max: 1.25 },
     guardOnly: false,
     affectsBehavior: true,
     wireTest: '跨层被竞争时 powerB 按该乘子改变。',

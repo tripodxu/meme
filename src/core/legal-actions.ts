@@ -1,6 +1,6 @@
 import type { RunConfig } from './config/types.js';
 import { errorCodes, StratifyError } from './control/errors.js';
-import type { AgentId } from './control/ids.js';
+import { AGENT_ID_PATTERN, type AgentId } from './control/ids.js';
 import { HASH_DOMAINS } from './hash/domains.js';
 import { hashValue } from './hash/hash.js';
 import { agentIndexFromId, type AgentState } from './model/agent.js';
@@ -100,7 +100,13 @@ export function computeAscendCushion(
     }
     envMultiplier = Math.pow(own / bottom, phi);
   }
-  return rho * config.opportunity.dailyBase * env * psi * envMultiplier;
+  const cushion = rho * config.opportunity.dailyBase * env * psi * envMultiplier;
+  if (!Number.isFinite(cushion)) {
+    // 裕度参与 `value >= cost + cushion` 判定；NaN 会让枚举与复核两侧
+    // 对「是否可上升」给出相反答案，必须立即停止而不是静默放行。
+    throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `持有裕度非有限: ${String(cushion)}`);
+  }
+  return cushion;
 }
 
 /** 主动降阶费用：`descendDays×B×E[t,current]`；最低层不合法。 */
@@ -207,11 +213,14 @@ export function parseActionKey(key: ActionKey): { type: ActionType; target: Agen
     return { type: key, target: null };
   }
   if (key.startsWith('compete:')) {
-    const target = key.slice('compete:'.length) as AgentId;
-    if (target.length === 0 || key !== `compete:${target}`) {
+    const target = key.slice('compete:'.length);
+    // 必须校验目标 id 的真实格式：`target` 由 key 切片而来，
+    // 旧写法 `key !== \`compete:${target}\`` 是恒真式，让 `compete: a-0001`
+    //（前导空格）和 `compete:../x` 之类非法键直接进入执行端。
+    if (!AGENT_ID_PATTERN.test(target)) {
       throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `非法竞争行动键: ${key}`);
     }
-    return { type: 'compete', target };
+    return { type: 'compete', target: target as AgentId };
   }
   throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `未知行动键: ${key}`);
 }

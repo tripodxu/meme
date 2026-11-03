@@ -1,12 +1,13 @@
 {
   "description": "40 人默认 mock 运行（seed=golden-mock-seed）；更新必须人工审查差异并说明原因。",
   "rulesVersion": "rules-v5",
+  "engineVersion": "engine-v0.3.0",
   "paramsHash": "sha256:3f6bccc37565bcf6bfbc7ab3ae650e302fbd269c11a436e8d0ec678eaa83e9fc",
   "seed": "golden-mock-seed",
   "checkpoints": [
     {
       "tick": 0,
-      "finalStateHash": "sha256:7a3b84e9efeadaba45d8579fcaa12126bf4d918bb59e12e66f062baae90691c3",
+      "finalStateHash": "sha256:b0a54cdaa32827ba5216b8d29809152ca3ed52c4d7af6c073d963ba3a4ebd716",
       "stats": {
         "tick": 0,
         "aliveCount": 40,
@@ -38,7 +39,7 @@
     },
     {
       "tick": 1,
-      "finalStateHash": "sha256:f09b2dca5608ddbc858a600a1d46555b985bab4dc4654f52817ffcd212837cbd",
+      "finalStateHash": "sha256:ebc0e563877c21b48b1ce11e40b0a7c40974c69379a36b878a7fd00a3100d42b",
       "stats": {
         "tick": 1,
         "aliveCount": 40,
@@ -73,7 +74,7 @@
     },
     {
       "tick": 10,
-      "finalStateHash": "sha256:5dd1f922c3da1030cc36f436dca0df1c95148678779476eac0d7670e86ddb3c4",
+      "finalStateHash": "sha256:d2166aff9c2945ccb43670d8d0e47e79a0d501224a5cc8ea4dbf62776d6bb602",
       "stats": {
         "tick": 10,
         "aliveCount": 40,
@@ -108,7 +109,7 @@
     },
     {
       "tick": 120,
-      "finalStateHash": "sha256:0abe93e5b989df22d6a407e3dc54d763dcb7193a4ca0948a843e556e29d5890f",
+      "finalStateHash": "sha256:6226f377318bb2b96d4124ef93e867b2f8ed455147bfccb07055b508ec4bdd6b",
       "stats": {
         "tick": 120,
         "aliveCount": 40,
@@ -143,7 +144,7 @@
     },
     {
       "tick": 400,
-      "finalStateHash": "sha256:7ad3cd017f40551d0e6dd702cf2ad2dda8e9dba7be5f352ba33f1ad34c554fb5",
+      "finalStateHash": "sha256:fc852f78ee6732c0fc5b0db42de8a96312cf76783c81d4fd1b02128440d10fb6",
       "stats": {
         "tick": 400,
         "aliveCount": 39,

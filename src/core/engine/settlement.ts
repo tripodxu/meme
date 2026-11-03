@@ -115,12 +115,21 @@ export function resolveCompetition(
   const logPowerInitiator = logPower(config, initiator);
   const logPowerTarget = logPower(config, target);
   // 跨层发起 ×initiatorMultiplier、被竞争 ×targetMultiplier；同层均 ×1（log 加法）。
+  // 乘子进入 log 域，必须严格为正：0 会让 Math.log 得到 -Infinity，
+  // 二者同时为 0 时 -Infinity-(-Infinity)=NaN，使 pInitiator 变成 NaN
+  //（`r < NaN` 恒 false ⇒ 发起方恒败），NaN 还会流入事件与指标。
+  const initiatorMultiplier = config.competition.crossClassInitiatorMultiplier;
+  const targetMultiplier = config.competition.crossClassTargetMultiplier;
+  if (crossClass && (!(initiatorMultiplier > 0) || !(targetMultiplier > 0))) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      `跨层竞争乘子必须为正: initiator=${String(initiatorMultiplier)}, target=${String(targetMultiplier)}`,
+    );
+  }
   const adjustedInitiator = crossClass
-    ? logPowerInitiator + Math.log(config.competition.crossClassInitiatorMultiplier)
+    ? logPowerInitiator + Math.log(initiatorMultiplier)
     : logPowerInitiator;
-  const adjustedTarget = crossClass
-    ? logPowerTarget + Math.log(config.competition.crossClassTargetMultiplier)
-    : logPowerTarget;
+  const adjustedTarget = crossClass ? logPowerTarget + Math.log(targetMultiplier) : logPowerTarget;
   const pInitiator = stableSigmoid(adjustedInitiator - adjustedTarget);
   const initiatorWins = r < pInitiator;
   const direction: 'same_class' | 'high_to_low' | 'low_to_high' = !crossClass

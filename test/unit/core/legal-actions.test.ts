@@ -189,6 +189,12 @@ describe('合法行动枚举（03 §5）', () => {
     expect(() => parseActionKey('compete:')).toThrowError(/非法竞争行动键/);
     expect(() => parseActionKey('competeX:a-0007')).toThrowError(/未知行动键/);
     expect(() => parseActionKey('attack:a-0007')).toThrowError(/未知行动键/);
+    // 目标必须匹配 AGENT_ID_PATTERN：旧校验 `key !== compete:${target}` 是恒真式，
+    // 会让下列非法键通过并进入执行端。
+    expect(() => parseActionKey('compete: a-0007')).toThrowError(/非法竞争行动键/);
+    expect(() => parseActionKey('compete:../x')).toThrowError(/非法竞争行动键/);
+    expect(() => parseActionKey('compete:A-0007')).toThrowError(/非法竞争行动键/);
+    expect(() => parseActionKey('compete:a-7')).toThrowError(/非法竞争行动键/);
   });
 
   it('descend 费用为 descendDays×B×E[t,current]', () => {

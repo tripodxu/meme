@@ -230,6 +230,36 @@ describe('主动行动与失效（03 §5/§6 阶段 B）', () => {
     expect(bAsTarget).toHaveLength(1);
   });
 
+  it('自竞争按 stale_invalid 处理，不产生净损失', () => {
+    const config = makeConfig({
+      schedule: { totalTicks: 11, statsStride: 1, snapshotStride: 100 },
+    });
+    const state = createSimulation(config, SEED);
+    const a = state.society.agents[0];
+    if (a === undefined) throw new Error('roster 过小');
+    a.value = 1000;
+    a.belowNeedStreak = 0;
+    const before = a.value;
+    const decisions = new Map<AgentId, { selectedAction: string }>([
+      [a.id, { selectedAction: `compete:${a.id}` as string }],
+    ]);
+    for (const other of state.society.agents) {
+      if (other.alive && !decisions.has(other.id)) {
+        decisions.set(other.id, { selectedAction: 'accumulate' });
+      }
+    }
+    const result = step(state, decisions, { runId: 'local-engine-test' });
+    const entry = result.executions.find((record) => record.agentId === a.id);
+    expect(entry?.status).toBe('stale_invalid');
+    expect(entry?.reason).toBe('self_target');
+    // 不得出现「先扣后加」造成的净损失：Value 只受当日积累影响，不出现竞争转移。
+    const competitionEvents = result.events.filter(
+      (event) => event.type === 'competition_resolved' && event.initiatorId === a.id,
+    );
+    expect(competitionEvents).toHaveLength(0);
+    expect(a.value).toBeGreaterThanOrEqual(before);
+  });
+
   it('Value=0 竞争转移为 0 且无负数', () => {
     const config = makeConfig({
       schedule: { totalTicks: 11, statsStride: 1, snapshotStride: 100 },

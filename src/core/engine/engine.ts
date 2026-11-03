@@ -449,7 +449,9 @@ function executeAction(input: ExecuteActionInput): void {
     const cost = computeAscendCost(config, agent, eByClass, openness);
     const cushion =
       cost === null ? 0 : computeAscendCushion(config, agent.classIndex + 1, eByClass);
-    if (cost === null || agent.value < cost + cushion) {
+    // 反向比较写 `!(value >= cost + cushion)`：NaN（如 E 缺失）时枚举侧拒绝、
+    // 复核侧也必须拒绝，不能因 `NaN < x` 为 false 而放行。
+    if (cost === null || !(agent.value >= cost + cushion)) {
       events.emit({
         type: 'action_invalid',
         agentId: agent.id,
@@ -492,7 +494,7 @@ function executeAction(input: ExecuteActionInput): void {
   }
   if (parsed.type === 'descend') {
     const cost = computeDescendCost(config, agent, eByClass);
-    if (cost === null || agent.value < cost) {
+    if (cost === null || !(agent.value >= cost)) {
       events.emit({
         type: 'action_invalid',
         agentId: agent.id,
@@ -536,6 +538,18 @@ function executeAction(input: ExecuteActionInput): void {
   const targetId = parsed.target;
   if (targetId === null) {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, '竞争行动缺少目标');
+  }
+  // 自竞争守卫：合法行动集永不包含自身，决策层（含外部 live 策略）传入
+  // `compete:<self>` 时按失效处理，不得先扣后加造成净损失。
+  if (targetId === agent.id) {
+    events.emit({
+      type: 'action_invalid',
+      agentId: agent.id,
+      action: decision.selectedAction,
+      reason: 'self_target',
+    });
+    record(null, 'stale_invalid', 'self_target');
+    return;
   }
   const target = agentMap.get(targetId);
   if (target === undefined) {

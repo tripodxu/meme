@@ -1,5 +1,9 @@
 import type { RunConfig, TruncatedLognormalSpec, TruncatedNormalSpec } from './types.js';
-import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../control/versions.js';
+import {
+  CONFIG_SCHEMA_VERSION,
+  CONFIG_SCHEMA_VERSION_V1,
+  RULES_VERSION,
+} from '../control/versions.js';
 import { errorCodes, type ErrorCode } from '../control/errors.js';
 import { getParamDefinition, readNumericConstant } from '../params.js';
 import type { ArrayDomain, ParamDefinition, ParamDomain } from '../params.js';
@@ -318,8 +322,35 @@ function checkRegisteredNumberArray(
 }
 
 /** 完整配置校验：缺字段、未知字段、NaN/Infinity、非法范围与未知版本均返回路径化错误。 */
-export function validateRunConfig(input: unknown): ValidationResult {
+/**
+ * schema 迁移（02 §10：读取器按版本分派）。
+ *
+ * v1 → v2：v2 起 `openness.updateMode` 为必填（P1-10 开放度消融开关）。
+ * v1 时期 O 恒为动态更新，故补 `dynamic` 保持原语义；其余字段不动。
+ * 未知版本原样返回，交由版本校验拒绝。
+ */
+function migrateConfigInput(input: unknown): unknown {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) {
+    return input;
+  }
+  const record = input as Record<string, unknown>;
+  if (record['schemaVersion'] !== CONFIG_SCHEMA_VERSION_V1) {
+    return input;
+  }
+  const rawOpenness = record['openness'];
+  const openness =
+    typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
+      ? { ...(rawOpenness as Record<string, unknown>) }
+      : {};
+  if (openness['updateMode'] === undefined) {
+    openness['updateMode'] = 'dynamic';
+  }
+  return { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, openness };
+}
+
+export function validateRunConfig(rawInput: unknown): ValidationResult {
   const collector = new Collector();
+  const input = migrateConfigInput(rawInput);
 
   if (
     !checkObject(collector, input, '$', [

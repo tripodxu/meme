@@ -61,6 +61,37 @@ describe('网络重构（03 §6 阶段 F / P1-05）', () => {
     void state;
   });
 
+  it('候选权重整体下溢为 0 时恢复旧边，不抛 TypeError', () => {
+    const base = createDemoConfig({
+      population: { initialPopulation: 6 },
+      network: { maxDegree: 5, initialDegree: 1, rewireProb: 1 },
+    });
+    // classWeight 超出建议域只为触发 exp 下溢：本用例验证兜底分支，不验证参数域。
+    const config = {
+      ...base,
+      network: { ...base.network, classWeight: 1e6 },
+    } as typeof base;
+    const state = createSimulation(config, SEED);
+    const agents = state.society.agents;
+    const self = agents[0];
+    const oldNeighbor = agents[1];
+    if (self === undefined || oldNeighbor === undefined) throw new Error('roster 过小');
+    for (const agent of agents) {
+      agent.ties.length = 0;
+      agent.classIndex = agent.id === self.id ? 0 : 4;
+    }
+    self.ties.push(oldNeighbor.id);
+    oldNeighbor.ties.push(self.id);
+    const agentMap = new Map(agents.map((agent) => [agent.id, agent]));
+    const events = new EventSequence('local-rewire-test', 0);
+    const outcome = attemptRewire(config, SEED, 0, self, agentMap, 0, events);
+    // exp(-1e6×1×4)=0 → weightedSampleIndex 返回 -1 → 必须按「无候选」恢复旧边
+    expect(outcome.restored).toBe(true);
+    expect(outcome.addedNeighbor).toBeNull();
+    expect(self.ties).toEqual([oldNeighbor.id]);
+    expect(oldNeighbor.ties).toContain(self.id);
+  });
+
   it('每 agent 每周期最多替换一条边', () => {
     const config = createDemoConfig({
       population: { initialPopulation: 10 },

@@ -180,6 +180,23 @@ describe('竞争能力与结算（03 §6 阶段 B）', () => {
     expect(reverseSame.pInitiator).toBeCloseTo(1 - sameClass.pInitiator, 12);
   });
 
+  it('跨层乘子为 0 时立即抛错，不产出 NaN 概率', () => {
+    // 注入超域配置：校验层已拒绝 0，此处验证运行期兜底（直接调用 resolveCompetition）。
+    const zeroMultiplier = {
+      ...DEFAULT_RUN_CONFIG,
+      competition: {
+        ...DEFAULT_RUN_CONFIG.competition,
+        crossClassInitiatorMultiplier: 0,
+        crossClassTargetMultiplier: 0,
+      },
+    } as typeof DEFAULT_RUN_CONFIG;
+    const low = makeAgent({ classIndex: 0, maxClassIndex: 0 });
+    const high = makeAgent({ id: agentIdFromIndex(1), classIndex: 1, maxClassIndex: 1 });
+    expect(() => resolveCompetition(zeroMultiplier, high, low, 0.5)).toThrowError(
+      /跨层竞争乘子必须为正/,
+    );
+  });
+
   it('非法输入抛不变量错误', () => {
     expect(() => logPower(DEFAULT_RUN_CONFIG, makeAgent({ ge: 0 }))).toThrowError(/power 输入非法/);
     expect(() => logPower(DEFAULT_RUN_CONFIG, makeAgent({ value: -1 }))).toThrowError(

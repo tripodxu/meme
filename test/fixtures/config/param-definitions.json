@@ -441,7 +441,7 @@
       "formulaRef": "03 §6 阶段 B / rule.md 16",
       "domain": {
         "kind": "number",
-        "min": 0,
+        "min": 1e-6,
         "max": 1.25
       },
       "guardOnly": false,
@@ -453,7 +453,7 @@
       "formulaRef": "03 §6 阶段 B / rule.md 17",
       "domain": {
         "kind": "number",
-        "min": 0,
+        "min": 1e-6,
         "max": 1.25
       },
       "guardOnly": false,

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "stratify-config-v1",
+  "schemaVersion": "stratify-config-v2",
   "rulesVersion": "rules-v5",
   "population": {
     "initialPopulation": 40,
