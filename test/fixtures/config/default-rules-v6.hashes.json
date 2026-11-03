@@ -1,0 +1,6 @@
+{
+  "rulesVersion": "rules-v6",
+  "fixture": "test/fixtures/config/default-rules-v6.json",
+  "configHash": "sha256:ee944167fed48d98ce21727ec41bf22755490ab42679b95725484113d800b9b2",
+  "paramsHash": "sha256:db8050304992d8083a0408e10daed5a8551b8e90e9e1ff577c848e3d19dbcd82"
+}

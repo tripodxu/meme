@@ -304,10 +304,46 @@
     {
       "name": "need.bufferDays",
       "unit": "days",
-      "formulaRef": "03 §6 阶段 C / rule.md 6",
+      "formulaRef": "03 §6 阶段 C / rule.md 6。语义随 need.referenceMode 分派：`own` 为缓冲爬坡长度（buffer(classAge) 在 bufferDays 日后达到 1）；`class` 为持有标尺天数（need = refIncome[c] × bufferDays × ψ_eff[c]）。同一参数，两种模式的公式引用不同，不新增 need.needDays 以避免两套语义并存（changes/0008）。",
       "domain": {
         "kind": "number",
         "min": 2,
+        "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "need.referenceMode",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 C / rule.md 37（rules-v6，D-06 选项 A′）",
+      "domain": {
+        "kind": "enum",
+        "values": ["own", "class"]
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "need.referenceSmoothing",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 C / rule.md 37（rules-v6：refIncome EMA 平滑系数 α）",
+      "domain": {
+        "kind": "number",
+        "exclusiveMin": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "need.graceDays",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 D / rule.md 7（rules-v6：判定计时宽限期）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 120,
         "integer": true
       },
       "guardOnly": false,
@@ -441,7 +477,7 @@
       "formulaRef": "03 §6 阶段 B / rule.md 16",
       "domain": {
         "kind": "number",
-        "min": 1e-6,
+        "min": 0.000001,
         "max": 1.25
       },
       "guardOnly": false,
@@ -453,7 +489,7 @@
       "formulaRef": "03 §6 阶段 B / rule.md 17",
       "domain": {
         "kind": "number",
-        "min": 1e-6,
+        "min": 0.000001,
         "max": 1.25
       },
       "guardOnly": false,

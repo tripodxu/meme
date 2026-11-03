@@ -22,11 +22,32 @@ export function classBuffer(classAge: number, bufferDays: number): number {
 }
 
 /**
- * 需求线（03 §6 阶段 C，rules-v4）：
- * `need = buffer(classAge)×baselineSum×ψ[class]×(env0[class]/env0[0])^φ`。
- * `φ=0` 时不做 pow，与 v3 公式逐位一致。
+ * 阶级环境持有人乘子 `ψ_env[c] = (env0[c]/env0[0])^φ`（rules-v4）。
+ * `φ=0` 时不做 pow，与 v3 语义逐位一致；锚定结构性 env0 比例，
+ * 对运行期 Congestion 均衡化免疫（changes/0004 勘误）。
  */
-export function computeNeed(
+function envHolderMultiplier(config: RunConfig, classIndex: number): number {
+  const phi = config.need.envExponent;
+  if (phi === 0) {
+    return 1;
+  }
+  const own = config.opportunity.env0[classIndex];
+  const bottom = config.opportunity.env0[0];
+  if (own === undefined || bottom === undefined || !(bottom > 0)) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      `env0 缺少阶级或 env0[0] 非正: ${String(own)}/${String(bottom)}`,
+    );
+  }
+  return Math.pow(own / bottom, phi);
+}
+
+/**
+ * `own` 模式需求线（v5 语义，`need.referenceMode='own'`，G-D 硬门禁）：
+ * `need = buffer(classAge)×baselineSum×ψ[class]×(env0[class]/env0[0])^φ`。
+ * 实现与 rules-v5 的 `computeNeed` 逐位一致（changes/0008）。
+ */
+export function computeNeedOwn(
   config: RunConfig,
   classAge: number,
   baselineSum: number,
@@ -41,16 +62,34 @@ export function computeNeed(
   if (phi === 0) {
     return base;
   }
-  // 乘子锚定结构性 env0 比例（对运行期 Congestion 均衡化免疫，changes/0004 勘误）。
-  const own = config.opportunity.env0[classIndex];
-  const bottom = config.opportunity.env0[0];
-  if (own === undefined || bottom === undefined || !(bottom > 0)) {
+  return base * envHolderMultiplier(config, classIndex);
+}
+
+/**
+ * `class` 模式需求线（rules-v6，D-06 选项 A′）：
+ * `need = refIncome[class] × bufferDays × ψ_eff[class]`，
+ * `ψ_eff = needMultiplier[c] × (env0[c]/env0[0])^φ`。
+ * 参照量为**上期**各阶级人均收入的 EMA（society.refIncome），
+ * 不乘 `buffer(classAge)`、不累加个体 `baselineSum`——持有标尺由个体计时器
+ * 改为阶级标准（`2026-11-03-p15-w0-w1-handoff.md` §3.1 唯一权威定义）。
+ */
+export function computeNeedClass(
+  config: RunConfig,
+  refIncomeC: number,
+  classIndex: number,
+): number {
+  const psi = config.need.needMultiplier[classIndex];
+  if (psi === undefined) {
+    throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `needMultiplier 缺少阶级 ${classIndex}`);
+  }
+  if (!Number.isFinite(refIncomeC) || refIncomeC <= 0) {
     throw new StratifyError(
       errorCodes.INVARIANT_VIOLATED,
-      `env0 缺少阶级或 env0[0] 非正: ${String(own)}/${String(bottom)}`,
+      `refIncome 非法: class=${classIndex} value=${String(refIncomeC)}`,
     );
   }
-  return base * Math.pow(own / bottom, phi);
+  const psiEff = psi * envHolderMultiplier(config, classIndex);
+  return refIncomeC * config.need.bufferDays * psiEff;
 }
 
 /** 数值稳定 sigmoid；用于 pA 与 Otarget。 */

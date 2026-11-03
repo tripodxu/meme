@@ -296,11 +296,50 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
   {
     name: 'need.bufferDays',
     unit: 'days',
-    formulaRef: '03 §6 阶段 C / rule.md 6',
+    formulaRef:
+      '03 §6 阶段 C / rule.md 6。语义随 need.referenceMode 分派：`own` 为缓冲爬坡长度' +
+      '（buffer(classAge) 在 bufferDays 日后达到 1）；`class` 为持有标尺天数' +
+      '（need = refIncome[c] × bufferDays × ψ_eff[c]）。同一参数，两种模式的公式引用不同，' +
+      '不新增 need.needDays 以避免两套语义并存（changes/0008）。',
     domain: { kind: 'number', min: 2, integer: true },
     guardOnly: false,
     affectsBehavior: true,
-    wireTest: 'bufferDays 改变后 buffer(classAge) 的爬坡斜率改变。',
+    wireTest:
+      '`own` 模式下 bufferDays 改变后 buffer(classAge) 的爬坡斜率改变；' +
+      '`class` 模式下 bufferDays 改变后持有标尺整体等比改变。',
+  },
+  {
+    name: 'need.referenceMode',
+    unit: 'dimensionless',
+    formulaRef: '03 §6 阶段 C / rule.md 37（rules-v6，D-06 选项 A′）',
+    domain: { kind: 'enum', values: ['own', 'class'] },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      '`own` 与 v5 golden 逐位一致（G-D 硬门禁）；切换为 `class` 后 need 与 ascendCost ' +
+      '的参照量改为 refIncome[c]/refIncome[c+1]，`need` 不再乘 buffer(classAge)。',
+  },
+  {
+    name: 'need.referenceSmoothing',
+    unit: 'dimensionless',
+    formulaRef: '03 §6 阶段 C / rule.md 37（rules-v6：refIncome EMA 平滑系数 α）',
+    domain: { kind: 'number', exclusiveMin: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      'α 改大后 refIncome 更快跟随当期 refGain（各阶级人均收入均值），need 的方差增大；' +
+      '`own` 模式不读取该参数（refIncome 状态保持初始值）。',
+  },
+  {
+    name: 'need.graceDays',
+    unit: 'days',
+    formulaRef: '03 §6 阶段 D / rule.md 7（rules-v6：判定计时宽限期）',
+    domain: { kind: 'number', min: 0, max: 120, integer: true },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      '`class` 模式下改大后升阶者 belowNeedStreak 起算推迟，mDown 下降；' +
+      '`own` 模式按 0 处理（不读配置、不走分支，与 v5 逐位一致）。',
   },
   {
     name: 'need.needMultiplier',

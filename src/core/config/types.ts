@@ -52,13 +52,31 @@ export interface EffortConfig {
   readonly shape: number;
 }
 
+/**
+ * 需求参照系（rules-v6，D-06 选项 A′）：
+ * - `own`：v5 语义——`need = buffer(classAge)×baselineSum×ψ_eff[c]`，个体计时器；
+ * - `class`：阶级标准——`need = refIncome[c]×bufferDays×ψ_eff[c]`，refIncome 为
+ *   上期各阶级人均收入的 EMA；`graceDays` 只控判定计时（belowNeedStreak 起算推迟）。
+ */
+export type NeedReferenceMode = 'own' | 'class';
+
 export interface NeedConfig {
   readonly threshold: number;
   readonly belowNeedLimit: number;
+  /**
+   * 语义随 `referenceMode` 分派：`own` 为缓冲爬坡长度；`class` 为持有标尺天数。
+   * 同一参数两种模式的公式引用不同，不新增 `need.needDays`（changes/0008）。
+   */
   readonly bufferDays: number;
   readonly needMultiplier: readonly number[];
   /** v4 环境持有人乘子指数 φ；0 退回 v3 语义（need 与自身阶级 E 无关）。 */
   readonly envExponent: number;
+  /** v6 需求参照系模式；`own` 与 v5 逐位一致（G-D 硬门禁）。 */
+  readonly referenceMode: NeedReferenceMode;
+  /** v6 refIncome 的 EMA 平滑系数 α；`own` 模式不读取。 */
+  readonly referenceSmoothing: number;
+  /** v6 判定计时宽限期（days）；仅 `class` 模式生效，`own` 按 0 处理。 */
+  readonly graceDays: number;
 }
 
 export interface DescentConfig {

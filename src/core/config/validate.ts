@@ -2,6 +2,7 @@ import type { RunConfig, TruncatedLognormalSpec, TruncatedNormalSpec } from './t
 import {
   CONFIG_SCHEMA_VERSION,
   CONFIG_SCHEMA_VERSION_V1,
+  CONFIG_SCHEMA_VERSION_V2,
   RULES_VERSION,
 } from '../control/versions.js';
 import { errorCodes, type ErrorCode } from '../control/errors.js';
@@ -326,26 +327,47 @@ function checkRegisteredNumberArray(
  * schema 迁移（02 §10：读取器按版本分派）。
  *
  * v1 → v2：v2 起 `openness.updateMode` 为必填（P1-10 开放度消融开关）。
- * v1 时期 O 恒为动态更新，故补 `dynamic` 保持原语义；其余字段不动。
- * 未知版本原样返回，交由版本校验拒绝。
+ * v1 时期 O 恒为动态更新，故补 `dynamic` 保持原语义。
+ * v2 → v3：v3 起 `need.referenceMode/referenceSmoothing/graceDays` 为必填
+ *（rules-v6 需求参照系，changes/0008）。迁移**不得默认开新机制**：
+ * 补 `referenceMode:'own'`（v2 时期 need 即 'own' 公式）、`graceDays:0`
+ *（与 v5 判定计时逐位一致）、`referenceSmoothing:0.2`（'own' 不读取，仅占位）。
+ * 迁移链按序执行：v1 先升 v2 再升 v3。未知版本原样返回，交由版本校验拒绝。
  */
 function migrateConfigInput(input: unknown): unknown {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
     return input;
   }
-  const record = input as Record<string, unknown>;
-  if (record['schemaVersion'] !== CONFIG_SCHEMA_VERSION_V1) {
-    return input;
+  let record = input as Record<string, unknown>;
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V1) {
+    const rawOpenness = record['openness'];
+    const openness =
+      typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
+        ? { ...(rawOpenness as Record<string, unknown>) }
+        : {};
+    if (openness['updateMode'] === undefined) {
+      openness['updateMode'] = 'dynamic';
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V2, openness };
   }
-  const rawOpenness = record['openness'];
-  const openness =
-    typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
-      ? { ...(rawOpenness as Record<string, unknown>) }
-      : {};
-  if (openness['updateMode'] === undefined) {
-    openness['updateMode'] = 'dynamic';
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V2) {
+    const rawNeed = record['need'];
+    const need =
+      typeof rawNeed === 'object' && rawNeed !== null && !Array.isArray(rawNeed)
+        ? { ...(rawNeed as Record<string, unknown>) }
+        : {};
+    if (need['referenceMode'] === undefined) {
+      need['referenceMode'] = 'own';
+    }
+    if (need['referenceSmoothing'] === undefined) {
+      need['referenceSmoothing'] = 0.2;
+    }
+    if (need['graceDays'] === undefined) {
+      need['graceDays'] = 0;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, need };
   }
-  return { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, openness };
+  return record;
 }
 
 export function validateRunConfig(rawInput: unknown): ValidationResult {
@@ -530,6 +552,9 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'bufferDays',
       'needMultiplier',
       'envExponent',
+      'referenceMode',
+      'referenceSmoothing',
+      'graceDays',
     ])
   ) {
     const need = root['need'];
@@ -542,6 +567,19 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'need.belowNeedLimit',
     );
     checkRegisteredNumber(collector, need['bufferDays'], '$.need.bufferDays', 'need.bufferDays');
+    checkRegisteredEnum(
+      collector,
+      need['referenceMode'],
+      '$.need.referenceMode',
+      'need.referenceMode',
+    );
+    checkRegisteredNumber(
+      collector,
+      need['referenceSmoothing'],
+      '$.need.referenceSmoothing',
+      'need.referenceSmoothing',
+    );
+    checkRegisteredNumber(collector, need['graceDays'], '$.need.graceDays', 'need.graceDays');
     if (classCount !== undefined) {
       checkRegisteredNumberArray(
         collector,

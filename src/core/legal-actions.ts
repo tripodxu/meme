@@ -29,12 +29,17 @@ export interface LegalActionSet {
   readonly targets: readonly AgentId[];
 }
 
-/** 上升费用（03 §6 阶段 B）：`crossBase×(1-discount)×openMultiplier`，均为正。 */
+/**
+ * 上升费用（03 §6 阶段 B）：`crossBase×(1-discount)×openMultiplier`，均为正。
+ * 需求参照系（rules-v6）：`class` 模式 `crossBase = crossDays[c]×refIncome[c+1]`
+ *（目的地阶级参照收入）；`own` 模式保持 v5 旧式 `crossDays[c]×B×E[c+1]` 逐位一致（G-D）。
+ */
 export function computeAscendCost(
   config: RunConfig,
   agent: Pick<AgentState, 'classIndex' | 'maxClassIndex'>,
   eByClass: readonly number[],
   openness: number,
+  refIncome: readonly number[],
 ): number | null {
   const nextClass = agent.classIndex + 1;
   if (nextClass >= config.population.classCount) {
@@ -52,11 +57,20 @@ export function computeAscendCost(
         : d === 2
           ? (discounts[1] as number)
           : (discounts[2] as number);
-  // crossDays 长度为 C-1，classIndex<C-1 时必有值；E 由状态保证长度 C。
-  const crossBase =
-    (config.ascent.crossDays[agent.classIndex] as number) *
-    config.opportunity.dailyBase *
-    (eByClass[nextClass] as number);
+  // crossDays 长度为 C-1，classIndex<C-1 时必有值；E/refIncome 由状态保证长度 C。
+  let crossBase: number;
+  if (config.need.referenceMode === 'class') {
+    const refNext = refIncome[nextClass];
+    if (refNext === undefined) {
+      throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `refIncome 缺少阶级 ${nextClass}`);
+    }
+    crossBase = (config.ascent.crossDays[agent.classIndex] as number) * refNext;
+  } else {
+    crossBase =
+      (config.ascent.crossDays[agent.classIndex] as number) *
+      config.opportunity.dailyBase *
+      (eByClass[nextClass] as number);
+  }
   const openMultiplier = clamp(
     Math.exp(config.openness.ascentCostWeight * (0.5 - openness)),
     config.openness.multiplierMin,
@@ -140,7 +154,13 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `到期个体不存在或已死亡: ${agentId}`);
   }
   const eByClass = state.society.eByClass;
-  const ascendCost = computeAscendCost(config, agent, eByClass, state.society.openness);
+  const ascendCost = computeAscendCost(
+    config,
+    agent,
+    eByClass,
+    state.society.openness,
+    state.society.refIncome,
+  );
   const descendCost = computeDescendCost(config, agent, eByClass);
   const canAscend =
     ascendCost !== null &&

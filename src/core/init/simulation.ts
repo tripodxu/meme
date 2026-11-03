@@ -41,6 +41,11 @@ export function createSimulation(config: RunConfig, seed: Seed): SimState {
     tick: 0,
     agents: population.agents,
     eByClass: [...validConfig.opportunity.env0],
+    // rules-v6 需求参照系：初始 refIncome = B×env0[c]，由 (config, seed) 纯函数派生
+    //（AGENTS 6：不接受外部数据；seed 不影响初值，属确定性派生）。
+    refIncome: [...validConfig.opportunity.env0].map(
+      (env) => validConfig.opportunity.dailyBase * env,
+    ),
     openness: validConfig.openness.initial,
     initialClassShares,
     gini: computeGini(population.agents.map((agent) => agent.value)),

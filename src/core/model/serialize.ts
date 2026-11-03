@@ -30,7 +30,7 @@ export type SerializedAgent = {
 };
 
 /**
- * 权威状态的 canonical 序列化形状（`stratify-state-v1`）。
+ * 权威状态的 canonical 序列化形状（`stratify-state-v2`；v2 增补 society.refIncome）。
  * 字段集合固定；字段增删或含义变化必须升级 `STATE_SCHEMA_VERSION`。
  */
 export interface SerializedSimState {
@@ -43,6 +43,7 @@ export interface SerializedSimState {
     tick: number;
     agents: SerializedAgent[];
     eByClass: number[];
+    refIncome: number[];
     openness: number;
     initialClassShares: number[];
     gini: number;
@@ -236,6 +237,7 @@ export function encodeSimState(state: SimState): SerializedSimState {
       tick: state.society.tick,
       agents: state.society.agents.map(encodeAgent),
       eByClass: [...state.society.eByClass],
+      refIncome: [...state.society.refIncome],
       openness: state.society.openness,
       initialClassShares: [...state.society.initialClassShares],
       gini: state.society.gini,
@@ -337,6 +339,19 @@ export function decodeSimState(value: unknown): SimState {
     return number;
   });
   if (
+    !Array.isArray(societyRecord['refIncome']) ||
+    societyRecord['refIncome'].length !== classCount
+  ) {
+    fail('$.society.refIncome', `refIncome 必须为长度 ${classCount} 的数组`);
+  }
+  const refIncome = (societyRecord['refIncome'] as unknown[]).map((cell, index) => {
+    const number = assertFiniteNumber(cell, `$.society.refIncome[${index}]`);
+    if (number <= 0) {
+      fail(`$.society.refIncome[${index}]`, 'refIncome 必须为正数');
+    }
+    return number;
+  });
+  if (
     !Array.isArray(societyRecord['initialClassShares']) ||
     societyRecord['initialClassShares'].length !== classCount
   ) {
@@ -387,6 +402,7 @@ export function decodeSimState(value: unknown): SimState {
     tick,
     agents,
     eByClass,
+    refIncome,
     openness,
     initialClassShares,
     gini,

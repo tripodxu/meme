@@ -67,6 +67,7 @@ describe('mock-weighted-v1（04 §2.1）', () => {
       agent,
       state.society.eByClass,
       state.society.openness,
+      state.society.refIncome,
     );
     if (fee === null) throw new Error('ascend 费用应为数值');
     agent.value =

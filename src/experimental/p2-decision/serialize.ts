@@ -8,7 +8,7 @@ import type { TickEvent } from '../../core/events.js';
 import type { SimState } from '../../core/model/state.js';
 import type { LegalActionSet } from '../../core/legal-actions.js';
 import { computeAscendCost, computeDescendCost } from '../../core/legal-actions.js';
-import { computeNeed } from '../../core/engine/settlement.js';
+import { computeNeedClass, computeNeedOwn } from '../../core/engine/settlement.js';
 import { POLICY_VERSION_MOCK } from '../../decision/mock.js';
 
 /**
@@ -141,7 +141,20 @@ export function buildDecisionState(
   if (agent === undefined || !agent.alive) {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `决策个体不存在或已死亡: ${agentId}`);
   }
-  const need = computeNeed(config, agent.classAge, agent.baselineSum, agent.classIndex);
+  // 需求参照系分派（rules-v6）：与引擎同口径；'own' 与 v5 逐位一致。
+  let need: number;
+  if (config.need.referenceMode === 'class') {
+    const refC = state.society.refIncome[agent.classIndex];
+    if (refC === undefined) {
+      throw new StratifyError(
+        errorCodes.INVARIANT_VIOLATED,
+        `refIncome 缺少阶级 ${agent.classIndex}`,
+      );
+    }
+    need = computeNeedClass(config, refC, agent.classIndex);
+  } else {
+    need = computeNeedOwn(config, agent.classAge, agent.baselineSum, agent.classIndex);
+  }
   const needRatio = need === 0 ? null : agent.value / need;
   if (needRatio !== null && !Number.isFinite(needRatio)) {
     throw new StratifyError(
@@ -151,7 +164,13 @@ export function buildDecisionState(
   }
   const ascendCost =
     legal.ascendCost ??
-    computeAscendCost(config, agent, state.society.eByClass, state.society.openness);
+    computeAscendCost(
+      config,
+      agent,
+      state.society.eByClass,
+      state.society.openness,
+      state.society.refIncome,
+    );
   const descendCost =
     legal.descendCost ?? computeDescendCost(config, agent, state.society.eByClass);
   const neighborSet = new Set<string>(agent.ties);

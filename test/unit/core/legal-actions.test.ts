@@ -70,6 +70,7 @@ describe('合法行动枚举（03 §5）', () => {
       agent,
       state.society.eByClass,
       state.society.openness,
+      state.society.refIncome,
     );
     if (cost === null || !Number.isFinite(cost) || cost <= 0) throw new Error('费用计算异常');
     const cushion = computeAscendCushion(state.config, 2, state.society.eByClass);
@@ -92,6 +93,7 @@ describe('合法行动枚举（03 §5）', () => {
         agent,
         state.society.eByClass,
         state.society.openness,
+        state.society.refIncome,
       );
       if (cost === null) throw new Error('不应为最高层');
       return cost;
@@ -114,7 +116,13 @@ describe('合法行动枚举（03 §5）', () => {
       population: { initialPopulation: 12 },
       ascent: { returnDiscount: [0.1, 0.2, 0.4] },
     });
-    const cost = computeAscendCost(config, agent, state.society.eByClass, state.society.openness);
+    const cost = computeAscendCost(
+      config,
+      agent,
+      state.society.eByClass,
+      state.society.openness,
+      state.society.refIncome,
+    );
     const base = 40 * 2 * 2.2;
     expect(cost).toBeCloseTo(base * 0.9, 9);
   });

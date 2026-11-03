@@ -1,18 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_RUN_CONFIG, createDemoConfig } from '../../../src/core/config/defaults.js';
-import { asSeed } from '../../../src/core/control/ids.js';
+import { asAgentId, asSeed } from '../../../src/core/control/ids.js';
 import { createSimulation } from '../../../src/core/init/simulation.js';
 import { enumerateLegalActions } from '../../../src/core/legal-actions.js';
 import { step } from '../../../src/core/engine/engine.js';
 import {
-  computeNeed,
+  agentSlot,
+  computeNeedClass,
+  computeNeedOwn,
   computeOpportunityFromMedians,
   effortFunction,
   lifeLoss,
   median,
   computeOpportunity,
+  resolveCompetition,
 } from '../../../src/core/engine/settlement.js';
+import { computeAscendCost, computeAscendCushion } from '../../../src/core/legal-actions.js';
 import {
   polarizationZ,
   updateClassEnvironment,
@@ -110,12 +114,12 @@ describe('枚举/结算模块防御路径', () => {
     expect(() => median([])).toThrowError(/中位数输入为空/);
   });
 
-  it('computeNeed/lifeLoss 拒绝缺少阶级参数的配置', () => {
+  it('computeNeedOwn/lifeLoss 拒绝缺少阶级参数的配置', () => {
     const badConfig = {
       ...DEFAULT_RUN_CONFIG,
       need: { ...DEFAULT_RUN_CONFIG.need, needMultiplier: [1, 1.3] },
     } as typeof DEFAULT_RUN_CONFIG;
-    expect(() => computeNeed(badConfig, 5, 10, 3)).toThrowError(/needMultiplier 缺少阶级/);
+    expect(() => computeNeedOwn(badConfig, 5, 10, 3)).toThrowError(/needMultiplier 缺少阶级/);
     const badDecay = {
       ...DEFAULT_RUN_CONFIG,
       lifespan: { ...DEFAULT_RUN_CONFIG.lifespan, decay: [1.3] },
@@ -200,3 +204,100 @@ function computeOpportunityFromMediansForTest(
 ): number {
   return computeOpportunityFromMedians(config, neighbors.length, median(neighbors), median(all));
 }
+
+describe('rules-v6 需求参照系防御路径（含既有护栏补测）', () => {
+  const CLASS_CONFIG = createDemoConfig({
+    population: { initialPopulation: 4 },
+    need: { referenceMode: 'class' },
+  });
+
+  it('computeNeedClass 拒绝未登记阶级与非法 refIncome', () => {
+    expect(() => computeNeedClass(CLASS_CONFIG, 4.4, 99)).toThrowError(/needMultiplier 缺少阶级/);
+    expect(() => computeNeedClass(CLASS_CONFIG, 0, 2)).toThrowError(/refIncome 非法/);
+    expect(() => computeNeedClass(CLASS_CONFIG, -1, 2)).toThrowError(/refIncome 非法/);
+    expect(() => computeNeedClass(CLASS_CONFIG, Number.NaN, 2)).toThrowError(/refIncome 非法/);
+    expect(() => computeNeedClass(CLASS_CONFIG, Number.POSITIVE_INFINITY, 2)).toThrowError(
+      /refIncome 非法/,
+    );
+  });
+
+  it('computeNeedClass φ=0 路径与 env0 守卫', () => {
+    const phi0 = { ...CLASS_CONFIG, need: { ...CLASS_CONFIG.need, envExponent: 0 } };
+    // φ=0：need = refIncome×bufferDays×ψ，不做 env0 pow
+    expect(computeNeedClass(phi0, 2, 2)).toBe(2 * phi0.need.bufferDays * 1.8);
+    const badEnv0 = {
+      ...CLASS_CONFIG,
+      opportunity: { ...CLASS_CONFIG.opportunity, env0: [0, 1.5, 2.2, 3.2, 4.5] },
+    } as typeof CLASS_CONFIG;
+    expect(() => computeNeedClass(badEnv0, 2, 2)).toThrowError(/env0 缺少阶级或 env0\[0\] 非正/);
+  });
+
+  it('computeAscendCost class 模式拒绝缺失 refIncome 阶级', () => {
+    const agent = { classIndex: 1, maxClassIndex: 1 };
+    expect(() =>
+      computeAscendCost(CLASS_CONFIG, agent, [1, 1.5, 2.2, 3.2, 4.5], 0.5, [3, 5]),
+    ).toThrowError(/refIncome 缺少阶级 2/);
+  });
+
+  it('computeAscendCushion 守卫：ρ=0、E/ψ 缺阶级、env0 非法、非有限裕度', () => {
+    const rho0 = {
+      ...CLASS_CONFIG,
+      ascent: { ...CLASS_CONFIG.ascent, holdingCushionDays: 0 },
+    };
+    expect(computeAscendCushion(rho0, 2, [1, 1.5, 2.2, 3.2, 4.5])).toBe(0);
+    expect(() => computeAscendCushion(CLASS_CONFIG, 9, [1, 1.5, 2.2, 3.2, 4.5])).toThrowError(
+      /E 缺少阶级 9/,
+    );
+    const badPsi = {
+      ...CLASS_CONFIG,
+      need: { ...CLASS_CONFIG.need, needMultiplier: [1, 1.3] },
+    } as typeof CLASS_CONFIG;
+    expect(() => computeAscendCushion(badPsi, 2, [1, 1.5, 2.2, 3.2, 4.5])).toThrowError(
+      /needMultiplier 缺少阶级 2/,
+    );
+    const badEnv0 = {
+      ...CLASS_CONFIG,
+      opportunity: { ...CLASS_CONFIG.opportunity, env0: [1, 1.5] },
+    } as typeof CLASS_CONFIG;
+    expect(() => computeAscendCushion(badEnv0, 2, [1, 1.5, 2.2, 3.2, 4.5])).toThrowError(
+      /env0 非法/,
+    );
+    expect(() =>
+      computeAscendCushion(CLASS_CONFIG, 2, [1, 1.5, Number.NaN, 3.2, 4.5]),
+    ).toThrowError(/持有裕度非有限/);
+  });
+
+  it('引擎阶段 C：refIncome/E 缺阶级立即停止（不变量）', () => {
+    const state = makeState();
+    const brokenRef = state.society.agents.find((agent) => agent.classIndex >= 2);
+    if (brokenRef === undefined) throw new Error('无 class>=2 个体');
+    (state.society.refIncome as number[]) = [1, 1.5];
+    expect(() => step(state, accumulateDecisions(state), { runId: 'defense' })).toThrowError(
+      /refIncome 缺少阶级/,
+    );
+    const state2 = makeState();
+    (state2.society.eByClass as number[]) = [1];
+    expect(() => step(state2, accumulateDecisions(state2), { runId: 'defense' })).toThrowError(
+      /E 缺少阶级/,
+    );
+  });
+
+  it('agentSlot 越界拒绝且合法序号稳定', () => {
+    expect(agentSlot(asAgentId('a-0003'), 8)).toBe(3);
+    expect(() => agentSlot(asAgentId('a-9999'), 8)).toThrowError(/agentId 越界/);
+  });
+
+  it('resolveCompetition 拒绝收益超过损失（不变量）', () => {
+    const state = makeState();
+    const a = state.society.agents[0];
+    const b = state.society.agents[1];
+    if (a === undefined || b === undefined) throw new Error('roster 过小');
+    a.value = 100;
+    b.value = 100;
+    const badConfig = {
+      ...state.config,
+      competition: { ...state.config.competition, baseTransferEfficiency: 1.2 },
+    } as typeof state.config;
+    expect(() => resolveCompetition(badConfig, a, b, 0)).toThrowError(/竞争收益超过损失/);
+  });
+});

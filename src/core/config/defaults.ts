@@ -2,8 +2,9 @@ import type { RunConfig } from './types.js';
 import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../control/versions.js';
 
 /**
- * `rules-v5` 首轮默认配置。默认值来自 03 §3，是校准起点，不是已验证结论。
- * 不得把本配置称为“已校准预设”。
+ * `rules-v6` 首轮默认配置。默认值来自 03 §3，是校准起点，不是已验证结论。
+ * 不得把本配置称为“已校准预设”。v6 需求参照系默认 `referenceMode:'class'`、
+ * `graceDays:30`、`referenceSmoothing:0.2`（changes/0008）；`own` 逐位退回 v5。
  */
 export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
   schemaVersion: CONFIG_SCHEMA_VERSION,
@@ -38,6 +39,9 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     bufferDays: 30,
     needMultiplier: [1.0, 1.3, 1.8, 2.5, 3.5],
     envExponent: 1.0,
+    referenceMode: 'class',
+    referenceSmoothing: 0.2,
+    graceDays: 30,
   },
   descent: {
     days: 7,

@@ -23,6 +23,14 @@ export interface SocietyState {
   readonly agents: AgentState[];
   /** 当前 tick 使用的有效阶级机会系数 E[C]，恒 >0。 */
   readonly eByClass: number[];
+  /**
+   * 需求参照系（rules-v6）：上期各阶级人均收入的 EMA `refIncome[C]`，恒 >0。
+   * 初始值 `dailyBase × env0[c]`，由 `(config, seed)` 纯函数派生；
+   * 更新发生在阶段 C 全部 gain 算完之后（先算后用，为下一 tick 服务；
+   * 空阶级保持上期值）。`need.referenceMode='own'` 时**不读取也不更新**
+   * （保持初始值），保证与 v5 逐位一致（G-D）。
+   */
+  readonly refIncome: number[];
   /** 社会开放度，`[0,1]`。 */
   openness: number;
   /** 初始人口占比 P0[C]，按实际人数计算（非配置理想比例）。 */

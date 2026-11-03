@@ -298,6 +298,7 @@ describe('被动跌落与需求（03 §6 阶段 D）', () => {
         belowNeedLimit: 3,
         bufferDays: 2,
         needMultiplier: [1, 1.3, 1.8, 2.5, 3.5],
+        graceDays: 0, // 本用例验证 streak 跌落机制本身；默认宽限 30 会推迟起算（rules-v6）
       },
       decision: { interval: 60, topK: 1, policy: 'mock-weighted-v1' }, // 无主动行动干扰
     });

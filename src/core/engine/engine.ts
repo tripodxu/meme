@@ -13,7 +13,8 @@ import { computeTickStats, type TickStats } from '../macros/tick-metrics.js';
 import { maybeUpdateOpenness, updateClassEnvironment } from '../feedback/slow-variables.js';
 import { computeAscendCost, computeAscendCushion, computeDescendCost } from '../legal-actions.js';
 import {
-  computeNeed,
+  computeNeedClass,
+  computeNeedOwn,
   computeOpportunityFromMedians,
   effortFunction,
   lifeLoss,
@@ -107,6 +108,10 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   const isDecisionTick = tick % config.decision.interval === 0;
   const eByClass = state.society.eByClass;
   const opennessStart = state.society.openness;
+  // 需求参照系（rules-v6）：本 tick 的 need/ascendCost 一律使用上期 refIncome
+  //（先算后用，避免同期值引入 agent 顺序依赖）；'own' 模式不读取该数组。
+  const referenceMode = config.need.referenceMode;
+  const refIncomeStart = state.society.refIncome;
   // 本 tick 的存活查找表（O(1) 邻居/目标定位，O(N²) 防护）。
   const agentMap = new Map<string, WorkingAgent>(agents.map((agent) => [agent.id, agent]));
 
@@ -156,6 +161,9 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   const allAliveValuesC = aliveAfterB.map((agent) => stageCStartValues.get(agent.id) as number);
   const medianAllC = aliveAfterB.length === 0 ? 0 : median(allAliveValuesC);
   const needs = new Map<string, number>();
+  // rules-v6：各阶级当期 gain 求和/计数，阶段 C 结束后更新 refIncome（EMA）。
+  const gainSumByClass = new Array<number>(classCount).fill(0);
+  const gainCountByClass = new Array<number>(classCount).fill(0);
   const sortedAlive = [...aliveAfterB].sort((a, b) => compareAgentId(a.id, b.id));
   for (const agent of sortedAlive) {
     const neighborValues: number[] = [];
@@ -196,16 +204,65 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
     });
     agent.baselineSum += config.opportunity.dailyBase * env;
     agent.classAge += 1;
-    needs.set(agent.id, computeNeed(config, agent.classAge, agent.baselineSum, agent.classIndex));
+    // 需求参照系分派：'class' 用上期 refIncome 计价（持有标尺=阶级标准）；
+    // 'own' 与 v5 逐位一致（G-D 硬门禁，不读 refIncome）。
+    if (referenceMode === 'class') {
+      const refC = refIncomeStart[agent.classIndex];
+      if (refC === undefined) {
+        throw new StratifyError(
+          errorCodes.INVARIANT_VIOLATED,
+          `refIncome 缺少阶级 ${agent.classIndex}`,
+        );
+      }
+      needs.set(agent.id, computeNeedClass(config, refC, agent.classIndex));
+    } else {
+      needs.set(
+        agent.id,
+        computeNeedOwn(config, agent.classAge, agent.baselineSum, agent.classIndex),
+      );
+    }
+    // gain 归属发生时的阶级（阶段 B 升阶者按新阶级计入）。
+    gainSumByClass[agent.classIndex] = (gainSumByClass[agent.classIndex] ?? 0) + gain;
+    gainCountByClass[agent.classIndex] = (gainCountByClass[agent.classIndex] ?? 0) + 1;
+  }
+
+  // ---- 阶段 C'：需求参照系更新（rules-v6；阶段 C 全部 gain 算完之后，为下一 tick 服务）----
+  // 空阶级保持上期值；EMA：refIncome(t+1) = (1-α)·refIncome(t) + α·refGain(t)。
+  // 'own' 模式不更新也不读取（保持初始值，G-D 逐位一致）。
+  let nextRefIncome = refIncomeStart;
+  if (referenceMode === 'class') {
+    const alpha = config.need.referenceSmoothing;
+    nextRefIncome = refIncomeStart.map((previous, c) => {
+      const count = gainCountByClass[c] ?? 0;
+      if (count === 0) {
+        return previous;
+      }
+      const refGain = (gainSumByClass[c] ?? 0) / count;
+      return (1 - alpha) * previous + alpha * refGain;
+    });
+    for (const value of nextRefIncome) {
+      if (!Number.isFinite(value) || value <= 0) {
+        throw new StratifyError(
+          errorCodes.INVARIANT_VIOLATED,
+          `refIncome 更新后非法: ${String(value)}`,
+        );
+      }
+    }
   }
 
   // ---- 阶段 D：被动跌落（仅未成功主动变动阶级者）----
+  // 判定计时（rules-v6）：'class' 模式下 classAge ≤ graceDays 的个体不累加
+  // belowNeedStreak（宽限期只控判定计时，不影响 need 数值）；
+  // 'own' 模式按 0 处理——不读 graceDays、不走宽限分支，与 v5 逐位一致（G-D）。
   for (const agent of sortedAlive) {
     if (!agent.alive || activeChanged.has(agent.id)) {
       continue;
     }
     const need = needs.get(agent.id) ?? 0;
-    if (agent.value < config.need.threshold * need) {
+    const below = agent.value < config.need.threshold * need;
+    if (referenceMode === 'class' && agent.classAge <= config.need.graceDays) {
+      agent.belowNeedStreak = 0;
+    } else if (below) {
       agent.belowNeedStreak += 1;
     } else {
       agent.belowNeedStreak = 0;
@@ -330,6 +387,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       tick: tick + 1,
       agents: agents.map((agent) => ({ ...agent, ties: [...agent.ties] })),
       eByClass: nextE,
+      refIncome: nextRefIncome,
       openness: nextOpenness,
       initialClassShares: state.society.initialClassShares,
       gini: stats.gini,
@@ -446,7 +504,7 @@ function executeAction(input: ExecuteActionInput): void {
   }
   if (parsed.type === 'ascend') {
     // 执行前复核：费用 + 持有裕度与当前 Value（前序竞争可能已消耗）。
-    const cost = computeAscendCost(config, agent, eByClass, openness);
+    const cost = computeAscendCost(config, agent, eByClass, openness, state.society.refIncome);
     const cushion =
       cost === null ? 0 : computeAscendCushion(config, agent.classIndex + 1, eByClass);
     // 反向比较写 `!(value >= cost + cushion)`：NaN（如 E 缺失）时枚举侧拒绝、
