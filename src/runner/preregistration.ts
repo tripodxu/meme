@@ -42,8 +42,10 @@ export interface PreregManifest {
   readonly totalTicks: number;
   readonly seeds: readonly string[];
   readonly pairing: 'same-seed-derived-initial-population-and-addressed-random';
-  readonly warmupTicks: 365;
-  readonly warmupDiagnostic: '90-day rolling mean change < threshold on P/G/O';
+  readonly warmupTicks: 1825;
+  readonly warmupDiagnostic:
+    | '90-day rolling mean change < threshold on P/G/O'
+    | 'attractor stability: same-run w2/w3 feature points fall in the same cluster (limit-cycle system)';
   readonly windows: readonly {
     readonly label: string;
     readonly start: number;
@@ -294,9 +296,15 @@ export function buildPreregManifest(): PreregManifest {
     totalTicks: 3650,
     seeds: PREREG_SEEDS,
     pairing: 'same-seed-derived-initial-population-and-addressed-random',
-    warmupTicks: 365,
-    warmupDiagnostic: '90-day rolling mean change < threshold on P/G/O',
-    windows,
+    // v5 轮 2：w1 非平稳（90 日块 TV(P) 0.03-0.23 持续振荡，极限环）→ burn-in 延长至 1825，
+    // 诊断改为吸引子稳定性（07 §5 「不平稳则延长 burn-in 并重新预注册」）。
+    warmupTicks: 1825,
+    warmupDiagnostic:
+      'attractor stability: same-run w2/w3 feature points fall in the same cluster (limit-cycle system)',
+    windows: [
+      { label: 'w2b', start: 1825, end: 2554 },
+      { label: 'w3', start: 2555, end: 3284 },
+    ],
     labelThresholdVersion: LABEL_THRESHOLDS_VERSION,
     labelThresholdsHash: computeLabelThresholdsHash(),
     clustering: {
@@ -304,7 +312,7 @@ export function buildPreregManifest(): PreregManifest {
       standardization: 'z-score(pooled)',
       // 特征点：每个 run 贡献 w1 与 w3 两个特征点（07 §8.1 特征向量；
       // 双窗口 pooling 同时检验结构的时间稳定性——同 run 两窗应落入同一簇）。
-      featureWindows: ['w1', 'w3'],
+      featureWindows: ['w3'],
       kRange: [2, 5],
       stabilityMinAri: 0.7,
       minClusterRuns: 5,
