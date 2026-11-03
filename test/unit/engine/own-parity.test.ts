@@ -10,6 +10,7 @@ import {
 } from '../../../src/core/config/defaults.js';
 import { validateRunConfig } from '../../../src/core/config/validate.js';
 import { asSeed } from '../../../src/core/control/ids.js';
+import { RULES_VERSION } from '../../../src/core/control/versions.js';
 import { runSingle } from '../../../src/runner/run-cell.js';
 import { encodeSimState } from '../../../src/core/model/serialize.js';
 
@@ -61,9 +62,9 @@ function toV6Own(rawConfig: Record<string, unknown>): ReturnType<typeof validate
     mergeConfig(DEFAULT_RUN_CONFIG, {
       ...(rest as DeepPartialConfig),
       schemaVersion: 'stratify-config-v3',
-      rulesVersion: 'rules-v7',
+      rulesVersion: RULES_VERSION,
       need: { ...need, referenceMode: 'own', referenceSmoothing: 0.2, graceDays: 0 } as never,
-    } as DeepPartialConfig),
+    } as unknown as DeepPartialConfig),
   );
 }
 

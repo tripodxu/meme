@@ -1,13 +1,13 @@
 {
-  "description": "40 人默认 mock 运行（seed=golden-mock-seed，rules-v7 裕度同参照系）；更新必须人工审查差异并说明原因。",
-  "rulesVersion": "rules-v7",
-  "engineVersion": "engine-v0.5.0",
+  "description": "40 人默认 mock 运行（seed=golden-mock-seed，rules-v8 位移准入）；更新必须人工审查差异并说明原因。",
+  "rulesVersion": "rules-v8",
+  "engineVersion": "engine-v0.6.0",
   "paramsHash": "sha256:db8050304992d8083a0408e10daed5a8551b8e90e9e1ff577c848e3d19dbcd82",
   "seed": "golden-mock-seed",
   "checkpoints": [
     {
       "tick": 0,
-      "finalStateHash": "sha256:9cc96d2117774c3a19dd62459d05a630e6c5277bb641e49d8fed95a594869c12",
+      "finalStateHash": "sha256:0d76af517a111097a86e8e87772bf4a1f7f51f25a5fd575883b7582131a6ff7a",
       "stats": {
         "tick": 0,
         "aliveCount": 40,
@@ -39,7 +39,7 @@
     },
     {
       "tick": 1,
-      "finalStateHash": "sha256:af248cf411d35e0c16445e8a04463e5866491363da1b147553b403bfd2a307f5",
+      "finalStateHash": "sha256:542581cf6a705e0b4ed1046912d2c43fb27ed49610d5f956f0447c6da0867a32",
       "stats": {
         "tick": 1,
         "aliveCount": 40,
@@ -74,7 +74,7 @@
     },
     {
       "tick": 10,
-      "finalStateHash": "sha256:6b9d270bad16f0093f80801af8ce4fae2ddde4636d5aafc2fe2ea43a2957ec26",
+      "finalStateHash": "sha256:aef317c80873ded0e9278f5bfce9ac87e80e2305ef71a6a7a49c15b1c16f83c5",
       "stats": {
         "tick": 10,
         "aliveCount": 40,
@@ -109,7 +109,7 @@
     },
     {
       "tick": 120,
-      "finalStateHash": "sha256:fed3961e3c326ac6daa157f2f543f7cc64bf42ac7edc7a8fe3411fa1a55e5764",
+      "finalStateHash": "sha256:6bfbcca1a576c06add94fd9e7f681523172e439dec32676528d6d779ddd7d6fe",
       "stats": {
         "tick": 120,
         "aliveCount": 40,
@@ -144,34 +144,34 @@
     },
     {
       "tick": 400,
-      "finalStateHash": "sha256:dc2af32278b8bdcfb951533f4791007b6e55094fd4df36ed15e2eeba066d9828",
+      "finalStateHash": "sha256:416ac8b0c62a0987f265935d8b564d89533bc0e50e52c84d62f65f6c51c48fe4",
       "stats": {
         "tick": 400,
         "aliveCount": 39,
-        "classCounts": [0, 32, 7, 0, 0],
-        "gini": 0.41812497144468536,
-        "medianValue": 756.9581719905474,
-        "topWealthShare": 0.30625592717343053,
-        "mUp": 0.6153846153846154,
-        "mDown": 0.3076923076923077,
-        "segregation": 0.07081766917293277,
+        "classCounts": [20, 16, 3, 0, 0],
+        "gini": 0.3913001142264289,
+        "medianValue": 660.1897774346314,
+        "topWealthShare": 0.303153101154817,
+        "mUp": 0.717948717948718,
+        "mDown": 0.7435897435897436,
+        "segregation": 0.008694048204623826,
         "edgeCount": 95,
-        "openness": 0.5987809263902334,
+        "openness": 0.7911466454675599,
         "deathCount": 0,
-        "competitionLoss": 1220.5814774617268,
-        "competitionGain": 847.7871582889322,
+        "competitionLoss": 1487.3884554167375,
+        "competitionGain": 1067.865320829972,
         "fallbackRate": 0,
         "eByClass": [
-          1.040898182595404, 0.9984411329659547, 2.279664172633721, 4.11673320379793,
-          5.592201237049732
+          0.8508272327432465, 1.2692130937559116, 2.6399771036271282, 4.068427396635377,
+          5.461660367719086
         ],
-        "crossClassEdgeShare": 0.2736842105263158,
+        "crossClassEdgeShare": 0.5578947368421052,
         "avgDegree": 4.871794871794871,
         "connectedComponents": 1,
         "flowMatrix": [
-          [0, 21, 0, 0, 0],
-          [3, 0, 4, 0, 0],
-          [0, 7, 0, 1, 0],
+          [0, 35, 0, 0, 0],
+          [38, 0, 5, 0, 0],
+          [0, 12, 0, 1, 0],
           [0, 0, 5, 0, 0],
           [0, 0, 0, 1, 0]
         ]
@@ -179,7 +179,7 @@
     }
   ],
   "mortality": {
-    "uniform3650": 0.175,
+    "uniform3650": 0.2,
     "newborn3650": 0
   }
 }

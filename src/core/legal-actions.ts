@@ -1,6 +1,6 @@
 import type { RunConfig } from './config/types.js';
 import { errorCodes, StratifyError } from './control/errors.js';
-import { AGENT_ID_PATTERN, type AgentId } from './control/ids.js';
+import { AGENT_ID_PATTERN, type AgentId, type Seed } from './control/ids.js';
 import { HASH_DOMAINS } from './hash/domains.js';
 import { hashValue } from './hash/hash.js';
 import { agentIndexFromId, type AgentState } from './model/agent.js';
@@ -240,6 +240,32 @@ function sampleCompetitionTargets(state: SimState, agent: AgentState): AgentId[]
   }
   // 目标键按 agentId 升序排列（03 §5：同类内按 UTF-8 字节序）。
   return [...selected].sort();
+}
+
+/**
+ * rules-v8 位移准入（D-09，diagnosis §8）：上升需击败目标阶级的在位者。
+ * 按地址化 RNG `R(seed,tick,agentId,"displacement_target",0)` 从目标阶级当前存活者
+ * 均匀抽样一名对手；目标阶级为空 → 无对手，直接准入（边界扩张）。
+ * `agents` 是**结算工作副本**（03 §6 阶段 B 的 agent 顺序），样本必须可被就地降级；
+ * 仅 `'class'` 参照系消费该地址，`'own'` 模式不消费（RNG 流与 v5 逐位一致，G-D）。
+ */
+export function sampleDisplacementTarget(
+  seed: Seed,
+  tick: number,
+  attackerId: AgentId,
+  agents: readonly Pick<AgentState, 'id' | 'alive' | 'classIndex'>[],
+  targetClassIndex: number,
+): AgentState | null {
+  const incumbents = agents.filter(
+    (candidate) => candidate.alive && candidate.classIndex === targetClassIndex,
+  );
+  if (incumbents.length === 0) {
+    return null;
+  }
+  const draw = createDraw(seed, tick, attackerId);
+  const r = draw(RNG_EVENT_TAGS.displacementTarget, 0);
+  const index = uniformIndex(r, incumbents.length);
+  return incumbents[index] as AgentState;
 }
 
 /** `actionSetHash`（02 §8）：覆盖按请求顺序排列的 legalActions 字符串数组。 */

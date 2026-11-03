@@ -16,10 +16,10 @@ import type { SimState } from '../../src/core/model/state.js';
 import type { AgentId } from '../../src/core/control/ids.js';
 
 /**
- * golden：40 人默认 mock 运行（08 §5，rules-v7）。
+ * golden：40 人默认 mock 运行（08 §5，rules-v8）。
  * fixture 冻结 tick 0/1/10/120/400 的状态哈希与聚合指标；
  * 更新必须人工审查差异并说明原因，不得一键覆盖。
- * rules-v7 起裕度与需求同参照系（class 模式），golden 记录 class 模式语义；
+ * rules-v8 起位移准入生效（class 模式），golden 记录 class 模式语义；
  * own 模式与 v5 的逐位对照见 test/unit/engine/own-parity.test.ts（G-D）。
  *
  * 版本约定（docs/reference/artifacts.md §5）：engine golden 是**单个改名前滚**的
@@ -47,7 +47,7 @@ interface GoldenFixture {
   };
 }
 
-const FIXTURE_PATH = '../fixtures/engine/mock-run-rules-v7.json';
+const FIXTURE_PATH = '../fixtures/engine/mock-run-rules-v8.json';
 const UPDATE = process.env['STRATIFY_UPDATE_GOLDEN'] === '1';
 
 function loadFixture(): GoldenFixture | null {
@@ -146,7 +146,7 @@ function mortality3650(mode: 'uniform' | 'newborn'): number {
   return deathsAtEnd / state.society.agents.length;
 }
 
-describe('golden: 40 人默认 mock 运行（rules-v7）', () => {
+describe('golden: 40 人默认 mock 运行（rules-v8）', () => {
   const fixture = loadFixture();
 
   if (fixture === null || UPDATE) {
@@ -154,7 +154,7 @@ describe('golden: 40 人默认 mock 运行（rules-v7）', () => {
       const checkpoints = runToCheckpoints([0, 1, 10, 120, 400]);
       const generated: GoldenFixture = {
         description:
-          '40 人默认 mock 运行（seed=golden-mock-seed，rules-v7 裕度同参照系）；更新必须人工审查差异并说明原因。',
+          '40 人默认 mock 运行（seed=golden-mock-seed，rules-v8 位移准入）；更新必须人工审查差异并说明原因。',
         rulesVersion: RULES_VERSION,
         engineVersion: ENGINE_VERSION,
         paramsHash: computeParamsHash(DEFAULT_RUN_CONFIG),

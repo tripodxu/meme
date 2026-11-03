@@ -13,6 +13,7 @@ import type { RunConfig } from '../../src/core/config/types.js';
 import { validateRunConfig } from '../../src/core/config/validate.js';
 import { errorCodes } from '../../src/core/control/errors.js';
 import { HASH_DOMAINS } from '../../src/core/hash/domains.js';
+import { RULES_VERSION } from '../../src/core/control/versions.js';
 import { hashValue } from '../../src/core/hash/hash.js';
 
 interface GoldenHashes {
@@ -27,10 +28,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v7.json');
-const golden = readJson('../fixtures/config/default-rules-v7.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v8.json');
+const golden = readJson('../fixtures/config/default-rules-v8.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v7 default config', () => {
+describe('golden: rules-v8 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -46,11 +47,11 @@ describe('golden: rules-v7 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v7.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v8.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
-  it('v7 默认参照系为 class 模式且裕度同参照系（changes/0008/0009）', () => {
+  it('v8 默认参照系为 class 模式、裕度同参照系且位移准入生效（changes/0008/0009/0010）', () => {
     expect(DEFAULT_RUN_CONFIG.need.referenceMode).toBe('class');
     expect(DEFAULT_RUN_CONFIG.need.graceDays).toBe(30);
     expect(DEFAULT_RUN_CONFIG.need.referenceSmoothing).toBe(0.2);
@@ -120,7 +121,7 @@ describe('golden: 历史 fixture（v3/v4/v5 只读，累加式）', () => {
     // 本用例锁定迁移链对 schemaVersion v2 + rulesVersion v5 的行为——
     // rulesVersion 仍被拒（版本轴不含 v5），但 schema 迁移本身必须无副作用。
     const migrated = JSON.parse(JSON.stringify(v5Fixture)) as Record<string, unknown>;
-    migrated['rulesVersion'] = 'rules-v7';
+    migrated['rulesVersion'] = RULES_VERSION;
     const result = validateRunConfig(migrated);
     expect(result.ok).toBe(true);
     if (result.ok) {

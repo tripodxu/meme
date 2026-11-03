@@ -1,14 +1,14 @@
 /**
  * 版本常量。三个版本轴互不复用：
- * - `rulesVersion` 管社会结算语义（v7：裕度参照系统一计价，见 changes/0009；v6：需求参照系 A′，见 changes/0008；
+ * - `rulesVersion` 管社会结算语义（v8：位移准入 D-09，见 changes/0010；v7：裕度参照系统一计价，见 changes/0009；v6：需求参照系 A′，见 changes/0008；
  *   v5：上升持有裕度，见 changes/0005；v4：需求线环境持有人乘子 + θM 再平衡，见 changes/0004）；
- * - `engineVersion` 管结算实现修订（v0.5.0：裕度参照系分派；v0.4.0：refIncome 宏观状态 + graceDays 判定计时 +
+ * - `engineVersion` 管结算实现修订（v0.6.0：位移准入对决与在位者降级；v0.5.0：裕度参照系分派；v0.4.0：refIncome 宏观状态 + graceDays 判定计时 +
  *   参照系分派；v0.3.0：非法/极端输入的行为修正，见 changes/0006；v0.2.0：v5 裕度逻辑；v0.1.0：v4 env0 锚定）；
  * - `schemaVersion` 管序列化/导入导出；
  * - `promptVersion` 管 Jev 输入。
  */
-export const RULES_VERSION = 'rules-v7' as const;
-export const ENGINE_VERSION = 'engine-v0.5.0' as const;
+export const RULES_VERSION = 'rules-v8' as const;
+export const ENGINE_VERSION = 'engine-v0.6.0' as const;
 export const DECISION_SCHEMA_VERSION = 'stratify-decision-v1' as const;
 /**
  * 配置 schema：v3 起 `need.referenceMode/referenceSmoothing/graceDays` 为必填

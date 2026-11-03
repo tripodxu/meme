@@ -11,7 +11,12 @@ import { parseActionKey } from '../legal-actions.js';
 import { attemptRewire } from '../network/rewire.js';
 import { computeTickStats, type TickStats } from '../macros/tick-metrics.js';
 import { maybeUpdateOpenness, updateClassEnvironment } from '../feedback/slow-variables.js';
-import { computeAscendCost, computeAscendCushion, computeDescendCost } from '../legal-actions.js';
+import {
+  computeAscendCost,
+  computeAscendCushion,
+  computeDescendCost,
+  sampleDisplacementTarget,
+} from '../legal-actions.js';
 import {
   computeNeedClass,
   computeNeedOwn,
@@ -137,6 +142,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
         config,
         tick,
         agent,
+        agents,
         agentMap,
         decision,
         eByClass,
@@ -446,6 +452,8 @@ interface ExecuteActionInput {
   readonly config: RunConfig;
   readonly tick: number;
   readonly agent: WorkingAgent;
+  /** 结算工作副本（位移准入抽样与降级作用于此，非快照）。 */
+  readonly agents: readonly WorkingAgent[];
   readonly agentMap: ReadonlyMap<string, WorkingAgent>;
   readonly decision: StepDecision;
   readonly eByClass: readonly number[];
@@ -468,6 +476,7 @@ function executeAction(input: ExecuteActionInput): void {
     config,
     tick,
     agent,
+    agents,
     agentMap,
     decision,
     eByClass,
@@ -520,6 +529,97 @@ function executeAction(input: ExecuteActionInput): void {
       });
       record(null, 'stale_invalid', 'insufficient_cushion');
       return;
+    }
+    // rules-v8 位移准入（D-09，diagnosis §8）：仅 'class' 参照系——上升需击败目标阶级
+    // 在位者（按 displacementTarget 地址均匀抽样；目标阶级为空则直接准入），
+    // 被击败者降级到攻击方原阶级；对决复用 rule.md 12–19 竞争结算（含财富转移）。
+    // 'own' 模式不进入该分支、不消费 displacement/competitionResolve 地址，
+    // RNG 流与 v5 逐位一致（G-D 硬门禁）。
+    if (config.need.referenceMode === 'class') {
+      const incumbent = sampleDisplacementTarget(
+        state.seed,
+        tick,
+        agent.id,
+        agents,
+        agent.classIndex + 1,
+      );
+      if (incumbent !== null) {
+        const duelDraw = createDraw(state.seed, tick, agent.id);
+        const outcome = resolveCompetition(
+          config,
+          agent,
+          incumbent,
+          duelDraw(RNG_EVENT_TAGS.competitionResolve, 0),
+        );
+        const duelLoser = outcome.winner === 'initiator' ? incumbent : agent;
+        const duelWinner = outcome.winner === 'initiator' ? agent : incumbent;
+        const duelLoserBefore = duelLoser.value;
+        duelLoser.value = duelLoserBefore - outcome.loss;
+        events.emit({
+          type: 'wealth_changed',
+          agentId: duelLoser.id,
+          before: duelLoserBefore,
+          delta: -outcome.loss,
+          after: duelLoser.value,
+          cause: 'competition_loss',
+          referenceId: duelWinner.id,
+        });
+        const duelWinnerBefore = duelWinner.value;
+        duelWinner.value = duelWinnerBefore + outcome.gain;
+        events.emit({
+          type: 'wealth_changed',
+          agentId: duelWinner.id,
+          before: duelWinnerBefore,
+          delta: outcome.gain,
+          after: duelWinner.value,
+          cause: 'competition_gain',
+          referenceId: duelLoser.id,
+        });
+        accumulator.competitionLoss += outcome.loss;
+        accumulator.competitionGain += outcome.gain;
+        targetedAgents.add(incumbent.id);
+        events.emit({
+          type: 'competition_resolved',
+          initiatorId: agent.id,
+          targetId: incumbent.id,
+          logPowerInitiator: logPower(config, agent),
+          logPowerTarget: logPower(config, incumbent),
+          pInitiator: outcome.pInitiator,
+          winner: outcome.winner,
+          direction: outcome.direction,
+          directionMultiplier: outcome.directionMultiplier,
+          loss: outcome.loss,
+          gain: outcome.gain,
+        });
+        if (outcome.winner !== 'initiator') {
+          // 准入失败：在位者守擂成功；攻击方不支付、不升阶（对决财富转移已结算）。
+          events.emit({
+            type: 'action_invalid',
+            agentId: agent.id,
+            action: decision.selectedAction,
+            reason: 'displacement_lost',
+          });
+          record(null, 'stale_invalid', 'displacement_lost');
+          return;
+        }
+        // 攻击方获胜：在位者被击败降级（maxClass 不变；lastDescentTick 计入 Mdown）。
+        const displacedFrom = incumbent.classIndex;
+        flowCounts[displacedFrom]![displacedFrom - 1] =
+          (flowCounts[displacedFrom]![displacedFrom - 1] as number) + 1;
+        incumbent.classIndex = displacedFrom - 1;
+        incumbent.classAge = 0;
+        incumbent.baselineSum = 0;
+        incumbent.belowNeedStreak = 0;
+        incumbent.lastDescentTick = tick;
+        events.emit({
+          type: 'class_descended',
+          agentId: incumbent.id,
+          from: displacedFrom,
+          to: incumbent.classIndex,
+          cost: null,
+          reason: 'passive',
+        });
+      }
     }
     const before = agent.value;
     agent.value = before - cost;
