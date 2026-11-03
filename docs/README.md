@@ -56,6 +56,7 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 ### 3.3 参考资料（非契约）
 
 - [Jev（TypeSafe）简介](reference/jev-overview.md)：System One 三种原语、接口、限制与已知局限。
+- [实验产物登记](reference/artifacts.md)：`out/` 入库白名单、体积上限、重跑程序与当前缺口。
 
 ### 3.4 决策与记录
 
