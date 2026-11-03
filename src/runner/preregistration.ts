@@ -13,7 +13,6 @@ import {
   DECISION_SCHEMA_VERSION,
 } from '../core/control/versions.js';
 import { LABEL_THRESHOLDS_VERSION, computeLabelThresholdsHash } from '../core/labels/thresholds.js';
-import { ANALYSIS_WINDOWS } from './window-stats.js';
 
 /**
  * P1.5-04 预注册 manifest（01 §4.5 / 07 §3）。
@@ -281,7 +280,6 @@ export function computePreregistrationHash(manifest: PreregManifest): string {
 
 /** P1.5 预注册 manifest（Stage A：40 人 × 3650 tick；冻结后再运行）。 */
 export function buildPreregManifest(): PreregManifest {
-  const windows = ANALYSIS_WINDOWS.map((w) => ({ label: w.label, start: w.start, end: w.end }));
   return {
     schemaVersion: 'experiment-v2',
     hypothesis:
