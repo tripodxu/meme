@@ -126,6 +126,19 @@ baseConfigHash 不变：sha256:ff00821e…
 单轴格点（`single`）的效应可归因到单一参数，交互格点（`interaction`）只能表述
 「该联合条件下结构可达/不可达」。`out/p15-screen.json` 已按新口径重跑。
 
+### 4.5 只读诊断脚本（2026-11-03）
+
+`scripts/p15-diagnose.mjs` 对既有产物做离线再分析，不改产物、不跑模拟，
+随机性来自 `mulberry32`，重复运行数值一致：
+
+```bash
+node scripts/p15-diagnose.mjs            # 默认读 out/p15-full.json，约 3–5 分钟
+```
+
+输出五段：特征空间 PCA 谱与 Hopkins 统计量、k∈[2,5] 的轮廓与半样本 ARI 分布、
+基线阶级占比轨迹、cell 均值空间的 PC1 排序、初始条件敏感性。
+用途是**下一轮预注册的设计输入**，属 07 §6.1 的探索性分析，不得用于 G1.5 判定。
+
 ## 5. 测试 fixture 的版本约定
 
 两类 fixture 的保留策略**不同**，此前文档混称导致「保留只读」的虚假声明：
