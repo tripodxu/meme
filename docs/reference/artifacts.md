@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 27 个文件、合计约 7.2 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
+   当前入库 28 个文件、合计约 7.5 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -49,6 +49,7 @@
 | `out/p15-bifurcation-policy-random-bottom.json`  | 69.6 KiB | `6e5c2031…5b7023`    | 策略敏感性（负）：random-uniform-v1，10 seeds × 3 mids × 3 paths = 150 run；up/down locked 0；mUp gap 0…+6.0，pathDependent=false                                                                                | **负结果**（changes/0016）                                                                                                  |
 | `out/p15-descend-threshold-explore.json`         | 42.1 KiB | `b999751f…29aa40`    | 探索层：streak≥7 门控，5 seeds × 3 paths × d∈{0,.2,.5,.8,1.2,2,4} = 175 run；up locked 1.0（全部 d）、down/control 0；up mUp 2.6–6.4                                                                             | **探索证据**（changes/0017）                                                                                                |
 | `out/p15-descend-unconditional-explore.json`     | 41.2 KiB | `8034deb0…a0b238`    | 探索层：无条件 descend，同格点 175 run；d=0 时 up locked 1.0，d≥0.2 时 up/down/control 全 0；mUp 600–1446                                                                                                        | **探索证据**（changes/0017）                                                                                                |
+| `out/p15-v10-policy-random-full.json`            | 296 KiB  | `a10dff5b…21b6de`    | 策略敏感性（探索）：W4 v10 格点，random-uniform-v1，6 cell × 10 seeds = 60 run；k=2 ARI 1.000、temporal 1.000（聚类保留），但 B/C P0 0.612–0.677、mUp 0.857–0.906 → 方向预测失败                                 | **探索证据**（changes/0018；`exploratoryPolicySensitivity=true`）                                                           |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
@@ -69,6 +70,7 @@ dc6e85f9b7deadf40515d5f37ab3f4c6a1fb7640a133f9a381470c2baeac1685  out/p15-full.j
 9b5723d46769e50e94ed006fbc017172544434eeba8d347e2c845b71b21214fe  out/p15-screen.json
 b999751f2773c2059302b8fff8c793fd4e0171f76a024a775a2c46622529aa40  out/p15-descend-threshold-explore.json
 8034deb0988fe13a7d9bf224f31392b496a3b9135ce7296015cd3e7ed2a0b238  out/p15-descend-unconditional-explore.json
+a10dff5b1dad26f31d4f5c6d8fbc4b11e8f3faa6b678c22a3d12df9d3121b6de  out/p15-v10-policy-random-full.json
 ```
 
 校验方式：`sha256sum out/*.json`。

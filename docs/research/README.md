@@ -15,6 +15,7 @@
 | [2026-11-04-p15-emergent-bifurcation-explore.md](2026-11-04-p15-emergent-bifurcation-explore.md)       | 探索层报告  | 参数路径迟滞（375 run，3 ICs）：share=0.5、w_mid=20–30 下，w=0→mid 抽空底层并锁定（middle 10/10），w=100→mid 保留底层但流动性偏低；长期持续；**探索证据**，不构成 G1.5/P6 判定                                             |
 | [2026-11-04-p15-bifurcation-replication.md](2026-11-04-p15-bifurcation-replication.md)                 | 复制轮报告  | `mock` 策略内全新种子复制（3 ICs × 10 seeds × 3 mids）：9/9 cell 通过，up locked 1.0 / down 0；但 `random-uniform-v1` 敏感性为负（0/9 锁定、mUp 差不显著），锁定是**策略-规则交互**而非规则层涌现分岔，不构成 G1.5/P6 验收 |
 | [2026-11-04-p15-descend-condition.md](2026-11-04-p15-descend-condition.md)                             | 探索层报告  | descend 触发条件探针（175+175 run，5 seeds）：streak≥7 门控下 d=0–4 均锁定（up 1.0）；无条件 descend 在 d≥0.2 时 up/down/control 全部解锁；锁定由**下降触发条件**而非权重控制，解释 random 的负结果                        |
+| [2026-11-04-p15-w4-policy-sensitivity.md](2026-11-04-p15-w4-policy-sensitivity.md)                     | 探索层报告  | W4 格点改用 random（60 run，10 seeds/cell）：k=2 ARI 1.0、temporal 1.0，A vs B∪C 聚类保留；但 B/C P0 0.612–0.677、mUp 0.857–0.906，方向预测失败——聚类结构稳健、方向解释不稳健                                              |
 
 按时间顺序的完整链路：预研报告 → 均值场 → 诊断（登记 W0–W3）→ 交接单（W0/W1 施工）→
 W2/W3 确认轮 → v9/v10 机制探索 → W4 确认轮（G1.5 通过）→ 路径依赖与策略敏感性研究。

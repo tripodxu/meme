@@ -70,11 +70,12 @@
    （c0 30 run/60 点、c1 150 run/300 点），最小 30 run ≥5；其余指标与旧产物一致，
    G1.5 结论不变。旧产物 sha256 `a374bff6…cee4ee`，新产物 `cb9758b2…a4faa82`。
 7. **策略范围是 `mock-weighted-v1`，不是策略无关结论。** 预注册 manifest 的
-   `policyVersion` 即为 `mock-weighted-v1`，180 run 全部使用该策略，未测试
-   `random-uniform-v1`/Jev。后续 descend 探针（changes/0017）表明 mock 的
-   `belowNeedStreak>=7` 下降门控会放大路径锁定；因此 A vs B∪C 的体制分裂也只能
-   表述为“在该预注册策略下可复现”，不能外推为规则层、策略无关的涌现结构。
-   P2/Jev 实验必须记录实际下降触发条件并按策略分层报告。
+   `policyVersion` 即为 `mock-weighted-v1`，180 run 全部使用该策略。后续策略敏感性
+   探索（changes/0018，60 run，10 seeds/cell）用 `random-uniform-v1` 覆盖同一格点：
+   A vs B∪C 的 k=2 聚类仍复现（ARI 1.000、temporal 1.000），但方向预测失败
+   （B/C P0 0.612–0.677、mUp 0.857–0.906）。因此分裂的**聚类结构**对该替换稳健，
+   **B/C 的底轻/中产方向含义不稳健**；Jev 仍未测试。P2/Jev 实验必须记录实际下降
+   触发条件并按策略分层报告。
 
 ## 4. 与历史轮的关系
 

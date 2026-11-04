@@ -34,6 +34,19 @@ const args = process.argv.slice(2);
 const stage = args.includes('--stage') ? args[args.indexOf('--stage') + 1] : 'screen';
 // 预注册 manifest 选择：默认 W2（rules-v8 冻结历史）；`--manifest v10` 为 W4 确认轮。
 const manifestKind = args.includes('--manifest') ? args[args.indexOf('--manifest') + 1] : 'w2';
+// 策略敏感性（探索层）：仅允许对 v10 manifest 覆盖策略，产物标记 exploratory，
+// 不得当作 G1.5 确认证据。`--seeds` 用于限制探索规模。
+const policy = args.includes('--policy') ? args[args.indexOf('--policy') + 1] : 'mock-weighted-v1';
+if (policy !== 'mock-weighted-v1' && policy !== 'random-uniform-v1') {
+  throw new Error(`未知 policy=${policy}（仅 mock-weighted-v1/random-uniform-v1）`);
+}
+if (policy !== 'mock-weighted-v1' && manifestKind !== 'v10') {
+  throw new Error('策略覆盖仅允许 --manifest v10（探索层策略敏感性）');
+}
+const seedLimit = args.includes('--seeds') ? Number(args[args.indexOf('--seeds') + 1]) : null;
+if (seedLimit !== null && (!Number.isInteger(seedLimit) || seedLimit < 1)) {
+  throw new Error(`--seeds 必须是正整数，收到 ${seedLimit}`);
+}
 
 function log(message) {
   process.stderr.write(`[p15] ${message}\n`);
@@ -66,7 +79,12 @@ if (manifest.warmupTicks > firstWindowStart) {
   throw new Error(`warmupTicks=${manifest.warmupTicks} 超过首个分析窗口起点 ${firstWindowStart}`);
 }
 
-const seedsForStage = stage === 'screen' ? manifest.seeds.slice(0, 1) : manifest.seeds;
+const seedsForStage =
+  stage === 'screen'
+    ? manifest.seeds.slice(0, 1)
+    : seedLimit === null
+      ? manifest.seeds
+      : manifest.seeds.slice(0, seedLimit);
 const ticksForStage = stage === 'screen' ? 400 : manifest.totalTicks;
 
 // 预算护栏（07 §3）：超出即中止，不得把超预算批次当正式证据。
@@ -83,7 +101,7 @@ for (const cell of manifest.cells) {
   const seedResults = [];
   for (const seed of seedsForStage) {
     const runStart = performance.now();
-    const outcome = runSingle(config, asSeed(seed), { policy: 'mock-weighted-v1' });
+    const outcome = runSingle(config, asSeed(seed), { policy });
     const elapsedMs = Math.round(performance.now() - runStart);
     const w1 = outcome.report.windows.find((window) => window.label === 'w1');
     const w3 = outcome.report.windows.find((window) => window.label === 'w3');
@@ -297,6 +315,13 @@ if (stage === 'full') {
       temporalConsistency?.met === true &&
       nonDegenerateClusters >= 1 &&
       directionalMet;
+    const failedCriteria = [];
+    if (!minClusterMet) failedCriteria.push('最小簇 run 数 < 门槛');
+    if (!(medianAri >= manifest.clustering.stabilityMinAri))
+      failedCriteria.push('选中 k 稳定性 < 门槛');
+    if (temporalConsistency?.met !== true) failedCriteria.push('temporalConsistency < 门槛');
+    if (!(nonDegenerateClusters >= 1)) failedCriteria.push('无非退化簇');
+    if (!directionalMet) failedCriteria.push('方向预测不满足');
     clustering = {
       k: choice.k,
       silhouette: Math.round(choice.score * 1000) / 1000,
@@ -359,9 +384,9 @@ if (stage === 'full') {
         passed: g15Passed,
         verdict: g15Passed
           ? 'G1.5 通过：>=2 类可复现结构聚类'
-          : k2HardGateMet
-            ? 'G1.5 未通过：聚类协议子项不满足'
-            : '无宏观二态（k=2 ARI median < 门槛，不得以 k=4/k=5 充当通过）',
+          : !k2HardGateMet
+            ? '无宏观二态（k=2 ARI median < 门槛，不得以 k=4/k=5 充当通过）'
+            : `G1.5 未通过：${failedCriteria.join('；')}`,
       },
     };
   }
@@ -407,19 +432,35 @@ const output = {
   runCount,
   wallMinutes,
   manifest,
+  exploratoryPolicySensitivity: policy !== manifest.policyVersion,
+  policy: {
+    manifest: manifest.policyVersion,
+    executed: policy,
+    seedLimit,
+    note:
+      policy === manifest.policyVersion
+        ? '按预注册策略执行'
+        : '探索层策略覆盖：preregistrationHash 仍对应 manifest 的预注册策略，不得当作 G1.5 确认证据',
+  },
   execution: {
     stage,
     totalTicks: ticksForStage,
     seeds: seedsForStage,
     runCount,
     warmupTicks: manifest.warmupTicks,
+    policy,
   },
   clustering,
   cellsByDesign,
   cellDistinctness,
   cells: cellResults,
 };
-const outputBase = manifestKind === 'v10' ? `p15-v10-${stage}` : `p15-${stage}`;
+const outputBase =
+  policy === manifest.policyVersion
+    ? manifestKind === 'v10'
+      ? `p15-v10-${stage}`
+      : `p15-${stage}`
+    : `p15-${manifestKind}-policy-${policy === 'random-uniform-v1' ? 'random' : policy}-${stage}`;
 mkdirSync('out', { recursive: true });
 // 预算护栏（07 §3）：实际值必须落在预注册 budgets 内，超限不得当作正式证据。
 {
