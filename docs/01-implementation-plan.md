@@ -201,6 +201,8 @@ P5 拆成两段，避免 P6 被云端依赖卡住：**P5a 只做本地批跑与�
 
 **闸门 G5a**：故障注入覆盖运行中 kill、磁盘写失败和预算耗尽；恢复后最终 hash 与不中断对照一致；无云端也能产出完整本地 artifact 供 P6 使用。
 
+**P5-01 完成记录（2026-11-04）**：`src/runner/batch-cli.ts`（`runBatch` 执行器 + `batch-summary-v1` 机器可读摘要）与 `bin/stratify-batch.mjs`（`<manifest.json> --out <dir> [--resume]`，`package.json` 注册 `bin`/`batch` 脚本）已落地。单实验/矩阵/消融共用 `batch-v1` manifest 语义；stdout 只输出摘要 JSON、进度走 stderr，报告/审计 manifest/ledger 三文件原子落盘；mock/random 批跑只走 `runSingle` 同步路径，不依赖 P2。G5a 断点续跑：`batch-ledger-v1` ledger 逐任务原子落盘，`--resume` 跳过已完成 run，恢复后确定性指纹与不中断对照逐字一致（单测断言）；技术失败跨 resume 保留（07 §3），`totals.failed=due-ok` 决定退出码；不带 `--resume` 且 ledger 已存在时拒绝启动防覆盖。新增第 13 个 hash domain `stratify-batch-manifest-v1`（golden 向量同步）。测试：`test/unit/runner/batch-cli.test.ts` 12 项 + `test/integration/batch-cli.e2e.test.ts` 4 项（真实 spawn），全套 605 单测 + 4 集成 + 门禁全绿。详见 changes/0031。**边界**：R2 artifact 清单与 `metrics-v1` 分块属 P5b/P4；并发/共享预算属 P5-02；P5-01 完成不改变 P5a 其余项状态。
+
 ### 8.2 P5b：上传与云端对接（G6 后）
 
 | ID    | 工作                                      | 依赖     | 交付与验收                                                                   |
