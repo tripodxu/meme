@@ -1,0 +1,1968 @@
+{
+  "schemaVersion": "p15-multibasin-probe-v1",
+  "exploratory": true,
+  "note": "探索层（07 §6.1）：检验多吸引域与第三/第四初始条件；不构成 G1.5/P6 证据。",
+  "execution": {
+    "runCount": 80,
+    "wallMinutes": 3,
+    "seeds": [
+      "p15-seed-001",
+      "p15-seed-002",
+      "p15-seed-003",
+      "p15-seed-004",
+      "p15-seed-005",
+      "p15-seed-006",
+      "p15-seed-007",
+      "p15-seed-008",
+      "p15-seed-009",
+      "p15-seed-010"
+    ],
+    "horizons": [
+      3650,
+      7300
+    ]
+  },
+  "cells": [
+    "B-cushion365"
+  ],
+  "ics": [
+    {
+      "key": "ic-default",
+      "shares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ]
+    },
+    {
+      "key": "ic-middle",
+      "shares": [
+        0.1,
+        0.25,
+        0.35,
+        0.22,
+        0.08
+      ]
+    },
+    {
+      "key": "ic-bottom",
+      "shares": [
+        0.6,
+        0.25,
+        0.1,
+        0.04,
+        0.01
+      ]
+    },
+    {
+      "key": "ic-top",
+      "shares": [
+        0.05,
+        0.15,
+        0.3,
+        0.3,
+        0.2
+      ]
+    }
+  ],
+  "perGroup": [
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0.33158717412537453,
+        0.5585887055804288,
+        0.0951810828837569,
+        0.011417230958826883,
+        0.0032258064516129032
+      ],
+      "mUp": 13.4,
+      "mDown": 20
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0.0812056868391201,
+        0.7765007148440431,
+        0.1232093492325876,
+        0.014917582417582415,
+        0.004166666666666667
+      ],
+      "mUp": 26.3,
+      "mDown": 24.2
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0.04780523982242997,
+        0.6914422695301304,
+        0.2575266841958268,
+        0.0032258064516129032,
+        0
+      ],
+      "mUp": 9,
+      "mDown": 37.7
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0.0037037037037037034,
+        0.7029646403116925,
+        0.28559356074650843,
+        0.0035714285714285713,
+        0.004166666666666667
+      ],
+      "mUp": 13.2,
+      "mDown": 39
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0.4232574925762532,
+        0.5036776594384829,
+        0.06101698639580642,
+        0.012047861589457514,
+        0
+      ],
+      "mUp": 15.5,
+      "mDown": 14.7
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0.09612138375256815,
+        0.7972863141079032,
+        0.08707967597397881,
+        0.00754985754985755,
+        0.011962768615692154
+      ],
+      "mUp": 30.4,
+      "mDown": 18.7
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0.0064516129032258064,
+        0.553210436281319,
+        0.44033795081545507,
+        0,
+        0
+      ],
+      "mUp": 5,
+      "mDown": 46.2
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.5428264208909371,
+        0.457173579109063,
+        0,
+        0
+      ],
+      "mUp": 6,
+      "mDown": 46.5
+    }
+  ],
+  "icSeparation": [
+    {
+      "cellKey": "B-cushion365",
+      "horizon": 3650,
+      "noise": [
+        {
+          "ic": "ic-default",
+          "noise": 0.20867208343439245
+        },
+        {
+          "ic": "ic-middle",
+          "noise": 0.14947322485098372
+        },
+        {
+          "ic": "ic-bottom",
+          "noise": 0.2224647755929589
+        },
+        {
+          "ic": "ic-top",
+          "noise": 0.09735856013445146
+        }
+      ],
+      "pairs": [
+        {
+          "a": "ic-default",
+          "b": "ic-middle",
+          "meanL1": 0.5968499434267687
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-bottom",
+          "meanL1": 0.2405756599432321
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-top",
+          "meanL1": 0.7327611208213926
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-bottom",
+          "meanL1": 0.7685486157833357
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-top",
+          "meanL1": 0.36562253323925653
+        },
+        {
+          "a": "ic-bottom",
+          "b": "ic-top",
+          "meanL1": 0.8968769684177154
+        }
+      ]
+    },
+    {
+      "cellKey": "B-cushion365",
+      "horizon": 7300,
+      "noise": [
+        {
+          "ic": "ic-default",
+          "noise": 0.2689292858658176
+        },
+        {
+          "ic": "ic-middle",
+          "noise": 0.16590849196213187
+        },
+        {
+          "ic": "ic-bottom",
+          "noise": 0.26853420393317107
+        },
+        {
+          "ic": "ic-top",
+          "noise": 0.16606929510155316
+        }
+      ],
+      "pairs": [
+        {
+          "a": "ic-default",
+          "b": "ic-middle",
+          "meanL1": 0.335637988245233
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-bottom",
+          "meanL1": 0.18914951254531465
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-top",
+          "meanL1": 0.6679284597529509
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-bottom",
+          "meanL1": 0.3970277695450593
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-top",
+          "meanL1": 0.34316003672510903
+        },
+        {
+          "a": "ic-bottom",
+          "b": "ic-top",
+          "meanL1": 0.7401878062701683
+        }
+      ]
+    }
+  ],
+  "clustering": [
+    {
+      "k": 2,
+      "silhouette": 0.382,
+      "sizes": {
+        "0": 19,
+        "1": 61
+      },
+      "composition": {
+        "0": {
+          "B-cushion365|ic-default|h3650": 9,
+          "B-cushion365|ic-bottom|h3650": 10
+        },
+        "1": {
+          "B-cushion365|ic-default|h3650": 1,
+          "B-cushion365|ic-default|h7300": 10,
+          "B-cushion365|ic-middle|h3650": 10,
+          "B-cushion365|ic-middle|h7300": 10,
+          "B-cushion365|ic-bottom|h7300": 10,
+          "B-cushion365|ic-top|h3650": 10,
+          "B-cushion365|ic-top|h7300": 10
+        }
+      },
+      "ariMedian": 0.348,
+      "ariMin": -0.097
+    },
+    {
+      "k": 3,
+      "silhouette": 0.389,
+      "sizes": {
+        "0": 19,
+        "1": 32,
+        "2": 29
+      },
+      "composition": {
+        "0": {
+          "B-cushion365|ic-default|h3650": 9,
+          "B-cushion365|ic-bottom|h3650": 10
+        },
+        "1": {
+          "B-cushion365|ic-default|h3650": 1,
+          "B-cushion365|ic-default|h7300": 10,
+          "B-cushion365|ic-middle|h3650": 6,
+          "B-cushion365|ic-middle|h7300": 5,
+          "B-cushion365|ic-bottom|h7300": 10
+        },
+        "2": {
+          "B-cushion365|ic-middle|h3650": 4,
+          "B-cushion365|ic-middle|h7300": 5,
+          "B-cushion365|ic-top|h3650": 10,
+          "B-cushion365|ic-top|h7300": 10
+        }
+      },
+      "ariMedian": 0.581,
+      "ariMin": 0.07
+    },
+    {
+      "k": 4,
+      "silhouette": 0.463,
+      "sizes": {
+        "0": 19,
+        "1": 6,
+        "2": 26,
+        "3": 29
+      },
+      "composition": {
+        "0": {
+          "B-cushion365|ic-default|h3650": 9,
+          "B-cushion365|ic-bottom|h3650": 10
+        },
+        "1": {
+          "B-cushion365|ic-default|h3650": 1,
+          "B-cushion365|ic-default|h7300": 1,
+          "B-cushion365|ic-middle|h7300": 1,
+          "B-cushion365|ic-bottom|h7300": 3
+        },
+        "2": {
+          "B-cushion365|ic-default|h7300": 9,
+          "B-cushion365|ic-middle|h3650": 6,
+          "B-cushion365|ic-middle|h7300": 4,
+          "B-cushion365|ic-bottom|h7300": 7
+        },
+        "3": {
+          "B-cushion365|ic-middle|h3650": 4,
+          "B-cushion365|ic-middle|h7300": 5,
+          "B-cushion365|ic-top|h3650": 10,
+          "B-cushion365|ic-top|h7300": 10
+        }
+      },
+      "ariMedian": 0.536,
+      "ariMin": 0.343
+    },
+    {
+      "k": 5,
+      "silhouette": 0.502,
+      "sizes": {
+        "0": 19,
+        "1": 6,
+        "2": 18,
+        "3": 8,
+        "4": 29
+      },
+      "composition": {
+        "0": {
+          "B-cushion365|ic-default|h3650": 9,
+          "B-cushion365|ic-bottom|h3650": 10
+        },
+        "1": {
+          "B-cushion365|ic-default|h3650": 1,
+          "B-cushion365|ic-default|h7300": 1,
+          "B-cushion365|ic-middle|h7300": 1,
+          "B-cushion365|ic-bottom|h7300": 3
+        },
+        "2": {
+          "B-cushion365|ic-default|h7300": 5,
+          "B-cushion365|ic-middle|h3650": 5,
+          "B-cushion365|ic-middle|h7300": 3,
+          "B-cushion365|ic-bottom|h7300": 5
+        },
+        "3": {
+          "B-cushion365|ic-default|h7300": 4,
+          "B-cushion365|ic-middle|h3650": 1,
+          "B-cushion365|ic-middle|h7300": 1,
+          "B-cushion365|ic-bottom|h7300": 2
+        },
+        "4": {
+          "B-cushion365|ic-middle|h3650": 4,
+          "B-cushion365|ic-middle|h7300": 5,
+          "B-cushion365|ic-top|h3650": 10,
+          "B-cushion365|ic-top|h7300": 10
+        }
+      },
+      "ariMedian": 0.653,
+      "ariMin": 0.459
+    }
+  ],
+  "rows": [
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.3548387096774194,
+          0.5161290322580645,
+          0.12903225806451613,
+          0,
+          0
+        ],
+        "mUp": 11,
+        "mDown": 22
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0.37142857142857144,
+          0.5714285714285714,
+          0.02857142857142857,
+          0.02857142857142857,
+          0
+        ],
+        "mUp": 14,
+        "mDown": 21
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0.375,
+          0.59375,
+          0.03125,
+          0,
+          0
+        ],
+        "mUp": 7,
+        "mDown": 18
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.3225806451612903,
+          0.5161290322580645,
+          0.16129032258064516,
+          0,
+          0
+        ],
+        "mUp": 13,
+        "mDown": 21
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.22580645161290322,
+          0.6774193548387096,
+          0.06451612903225806,
+          0,
+          0.03225806451612903
+        ],
+        "mUp": 18,
+        "mDown": 19
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.2903225806451613,
+          0.6129032258064516,
+          0.0967741935483871,
+          0,
+          0
+        ],
+        "mUp": 11,
+        "mDown": 19
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0.2894736842105263,
+          0.5789473684210527,
+          0.10526315789473684,
+          0.02631578947368421,
+          0
+        ],
+        "mUp": 14,
+        "mDown": 17
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0.375,
+          0.5,
+          0.125,
+          0,
+          0
+        ],
+        "mUp": 15,
+        "mDown": 23
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.3870967741935484,
+          0.45161290322580644,
+          0.12903225806451613,
+          0.03225806451612903,
+          0
+        ],
+        "mUp": 17,
+        "mDown": 20
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0.32432432432432434,
+          0.5675675675675675,
+          0.08108108108108109,
+          0.02702702702702703,
+          0
+        ],
+        "mUp": 14,
+        "mDown": 20
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0.037037037037037035,
+          0.7407407407407407,
+          0.2222222222222222,
+          0,
+          0
+        ],
+        "mUp": 28,
+        "mDown": 27
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0.13793103448275862,
+          0.7931034482758621,
+          0.06896551724137931,
+          0,
+          0
+        ],
+        "mUp": 26,
+        "mDown": 25
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0.16666666666666666,
+          0.7916666666666666,
+          0,
+          0.041666666666666664,
+          0
+        ],
+        "mUp": 15,
+        "mDown": 20
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 23,
+        "classShares": [
+          0.08695652173913043,
+          0.6956521739130435,
+          0.21739130434782608,
+          0,
+          0
+        ],
+        "mUp": 33,
+        "mDown": 31
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0.041666666666666664,
+          0.75,
+          0.16666666666666666,
+          0,
+          0.041666666666666664
+        ],
+        "mUp": 30,
+        "mDown": 23
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 26,
+        "classShares": [
+          0,
+          0.9230769230769231,
+          0.038461538461538464,
+          0.038461538461538464,
+          0
+        ],
+        "mUp": 23,
+        "mDown": 23
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0.06666666666666667,
+          0.8333333333333334,
+          0.06666666666666667,
+          0.03333333333333333,
+          0
+        ],
+        "mUp": 28,
+        "mDown": 23
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0.16666666666666666,
+          0.7083333333333334,
+          0.125,
+          0,
+          0
+        ],
+        "mUp": 22,
+        "mDown": 25
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0.07142857142857142,
+          0.7142857142857143,
+          0.17857142857142858,
+          0.03571428571428571,
+          0
+        ],
+        "mUp": 29,
+        "mDown": 22
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0.037037037037037035,
+          0.8148148148148148,
+          0.14814814814814814,
+          0,
+          0
+        ],
+        "mUp": 29,
+        "mDown": 23
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.6875,
+          0.3125,
+          0,
+          0
+        ],
+        "mUp": 11,
+        "mDown": 39
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0.05714285714285714,
+          0.7142857142857143,
+          0.22857142857142856,
+          0,
+          0
+        ],
+        "mUp": 9,
+        "mDown": 37
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0.09375,
+          0.625,
+          0.28125,
+          0,
+          0
+        ],
+        "mUp": 6,
+        "mDown": 36
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.03225806451612903,
+          0.7419354838709677,
+          0.22580645161290322,
+          0,
+          0
+        ],
+        "mUp": 7,
+        "mDown": 39
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.03225806451612903,
+          0.7741935483870968,
+          0.16129032258064516,
+          0.03225806451612903,
+          0
+        ],
+        "mUp": 7,
+        "mDown": 38
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.03225806451612903,
+          0.7096774193548387,
+          0.25806451612903225,
+          0,
+          0
+        ],
+        "mUp": 7,
+        "mDown": 33
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0.05263157894736842,
+          0.6842105263157895,
+          0.2631578947368421,
+          0,
+          0
+        ],
+        "mUp": 6,
+        "mDown": 34
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0.06060606060606061,
+          0.6363636363636364,
+          0.30303030303030304,
+          0,
+          0
+        ],
+        "mUp": 12,
+        "mDown": 40
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.06451612903225806,
+          0.7096774193548387,
+          0.22580645161290322,
+          0,
+          0
+        ],
+        "mUp": 8,
+        "mDown": 37
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0.05263157894736842,
+          0.631578947368421,
+          0.3157894736842105,
+          0,
+          0
+        ],
+        "mUp": 17,
+        "mDown": 44
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0.6666666666666666,
+          0.3333333333333333,
+          0,
+          0
+        ],
+        "mUp": 12,
+        "mDown": 39
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0,
+          0.7931034482758621,
+          0.20689655172413793,
+          0,
+          0
+        ],
+        "mUp": 15,
+        "mDown": 39
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0.037037037037037035,
+          0.7037037037037037,
+          0.25925925925925924,
+          0,
+          0
+        ],
+        "mUp": 11,
+        "mDown": 37
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.75,
+          0.25,
+          0,
+          0
+        ],
+        "mUp": 10,
+        "mDown": 40
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.75,
+          0.20833333333333334,
+          0,
+          0.041666666666666664
+        ],
+        "mUp": 17,
+        "mDown": 43
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0.7037037037037037,
+          0.2962962962962963,
+          0,
+          0
+        ],
+        "mUp": 10,
+        "mDown": 34
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.7096774193548387,
+          0.2903225806451613,
+          0,
+          0
+        ],
+        "mUp": 9,
+        "mDown": 34
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.5833333333333334,
+          0.4166666666666667,
+          0,
+          0
+        ],
+        "mUp": 17,
+        "mDown": 43
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0.7142857142857143,
+          0.25,
+          0.03571428571428571,
+          0
+        ],
+        "mUp": 12,
+        "mDown": 37
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0,
+          0.6551724137931034,
+          0.3448275862068966,
+          0,
+          0
+        ],
+        "mUp": 19,
+        "mDown": 44
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.41935483870967744,
+          0.4838709677419355,
+          0.0967741935483871,
+          0,
+          0
+        ],
+        "mUp": 11,
+        "mDown": 12
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0.37142857142857144,
+          0.5142857142857142,
+          0.08571428571428572,
+          0.02857142857142857,
+          0
+        ],
+        "mUp": 24,
+        "mDown": 18
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0.46875,
+          0.5,
+          0.03125,
+          0,
+          0
+        ],
+        "mUp": 11,
+        "mDown": 15
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.41935483870967744,
+          0.4838709677419355,
+          0.0967741935483871,
+          0,
+          0
+        ],
+        "mUp": 13,
+        "mDown": 12
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0.3,
+          0.6,
+          0.06666666666666667,
+          0.03333333333333333,
+          0
+        ],
+        "mUp": 26,
+        "mDown": 20
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.45161290322580644,
+          0.4838709677419355,
+          0.06451612903225806,
+          0,
+          0
+        ],
+        "mUp": 15,
+        "mDown": 16
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0.42105263157894735,
+          0.47368421052631576,
+          0.07894736842105263,
+          0.02631578947368421,
+          0
+        ],
+        "mUp": 15,
+        "mDown": 11
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0.59375,
+          0.34375,
+          0.0625,
+          0,
+          0
+        ],
+        "mUp": 10,
+        "mDown": 17
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.3548387096774194,
+          0.6129032258064516,
+          0,
+          0.03225806451612903,
+          0
+        ],
+        "mUp": 18,
+        "mDown": 13
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0.43243243243243246,
+          0.5405405405405406,
+          0.02702702702702703,
+          0,
+          0
+        ],
+        "mUp": 12,
+        "mDown": 13
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0.07407407407407407,
+          0.7037037037037037,
+          0.2222222222222222,
+          0,
+          0
+        ],
+        "mUp": 28,
+        "mDown": 15
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0.034482758620689655,
+          0.7931034482758621,
+          0.13793103448275862,
+          0,
+          0.034482758620689655
+        ],
+        "mUp": 44,
+        "mDown": 22
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0.16666666666666666,
+          0.7916666666666666,
+          0.041666666666666664,
+          0,
+          0
+        ],
+        "mUp": 20,
+        "mDown": 17
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 23,
+        "classShares": [
+          0.13043478260869565,
+          0.782608695652174,
+          0.043478260869565216,
+          0,
+          0.043478260869565216
+        ],
+        "mUp": 30,
+        "mDown": 17
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0.08333333333333333,
+          0.7916666666666666,
+          0.08333333333333333,
+          0,
+          0.041666666666666664
+        ],
+        "mUp": 38,
+        "mDown": 25
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 26,
+        "classShares": [
+          0,
+          0.9230769230769231,
+          0.038461538461538464,
+          0.038461538461538464,
+          0
+        ],
+        "mUp": 36,
+        "mDown": 23
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0.16666666666666666,
+          0.7333333333333333,
+          0.1,
+          0,
+          0
+        ],
+        "mUp": 27,
+        "mDown": 14
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0.08333333333333333,
+          0.75,
+          0.16666666666666666,
+          0,
+          0
+        ],
+        "mUp": 28,
+        "mDown": 22
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0.18518518518518517,
+          0.7777777777777778,
+          0,
+          0.037037037037037035,
+          0
+        ],
+        "mUp": 22,
+        "mDown": 13
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0.037037037037037035,
+          0.9259259259259259,
+          0.037037037037037035,
+          0,
+          0
+        ],
+        "mUp": 31,
+        "mDown": 19
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.53125,
+          0.46875,
+          0,
+          0
+        ],
+        "mUp": 5,
+        "mDown": 46
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.6,
+          0.4,
+          0,
+          0
+        ],
+        "mUp": 5,
+        "mDown": 44
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.53125,
+          0.46875,
+          0,
+          0
+        ],
+        "mUp": 5,
+        "mDown": 44
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.03225806451612903,
+          0.5483870967741935,
+          0.41935483870967744,
+          0,
+          0
+        ],
+        "mUp": 5,
+        "mDown": 50
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.5151515151515151,
+          0.48484848484848486,
+          0,
+          0
+        ],
+        "mUp": 3,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.6129032258064516,
+          0.3870967741935484,
+          0,
+          0
+        ],
+        "mUp": 7,
+        "mDown": 48
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.6052631578947368,
+          0.39473684210526316,
+          0,
+          0
+        ],
+        "mUp": 3,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.5454545454545454,
+          0.45454545454545453,
+          0,
+          0
+        ],
+        "mUp": 6,
+        "mDown": 48
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0.03225806451612903,
+          0.5161290322580645,
+          0.45161290322580644,
+          0,
+          0
+        ],
+        "mUp": 4,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.5263157894736842,
+          0.47368421052631576,
+          0,
+          0
+        ],
+        "mUp": 7,
+        "mDown": 47
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0.5555555555555556,
+          0.4444444444444444,
+          0,
+          0
+        ],
+        "mUp": 5,
+        "mDown": 46
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.5806451612903226,
+          0.41935483870967744,
+          0,
+          0
+        ],
+        "mUp": 6,
+        "mDown": 44
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0.5555555555555556,
+          0.4444444444444444,
+          0,
+          0
+        ],
+        "mUp": 5,
+        "mDown": 44
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.6666666666666666,
+          0.3333333333333333,
+          0,
+          0
+        ],
+        "mUp": 7,
+        "mDown": 51
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.4583333333333333,
+          0.5416666666666666,
+          0,
+          0
+        ],
+        "mUp": 3,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0.5555555555555556,
+          0.4444444444444444,
+          0,
+          0
+        ],
+        "mUp": 8,
+        "mDown": 48
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.625,
+          0.375,
+          0,
+          0
+        ],
+        "mUp": 3,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.5,
+          0.5,
+          0,
+          0
+        ],
+        "mUp": 9,
+        "mDown": 50
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0.4642857142857143,
+          0.5357142857142857,
+          0,
+          0
+        ],
+        "mUp": 6,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "B-cushion365",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0,
+          0.4666666666666667,
+          0.5333333333333333,
+          0,
+          0
+        ],
+        "mUp": 8,
+        "mDown": 47
+      }
+    }
+  ]
+}

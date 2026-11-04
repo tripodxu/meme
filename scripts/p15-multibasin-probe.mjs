@@ -52,6 +52,34 @@ const ALL_CELLS = [
       dynamics: { congestionExponent: 1 },
     },
   },
+  {
+    cellKey: 'B-cushion90',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10, holdingCushionDays: 90 },
+    },
+  },
+  {
+    cellKey: 'B-cushion180',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10, holdingCushionDays: 180 },
+    },
+  },
+  {
+    cellKey: 'B-cushion365',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10, holdingCushionDays: 365 },
+    },
+  },
+  {
+    cellKey: 'B-cross120',
+    overrides: {
+      ascent: {
+        displacementShare: 0.5,
+        scarcityWeight: 10,
+        crossDays: [120, 150, 180, 210],
+      },
+    },
+  },
 ];
 const cellFilter = args.includes('--cells') ? args[args.indexOf('--cells') + 1].split(',') : null;
 const CELLS =

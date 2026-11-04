@@ -62,3 +62,5 @@ out/*
 !out/p15-multibasin-probe.json
 !out/p15-open-feedback-explore.json
 !out/p15-multibasin-congestion-probe.json
+!out/p15-barrier-probe.json
+!out/p15-cushion365-probe.json

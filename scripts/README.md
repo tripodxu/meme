@@ -25,6 +25,6 @@
 | `p15-feedback-explore.mjs`            | 反馈轴 / 位移份额 / 占用锚定的探索层网格（含 open-feedback 与 4 IC；非确认证据）                                                       |
 | `p15-bifurcation-explore.mjs`         | 参数路径迟滞/底层锁定探索（up/down/control；非确认证据）                                                                               |
 | `p15-bifurcation-probe.mjs`           | 分叉机制探针：share 消融与锁定后恢复（非确认证据）                                                                                     |
-| `p15-multibasin-probe.mjs`            | 多吸引域探针：A/B/C × 4 IC × 3650/7300（非确认证据）                                                                                   |
+| `p15-multibasin-probe.mjs`            | 多吸引域/壁垒探针：A/B/C、cushion/cross × 4 IC × 3650/7300（非确认证据）                                                               |
 | `p15-descend-threshold.mjs`           | descend 权重/触发条件阈值探针（streak vs always；非确认证据）                                                                          |
 | `benchmark.mjs`                       | 性能基准                                                                                                                               |
