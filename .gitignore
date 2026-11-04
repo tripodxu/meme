@@ -66,3 +66,6 @@ out/*
 !out/p15-cushion365-probe.json
 !out/p15-a-ic30-probe.json
 !out/p15-w4-feature-subspace.json
+!out/p15-w5-classshare.json
+!out/p15-w5-convergence-10950.json
+!out/p15-w5-convergence-10950-c80-c100.json

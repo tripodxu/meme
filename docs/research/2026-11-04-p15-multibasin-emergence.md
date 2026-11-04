@@ -160,6 +160,8 @@ k=4 虽然 ARI 0.991，但只是把两类各自细分，不是三个语义类。
 - 但 `class` k=3 的 ARI min 0.660 < 0.70，且特征是看到 W4 结果后选的，存在
   post-hoc 选择风险。不能直接宣布 P6-05；要确认必须新开 `experimentId`、用
   全新 `p15r5-*` 种子预注册 class-share 特征与 k=3（changes/0024）。
+  W5 结果见 `research/2026-11-04-p15-w5-classshare-result.md`：temporal 0.789 未过，
+  10950 探针显示 C 类滑回 B；三类是有限视野现象。
 
 ## 4. 综合：如何产生涌现
 

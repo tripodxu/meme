@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 37 个文件、合计约 10.1 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
+   当前入库 40 个文件、合计约 10.2 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -59,6 +59,9 @@
 | `out/p15-cushion365-probe.json`                      | 39 KiB   | `427d729c…1baa10`    | 探索层：cushion365 × 4 IC × 10 seeds × 3650/7300 = 80 run；3650 的 IC 分离在 7300 大多收敛，仅 top 保持独立；高壁垒是慢混合而非稳定多吸引域                                                                      | **探索证据**（changes/0022）                                                                                                |
 | `out/p15-a-ic30-probe.json`                          | 55 KiB   | `dde1fad0…deb28d`    | 探索层：A-share1 × 4 IC × 30 seeds = 120 run；k=2 ARI 0.942/0.869（底重 vs 中上），k=3 ARI 0.676/0.610 不成立，k=4 0.991/0.962 仅细分两族                                                                        | **探索证据**（changes/0023）                                                                                                |
 | `out/p15-w4-feature-subspace.json`                   | 14 KiB   | `3ae38cd3…4cf7c7`    | 只读 W4 180 点特征子空间：class k=3 轮廓 0.517、ARI 0.828/0.660，A/B/C 按 cell 分开；full k=3 ARI 0.757/0.522 混合 B/C；network k=2 ARI 1.000                                                                    | **探索证据**（changes/0024）                                                                                                |
+| `out/p15-w5-classshare.json`                         | 86 KiB   | `0e70be3c…73ee31`    | W5 确认候选：6 cell × 30 新种子 = 180 run + 60 收敛；k=3 轮廓 0.527、ARI 0.904/0.787；temporal 0.789 < 0.80 未过；方向 6/6 过；收敛 0.833                                                                        | **确认候选未通过**（changes/0025）                                                                                          |
+| `out/p15-w5-convergence-10950.json`                  | <10 KiB  | `ee72e45f…16d7aa6`   | 10950 tick 边界收敛：B-w15 25/30 同簇（全部最终在 B）；C-w60 3/30 同簇（28 个滑回 B）                                                                                                                            | **探索证据**（changes/0025）                                                                                                |
+| `out/p15-w5-convergence-10950-c80-c100.json`         | <10 KiB  | `65cb9019…bd3736`    | 10950 tick 边界收敛：C-w80 8/30 同簇、C-w100 19/30；C 类随时间滑回 B                                                                                                                                             | **探索证据**（changes/0025）                                                                                                |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
@@ -89,6 +92,9 @@ bc9f1f282ee4e71b9e6f00051e9408f600f5612ddc02734e075f004048eeabaa  out/p15-feedba
 427d729c444f71b62b4859602cc6f87b5f47835af36556b8e37a8e125f1baa10  out/p15-cushion365-probe.json
 dde1fad0a4b682fc9349b41eb718b1cf6d0231bbd44059d10e677f2598deb28d  out/p15-a-ic30-probe.json
 3ae38cd3ea250885d4a38cd18244e40ed4f12c52fe6b5b8cc8b79002e64cf7c7  out/p15-w4-feature-subspace.json
+0e70be3c18ebf00ae442522f436e7a1dfcedd5ff4107c50389c25168e073ee31  out/p15-w5-classshare.json
+ee72e45f35526e6c278781409da3080ff51cfedf260da810a06091fed16d7aa6  out/p15-w5-convergence-10950.json
+65cb9019689fcf53104341fe5e7f9b34d02fd15f23f57bcbf468792bbebd3736  out/p15-w5-convergence-10950-c80-c100.json
 ```
 
 校验方式：`sha256sum out/*.json`。

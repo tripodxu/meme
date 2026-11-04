@@ -1,0 +1,475 @@
+{
+  "schemaVersion": "p15-w5-convergence-10950-v1",
+  "exploratory": true,
+  "w5Source": "out/p15-w5-classshare.json",
+  "horizon": 10950,
+  "note": "探索层：只判断 B/C 边界是否随时间收敛；不改变 W5 预注册判定。",
+  "execution": {
+    "runCount": 60,
+    "wallMinutes": 4,
+    "seeds": [
+      "p15r5-seed-001",
+      "p15r5-seed-002",
+      "p15r5-seed-003",
+      "p15r5-seed-004",
+      "p15r5-seed-005",
+      "p15r5-seed-006",
+      "p15r5-seed-007",
+      "p15r5-seed-008",
+      "p15r5-seed-009",
+      "p15r5-seed-010",
+      "p15r5-seed-011",
+      "p15r5-seed-012",
+      "p15r5-seed-013",
+      "p15r5-seed-014",
+      "p15r5-seed-015",
+      "p15r5-seed-016",
+      "p15r5-seed-017",
+      "p15r5-seed-018",
+      "p15r5-seed-019",
+      "p15r5-seed-020",
+      "p15r5-seed-021",
+      "p15r5-seed-022",
+      "p15r5-seed-023",
+      "p15r5-seed-024",
+      "p15r5-seed-025",
+      "p15r5-seed-026",
+      "p15r5-seed-027",
+      "p15r5-seed-028",
+      "p15r5-seed-029",
+      "p15r5-seed-030"
+    ]
+  },
+  "stats": {
+    "B-share50-w15": {
+      "total": 30,
+      "same": 25
+    },
+    "C-share50-w60": {
+      "total": 30,
+      "same": 3
+    }
+  },
+  "rows": [
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-001",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-002",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-003",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-004",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-005",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-006",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-007",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-008",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-009",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-010",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-011",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-012",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-013",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-014",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-015",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-016",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-017",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-018",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-019",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-020",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-021",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-022",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-023",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-024",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-025",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-026",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-027",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-028",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-029",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "seed": "p15r5-seed-030",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-001",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-002",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-003",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-004",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-005",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-006",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-007",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-008",
+      "w5Cluster": 2,
+      "cluster10950": 2,
+      "same": true
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-009",
+      "w5Cluster": 1,
+      "cluster10950": 1,
+      "same": true
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-010",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-011",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-012",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-013",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-014",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-015",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-016",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-017",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-018",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-019",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-020",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-021",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-022",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-023",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-024",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-025",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-026",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-027",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-028",
+      "w5Cluster": 2,
+      "cluster10950": 2,
+      "same": true
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-029",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "seed": "p15r5-seed-030",
+      "w5Cluster": 2,
+      "cluster10950": 1,
+      "same": false
+    }
+  ]
+}
