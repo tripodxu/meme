@@ -82,8 +82,8 @@ c1 (300 点): B/C 五个 cell 全部 300 点
    （c0 30 run/60 点、c1 150 run/300 点），最小 30 run ≥5；其余指标与旧产物一致，
    G1.5 结论不变。旧产物 sha256 `a374bff6…cee4ee`，新产物 `cb9758b2…a4faa82`。
 7. **策略范围是 `mock-weighted-v1`。** 预注册 manifest 的 `policyVersion` 即为
-   `mock-weighted-v1`，180 run 全部使用该策略。后续策略敏感性探索（changes/0018/0019/0020，
-   各 180 run，30 seeds/cell）用 `random-uniform-v1` 与 `unconditional-descend`
+   `mock-weighted-v1`，180 run 全部使用该策略。后续策略敏感性探索（10-seed 探索见
+   changes/0018/0019；30-seed 复算见 changes/0020，各 180 run）用 `random-uniform-v1` 与 `unconditional-descend`
    覆盖同一格点：A vs B∪C 的 k=2 聚类仍复现（ARI 1.000、temporal 1.000），
    但方向预测失败（random B/C P0 0.617–0.680、mUp 0.864–0.906；
    unconditional-descend P0 0.691–0.725、mUp 0.975–0.979）。因此分裂的

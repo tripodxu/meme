@@ -71,7 +71,7 @@
    G1.5 结论不变。旧产物 sha256 `a374bff6…cee4ee`，新产物 `cb9758b2…a4faa82`。
 7. **策略范围是 `mock-weighted-v1`，不是策略无关结论。** 预注册 manifest 的
    `policyVersion` 即为 `mock-weighted-v1`，180 run 全部使用该策略。后续策略敏感性
-   探索（changes/0018/0019/0020，各 180 run，30 seeds/cell）用 `random-uniform-v1`
+   探索（30-seed 复算 changes/0020，各 180 run）用 `random-uniform-v1`
    与 `unconditional-descend` 覆盖同一格点：A vs B∪C 的 k=2 聚类仍复现
    （ARI 1.000、temporal 1.000），但方向预测失败（random B/C P0 0.617–0.680、
    mUp 0.864–0.906；unconditional-descend P0 0.691–0.725、mUp 0.975–0.979）。
