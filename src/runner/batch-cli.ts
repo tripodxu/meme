@@ -60,6 +60,8 @@ export interface BatchProgress {
   readonly index: number;
   readonly total: number;
   readonly ok: boolean;
+  /** true = 从 ledger 复用的已完成 run（未重算）。 */
+  readonly resumed: boolean;
   readonly elapsedMs: number;
 }
 
@@ -203,6 +205,7 @@ export async function runBatch(
         index,
         total: tasks.length,
         ok: true,
+        resumed: true,
         elapsedMs: 0,
       });
       continue;
@@ -236,6 +239,7 @@ export async function runBatch(
         index,
         total: tasks.length,
         ok: false,
+        resumed: false,
         elapsedMs: 0,
       });
       continue;
@@ -257,6 +261,7 @@ export async function runBatch(
       index,
       total: tasks.length,
       ok: true,
+      resumed: false,
       elapsedMs: record.elapsedMs,
     });
   }

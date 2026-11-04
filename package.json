@@ -8,8 +8,12 @@
     "node": ">=22.18"
   },
   "packageManager": "pnpm@11.22.0",
+  "bin": {
+    "stratify-batch": "bin/stratify-batch.mjs"
+  },
   "scripts": {
     "check:docs": "node scripts/check-doc-links.mjs",
+    "batch": "node bin/stratify-batch.mjs",
     "params:snapshot": "pnpm build && node scripts/generate-param-snapshot.mjs",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",

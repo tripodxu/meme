@@ -84,11 +84,12 @@ describe('批量执行器与机器可读摘要（P5-01）', () => {
   it('progress 回调逐 run 报告且不改变结果', async () => {
     const progress: string[] = [];
     const summary = await runBatch(smallManifest(), {
-      onProgress: (p) => progress.push(`${p.index}/${p.total}:${p.cellKey}:${p.seed}:${p.ok}`),
+      onProgress: (p) =>
+        progress.push(`${p.index}/${p.total}:${p.cellKey}:${p.seed}:${p.ok}:${p.resumed}`),
     });
     expect(progress).toHaveLength(4);
-    expect(progress[0]).toBe('0/4:baseline:s1:true');
-    expect(progress[3]).toBe('3/4:threshold=0.9:s2:true');
+    expect(progress[0]).toBe('0/4:baseline:s1:true:false');
+    expect(progress[3]).toBe('3/4:threshold=0.9:s2:true:false');
     expect(summary.totals.ok).toBe(4);
   });
 
@@ -168,9 +169,21 @@ describe('批量 ledger 断点续跑（G5a）', () => {
     expect(storedLedger.runs).toHaveLength(2);
 
     // 第二段：恢复，重试失败任务并复用已完成任务。
-    const resumed = await runBatch(manifest, { ledger: { host, path: ledgerPath } });
+    const resumedProgress: string[] = [];
+    const resumed = await runBatch(manifest, {
+      ledger: { host, path: ledgerPath },
+      onProgress: (p) => resumedProgress.push(`${p.cellKey}:${p.seed}:${p.resumed}`),
+    });
     expect(resumed.totals).toMatchObject({ due: 4, ok: 4, failed: 0, resumed: 2 });
     expect(resumed.manifestHash).toBe(manifestHash);
+    // ledger 只存成功 run（按完成顺序）：baseline:s1 与 threshold=0.9:s1 被复用，
+    // 两个 s2 失败任务被重试执行。
+    expect(resumedProgress).toEqual([
+      'baseline:s1:true',
+      'baseline:s2:false',
+      'threshold=0.9:s1:true',
+      'threshold=0.9:s2:false',
+    ]);
 
     // 对照：无 ledger 的一次性完整运行。
     const control = await runBatch(manifest);
