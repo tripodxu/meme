@@ -23,4 +23,5 @@
 | `p15-gates-diagnose.mjs`              | 机制门禁产物离线复核                                         |
 | `p15-mean-field.mjs`                  | 均值场方向分析                                               |
 | `p15-feedback-explore.mjs`            | 反馈轴 / 位移份额 / 占用锚定的探索层网格（非确认证据）       |
+| `p15-bifurcation-explore.mjs`         | 参数路径迟滞/底层锁定探索（up/down/control；非确认证据）     |
 | `benchmark.mjs`                       | 性能基准                                                     |

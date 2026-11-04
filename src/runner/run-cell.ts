@@ -46,6 +46,11 @@ export interface RunOptions {
    * 同步路径拒绝返回 Promise 的策略（live 必须走 `runSingleWithPolicy`）。
    */
   readonly policyImpl?: DecisionPolicy;
+  /**
+   * P5/分叉实验：从给定状态继续（例如检查点恢复或多阶段参数路径）。
+   * 其 `configHash` 与 `seed` 必须与本次 run 一致；状态自身不得被外部修改。
+   */
+  readonly initialState?: SimState;
 }
 
 export interface RunOutcome {
@@ -97,7 +102,24 @@ export function deriveExtinct(endReason: string | null, aliveAtEnd: number): boo
  */
 export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): RunOutcome {
   const validatedSeed = asSeed(seed);
-  let state = createSimulation(config, validatedSeed);
+  let state: SimState;
+  if (options.initialState !== undefined) {
+    if (computeConfigHash(options.initialState.config) !== computeConfigHash(config)) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        'initialState.config 与本次 run 的 config 不一致',
+      );
+    }
+    if (options.initialState.seed !== validatedSeed) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        'initialState.seed 与本次 run 的 seed 不一致',
+      );
+    }
+    state = options.initialState;
+  } else {
+    state = createSimulation(config, validatedSeed);
+  }
   const classCount = config.population.classCount;
   const stats: TickStats[] = [];
   const flowsByTick = new Map<number, readonly (readonly number[])[]>();

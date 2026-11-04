@@ -43,3 +43,7 @@ out/*
 !out/p15-plateau-explore.json
 !out/p15-v10-full.json
 !out/p15-v10-screen.json
+!out/p15-bifurcation-explore-middle.json
+!out/p15-bifurcation-explore-default.json
+!out/p15-bifurcation-explore-bottom.json
+!out/p15-bifurcation-long-middle.json

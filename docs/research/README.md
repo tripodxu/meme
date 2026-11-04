@@ -12,6 +12,7 @@
 | [2026-11-04-p15-w2-confirmation-and-g15-verdict.md](2026-11-04-p15-w2-confirmation-and-g15-verdict.md) | 确认轮报告  | W2 确认轮（rules-v8 位移体制 780 run）与 W3 判定：**G1.5 未通过——无宏观二态**（k=2 ARI median 0.415）；五轮合并画像与规则评审决策项                                                           |
 | [2026-11-04-p15-feedback-axes-initial-condition.md](2026-11-04-p15-feedback-axes-initial-condition.md) | 探索层报告  | 补扫 W2 未覆盖的反馈轴与初始阶级分布（132 run）：rules-v8 下同一参数存在两个共存稳态（底重 P0≈0.56 vs 中层 P1≈0.57），池化 k=2 ARI=1.0；**探索证据**，不改写 G1.5 判定，提出 W2′ 预注册决策项 |
 | [2026-11-04-p15-w4-v10-confirmation.md](2026-11-04-p15-w4-v10-confirmation.md)                         | 确认轮报告  | W4（rules-v10 占用锚定，180 run，prereg `ece0a98b…`）：k=2 ARI median/min **1.000**、temporal 1.000、方向预测过 → **G1.5 通过（≥2 类）**；簇为 A vs B∪C，只有两类，P6 的 ≥3 类仍未满足        |
+| [2026-11-04-p15-emergent-bifurcation-explore.md](2026-11-04-p15-emergent-bifurcation-explore.md)       | 探索层报告  | 参数路径迟滞（375 run，3 ICs）：share=0.5、w_mid=20–30 下，w=0→mid 抽空底层并锁定（middle 10/10），w=100→mid 保留底层但流动性偏低；长期持续；**探索证据**，不构成 G1.5/P6 判定                |
 
 按时间顺序的完整链路：预研报告 → 均值场 → 诊断（登记 W0–W3）→ 交接单（W0/W1 施工）→
 W2/W3 确认轮 → v9/v10 机制探索 → W4 确认轮（G1.5 通过）。

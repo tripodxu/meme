@@ -184,6 +184,42 @@ describe('Policy 接线（P2-01/P2-06）', () => {
     expect(policy.calls).toBe(1);
   });
 
+  it('runSingle 可从 initialState 继续，终态与整段运行一致', () => {
+    const first = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1', maxTicks: 20 });
+    const full = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1', maxTicks: 60 });
+    const resumed = runSingle(CONFIG, SEED, {
+      policy: 'mock-weighted-v1',
+      maxTicks: 60,
+      initialState: first.finalState,
+    });
+    expect(resumed.report.finalStateHash).toBe(full.report.finalStateHash);
+    expect(resumed.report.endTick).toBe(full.report.endTick);
+    expect(resumed.report.aliveAtEnd).toBe(full.report.aliveAtEnd);
+  });
+
+  it('initialState 的 config/seed 与本次 run 不一致时拒绝', () => {
+    const first = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1', maxTicks: 20 });
+    const otherConfig = createDemoConfig({
+      population: { initialPopulation: 6 },
+      schedule: { totalTicks: 60, statsStride: 1, snapshotStride: 100 },
+      decision: { topK: 2 },
+    });
+    expect(() =>
+      runSingle(otherConfig, SEED, {
+        policy: 'mock-weighted-v1',
+        maxTicks: 60,
+        initialState: first.finalState,
+      }),
+    ).toThrow();
+    expect(() =>
+      runSingle(CONFIG, asSeed('other-seed'), {
+        policy: 'mock-weighted-v1',
+        maxTicks: 60,
+        initialState: first.finalState,
+      }),
+    ).toThrow();
+  });
+
   it('取消后不再结算新 tick，未执行 tick 的决策不进入产物', async () => {
     const controller = new AbortController();
     const outcome = await runSingleWithPolicy(CONFIG, SEED, {
