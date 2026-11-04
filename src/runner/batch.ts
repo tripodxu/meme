@@ -39,7 +39,9 @@ export interface BatchTask {
   readonly configHash: string;
 }
 
-const RUN_CONFIG_TOP_LEVEL_KEYS: ReadonlySet<string> = new Set(Object.keys(DEFAULT_RUN_CONFIG));
+export const RUN_CONFIG_TOP_LEVEL_KEYS: ReadonlySet<string> = new Set(
+  Object.keys(DEFAULT_RUN_CONFIG),
+);
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
