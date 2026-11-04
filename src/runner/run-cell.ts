@@ -2,6 +2,7 @@ import { computeConfigHash, computeParamsHash } from '../core/config/hash.js';
 import { createSimulation } from '../core/init/simulation.js';
 import type { RunConfig } from '../core/config/types.js';
 import type { SimState } from '../core/model/state.js';
+import { captureSnapshot } from '../core/replay/snapshot.js';
 import { asSeed, type AgentId, type Seed } from '../core/control/ids.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { step } from '../core/engine/engine.js';
@@ -21,12 +22,15 @@ import type { TickStats } from '../core/macros/tick-metrics.js';
 import { computeAuthoritativeStateHash } from '../core/hash/state-hash.js';
 import { ANALYSIS_WINDOWS, summarizeWindow, type WindowSummary } from './window-stats.js';
 import { evaluateLabels } from './labels.js';
-import type { SyncCheckpointHost } from './checkpoint.js';
+import type { CheckpointHost, SyncCheckpointHost } from './checkpoint.js';
 import {
   buildRunProgressPayload,
   loadRunProgress,
+  loadRunProgressAsync,
   removeRunProgress,
+  removeRunProgressAsync,
   saveRunProgress,
+  saveRunProgressAsync,
 } from './run-progress.js';
 
 /** 单 run 的窗口聚合结果（P1.5-01 报告契约的一部分）。 */
@@ -383,6 +387,18 @@ export interface PolicyRunOptions {
   readonly maxTicks?: number;
   /** 取消信号：策略应尽快返回 `cancelled` 回退（04 §6）。 */
   readonly signal?: AbortSignal;
+  /**
+   * P6-04 前置：live run 内进度检查点（异步宿主；语义与同步版一致，changes/0040）。
+   * 提供时每 `everyTicks` 个已完成 tick 原子落盘（状态 + 窗口累计器 + 决策日志），
+   * 启动时自动恢复 meta 匹配的检查点（含前段决策日志——live 审计链不中断），
+   * run 正常结束后移除；取消/致命失败保留检查点供续跑。
+   */
+  readonly runCheckpoint?: {
+    readonly host: CheckpointHost;
+    readonly path: string;
+    readonly everyTicks: number;
+    readonly cellKey: string;
+  };
 }
 
 export async function runSingleWithPolicy(
@@ -391,17 +407,45 @@ export async function runSingleWithPolicy(
   options: PolicyRunOptions,
 ): Promise<RunOutcome> {
   const validatedSeed = asSeed(seed);
+  const checkpoint = options.runCheckpoint;
   let state = createSimulation(config, validatedSeed);
-  const classCount = config.population.classCount;
+  let savedAtSequence = 0;
+  let recentEvents: TickEvent[] = [];
   const stats: TickStats[] = [];
   const flowsByTick = new Map<number, readonly (readonly number[])[]>();
   const decisionsByTick = new Map<number, { due: number; fallbacks: number }>();
   const decisionRecords: DecisionRecord[] = [];
+  if (checkpoint !== undefined) {
+    // 恢复语义与同步版一致：meta 三元组（cellKey/seed/configHash）不匹配抛错；
+    // 损坏按不存在处理（确定性重跑）；前段决策日志随检查点恢复（live 审计链不中断）。
+    const loaded = await loadRunProgressAsync(checkpoint.host, checkpoint.path, {
+      cellKey: checkpoint.cellKey,
+      seed: validatedSeed,
+      configHash: computeConfigHash(config),
+    });
+    if (loaded !== null) {
+      state = loaded.state;
+      savedAtSequence = loaded.meta.savedAtSequence;
+      for (const row of loaded.progress.stats) {
+        stats.push(row);
+      }
+      for (const entry of loaded.progress.flows) {
+        flowsByTick.set(entry.tick, entry.matrix);
+      }
+      for (const entry of loaded.progress.decisions) {
+        decisionsByTick.set(entry.tick, { due: entry.due, fallbacks: entry.fallbacks });
+      }
+      for (const record of loaded.decisionRecords) {
+        decisionRecords.push(record);
+      }
+      recentEvents = [...(loaded.recentEvents ?? [])];
+    }
+  }
+  const classCount = config.population.classCount;
   const maxTicks = options.maxTicks ?? config.schedule.totalTicks;
   const signal = options.signal ?? new AbortController().signal;
-  let recentEvents: TickEvent[] = [];
   let endReason: string | null = null;
-  let endTick = 0;
+  let endTick = state.society.tick;
   let cancelled = false;
   while (state.society.tick < Math.min(config.schedule.totalTicks, maxTicks)) {
     // 04 §6：取消后不再发新请求，也不再结算新 tick。
@@ -468,9 +512,44 @@ export async function runSingleWithPolicy(
     recentEvents = [...recentEvents, ...result.events].slice(-50);
     endTick = tick;
     endReason = result.endReason;
+    if (checkpoint !== undefined && state.society.tick % checkpoint.everyTicks === 0) {
+      savedAtSequence += 1;
+      // 异步路径直接 await 宿主写；取消/致命失败不落盘本次进度（保留上一完整点）。
+      await saveRunProgressAsync(checkpoint.host, checkpoint.path, {
+        schemaVersion: 'run-progress-v1',
+        meta: {
+          cellKey: checkpoint.cellKey,
+          seed: validatedSeed,
+          configHash: computeConfigHash(config),
+          tickCompleted: state.society.tick,
+          savedAtSequence,
+        },
+        snapshot: captureSnapshot(state),
+        progress: {
+          stats,
+          flows: [...flowsByTick].map(([flowTick, matrix]) => ({ tick: flowTick, matrix })),
+          decisions: [...decisionsByTick].map(([decisionTick, value]) => ({
+            tick: decisionTick,
+            due: value.due,
+            fallbacks: value.fallbacks,
+          })),
+        },
+        decisionRecords,
+        recentEvents,
+      });
+    }
     if (endReason !== null) {
       break;
     }
+  }
+  // run 正常结束（引擎 endReason 或到达 totalTicks）后移除进度检查点；
+  // 取消（cancelled）与 maxTicks 护栏停止保留检查点供续跑。
+  if (
+    checkpoint !== undefined &&
+    !cancelled &&
+    (endReason !== null || state.society.tick >= config.schedule.totalTicks)
+  ) {
+    await removeRunProgressAsync(checkpoint.host, checkpoint.path);
   }
   return finalizeRun({
     config,

@@ -216,3 +216,77 @@ export function runProgressExpectation(
 ): RunProgressExpectation {
   return { cellKey, seed, configHash: computeConfigHash(config) };
 }
+
+import type { TickEvent } from '../core/events.js';
+import type { DecisionRecord } from '../decision/types.js';
+import type { CheckpointHost } from './checkpoint.js';
+
+/** P2-06：live 决策日志随进度检查点保存（异步路径）；mock 批跑可为空数组。 */
+export interface RunProgressPayloadWithDecisions extends RunProgressPayload {
+  readonly decisionRecords?: readonly DecisionRecord[];
+  /** 决策状态哈希链的 recentEvents（最后 ≤50 条事件）；缺省 = 空起点（mock 语义）。 */
+  readonly recentEvents?: readonly TickEvent[];
+}
+
+/**
+ * 异步变体（P6-04 前置）：`runSingleWithPolicy` 的循环是异步的，可直接 await 宿主写。
+ * 语义与同步版完全一致：临时文件 + rename 原子；损坏按不存在处理（确定性重跑）；
+ * meta 三元组不匹配抛错（防跨 run 污染）。
+ */
+export async function saveRunProgressAsync(
+  host: CheckpointHost,
+  path: string,
+  payload: RunProgressPayloadWithDecisions,
+): Promise<void> {
+  const tempPath = `${path}.tmp`;
+  await host.writeTemp(tempPath, JSON.stringify(payload));
+  await host.promote(tempPath, path);
+}
+
+export async function loadRunProgressAsync(
+  host: CheckpointHost,
+  path: string,
+  expectation: RunProgressExpectation,
+): Promise<{
+  meta: RunProgressMeta;
+  state: SimState;
+  progress: RunProgressPayload['progress'];
+  decisionRecords: readonly DecisionRecord[];
+  recentEvents: readonly TickEvent[];
+} | null> {
+  if (!(await host.exists(path))) {
+    return null;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(await host.read(path));
+  } catch {
+    return null;
+  }
+  if (!isPlainObject(parsed) || parsed['schemaVersion'] !== 'run-progress-v1') {
+    return null;
+  }
+  try {
+    const result = parseRunProgress(await host.read(path), path);
+    const decisionRecords = Array.isArray(parsed['decisionRecords'])
+      ? (parsed['decisionRecords'] as readonly DecisionRecord[])
+      : [];
+    const recentEvents = Array.isArray(parsed['recentEvents'])
+      ? (parsed['recentEvents'] as readonly TickEvent[])
+      : [];
+    assertProgressExpectation(result.meta, expectation, path);
+    return { ...result, decisionRecords, recentEvents };
+  } catch (error) {
+    if (
+      error instanceof StratifyError &&
+      (error.code === errorCodes.CONFIG_INVALID || error.code === errorCodes.CONFIG_UNKNOWN_VERSION)
+    ) {
+      throw error;
+    }
+    return null;
+  }
+}
+
+export async function removeRunProgressAsync(host: CheckpointHost, path: string): Promise<void> {
+  await host.remove(path);
+}
