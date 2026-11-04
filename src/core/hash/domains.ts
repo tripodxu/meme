@@ -15,6 +15,7 @@ export const HASH_DOMAINS = {
   artifactManifest: 'stratify-artifact-manifest-v1',
   preregistration: 'stratify-preregistration-v1',
   labelThresholds: 'stratify-label-thresholds-v1',
+  batchManifest: 'stratify-batch-manifest-v1',
 } as const;
 
 export type HashDomainName = keyof typeof HASH_DOMAINS;

@@ -402,4 +402,23 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
     notes:
       '排除 experimentId、createdAt、observedResponseModels、runtimeVersions、运行结果与失败次数。',
   },
+  {
+    domain: HASH_DOMAINS.batchManifest,
+    fields: [
+      { name: 'schemaVersion', type: 'string', description: "常量 'batch-v1'。" },
+      { name: 'rulesVersion', type: 'string', description: '规则版本（与构建一致）。' },
+      { name: 'engineVersion', type: 'string', description: '引擎版本（与构建一致）。' },
+      { name: 'populationSize', type: 'number', description: '等于 base config 的人口。' },
+      { name: 'totalTicks', type: 'number', description: '批量总 tick 数。' },
+      { name: 'policy', type: 'string', description: 'mock-weighted-v1|random-uniform-v1。' },
+      { name: 'seeds', type: 'array', ordering: 'none', description: '配对种子列表。' },
+      {
+        name: 'cells',
+        type: 'array',
+        ordering: 'none',
+        description: 'cellKey/overrides；overrides 只含 RunConfig 顶层键。',
+      },
+    ],
+    notes: 'P5-01 批量 ledger 复现口径；排除运行结果、耗时与失败记录。',
+  },
 ];

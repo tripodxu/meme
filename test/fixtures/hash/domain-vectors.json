@@ -390,6 +390,25 @@
         }
       },
       "hash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168"
+    },
+    {
+      "domain": "stratify-batch-manifest-v1",
+      "value": {
+        "schemaVersion": "batch-v1",
+        "rulesVersion": "rules-v11",
+        "engineVersion": "engine-v0.9.0",
+        "populationSize": 40,
+        "totalTicks": 40,
+        "policy": "mock-weighted-v1",
+        "seeds": ["s1", "s2"],
+        "cells": [
+          {
+            "cellKey": "baseline",
+            "overrides": {}
+          }
+        ]
+      },
+      "hash": "sha256:b752cabd5570640af75f9ec7db31f2c0824ee4cec75b31be736b192199f218e6"
     }
   ]
 }
