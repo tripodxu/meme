@@ -39,7 +39,7 @@
   "engineVersion": "...",
   "decisionSchemaVersion": "stratify-decision-v1",
   "policyVersion": "mock-weighted-v1",
-  "promptVersion": "prompt-v2",
+  "promptVersion": "prompt-v3",
   "promptStyle": "neutral",
   "requestedModel": "mock",
   "observedResponseModels": [],

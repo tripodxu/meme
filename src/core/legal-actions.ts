@@ -30,6 +30,88 @@ export interface LegalActionSet {
 }
 
 /**
+ * 上升费用的**未折扣基数**（03 §6 阶段 B）：class 模式 `crossDays[c]×refIncome[c+1]`，
+ * own 模式 `crossDays[c]×B×E[c+1]`。供 ascendCost 与 v10 占用锚定壁垒共用，
+ * 保证两者锚在同一计价单位上。
+ */
+export function computeAscendCrossBase(
+  config: RunConfig,
+  agent: Pick<AgentState, 'classIndex' | 'maxClassIndex'>,
+  eByClass: readonly number[],
+  refIncome: readonly number[],
+): { readonly nextClass: number; readonly crossBase: number } | null {
+  const nextClass = agent.classIndex + 1;
+  if (nextClass >= config.population.classCount) {
+    return null;
+  }
+  let crossBase: number;
+  if (config.need.referenceMode === 'class') {
+    const refNext = refIncome[nextClass];
+    if (refNext === undefined) {
+      throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `refIncome 缺少阶级 ${nextClass}`);
+    }
+    crossBase = (config.ascent.crossDays[agent.classIndex] as number) * refNext;
+  } else {
+    crossBase =
+      (config.ascent.crossDays[agent.classIndex] as number) *
+      config.opportunity.dailyBase *
+      (eByClass[nextClass] as number);
+  }
+  return { nextClass, crossBase };
+}
+
+/** 存活者的阶级占比快照（tick 期初调用，禁止在行动循环内逐次重算）。 */
+export function classShareSnapshot(
+  agents: readonly Pick<AgentState, 'classIndex' | 'alive'>[],
+  classCount: number,
+): number[] {
+  const counts = new Array<number>(classCount).fill(0);
+  let alive = 0;
+  for (const agent of agents) {
+    if (!agent.alive) continue;
+    counts[agent.classIndex] = (counts[agent.classIndex] ?? 0) + 1;
+    alive += 1;
+  }
+  return counts.map((count) => (alive === 0 ? 0 : count / alive));
+}
+
+/** v10 机会隐含参照份额：`1/env0` 归一化（env0 越高，阶级目标占比越小）。 */
+export function scarcityTargetShares(config: RunConfig): number[] {
+  const inverse = config.opportunity.env0.map((value) => (value > 0 ? 1 / value : 0));
+  const sum = inverse.reduce((acc, value) => acc + value, 0);
+  if (sum <= 0) {
+    return config.opportunity.env0.map(() => 1 / config.population.classCount);
+  }
+  return inverse.map((value) => value / sum);
+}
+
+/**
+ * v10 占用锚定壁垒（changes/0013）：目标阶级实际占比超过机会隐含参照份额时，
+ * 上升的**余额门槛**增加 `scarcityWeight × crossBase × pressure`，
+ * `pressure = max(0, P[target]/target[target] − 1)`。不支付、只作门槛。
+ * `scarcityWeight=0` 时恒为 0（行为与 v9 一致）。
+ */
+export function computeAscendBarrier(
+  config: RunConfig,
+  classIndex: number,
+  crossBase: number,
+  classShares: readonly number[],
+): number {
+  const weight = config.ascent.scarcityWeight;
+  if (!(weight > 0)) {
+    return 0;
+  }
+  const targetClass = classIndex + 1;
+  const target = scarcityTargetShares(config)[targetClass];
+  if (target === undefined || target <= 0) {
+    return 0;
+  }
+  const actual = classShares[targetClass] ?? 0;
+  const pressure = Math.max(0, actual / target - 1);
+  return weight * crossBase * pressure;
+}
+
+/**
  * 上升费用（03 §6 阶段 B）：`crossBase×(1-discount)×openMultiplier`，均为正。
  * 需求参照系（rules-v6）：`class` 模式 `crossBase = crossDays[c]×refIncome[c+1]`
  *（目的地阶级参照收入）；`own` 模式保持 v5 旧式 `crossDays[c]×B×E[c+1]` 逐位一致（G-D）。
@@ -41,8 +123,8 @@ export function computeAscendCost(
   openness: number,
   refIncome: readonly number[],
 ): number | null {
-  const nextClass = agent.classIndex + 1;
-  if (nextClass >= config.population.classCount) {
+  const base = computeAscendCrossBase(config, agent, eByClass, refIncome);
+  if (base === null) {
     return null;
   }
   const d = agent.maxClassIndex - agent.classIndex;
@@ -57,20 +139,7 @@ export function computeAscendCost(
         : d === 2
           ? (discounts[1] as number)
           : (discounts[2] as number);
-  // crossDays 长度为 C-1，classIndex<C-1 时必有值；E/refIncome 由状态保证长度 C。
-  let crossBase: number;
-  if (config.need.referenceMode === 'class') {
-    const refNext = refIncome[nextClass];
-    if (refNext === undefined) {
-      throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `refIncome 缺少阶级 ${nextClass}`);
-    }
-    crossBase = (config.ascent.crossDays[agent.classIndex] as number) * refNext;
-  } else {
-    crossBase =
-      (config.ascent.crossDays[agent.classIndex] as number) *
-      config.opportunity.dailyBase *
-      (eByClass[nextClass] as number);
-  }
+  const crossBase = base.crossBase;
   const openMultiplier = clamp(
     Math.exp(config.openness.ascentCostWeight * (0.5 - openness)),
     config.openness.multiplierMin,
@@ -180,11 +249,27 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
     state.society.refIncome,
   );
   const descendCost = computeDescendCost(config, agent, eByClass);
+  // v10 占用锚定：目标阶级占比超过机会隐含参照份额时抬升余额门槛。
+  // 与引擎复核共享同一 tick 期初占比，禁止在这里按行动顺序逐次重算。
+  const crossBaseInfo =
+    ascendCost === null
+      ? null
+      : computeAscendCrossBase(config, agent, eByClass, state.society.refIncome);
+  const barrier =
+    crossBaseInfo === null
+      ? 0
+      : computeAscendBarrier(
+          config,
+          agent.classIndex,
+          crossBaseInfo.crossBase,
+          classShareSnapshot(state.society.agents, config.population.classCount),
+        );
   const canAscend =
     ascendCost !== null &&
     agent.value >=
       ascendCost +
-        computeAscendCushion(config, agent.classIndex + 1, eByClass, state.society.refIncome);
+        computeAscendCushion(config, agent.classIndex + 1, eByClass, state.society.refIncome) +
+        barrier;
   const canDescend = descendCost !== null && agent.value >= descendCost;
 
   const targets = sampleCompetitionTargets(state, agent);

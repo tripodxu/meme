@@ -28,10 +28,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v8.json');
-const golden = readJson('../fixtures/config/default-rules-v8.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v10.json');
+const golden = readJson('../fixtures/config/default-rules-v10.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v8 default config', () => {
+describe('golden: rules-v10 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -47,15 +47,19 @@ describe('golden: rules-v8 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v8.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v10.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
-  it('v8 默认参照系为 class 模式、裕度同参照系且位移准入生效（changes/0008/0009/0010）', () => {
+  it('v10 默认参照系为 class 模式、位移份额 1、占用锚定 0（changes/0008/0009/0010/0012/0013）', () => {
     expect(DEFAULT_RUN_CONFIG.need.referenceMode).toBe('class');
     expect(DEFAULT_RUN_CONFIG.need.graceDays).toBe(30);
     expect(DEFAULT_RUN_CONFIG.need.referenceSmoothing).toBe(0.2);
     expect(DEFAULT_RUN_CONFIG.ascent.holdingCushionDays).toBe(30);
+    // v9 默认 1 = 完全位移准入，与 v8 逐位一致。
+    expect(DEFAULT_RUN_CONFIG.ascent.displacementShare).toBe(1);
+    // v10 默认 0 = 无占用锚定，行为与 v9 一致（state hash 含 config，跨版本不比较）。
+    expect(DEFAULT_RUN_CONFIG.ascent.scarcityWeight).toBe(0);
   });
 
   it('matches the pinned configHash', () => {

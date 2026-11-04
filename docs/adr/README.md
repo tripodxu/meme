@@ -24,7 +24,8 @@ ADR 不能静默推翻 `rule.md` 或 `docs/README.md` 的“唯一事实来源�
 
 ## 索引
 
-| 编号                                                 | 标题                        | 状态     | 影响                                                                                         |
-| ---------------------------------------------------- | --------------------------- | -------- | -------------------------------------------------------------------------------------------- |
-| [0001](0001-runtime-authority-and-hash-inputs.md)    | 运行时权威与哈希输入 schema | proposed | run identity 增加 `runtimeVersion`；每个 hash domain 需要字段级 schema 与多运行时向量        |
-| [0002](0002-p2-decision-layer-stays-experimental.md) | P2 决策层留在实验目录       | accepted | `src/experimental/p2-decision/` 保留但禁止接线；G1.5 通过前生产层不得 import，由架构测试强制 |
+| 编号                                                 | 标题                        | 状态               | 影响                                                                                                      |
+| ---------------------------------------------------- | --------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------- |
+| [0001](0001-runtime-authority-and-hash-inputs.md)    | 运行时权威与哈希输入 schema | proposed           | run identity 增加 `runtimeVersion`；每个 hash domain 需要字段级 schema 与多运行时向量                     |
+| [0002](0002-p2-decision-layer-stays-experimental.md) | P2 决策层留在实验目录       | superseded by 0003 | `src/experimental/p2-decision/` 保留但禁止接线；G1.5 通过前生产层不得 import，由架构测试强制              |
+| [0003](0003-p2-decision-layer-production.md)         | P2 决策层迁回生产路径       | accepted           | G1.5 通过后 `policy/serialize/jev-client/live` 迁回 `src/decision/`；保留实现与测试，新增 Policy 接线路径 |

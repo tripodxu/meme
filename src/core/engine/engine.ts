@@ -12,7 +12,10 @@ import { attemptRewire } from '../network/rewire.js';
 import { computeTickStats, type TickStats } from '../macros/tick-metrics.js';
 import { maybeUpdateOpenness, updateClassEnvironment } from '../feedback/slow-variables.js';
 import {
+  classShareSnapshot,
+  computeAscendBarrier,
   computeAscendCost,
+  computeAscendCrossBase,
   computeAscendCushion,
   computeDescendCost,
   sampleDisplacementTarget,
@@ -113,6 +116,9 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   const isDecisionTick = tick % config.decision.interval === 0;
   const eByClass = state.society.eByClass;
   const opennessStart = state.society.openness;
+  // v10 占用锚定：阶级占比在**行动循环之前**取一次快照，所有个体共享，
+  // 避免行动执行顺序影响进入壁垒（AGENTS 4 的 tick 期初快照原则）。
+  const classSharesStart = classShareSnapshot(agents, classCount);
   // 需求参照系（rules-v6）：本 tick 的 need/ascendCost 一律使用上期 refIncome
   //（先算后用，避免同期值引入 agent 顺序依赖）；'own' 模式不读取该数组。
   const referenceMode = config.need.referenceMode;
@@ -147,6 +153,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
         decision,
         eByClass,
         openness: opennessStart,
+        classSharesStart,
         events,
         executions,
         activeChanged,
@@ -458,6 +465,8 @@ interface ExecuteActionInput {
   readonly decision: StepDecision;
   readonly eByClass: readonly number[];
   readonly openness: number;
+  /** v10：tick 期初存活者阶级占比快照（占用锚定壁垒的唯一输入）。 */
+  readonly classSharesStart: readonly number[];
   readonly events: EventSequence;
   readonly executions: ExecutionRecord[];
   readonly activeChanged: Set<string>;
@@ -481,6 +490,7 @@ function executeAction(input: ExecuteActionInput): void {
     decision,
     eByClass,
     openness,
+    classSharesStart,
     events,
     executions,
     activeChanged,
@@ -518,9 +528,18 @@ function executeAction(input: ExecuteActionInput): void {
       cost === null
         ? 0
         : computeAscendCushion(config, agent.classIndex + 1, eByClass, state.society.refIncome);
-    // 反向比较写 `!(value >= cost + cushion)`：NaN（如 E 缺失）时枚举侧拒绝、
+    // v10 占用锚定：目标阶级占比高于机会隐含参照份额时，余额门槛增加。
+    const crossBaseInfo =
+      cost === null
+        ? null
+        : computeAscendCrossBase(config, agent, eByClass, state.society.refIncome);
+    const barrier =
+      crossBaseInfo === null
+        ? 0
+        : computeAscendBarrier(config, agent.classIndex, crossBaseInfo.crossBase, classSharesStart);
+    // 反向比较写 `!(value >= cost + cushion + barrier)`：NaN（如 E 缺失）时枚举侧拒绝、
     // 复核侧也必须拒绝，不能因 `NaN < x` 为 false 而放行。
-    if (cost === null || !(agent.value >= cost + cushion)) {
+    if (cost === null || !(agent.value >= cost + cushion + barrier)) {
       events.emit({
         type: 'action_invalid',
         agentId: agent.id,
@@ -533,16 +552,20 @@ function executeAction(input: ExecuteActionInput): void {
     // rules-v8 位移准入（D-09，diagnosis §8）：仅 'class' 参照系——上升需击败目标阶级
     // 在位者（按 displacementTarget 地址均匀抽样；目标阶级为空则直接准入），
     // 被击败者降级到攻击方原阶级；对决复用 rule.md 12–19 竞争结算（含财富转移）。
+    // rules-v9（D-11，changes/0012）新增位移份额：share=1 走 v8 完全位移（不消费新地址，
+    // 行为不变）；0<share<1 先按 displacementAdmit 地址判定，其余份额走开放准入
+    //（不挤下在位者，目标阶级净 +1）；share=0 直接开放准入、不消费位移相关地址。
     // 'own' 模式不进入该分支、不消费 displacement/competitionResolve 地址，
     // RNG 流与 v5 逐位一致（G-D 硬门禁）。
-    if (config.need.referenceMode === 'class') {
-      const incumbent = sampleDisplacementTarget(
-        state.seed,
-        tick,
-        agent.id,
-        agents,
-        agent.classIndex + 1,
-      );
+    if (config.need.referenceMode === 'class' && config.ascent.displacementShare > 0) {
+      const share = config.ascent.displacementShare;
+      const useDisplacement =
+        share >= 1
+          ? true
+          : createDraw(state.seed, tick, agent.id)(RNG_EVENT_TAGS.displacementAdmit, 0) < share;
+      const incumbent = useDisplacement
+        ? sampleDisplacementTarget(state.seed, tick, agent.id, agents, agent.classIndex + 1)
+        : null;
       if (incumbent !== null) {
         const duelDraw = createDraw(state.seed, tick, agent.id);
         const outcome = resolveCompetition(

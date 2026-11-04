@@ -436,6 +436,30 @@
       "affectsBehavior": true
     },
     {
+      "name": "ascent.displacementShare",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 B / rule.md 9（rules-v9 位移准入份额，changes/0012；仅 'class' 参照系读取）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "ascent.scarcityWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 B / rule.md 9（rules-v10 占用锚定，changes/0013）：barrier = w × crossBase × max(0, P[target]/target[target] − 1)，target ∝ 1/env0",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 100
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "competition.powerValueExponent",
       "unit": "exponent",
       "formulaRef": "03 §6 阶段 B / rule.md 12",

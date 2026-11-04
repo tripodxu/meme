@@ -50,6 +50,10 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     crossDays: [30, 40, 50, 60],
     returnDiscount: [0, 0.2, 0.4],
     holdingCushionDays: 30,
+    // rules-v9：1 = 完全位移准入（行为与 v8 一致；state hash 含 config，不可跨版本比较）。
+    displacementShare: 1,
+    // rules-v10：0 = 无占用锚定（barrier 恒 0，行为与 v9 一致）。
+    scarcityWeight: 0,
   },
   competition: {
     powerValueExponent: 0.35,

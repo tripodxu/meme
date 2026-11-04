@@ -21,14 +21,14 @@ import type { SimState } from '../../../src/core/model/state.js';
 
 const SEED = asSeed('displacement-seed');
 
-function config(referenceMode: 'own' | 'class') {
+function config(referenceMode: 'own' | 'class', displacementShare = 1) {
   const base = validateRunConfig(
     mergeConfig(DEFAULT_RUN_CONFIG, {
       population: { initialPopulation: 2, classCount: 2, classShares: [0.5, 0.5] },
       opportunity: { env0: [1, 1.5] },
       lifespan: { decay: [1.3, 1.15] },
       need: { needMultiplier: [1, 1.3] },
-      ascent: { crossDays: [30] },
+      ascent: { crossDays: [30], displacementShare },
       network: { maxDegree: 0, initialDegree: 0 },
       decision: { interval: 10_000 },
       schedule: { totalTicks: 5, statsStride: 1, snapshotStride: 100 },
@@ -47,8 +47,9 @@ function config(referenceMode: 'own' | 'class') {
 function setup(
   attacker: { ge: number; hard: number; value: number },
   incumbent: { ge: number; hard: number; value: number },
+  displacementShare = 1,
 ): SimState {
-  const state = createSimulation(config('class'), SEED);
+  const state = createSimulation(config('class', displacementShare), SEED);
   const a = state.society.agents[0];
   const b = state.society.agents[1];
   if (a === undefined || b === undefined) throw new Error('roster 过小');
@@ -153,6 +154,22 @@ describe('位移准入：class 模式上升需击败在位者（rules-v8）', ()
     expect(result.state.society.agents[0]?.classIndex).toBe(1);
     expect(result.state.society.agents[1]?.classIndex).toBe(1); // 在位者不动
     expect(result.events.some((event) => event.type === 'competition_resolved')).toBe(false);
+  });
+
+  it('rules-v9 位移份额=0：完全开放准入，不挤下在位者（目标阶级净 +1）', () => {
+    const state = setup({ ge: 1, hard: 1, value: 1_000_000 }, { ge: 1, hard: 1, value: 10 }, 0);
+    const result = step(state, ascendDecision(state), { runId: 'displacement-v9-open' });
+    expect(result.state.society.agents[0]?.classIndex).toBe(1); // 升阶成功
+    expect(result.state.society.agents[1]?.classIndex).toBe(1); // 在位者不动（开放准入）
+    expect(result.events.some((event) => event.type === 'competition_resolved')).toBe(false);
+    expect(result.events.some((event) => event.type === 'class_descended')).toBe(false);
+  });
+
+  it('rules-v9 位移份额=1：与 v8 相同，消费位移目标地址并产生降级', () => {
+    const state = setup({ ge: 1, hard: 1, value: 1_000_000 }, { ge: 0.2, hard: 0.2, value: 10 }, 1);
+    const result = step(state, ascendDecision(state), { runId: 'displacement-v9-full' });
+    expect(result.state.society.agents[1]?.classIndex).toBe(0);
+    expect(result.events.some((event) => event.type === 'class_descended')).toBe(true);
   });
 });
 

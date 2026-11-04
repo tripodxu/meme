@@ -1,15 +1,19 @@
-import type { RunConfig } from '../../core/config/types.js';
-import { errorCodes, StratifyError } from '../../core/control/errors.js';
-import type { AgentId } from '../../core/control/ids.js';
-import { DECISION_SCHEMA_VERSION } from '../../core/control/versions.js';
-import { HASH_DOMAINS } from '../../core/hash/domains.js';
-import { hashValue } from '../../core/hash/hash.js';
-import type { TickEvent } from '../../core/events.js';
-import type { SimState } from '../../core/model/state.js';
-import type { LegalActionSet } from '../../core/legal-actions.js';
-import { computeAscendCost, computeDescendCost } from '../../core/legal-actions.js';
-import { computeNeedClass, computeNeedOwn } from '../../core/engine/settlement.js';
-import { POLICY_VERSION_MOCK } from '../../decision/mock.js';
+import type { RunConfig } from '../core/config/types.js';
+import { errorCodes, StratifyError } from '../core/control/errors.js';
+import type { AgentId } from '../core/control/ids.js';
+import { DECISION_SCHEMA_VERSION } from '../core/control/versions.js';
+import { HASH_DOMAINS } from '../core/hash/domains.js';
+import { hashValue } from '../core/hash/hash.js';
+import type { TickEvent } from '../core/events.js';
+import type { SimState } from '../core/model/state.js';
+import type { LegalActionSet } from '../core/legal-actions.js';
+import {
+  classShareSnapshot,
+  computeAscendCost,
+  computeDescendCost,
+} from '../core/legal-actions.js';
+import { computeNeedClass, computeNeedOwn } from '../core/engine/settlement.js';
+import { POLICY_VERSION_MOCK } from './mock.js';
 
 /**
  * P2-02：决策 state 序列化（04 §3）。
@@ -21,7 +25,8 @@ import { POLICY_VERSION_MOCK } from '../../decision/mock.js';
  * - `costs.ascend/descend` 为实际应付净额，不可用层为 null 且该行动不进入 legalActions。
  */
 
-export const PROMPT_VERSION = 'prompt-v2';
+// prompt-v3：修正 classPopulationShares 语义（决策时点存活份额，而非初始份额）。
+export const PROMPT_VERSION = 'prompt-v3';
 
 /** 04 §3.2 固定构造顺序的决策 state。 */
 export interface DecisionState {
@@ -207,7 +212,8 @@ export function buildDecisionState(
     society: {
       openness: state.society.openness,
       gini: state.society.gini,
-      classPopulationShares: [...state.society.initialClassShares],
+      // 04 §3.2 的 classPopulationShares 是决策时点存活人口的 P[c]，不是初始份额。
+      classPopulationShares: classShareSnapshot(state.society.agents, config.population.classCount),
     },
     costs: {
       ascend: ascendCost,

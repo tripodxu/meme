@@ -73,7 +73,7 @@ running -> completed | failed | cancelled
     "engineVersion": "engine-v0.0.0",
     "decisionSchemaVersion": "stratify-decision-v1",
     "policyVersion": "mock-weighted-v1",
-    "promptVersion": "prompt-v2",
+    "promptVersion": "prompt-v3",
     "requestedModel": "jev-1.13.0",
     "seed": "seed-001",
     "runtimeVersion": "node@22.21.0",

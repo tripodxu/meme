@@ -14,6 +14,7 @@ import { mkdirSync, writeFileSync, statSync } from 'node:fs';
 
 import {
   buildPreregManifest,
+  buildV10ConfirmationManifest,
   computePreregistrationHash,
   buildCellConfig,
 } from '../dist/core/../runner/preregistration.js';
@@ -30,6 +31,8 @@ import {
 
 const args = process.argv.slice(2);
 const stage = args.includes('--stage') ? args[args.indexOf('--stage') + 1] : 'screen';
+// 预注册 manifest 选择：默认 W2（rules-v8 冻结历史）；`--manifest v10` 为 W4 确认轮。
+const manifestKind = args.includes('--manifest') ? args[args.indexOf('--manifest') + 1] : 'w2';
 
 function log(message) {
   process.stderr.write(`[p15] ${message}\n`);
@@ -51,9 +54,9 @@ function medianOf(values) {
   return (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
-const manifest = buildPreregManifest();
+const manifest = manifestKind === 'v10' ? buildV10ConfirmationManifest() : buildPreregManifest();
 const preregistrationHash = computePreregistrationHash(manifest);
-log(`preregistrationHash=${preregistrationHash}`);
+log(`manifest=${manifestKind} preregistrationHash=${preregistrationHash}`);
 log(`stage=${stage} cells=${manifest.cells.length} seeds=${manifest.seeds.length}`);
 
 // burn-in 必须止于首个分析窗口起点之前（07 §5）：否则窗口混入排序暂态。
@@ -265,18 +268,31 @@ if (stage === 'full') {
             return sum + l1Sum; // ‖·‖₁ 纯 L1，与 G-C evaluateGateC 同口径
           }, 0) / w3.length;
       }
-      return { cellKey: cell.cellKey, meanP0, drift };
+      const meanMup =
+        w3.length === 0
+          ? Number.NaN
+          : w3.reduce((sum, seedResult) => sum + (seedResult.w3.mUp ?? 0), 0) / w3.length;
+      return { cellKey: cell.cellKey, meanP0, meanMup, drift };
     });
     const worstP0 = Math.min(...perCellMeans.map((entry) => entry.meanP0));
     const worstDrift = Math.max(...perCellMeans.map((entry) => entry.drift));
     const meanFieldDirectionMet = worstP0 >= 0.15 && worstDrift < 0.1;
+    // W4（rules-v10）方向预测：A 底重（P0>=0.40）；B/C 底轻且低流动（P0<=0.15、mUp<=0.40）。
+    const aCell = perCellMeans.find((entry) => entry.cellKey === 'A-share1');
+    const bcCells = perCellMeans.filter((entry) => entry.cellKey !== 'A-share1');
+    const v10DirectionalMet =
+      aCell !== undefined &&
+      aCell.meanP0 >= 0.4 &&
+      bcCells.length > 0 &&
+      bcCells.every((entry) => entry.meanP0 <= 0.15 && entry.meanMup <= 0.4);
+    const directionalMet = manifestKind === 'v10' ? v10DirectionalMet : meanFieldDirectionMet;
     const g15Passed =
       k2HardGateMet &&
       minClusterMet &&
       medianAri >= manifest.clustering.stabilityMinAri &&
       temporalConsistency?.met === true &&
       nonDegenerateClusters >= 1 &&
-      meanFieldDirectionMet;
+      directionalMet;
     clustering = {
       k: choice.k,
       silhouette: Math.round(choice.score * 1000) / 1000,
@@ -305,6 +321,9 @@ if (stage === 'full') {
           minClusterRuns: manifest.clustering.minClusterRuns,
           meanFieldP0Min: 0.15,
           meanFieldDriftMax: 0.1,
+          v10AP0Min: 0.4,
+          v10BcP0Max: 0.15,
+          v10BcMupMax: 0.4,
         },
         k2StabilityAriMedian: Math.round(k2MedianAri * 1000) / 1000,
         k2StabilityAriMin: Math.round(Math.min(...k2Runs.map((run) => run.ari)) * 1000) / 1000,
@@ -314,6 +333,22 @@ if (stage === 'full') {
           worstCellP0: Math.round(worstP0 * 1000) / 1000,
           worstCellDrift: Math.round(worstDrift * 1000) / 1000,
           met: meanFieldDirectionMet,
+        },
+        directional: {
+          prediction:
+            manifestKind === 'v10'
+              ? 'A P0>=0.40; B/C P0<=0.15 且 mUp<=0.40'
+              : '全 cell P0>=0.15 且 drift<0.10',
+          aP0: aCell === undefined ? null : Math.round(aCell.meanP0 * 1000) / 1000,
+          worstBcP0:
+            bcCells.length === 0
+              ? null
+              : Math.round(Math.max(...bcCells.map((entry) => entry.meanP0)) * 1000) / 1000,
+          worstBcMup:
+            bcCells.length === 0
+              ? null
+              : Math.round(Math.max(...bcCells.map((entry) => entry.meanMup)) * 1000) / 1000,
+          met: directionalMet,
         },
         passed: g15Passed,
         verdict: g15Passed
@@ -378,6 +413,7 @@ const output = {
   cellDistinctness,
   cells: cellResults,
 };
+const outputBase = manifestKind === 'v10' ? `p15-v10-${stage}` : `p15-${stage}`;
 mkdirSync('out', { recursive: true });
 // 预算护栏（07 §3）：实际值必须落在预注册 budgets 内，超限不得当作正式证据。
 {
@@ -410,8 +446,8 @@ mkdirSync('out', { recursive: true });
   }
 }
 const serialized = `${JSON.stringify(output, null, 2)}\n`;
-writeFileSync(`out/p15-${stage}.json`, serialized, 'utf8');
+writeFileSync(`out/${outputBase}.json`, serialized, 'utf8');
 process.stdout.write(`${JSON.stringify(output)}\n`);
 log(
-  `written out/p15-${stage}.json (${runCount} runs, ${wallMinutes}min, ${statSync(`out/p15-${stage}.json`).size} bytes)`,
+  `written out/${outputBase}.json (${runCount} runs, ${wallMinutes}min, ${statSync(`out/${outputBase}.json`).size} bytes)`,
 );

@@ -48,7 +48,7 @@ describe('RunIdentity（02 §10）', () => {
       initialPopulationHash: 'sha256:33',
       seed: asSeed('s'),
       policyVersion: 'mock-weighted-v1',
-      promptVersion: 'prompt-v2',
+      promptVersion: 'prompt-v3',
       requestedModel: 'jev-1.13.0',
       runtimeVersion: 'node@22.21.0',
       codeSha: 'sha',
@@ -56,7 +56,7 @@ describe('RunIdentity（02 §10）', () => {
     expect(identity.configHash).toBe('sha256:11');
     expect(identity.paramsHash).toBe('sha256:22');
     expect(identity.initialPopulationHash).toBe('sha256:33');
-    expect(identity.promptVersion).toBe('prompt-v2');
+    expect(identity.promptVersion).toBe('prompt-v3');
     expect(identity.requestedModel).toBe('jev-1.13.0');
   });
 });

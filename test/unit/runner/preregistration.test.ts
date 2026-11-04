@@ -11,7 +11,9 @@ import {
   buildPreregCells,
   buildPreregHashInput,
   buildPreregManifest,
+  buildV10ConfirmationManifest,
   computePreregistrationHash,
+  PREREG_SEEDS_R4,
 } from '../../../src/runner/preregistration.js';
 
 const POPULATION = 40;
@@ -279,5 +281,29 @@ describe('baseConfigHash（07 §3：默认值漂移必须可见）', () => {
     const base = buildBaseConfig(manifest.populationSize, manifest.totalTicks);
     const drifted = { ...base, ascent: { ...base.ascent, holdingCushionDays: 45 } } as RunConfig;
     expect(diffConfigPaths(base, drifted)).toEqual(['ascent.holdingCushionDays']);
+  });
+});
+
+describe('W4（rules-v10）确认轮 manifest', () => {
+  const manifest = buildV10ConfirmationManifest();
+
+  it('冻结 6 个 cell 与 p15r4 新种子', () => {
+    expect(manifest.seeds).toEqual([...PREREG_SEEDS_R4]);
+    expect(manifest.cells).toHaveLength(6);
+    expect(manifest.cells[0]?.cellKey).toBe('A-share1');
+    expect(manifest.cells.filter((cell) => cell.design === 'baseline')).toHaveLength(1);
+    expect(
+      manifest.cells
+        .filter((cell) => cell.design === 'interaction')
+        .every((cell) => cell.changedPaths.length === 2),
+    ).toBe(true);
+    expect(new Set(manifest.cells.map((cell) => cell.fullConfigHash)).size).toBe(6);
+    expect(manifest.budgets.maxRuns).toBe(6 * PREREG_SEEDS_R4.length);
+  });
+
+  it('预注册哈希在运行前冻结（与 out/p15-v10-full.json 一致）', () => {
+    expect(computePreregistrationHash(manifest)).toBe(
+      'sha256:ece0a98b70444f05769740e3c1b0838bc77d35fec434f897a6f0ef4730a36135',
+    );
   });
 });

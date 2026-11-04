@@ -119,7 +119,9 @@ interface ExecutionRecord {
 }
 ```
 
-`needRatio` 唯一定义为 `need===0 ? null : Value/need`，结果必须有限；最高/最低层不可用的 `costs.ascend/descend` 使用 `null`，该行动也不进入 legalActions。`costs` 是当前状态下实际应付的净额：已包含重返减免与开放度动态乘子；legalActions 的可用性与引擎扣费必须使用同一净额，不得让模型看到与结算不同的价格。`recentEvents` 每项固定为 `{tick,type,actorId,targetId:null|string,deltaValue:null|number,fromClass:null|int,toClass:null|int}`，按 `(tick,seq)` 取最近 5 项，不保留自由文本。目标只暴露代码允许的信息，不临时增加全人口隐私视图。`state` 与 `recentEvents` 的正式 JSON Schema 由 P2-02 随 `promptVersion` 生成并冻结；`stateHash/actionSetHash` 按 02 第 8 节计算。
+`society.classPopulationShares` 是**决策时点存活人口**的阶级份额 `P[c]`（不是初始份额）。`needRatio` 唯一定义为 `need===0 ? null : Value/need`，结果必须有限；最高/最低层不可用的 `costs.ascend/descend` 使用 `null`，该行动也不进入 legalActions。`costs` 是当前状态下实际应付的净额：已包含重返减免与开放度动态乘子；legalActions 的可用性与引擎扣费必须使用同一净额，不得让模型看到与结算不同的价格。`recentEvents` 每项固定为 `{tick,type,actorId,targetId:null|string,deltaValue:null|number,fromClass:null|int,toClass:null|int}`，按 `(tick,seq)` 取最近 5 项，不保留自由文本。目标只暴露代码允许的信息，不临时增加全人口隐私视图。`state` 与 `recentEvents` 的正式 JSON Schema 由 P2-02 随 `promptVersion` 生成并冻结
+（当前 `prompt-v3` 副本：`schema/decision-state.prompt-v3.json`，由 `src/decision/schema.ts`
+生成）；`stateHash/actionSetHash` 按 02 第 8 节计算。
 
 ### 3.3 System One 请求
 
@@ -168,7 +170,7 @@ interface ExecutionRecord {
 
 ```text
 timeout, network_error, http_401, http_403, http_429, upstream_5xx,
-invalid_json, invalid_schema, no_legal_option, empty_legal_probability,
+http_client_error, invalid_json, invalid_schema, no_legal_option, empty_legal_probability,
 non_finite_probability, stale_state, stale_action_set, budget_exhausted,
 usage_missing, retry_after_exceeded, retry_after_invalid,
 cancelled, replay_invalid, stale_invalid
@@ -181,18 +183,18 @@ cancelled, replay_invalid, stale_invalid
 
 ## 6. 超时、重试、取消与熔断
 
-| 项                  | 默认约束                                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 单次请求超时        | 30s，可配置并进入 run manifest                                                                                     |
-| 全局尝试上限        | 每个到期决策全部 HTTP attempt 合计最多 4 次，混合错误也共享此计数                                                  |
-| 网络/超时           | 分类最多 3 次；退避 0.5/1s，加由适配层注入且不消耗模拟 RNG 的抖动                                                  |
-| 429/529             | 分类最多 4 次；无 Retry-After 时退避 1/2/4s                                                                        |
-| Retry-After         | 只接受整数秒；`0<=value<=20` 时按值等待，>20 或非法 HTTP-date 不等待重试，记 `retry_after_exceeded/invalid` 并回退 |
-| 其他 5xx            | 分类最多 2 次，退避 0.5s；仍受全局 4 次限制                                                                        |
-| 400/401/403/404/422 | 不重试；401/403 立即暂停 live run 并提示 Key/权限问题                                                              |
-| 取消                | AbortSignal 贯穿 fetch 和 sleep；已取消不再发新请求                                                                |
-| 失败熔断            | 按请求完成顺序记录；最近 20 次 live 中 transport 失败>=10 或连续 transport 失败>=5，暂停 run                       |
-| 回退率闸门          | 最近 100 个到期决策回退率>20% 时标记实验无效并暂停，配置可更严格                                                   |
+| 项                  | 默认约束                                                                                                                                     |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 单次请求超时        | 30s，可配置并进入 run manifest                                                                                                               |
+| 全局尝试上限        | 每个到期决策全部 HTTP attempt 合计最多 4 次，混合错误也共享此计数                                                                            |
+| 网络/超时           | 分类最多 3 次；退避 0.5/1s，加由适配层注入且不消耗模拟 RNG 的抖动                                                                            |
+| 429/529             | 分类最多 4 次；无 Retry-After 时退避 1/2/4s                                                                                                  |
+| Retry-After         | 只接受整数秒；`0<=value<=20` 时按值等待，>20 或非法 HTTP-date 不等待重试，记 `retry_after_exceeded/invalid` 并回退                           |
+| 其他 5xx            | 分类最多 2 次，退避 0.5s；仍受全局 4 次限制                                                                                                  |
+| 400/401/403/404/422 | 不重试；401/403 立即暂停 live run 并提示 Key/权限问题                                                                                        |
+| 取消                | AbortSignal 贯穿 fetch 和 sleep；已取消不再发新请求，run 在 tick 边界停止并置 `RunWindowReport.cancelled=true`；未结算 tick 的决策不进入产物 |
+| 失败熔断            | 按请求完成顺序记录；最近 20 次 live 中 transport 失败>=10 或连续 transport 失败>=5，暂停 run                                                 |
+| 回退率闸门          | 最近 100 个到期决策回退率>20% 时标记实验无效并暂停，配置可更严格                                                                             |
 
 transport 失败只含 timeout/network/429/529/5xx；invalid schema 计入模型质量回退但不计 transport 熔断，cancelled 不计任一失败窗口，401/403 走立即暂停。每次响应完成时追加窗口记录，并发开始顺序不影响熔断。
 

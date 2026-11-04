@@ -12,6 +12,7 @@ export const FALLBACK_REASONS = [
   'http_403',
   'http_429',
   'upstream_5xx',
+  'http_client_error',
   'invalid_json',
   'invalid_schema',
   'no_legal_option',

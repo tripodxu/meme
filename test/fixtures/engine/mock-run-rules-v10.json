@@ -1,13 +1,13 @@
 {
-  "description": "40 人默认 mock 运行（seed=golden-mock-seed，rules-v8 位移准入）；更新必须人工审查差异并说明原因。",
-  "rulesVersion": "rules-v8",
-  "engineVersion": "engine-v0.6.0",
-  "paramsHash": "sha256:db8050304992d8083a0408e10daed5a8551b8e90e9e1ff577c848e3d19dbcd82",
+  "description": "40 人默认 mock 运行（seed=golden-mock-seed，rules-v10 占用锚定）；更新必须人工审查差异并说明原因。",
+  "rulesVersion": "rules-v10",
+  "engineVersion": "engine-v0.8.0",
+  "paramsHash": "sha256:0b4f0ecf38851995f20ffc4a117a3c4dca28fdfc7aa88aec5f7c5b1cb94a6c0c",
   "seed": "golden-mock-seed",
   "checkpoints": [
     {
       "tick": 0,
-      "finalStateHash": "sha256:0d76af517a111097a86e8e87772bf4a1f7f51f25a5fd575883b7582131a6ff7a",
+      "finalStateHash": "sha256:0601179a3f4839fd7b7c98cecf355997f75faeda966a7cce308a6912edf0b6cd",
       "stats": {
         "tick": 0,
         "aliveCount": 40,
@@ -39,7 +39,7 @@
     },
     {
       "tick": 1,
-      "finalStateHash": "sha256:542581cf6a705e0b4ed1046912d2c43fb27ed49610d5f956f0447c6da0867a32",
+      "finalStateHash": "sha256:8de4b5beb80d093a85c2571ac9e7192d98f9dbca5f65572b8d97e42faa49bca5",
       "stats": {
         "tick": 1,
         "aliveCount": 40,
@@ -74,7 +74,7 @@
     },
     {
       "tick": 10,
-      "finalStateHash": "sha256:aef317c80873ded0e9278f5bfce9ac87e80e2305ef71a6a7a49c15b1c16f83c5",
+      "finalStateHash": "sha256:2dd7b0148c4a04d567e6685cc1f0ddcd6ac1f70e12b6a856b6fedf9f6dc3333a",
       "stats": {
         "tick": 10,
         "aliveCount": 40,
@@ -109,7 +109,7 @@
     },
     {
       "tick": 120,
-      "finalStateHash": "sha256:6bfbcca1a576c06add94fd9e7f681523172e439dec32676528d6d779ddd7d6fe",
+      "finalStateHash": "sha256:133a08f74803ce7095f7c23023292516b2638aa2374bcc59ccb3b9783457053c",
       "stats": {
         "tick": 120,
         "aliveCount": 40,
@@ -144,7 +144,7 @@
     },
     {
       "tick": 400,
-      "finalStateHash": "sha256:416ac8b0c62a0987f265935d8b564d89533bc0e50e52c84d62f65f6c51c48fe4",
+      "finalStateHash": "sha256:ee6a9f546c3ee626f4436448753e311caf33be1f2de5e9d4cc910edd9d7a2497",
       "stats": {
         "tick": 400,
         "aliveCount": 39,

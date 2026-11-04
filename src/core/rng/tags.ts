@@ -25,6 +25,8 @@ export const RNG_EVENT_TAGS = {
   competitionResolve: 'competition_resolve',
   /** 位移准入（rules-v8，D-09）：上升前抽样目标阶级在位者；仅 'class' 参照系消费。 */
   displacementTarget: 'displacement_target',
+  /** 位移准入份额（rules-v9，D-11）：决定本次上升走位移还是开放准入；share∈(0,1) 时消费。 */
+  displacementAdmit: 'displacement_admit',
   /** 网络重构判定；counter 1 选旧边、counter 2 选新候选（03 §4.4）。 */
   networkRewire: 'network_rewire',
 } as const;

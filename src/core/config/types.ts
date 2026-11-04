@@ -88,6 +88,19 @@ export interface AscentConfig {
   readonly returnDiscount: readonly number[];
   /** v5 持有裕度天数 ρ；上升要求 `value >= cross + ρ×B×E[target]×ψ_eff[target]`；0 退回 v4。 */
   readonly holdingCushionDays: number;
+  /**
+   * v9 位移准入份额（changes/0012）：'class' 参照系下，上升以该概率触发在位者对决与降级
+   *（1:1 零和位移）；低于 1 时其余份额走开放准入（不挤下在位者，目标阶级净 +1）。
+   * 1 与 v8 行为一致（state hash 含 config，跨版本不可按哈希比较）；0 为完全开放准入。
+   */
+  readonly displacementShare: number;
+  /**
+   * v10 占用锚定/位置稀缺权重（changes/0013）：目标阶级占比高于
+   * 机会隐含参照份额时，上升余额门槛增加
+   * `scarcityWeight × crossBase × pressure`，pressure = max(0, P[c]/target[c] − 1)，
+   * target[c] ∝ 1/env0[c]。0 与 v9 行为一致。
+   */
+  readonly scarcityWeight: number;
 }
 
 export interface CompetitionConfig {

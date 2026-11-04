@@ -1,0 +1,825 @@
+{
+  "schemaVersion": "p15-grid-v2",
+  "stage": "screen",
+  "preregistrationHash": "sha256:ece0a98b70444f05769740e3c1b0838bc77d35fec434f897a6f0ef4730a36135",
+  "runCount": 6,
+  "wallMinutes": 0,
+  "manifest": {
+    "schemaVersion": "experiment-v2",
+    "hypothesis": "rules-v10（占用锚定）两区域网格（A: share=1；B/C: share=0.5 + scarcityWeight 10/15/60/80/100）内存在 >=2 类可复现（20 次半样本 ARI median>=0.70，含 k=2 硬门槛）且非退化（非全死亡/空网络）的结构指纹聚类；k=2 的分裂预测为 A vs B∪C；方向预测 A 的 P0(w3)>=0.40、B/C 的 P0(w3)<=0.15 且 mUp(w3)<=0.40。k=3 仅作描述（探索显示 B/C 边界不可复现，本轮不据此声称三类）。",
+    "primaryMetric": "TV(P)",
+    "experimentType": "rule_sensitivity",
+    "rulesVersion": "rules-v10",
+    "engineVersion": "engine-v0.8.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
+    "promptVersion": "prompt-none-v1",
+    "promptStyle": "neutral",
+    "populationSize": 40,
+    "totalTicks": 3650,
+    "baseConfigHash": "sha256:aeebc402a25319b183d1f563a5cc19528c1dc921ffc641b9c4555e4f614d701f",
+    "artifactProfile": "full",
+    "seeds": [
+      "p15r4-seed-001",
+      "p15r4-seed-002",
+      "p15r4-seed-003",
+      "p15r4-seed-004",
+      "p15r4-seed-005",
+      "p15r4-seed-006",
+      "p15r4-seed-007",
+      "p15r4-seed-008",
+      "p15r4-seed-009",
+      "p15r4-seed-010",
+      "p15r4-seed-011",
+      "p15r4-seed-012",
+      "p15r4-seed-013",
+      "p15r4-seed-014",
+      "p15r4-seed-015",
+      "p15r4-seed-016",
+      "p15r4-seed-017",
+      "p15r4-seed-018",
+      "p15r4-seed-019",
+      "p15r4-seed-020",
+      "p15r4-seed-021",
+      "p15r4-seed-022",
+      "p15r4-seed-023",
+      "p15r4-seed-024",
+      "p15r4-seed-025",
+      "p15r4-seed-026",
+      "p15r4-seed-027",
+      "p15r4-seed-028",
+      "p15r4-seed-029",
+      "p15r4-seed-030"
+    ],
+    "pairing": "same-seed-derived-initial-population-and-addressed-random",
+    "warmupTicks": 1825,
+    "warmupDiagnostic": "attractor stability: same-run w2/w3 feature points fall in the same cluster (limit-cycle system)",
+    "windows": [
+      {
+        "label": "w2b",
+        "start": 1825,
+        "end": 2554
+      },
+      {
+        "label": "w3",
+        "start": 2555,
+        "end": 3284
+      }
+    ],
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "clustering": {
+      "distance": "euclidean",
+      "algorithm": "ward-lw-v1",
+      "standardization": "z-score(pooled)",
+      "featureWindows": [
+        "w2b",
+        "w3"
+      ],
+      "kRange": [
+        2,
+        5
+      ],
+      "stabilityMinAri": 0.7,
+      "stabilityShuffles": 20,
+      "minClusterRuns": 5,
+      "temporalConsistencyMinRate": 0.8,
+      "d03Note": "聚类协议按 07 §8.1 冻结：Ward(Lance–Williams, ward-lw-v1) + Euclidean、z-score(pooled)、k∈[2,5]、稳定性 20 次取 median 且必报 min；更换实现＝新 experimentId。"
+    },
+    "differenceThresholds": {
+      "gini": 0.03,
+      "tv": 0.1,
+      "mUp": 0.05,
+      "segregation": 0.05,
+      "openness": 0.05
+    },
+    "budgets": {
+      "maxRuns": 180,
+      "maxWallMinutes": 120,
+      "maxStorageBytes": 2000000000
+    },
+    "exclusionRules": {
+      "excludeExtinctRuns": true,
+      "excludeUnavailableWindows": true,
+      "excludeNetworkEmptyFromSegregation": true,
+      "maxTechnicalRetries": 1
+    },
+    "cells": [
+      {
+        "cellKey": "A-share1",
+        "design": "baseline",
+        "hypothesis": "闭合位移体制（displacementShare=1）的底重金字塔（预测 P0(w3)>=0.40）",
+        "overrides": {},
+        "changedPaths": [],
+        "fullConfigHash": "sha256:aeebc402a25319b183d1f563a5cc19528c1dc921ffc641b9c4555e4f614d701f"
+      },
+      {
+        "cellKey": "B-share50-w10",
+        "design": "interaction",
+        "hypothesis": "开放准入 + 弱占用锚定（share=0.5, scarcityWeight=10）的底轻/上位中产（预测 P0<=0.15、mUp<=0.40）",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 10
+          }
+        },
+        "changedPaths": [
+          "ascent.displacementShare",
+          "ascent.scarcityWeight"
+        ],
+        "fullConfigHash": "sha256:02709b70badcb7dc68162bda7f6cc0fa228974a4804d458669214dec068fdbf3"
+      },
+      {
+        "cellKey": "B-share50-w15",
+        "design": "interaction",
+        "hypothesis": "开放准入 + 弱占用锚定（share=0.5, scarcityWeight=15）的底轻/上位中产（预测 P0<=0.15、mUp<=0.40）",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15
+          }
+        },
+        "changedPaths": [
+          "ascent.displacementShare",
+          "ascent.scarcityWeight"
+        ],
+        "fullConfigHash": "sha256:61898664d6907092b11fe73ca27be379996efef67c589133360025b9c3814166"
+      },
+      {
+        "cellKey": "C-share50-w60",
+        "design": "interaction",
+        "hypothesis": "开放准入 + 强占用锚定（share=0.5, scarcityWeight=60）的中产隆起/小底层（预测 P0<=0.15、mUp<=0.40）",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 60
+          }
+        },
+        "changedPaths": [
+          "ascent.displacementShare",
+          "ascent.scarcityWeight"
+        ],
+        "fullConfigHash": "sha256:5f0dad7f7af30a4c74283a63e663cf652b2487fbfecd88cee5f8629e53a337d7"
+      },
+      {
+        "cellKey": "C-share50-w80",
+        "design": "interaction",
+        "hypothesis": "开放准入 + 强占用锚定（share=0.5, scarcityWeight=80）的中产隆起/小底层（预测 P0<=0.15、mUp<=0.40）",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 80
+          }
+        },
+        "changedPaths": [
+          "ascent.displacementShare",
+          "ascent.scarcityWeight"
+        ],
+        "fullConfigHash": "sha256:be95c0844dcff1524acef753836da0f09708f9f63a50c3e4840f3698e036a495"
+      },
+      {
+        "cellKey": "C-share50-w100",
+        "design": "interaction",
+        "hypothesis": "开放准入 + 强占用锚定（share=0.5, scarcityWeight=100）的中产隆起/小底层（预测 P0<=0.15、mUp<=0.40）",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 100
+          }
+        },
+        "changedPaths": [
+          "ascent.displacementShare",
+          "ascent.scarcityWeight"
+        ],
+        "fullConfigHash": "sha256:538ac2ea85a88b8caf00035dfa0ba990a8242340a7a5e39dd8226d85f9e9d377"
+      }
+    ]
+  },
+  "execution": {
+    "stage": "screen",
+    "totalTicks": 400,
+    "seeds": [
+      "p15r4-seed-001"
+    ],
+    "runCount": 6,
+    "warmupTicks": 1825
+  },
+  "clustering": null,
+  "cellsByDesign": {
+    "baseline": 1,
+    "single": 0,
+    "interaction": 5
+  },
+  "cellDistinctness": null,
+  "cells": [
+    {
+      "cellKey": "A-share1",
+      "design": "baseline",
+      "changedPaths": [],
+      "hypothesis": "闭合位移体制（displacementShare=1）的底重金字塔（预测 P0(w3)>=0.40）",
+      "seeds": [
+        {
+          "seed": "p15r4-seed-001",
+          "elapsedMs": 261,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:dd8038528e9c320d600c2929530c4ac58693d6c83c421004da2d60376e6fcbad",
+          "configHash": "sha256:50c69cf65978513c7ffe15ae785f134fff2f2a78c2285c5e3ebed5ba517c21a0",
+          "paramsHash": "sha256:3e5970a93afa59c637fab06c64dbb0e1b69695e883edb13f312b684772762662",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5897435897435899,
+              0.2820512820512821,
+              0.10256410256410262,
+              0.018315018315018323,
+              0.007326007326007325
+            ],
+            "gini": 0.5101342398612906,
+            "topWealthShare": 0.3927514285151566,
+            "mUp": 0.45421245421245426,
+            "mDown": 0.5677655677655679,
+            "segregation": -0.01364816975779248,
+            "openness": 0.4872980230570456,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.5653495440729484,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "B-share50-w10",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.displacementShare",
+        "ascent.scarcityWeight"
+      ],
+      "hypothesis": "开放准入 + 弱占用锚定（share=0.5, scarcityWeight=10）的底轻/上位中产（预测 P0<=0.15、mUp<=0.40）",
+      "seeds": [
+        {
+          "seed": "p15r4-seed-001",
+          "elapsedMs": 208,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:85e6222582ab5d04210095e6d03053679eeff80daab48458d3c5f2a42a5d05ee",
+          "configHash": "sha256:c41f0c135a0105b176566a4fd8a04c3dacbed1c0ceb357277fe04e61dac6aaa9",
+          "paramsHash": "sha256:ec2d71c64006cd315df9de4357ebf88645244a72dcc47a5d788112a68dd8b2e4",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.45787545787545797,
+              0.3479853479853481,
+              0.15897435897435896,
+              0.027838827838827847,
+              0.007326007326007325
+            ],
+            "gini": 0.46110919345057205,
+            "topWealthShare": 0.32611580322502237,
+            "mUp": 0.29304029304029305,
+            "mDown": 0.45787545787545797,
+            "segregation": 0.1300170510408771,
+            "openness": 0.4450615279801938,
+            "edgeCountAverage": 93,
+            "crossClassEdgeShare": 0.5576036866359445,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "B-share50-w15",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.displacementShare",
+        "ascent.scarcityWeight"
+      ],
+      "hypothesis": "开放准入 + 弱占用锚定（share=0.5, scarcityWeight=15）的底轻/上位中产（预测 P0<=0.15、mUp<=0.40）",
+      "seeds": [
+        {
+          "seed": "p15r4-seed-001",
+          "elapsedMs": 203,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:79ae25c96d0b6d2441ba752e12e2d10e9423876ea2ef9ba5deaceb77e99dd9c0",
+          "configHash": "sha256:167741dbb6e32434d7b1efdbcf5f7aa1f02a90d6bb4fe0334783a3b981e4aebe",
+          "paramsHash": "sha256:4f2ae58f2a4a3b5214a15a1c18275b9c32940bcb7d93a4a88b9cae40588f4120",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.4908424908424907,
+              0.3296703296703298,
+              0.15384615384615388,
+              0,
+              0.025641025641025654
+            ],
+            "gini": 0.459814589469686,
+            "topWealthShare": 0.34550660103111913,
+            "mUp": 0.22710622710622716,
+            "mDown": 0.41025641025641046,
+            "segregation": 0.16860710588192676,
+            "openness": 0.3753295064360162,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.5203007518796993,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "C-share50-w60",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.displacementShare",
+        "ascent.scarcityWeight"
+      ],
+      "hypothesis": "开放准入 + 强占用锚定（share=0.5, scarcityWeight=60）的中产隆起/小底层（预测 P0<=0.15、mUp<=0.40）",
+      "seeds": [
+        {
+          "seed": "p15r4-seed-001",
+          "elapsedMs": 199,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:891c2e16ac24b72a3539ec24b12d6ee58f4f20b90e2208518a79a73249f672d6",
+          "configHash": "sha256:c029ab345a3d1695bac535f6da66478311e3e0372e23195d0877c4c8a43dbd8b",
+          "paramsHash": "sha256:7deafadda58d3837db9dfb1b20720b4c5f235d90f4aa38149f2cf57a3a93f413",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5641025641025642,
+              0.2820512820512821,
+              0.12820512820512817,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.46583214397902456,
+            "topWealthShare": 0.3426866924243879,
+            "mUp": 0.1245421245421245,
+            "mDown": 0.38461538461538486,
+            "segregation": 0.20589845400016893,
+            "openness": 0.23720945306956784,
+            "edgeCountAverage": 95,
+            "crossClassEdgeShare": 0.46466165413533816,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "C-share50-w80",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.displacementShare",
+        "ascent.scarcityWeight"
+      ],
+      "hypothesis": "开放准入 + 强占用锚定（share=0.5, scarcityWeight=80）的中产隆起/小底层（预测 P0<=0.15、mUp<=0.40）",
+      "seeds": [
+        {
+          "seed": "p15r4-seed-001",
+          "elapsedMs": 188,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:2a803884cff8f75ffc1dd72300c26036e800480e03080f6f4800d81bcfbfa48b",
+          "configHash": "sha256:e149788c13064276f48f7b580deb292efe0198d92526d10dcdc1367842e57e74",
+          "paramsHash": "sha256:90d67a30ab382d7efaa0625fe032da0e5dd06af67c3daaf749b2c4cf77b78e6f",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5897435897435899,
+              0.2820512820512821,
+              0.10256410256410262,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.47792339578275794,
+            "topWealthShare": 0.353102329423732,
+            "mUp": 0.09890109890109894,
+            "mDown": 0.38461538461538486,
+            "segregation": 0.29354263505192796,
+            "openness": 0.1858308288306604,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.39665653495440706,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "C-share50-w100",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.displacementShare",
+        "ascent.scarcityWeight"
+      ],
+      "hypothesis": "开放准入 + 强占用锚定（share=0.5, scarcityWeight=100）的中产隆起/小底层（预测 P0<=0.15、mUp<=0.40）",
+      "seeds": [
+        {
+          "seed": "p15r4-seed-001",
+          "elapsedMs": 185,
+          "extinct": false,
+          "endReason": null,
+          "endTick": 399,
+          "aliveAtEnd": 39,
+          "finalStateHash": "sha256:757f40d46c664fa0207e51cfdabca1fe2802d9e13b70373cc49510a5be4fc3ca",
+          "configHash": "sha256:f7015fe2a334bf9af61c2051feb516d645085f779048c2d6c476af4d98154a97",
+          "paramsHash": "sha256:19f4d7d6db39fd0d7f494e5bdae8e534169edf9a4a57cb771ff0c6ea4bd35ef6",
+          "w1": {
+            "label": "w1",
+            "available": false,
+            "missingTicks": 695,
+            "classShares": [
+              0.5897435897435899,
+              0.2820512820512821,
+              0.10256410256410262,
+              0.025641025641025654,
+              0
+            ],
+            "gini": 0.47966216820560187,
+            "topWealthShare": 0.3526997425574353,
+            "mUp": 0.09890109890109894,
+            "mDown": 0.38461538461538486,
+            "segregation": 0.29354263505192796,
+            "openness": 0.18476120841120197,
+            "edgeCountAverage": 94,
+            "crossClassEdgeShare": 0.39665653495440706,
+            "deathRate": 0,
+            "networkEmpty": false,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=695"
+            }
+          },
+          "w3": {
+            "label": "w3",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": false,
+            "missingTicks": 730,
+            "classShares": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "gini": 0,
+            "topWealthShare": 0,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0,
+            "edgeCountAverage": 0,
+            "crossClassEdgeShare": 0,
+            "deathRate": 0,
+            "networkEmpty": true,
+            "labels": [],
+            "evidence": {
+              "window": "missingTicks=730"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "maxRuns": 180,
+    "maxWallMinutes": 120,
+    "maxStorageBytes": 2000000000,
+    "observed": {
+      "runCount": 6,
+      "wallMinutes": 0,
+      "storageBytes": 25066
+    },
+    "ok": true,
+    "violations": []
+  }
+}

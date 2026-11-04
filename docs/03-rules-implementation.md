@@ -1,6 +1,6 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v8`；相对 v7 的修订（D-09，changes/0010）：位移准入——'class' 参照系下上升须击败目标阶级在位者，被击败者降级（零和下行流）。相对 v6 的修订（changes/0009）：裕度与需求线同参照系（'class' 模式 `ρ×refIncome×ψ_eff`）。相对 v5 的修订（D-06 选项 A′，changes/0008）：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价（新参数 `need.referenceMode`，`'own'` 逐位退回 v5；`need.referenceSmoothing` EMA 平滑；`need.graceDays` 只控判定计时），状态 schema 升至 `stratify-state-v2`（SocietyState 增补 `refIncome`）。相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（`ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v10`；相对 v9 的修订（D-12，changes/0013）：占用锚定 `ascent.scarcityWeight`（默认 0 与 v9 行为一致；目标阶级超机会隐含份额时抬升上升余额门槛）。相对 v8 的修订（D-11，changes/0012）：位移准入份额 `ascent.displacementShare`（默认 1 与 v8 行为一致；<1 时其余份额走开放准入）。相对 v7 的修订（D-09，changes/0010）：位移准入——'class' 参照系下上升须击败目标阶级在位者，被击败者降级（零和下行流）。相对 v6 的修订（changes/0009）：裕度与需求线同参照系（'class' 模式 `ρ×refIncome×ψ_eff`）。相对 v5 的修订（D-06 选项 A′，changes/0008）：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价（新参数 `need.referenceMode`，`'own'` 逐位退回 v5；`need.referenceSmoothing` EMA 平滑；`need.graceDays` 只控判定计时），状态 schema 升至 `stratify-state-v2`（SocietyState 增补 `refIncome`）。相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（`ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 
@@ -239,6 +239,34 @@ else（在位者守擂成功）: 攻击方不支付、不升阶，事件 action_
 ```
 
 'own' 模式不进入该分支、不消费 `displacement_target` 地址（RNG 流与 v5 逐位一致，G-D）。
+
+**位移份额（rules-v9，D-11，changes/0012）**：`ascent.displacementShare ∈ [0,1]`，默认 1。
+
+```text
+share = 1:     完全按 v8（不消费 displacement_admit 地址，行为不变）
+0 < share < 1: u = R(seed,t,agentId,"displacement_admit",0)
+               u < share → 走 v8 位移；否则走开放准入（不抽在位者、不降级，目标阶级净 +1）
+share = 0:     完全开放准入（不消费 displacement 相关地址）
+'own' 模式:    不读取该参数（G-D 逐位一致）
+```
+
+探索结论（changes/0012 §4）：share<1 会产生净上行流并把底层抽空，
+同参数种子间结构离散度 >1，属棘轮而非第二稳态；该参数不是产生参数区域多结构的机制。
+
+**占用锚定（rules-v10，D-12，changes/0013）**：`ascent.scarcityWeight ∈ [0,100]`，默认 0。
+
+```text
+target[c]   = (1/env0[c]) / Σ_j (1/env0[j])
+pressure[c] = max(0, P[c]/target[c] − 1)      # P 为 tick 期初存活者占比（行动循环前快照）
+barrier(c)  = scarcityWeight × crossBase(c−1) × pressure[c]
+上升余额门槛: value >= cost + cushion + barrier
+```
+
+`scarcityWeight=0` 时 barrier 恒为 0，行为与 v9 一致；壁垒不支付、只作门槛。
+`P` 的快照在阶段 B 之前取一次，枚举侧与引擎复核侧共享，禁止按行动顺序重算。
+探索结论（changes/0013 §4）：w 与 share 联动给出 A/B/C 三个参数区域
+（底重金字塔 / 上位中产 / 中产隆起），w=80–100 时底层恢复到 P0≈0.10；
+但每个参数组合仍只有一个吸引域，未证明双稳态，不构成 G1.5 通过。
 
 支付 cost，`classIndex+=1`，更新 maxClass，重置 classAge=0、baselineSum=0、belowNeedStreak=0，记 `lastAscentTick=t`。一次只能上升一层。
 

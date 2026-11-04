@@ -75,7 +75,7 @@ describe('validateRunConfig', () => {
     expect(codesOf(schema)).toContain(errorCodes.CONFIG_UNKNOWN_VERSION);
 
     const rules = cloneConfig();
-    rules['rulesVersion'] = 'rules-v9';
+    rules['rulesVersion'] = 'rules-v999';
     expect(codesOf(rules)).toContain(errorCodes.CONFIG_UNKNOWN_VERSION);
   });
 

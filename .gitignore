@@ -33,3 +33,13 @@ out/*
 !out/p15-full-v4draft.json
 !out/p15-screen.json
 !out/p15-gates.json
+!out/p15-feedback-explore.json
+!out/p15-displacement-explore.json
+!out/p15-balance-explore.json
+!out/p15-scarcity-explore.json
+!out/p15-scarcity-high-explore.json
+!out/p15-scarcity-transition-explore.json
+!out/p15-scarcity-max-explore.json
+!out/p15-plateau-explore.json
+!out/p15-v10-full.json
+!out/p15-v10-screen.json

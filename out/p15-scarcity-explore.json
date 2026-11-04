@@ -1,0 +1,4642 @@
+{
+  "schemaVersion": "p15-feedback-explore-v1",
+  "stage": "full",
+  "family": "scarcity",
+  "exploratory": true,
+  "note": "探索层（07 §6.1）：只用于提出下一轮假设，不得引用为 G1.5 确认证据；确认轮种子 p15r3-* 与产物均未触碰。",
+  "execution": {
+    "totalTicks": 3650,
+    "seeds": [
+      "p15-seed-001",
+      "p15-seed-002",
+      "p15-seed-003",
+      "p15-seed-004"
+    ],
+    "runCount": 60,
+    "wallMinutes": 2
+  },
+  "cells": [
+    {
+      "cellKey": "share=1+scarcity=0",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 1,
+          "scarcityWeight": 0
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:741e1f5c0ac698ef95014a1e14ca8a6487ab9eaa0a4dbb302673174d6d552069",
+          "transitions": {
+            "up": [
+              840,
+              321,
+              12,
+              1,
+              0
+            ],
+            "down": [
+              0,
+              846,
+              327,
+              14,
+              1
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.6092103142626931,
+              0.29010014964889724,
+              0.053041326119489654,
+              0.01863819500402895,
+              0.029010014964890397
+            ],
+            "gini": 0.4292064386260441,
+            "topWealthShare": 0.3839428613366984,
+            "mUp": 0.9610613560492867,
+            "mDown": 0.9593346379647912,
+            "segregation": 0.000723688011350272,
+            "openness": 0.9340419482154666,
+            "edgeCountAverage": 72.91232876712328,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.6116474983517778,
+              0.2987326935755659,
+              0.029873269357556624,
+              0.029873269357556624,
+              0.029873269357556624
+            ],
+            "gini": 0.541042805211259,
+            "topWealthShare": 0.4873253528367138,
+            "mUp": 0.9468891167924337,
+            "mDown": 0.9467609210558594,
+            "segregation": -0.0074331915231702,
+            "openness": 0.8742593286651362,
+            "edgeCountAverage": 67.89315068493151,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:7c373dbbe53236fc8701940527e7b50fb0123146bccc10ec1251ac5a9db2d347",
+          "transitions": {
+            "up": [
+              824,
+              265,
+              9,
+              29,
+              0
+            ],
+            "down": [
+              0,
+              828,
+              272,
+              11,
+              29
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5300082707076166,
+              0.387052012358429,
+              0.02764657231131681,
+              0.02764657231131681,
+              0.02764657231131681
+            ],
+            "gini": 0.5946204834624936,
+            "topWealthShare": 0.5322041750497842,
+            "mUp": 0.9404621095500689,
+            "mDown": 0.9374770228050746,
+            "segregation": 0.02203232186952191,
+            "openness": 0.8165498933593459,
+            "edgeCountAverage": 81.81643835616438,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5143966079582557,
+              0.39990867579908745,
+              0.02856490541422039,
+              0.02856490541422039,
+              0.02856490541422039
+            ],
+            "gini": 0.562973128684392,
+            "topWealthShare": 0.5156839070713223,
+            "mUp": 0.9759480321809074,
+            "mDown": 0.9737899543378964,
+            "segregation": 0.040392042284045186,
+            "openness": 0.8501768447567519,
+            "edgeCountAverage": 77.03287671232877,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:a9fd64c6ffa21446d7fc5823702be489daf83e60267a11e4d5189363f3326866",
+          "transitions": {
+            "up": [
+              744,
+              365,
+              7,
+              13,
+              0
+            ],
+            "down": [
+              0,
+              747,
+              372,
+              9,
+              12
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.49757812963292564,
+              0.41733171475314984,
+              0.02841873320519614,
+              0.02841873320519614,
+              0.028252689203535696
+            ],
+            "gini": 0.5696488306548732,
+            "topWealthShare": 0.52482743160739,
+            "mUp": 0.9655104864694067,
+            "mDown": 0.9628644508862227,
+            "segregation": -0.05204137434656995,
+            "openness": 0.8838030142545,
+            "edgeCountAverage": 72.27671232876712,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.505541718555417,
+              0.4326509962640095,
+              0.03090364259028642,
+              0.00020755500207555002,
+              0.03069608758821087
+            ],
+            "gini": 0.5421223338703647,
+            "topWealthShare": 0.492021984089727,
+            "mUp": 0.9575952158572018,
+            "mDown": 0.9556286322125358,
+            "segregation": -0.011364829578143755,
+            "openness": 0.8804296696073325,
+            "edgeCountAverage": 58.463013698630135,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 29,
+          "finalStateHash": "sha256:35b464b617c10fe77b1c6a4fcaaba07d47558ada0990f332bd72dd02e683111f",
+          "transitions": {
+            "up": [
+              724,
+              239,
+              15,
+              16,
+              0
+            ],
+            "down": [
+              0,
+              728,
+              246,
+              17,
+              16
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.6024230164253347,
+              0.3097058460162831,
+              0.029290379186128656,
+              0.029290379186128656,
+              0.029290379186128656
+            ],
+            "gini": 0.5993389009002236,
+            "topWealthShare": 0.5304374143620376,
+            "mUp": 0.9325152236070904,
+            "mDown": 0.917514321004451,
+            "segregation": 0.050083668922793805,
+            "openness": 0.7945920158888404,
+            "edgeCountAverage": 73.80410958904109,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5859768559434335,
+              0.31847934158196756,
+              0.03184793415819705,
+              0.03184793415819705,
+              0.03184793415819705
+            ],
+            "gini": 0.6219462035577451,
+            "topWealthShare": 0.5861175549618228,
+            "mUp": 0.9447691117984988,
+            "mDown": 0.9442623177198357,
+            "segregation": 0.05498722941124645,
+            "openness": 0.7729986802815965,
+            "edgeCountAverage": 61.62739726027397,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=1+scarcity=0.5",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 1,
+          "scarcityWeight": 0.5
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:0dc14251585e0fbfa94a44e245fdfce1d10ee35bd4779c6ac7d15cd0393fa065",
+          "transitions": {
+            "up": [
+              910,
+              240,
+              26,
+              15,
+              0
+            ],
+            "down": [
+              0,
+              916,
+              246,
+              28,
+              15
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.6386508576033086,
+              0.24523080465063096,
+              0.05805916887302933,
+              0.029029584436514665,
+              0.029029584436514665
+            ],
+            "gini": 0.5004278500386977,
+            "topWealthShare": 0.464282809694713,
+            "mUp": 0.9439956256475305,
+            "mDown": 0.9451893634166162,
+            "segregation": -0.0009191992482114523,
+            "openness": 0.9022805383910469,
+            "edgeCountAverage": 74.27397260273973,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.641286352648153,
+              0.23914243156789827,
+              0.05978560789197457,
+              0.029892803945987284,
+              0.029892803945987284
+            ],
+            "gini": 0.5261055113009343,
+            "topWealthShare": 0.5036921769917255,
+            "mUp": 0.9586831245574234,
+            "mDown": 0.9603801919273391,
+            "segregation": -0.07258315208587274,
+            "openness": 0.911536913219032,
+            "edgeCountAverage": 70.92054794520548,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:fdd6134a310bcbcf830f93be1c957ac4101f86e9c327c474970674115c38f81a",
+          "transitions": {
+            "up": [
+              831,
+              289,
+              8,
+              16,
+              0
+            ],
+            "down": [
+              0,
+              835,
+              296,
+              10,
+              16
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5268664673531295,
+              0.3896393798268312,
+              0.027831384273345597,
+              0.027831384273345597,
+              0.027831384273345597
+            ],
+            "gini": 0.6505880120686922,
+            "topWealthShare": 0.6142949778699589,
+            "mUp": 0.9392899656273908,
+            "mDown": 0.9398579968370936,
+            "segregation": 0.02001242916670239,
+            "openness": 0.7629206848106882,
+            "edgeCountAverage": 83.12465753424658,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5142857142857181,
+              0.4000000000000007,
+              0.02857142857142848,
+              0.02857142857142848,
+              0.02857142857142848
+            ],
+            "gini": 0.6286842323914767,
+            "topWealthShare": 0.603153380771729,
+            "mUp": 0.9694716242661479,
+            "mDown": 0.9610567514677141,
+            "segregation": 0.053438598644598496,
+            "openness": 0.7827547386560016,
+            "edgeCountAverage": 78,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:265cda1ade51766a2fef39d4e731869cc392588f06707646848c8b9e77fa41d4",
+          "transitions": {
+            "up": [
+              790,
+              403,
+              7,
+              2,
+              0
+            ],
+            "down": [
+              0,
+              793,
+              410,
+              9,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.49675146771037276,
+              0.4181180691454669,
+              0.056753642096108656,
+              0,
+              0.028376821048054328
+            ],
+            "gini": 0.5234641834237391,
+            "topWealthShare": 0.48260335636452567,
+            "mUp": 0.9584953250706796,
+            "mDown": 0.9618528324571936,
+            "segregation": -0.023733465075057376,
+            "openness": 0.8988935778498919,
+            "edgeCountAverage": 71.81780821917808,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.504503943545039,
+              0.4314438197445847,
+              0.038008586062071255,
+              0.02362624533001245,
+              0.0024174053182916965
+            ],
+            "gini": 0.42789166201945994,
+            "topWealthShare": 0.3753642227475203,
+            "mUp": 0.9604451291724656,
+            "mDown": 0.9699213122359774,
+            "segregation": -0.08864735423276776,
+            "openness": 0.9398639515658671,
+            "edgeCountAverage": 61.3027397260274,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 29,
+          "finalStateHash": "sha256:7009e4f88624f3865e4f5bd59e342425015d5932c082c0b5d8b5d5d58852522f",
+          "transitions": {
+            "up": [
+              724,
+              302,
+              5,
+              2,
+              0
+            ],
+            "down": [
+              0,
+              728,
+              307,
+              6,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5617814171123032,
+              0.37978943850267327,
+              0.029214572192513368,
+              0.001331811263318113,
+              0.02788276092919526
+            ],
+            "gini": 0.5671521173804758,
+            "topWealthShare": 0.522572429734455,
+            "mUp": 0.9461058808122662,
+            "mDown": 0.9283234105182121,
+            "segregation": -0.033523311842638716,
+            "openness": 0.8747264818910706,
+            "edgeCountAverage": 77.25068493150685,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5407340919133964,
+              0.39565013256738235,
+              0.03180788775961107,
+              0,
+              0.03180788775961107
+            ],
+            "gini": 0.6558968147127061,
+            "topWealthShare": 0.6322576560628484,
+            "mUp": 0.9546591913389189,
+            "mDown": 0.949417255855055,
+            "segregation": -0.008258672682636583,
+            "openness": 0.7948818822703614,
+            "edgeCountAverage": 65.89315068493151,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=1+scarcity=1",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 1,
+          "scarcityWeight": 1
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:7fe11892db7084a243ffd4bb003d5b08209dd21278d1dde26140449244729b98",
+          "transitions": {
+            "up": [
+              826,
+              342,
+              20,
+              14,
+              0
+            ],
+            "down": [
+              0,
+              832,
+              348,
+              22,
+              14
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5802233222055877,
+              0.30373201335328237,
+              0.05802233222056013,
+              0.029011166110280064,
+              0.029011166110280064
+            ],
+            "gini": 0.4802256170591114,
+            "topWealthShare": 0.44009582611571696,
+            "mUp": 0.9472291930470832,
+            "mDown": 0.9458478185794928,
+            "segregation": -0.009326469966646933,
+            "openness": 0.9127429323651443,
+            "edgeCountAverage": 70.86027397260274,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5812956315776568,
+              0.2990745488731018,
+              0.05981490977462056,
+              0.02990745488731028,
+              0.02990745488731028
+            ],
+            "gini": 0.5087413534210569,
+            "topWealthShare": 0.46763169053438064,
+            "mUp": 0.9818694601128113,
+            "mDown": 0.9790491539081381,
+            "segregation": 0.04570144948269611,
+            "openness": 0.8854706946998441,
+            "edgeCountAverage": 66.33150684931506,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:eda9e34a32139213109221c998b5e6c246de06eeaabaab200393755d87ecbc83",
+          "transitions": {
+            "up": [
+              842,
+              262,
+              10,
+              25,
+              0
+            ],
+            "down": [
+              0,
+              846,
+              268,
+              12,
+              25
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5563368343108706,
+              0.36071289385997585,
+              0.027650090609716148,
+              0.027650090609716148,
+              0.027650090609716148
+            ],
+            "gini": 0.5972779173467139,
+            "topWealthShare": 0.5509781351611107,
+            "mUp": 0.9418459375020289,
+            "mDown": 0.9420462098724558,
+            "segregation": 0.06819613754467073,
+            "openness": 0.7938086251658982,
+            "edgeCountAverage": 81.93972602739726,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5698195259839067,
+              0.34474668406175846,
+              0.028451837355946853,
+              0.028490976299195385,
+              0.028490976299195385
+            ],
+            "gini": 0.6213084697290814,
+            "topWealthShare": 0.6029688343404846,
+            "mUp": 0.9558447488584437,
+            "mDown": 0.9542911502500557,
+            "segregation": 0.05023735350730947,
+            "openness": 0.786434311686899,
+            "edgeCountAverage": 78.30410958904109,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:f3555e50f5b07cd81c7e878b3368dcd7952762f146883e13ad00fc222d4441cb",
+          "transitions": {
+            "up": [
+              737,
+              389,
+              10,
+              13,
+              0
+            ],
+            "down": [
+              0,
+              740,
+              396,
+              12,
+              13
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.49722113502935494,
+              0.4177132496834356,
+              0.02835520509573735,
+              0.02835520509573735,
+              0.02835520509573735
+            ],
+            "gini": 0.5654688086138836,
+            "topWealthShare": 0.5348161437085481,
+            "mUp": 0.9826640701942924,
+            "mDown": 0.9797654221505981,
+            "segregation": -0.0207286297873069,
+            "openness": 0.8810053538677077,
+            "edgeCountAverage": 72.6972602739726,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5046907430469075,
+              0.43265526945522875,
+              0.030903947818230647,
+              0.0008460918614020951,
+              0.030903947818230647
+            ],
+            "gini": 0.5454624776858066,
+            "topWealthShare": 0.4940209318240816,
+            "mUp": 0.9602023203428318,
+            "mDown": 0.9621144207994529,
+            "segregation": -0.01460214431260871,
+            "openness": 0.8773902044542052,
+            "edgeCountAverage": 63.73424657534247,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 29,
+          "finalStateHash": "sha256:22ddb40d4663237552e912a9d1934752999521c291c51f7aad1f8bad0638383a",
+          "transitions": {
+            "up": [
+              718,
+              219,
+              2,
+              1,
+              0
+            ],
+            "down": [
+              0,
+              722,
+              225,
+              4,
+              1
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.590589364637508,
+              0.35092340173927766,
+              0.029243616811606442,
+              0,
+              0.029243616811606442
+            ],
+            "gini": 0.6795529579519969,
+            "topWealthShare": 0.6574004997615918,
+            "mUp": 0.9156901690730251,
+            "mDown": 0.9201687307343039,
+            "segregation": 0.02145045146866677,
+            "openness": 0.7319664159251213,
+            "edgeCountAverage": 76.55205479452054,
+            "networkEmpty": false,
+            "labels": [
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5554435483871032,
+              0.3810483870967687,
+              0.031754032258064405,
+              0,
+              0.031754032258064405
+            ],
+            "gini": 0.7149699507268111,
+            "topWealthShare": 0.7080348520956494,
+            "mUp": 0.9178910737958355,
+            "mDown": 0.9166482545293756,
+            "segregation": -0.029444751345467316,
+            "openness": 0.7108280230751467,
+            "edgeCountAverage": 65,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=1+scarcity=2",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 1,
+          "scarcityWeight": 2
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:0c2e7b6267ad8bae453ec35e22196459148c9be6bd70fe6e35c977e80453cd6a",
+          "transitions": {
+            "up": [
+              811,
+              333,
+              28,
+              17,
+              0
+            ],
+            "down": [
+              0,
+              817,
+              339,
+              30,
+              17
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5647116380798928,
+              0.3192114654080777,
+              0.0580384482560154,
+              0.0290192241280077,
+              0.0290192241280077
+            ],
+            "gini": 0.47351778791616495,
+            "topWealthShare": 0.4202487895958441,
+            "mUp": 0.9685000575572831,
+            "mDown": 0.9651559802003106,
+            "segregation": -0.013231184373348366,
+            "openness": 0.9235337955554737,
+            "edgeCountAverage": 72.46712328767123,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.551662881840163,
+              0.3287805533172218,
+              0.05977828242131307,
+              0.029889141210656535,
+              0.029889141210656535
+            ],
+            "gini": 0.49147148518194145,
+            "topWealthShare": 0.4580310887589557,
+            "mUp": 0.9852941176470585,
+            "mDown": 0.9828767123287666,
+            "segregation": 0.029226939596859458,
+            "openness": 0.9021223678925574,
+            "edgeCountAverage": 68.78630136986301,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:795f0ae84975b16ca1ecdf56618bd658c297a7f3cbca1b9ef61210477a59cfda",
+          "transitions": {
+            "up": [
+              784,
+              288,
+              11,
+              18,
+              0
+            ],
+            "down": [
+              0,
+              788,
+              295,
+              13,
+              18
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5316282561271705,
+              0.38504794010201077,
+              0.027774601256937564,
+              0.027774601256937564,
+              0.027774601256937564
+            ],
+            "gini": 0.5994485438316379,
+            "topWealthShare": 0.5426299600481121,
+            "mUp": 0.9072839633329919,
+            "mDown": 0.9050804259816546,
+            "segregation": 0.06281316554005423,
+            "openness": 0.7814973068857316,
+            "edgeCountAverage": 78.72876712328767,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5428571428571444,
+              0.37142857142856794,
+              0.02857142857142848,
+              0.02857142857142848,
+              0.02857142857142848
+            ],
+            "gini": 0.6215862789946146,
+            "topWealthShare": 0.5941755176065039,
+            "mUp": 0.9598825831702585,
+            "mDown": 0.9544031311154685,
+            "segregation": 0.06313648874470015,
+            "openness": 0.777800065789732,
+            "edgeCountAverage": 77,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:26622f1209969d9b8db1b1350143d275e3b80c7df4e04772007314a6d049bdf6",
+          "transitions": {
+            "up": [
+              682,
+              392,
+              6,
+              2,
+              0
+            ],
+            "down": [
+              0,
+              685,
+              399,
+              8,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5061074541896411,
+              0.40718738553952,
+              0.0578034401805557,
+              0,
+              0.02890172009027785
+            ],
+            "gini": 0.5567582267195592,
+            "topWealthShare": 0.49021385090647446,
+            "mUp": 0.9348514557338169,
+            "mDown": 0.9312421498279737,
+            "segregation": -0.033776268582146426,
+            "openness": 0.8745464105374242,
+            "edgeCountAverage": 71.82876712328768,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5046907430469075,
+              0.4024387712743872,
+              0.0509975612287256,
+              0.01091609589041096,
+              0.03095682855956828
+            ],
+            "gini": 0.5550625795338997,
+            "topWealthShare": 0.5056525013333512,
+            "mUp": 0.9311111975923614,
+            "mDown": 0.9196424865089241,
+            "segregation": 0.04166128126880105,
+            "openness": 0.8357365254153939,
+            "edgeCountAverage": 61.23835616438356,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 29,
+          "finalStateHash": "sha256:0b4c7179d21363e61f6b53d6e289a3d75e468ee76f000e447ed6e1a582ef056a",
+          "transitions": {
+            "up": [
+              692,
+              291,
+              2,
+              1,
+              0
+            ],
+            "down": [
+              0,
+              696,
+              298,
+              4,
+              1
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5901614147111702,
+              0.3512902159618526,
+              0.02927418466348769,
+              0,
+              0.02927418466348769
+            ],
+            "gini": 0.670998651882927,
+            "topWealthShare": 0.636090613461667,
+            "mUp": 0.891921071977983,
+            "mDown": 0.8953193498237858,
+            "segregation": 0.030951249021608604,
+            "openness": 0.7211612296529787,
+            "edgeCountAverage": 73.07534246575342,
+            "networkEmpty": false,
+            "labels": [
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5545735749005817,
+              0.38179407865664466,
+              0.031816173221387474,
+              0,
+              0.031816173221387474
+            ],
+            "gini": 0.732944448240414,
+            "topWealthShare": 0.7225393869904986,
+            "mUp": 0.8907561864781304,
+            "mDown": 0.8921370967741943,
+            "segregation": 0.05127280463567729,
+            "openness": 0.6171231767493813,
+            "edgeCountAverage": 59.31506849315068,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=1+scarcity=4",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 1,
+          "scarcityWeight": 4
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:801673e12938fbde5f05981699818ef774ec11da7571b6ccc708b4cd2b6f617b",
+          "transitions": {
+            "up": [
+              872,
+              274,
+              24,
+              6,
+              0
+            ],
+            "down": [
+              0,
+              878,
+              280,
+              26,
+              6
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5940370668815361,
+              0.2899735236560344,
+              0.05799470473120821,
+              0.028997352365604107,
+              0.028997352365604107
+            ],
+            "gini": 0.501164349900144,
+            "topWealthShare": 0.4402614737484018,
+            "mUp": 0.9518015425348341,
+            "mDown": 0.9532922758144408,
+            "segregation": -0.014263485234709558,
+            "openness": 0.9059553813245664,
+            "edgeCountAverage": 71.46575342465754,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5813640026371641,
+              0.29902571240202525,
+              0.05980514248040523,
+              0.029902571240202614,
+              0.029902571240202614
+            ],
+            "gini": 0.4817958050089293,
+            "topWealthShare": 0.432906919575801,
+            "mUp": 0.9803677386272182,
+            "mDown": 0.9746392205699373,
+            "segregation": 0.003758336464837646,
+            "openness": 0.9140948990030712,
+            "edgeCountAverage": 66.7972602739726,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:232e7ec6d6d4782b5b9f43bb17a144c848d2f50a3de3e655da3c3205ad845d35",
+          "transitions": {
+            "up": [
+              803,
+              273,
+              10,
+              20,
+              0
+            ],
+            "down": [
+              0,
+              807,
+              280,
+              12,
+              20
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5607226136425756,
+              0.3557974165328214,
+              0.027826656608199767,
+              0.027826656608199767,
+              0.027826656608199767
+            ],
+            "gini": 0.602043734106857,
+            "topWealthShare": 0.5546037830908391,
+            "mUp": 0.9138564076487704,
+            "mDown": 0.9165200301754062,
+            "segregation": 0.04487512167462758,
+            "openness": 0.7870530284527116,
+            "edgeCountAverage": 80.64794520547945,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5714285714285684,
+              0.3428571428571487,
+              0.02857142857142848,
+              0.02857142857142848,
+              0.02857142857142848
+            ],
+            "gini": 0.6369810498890839,
+            "topWealthShare": 0.61725253467987,
+            "mUp": 0.9463796477495201,
+            "mDown": 0.9477495107632126,
+            "segregation": 0.0864076692570001,
+            "openness": 0.7409061791769442,
+            "edgeCountAverage": 75,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:38ac80adbc6c547ba6ba57eba65397cf85fc9cb79649ea5e86ec7bf7fd8e17ce",
+          "transitions": {
+            "up": [
+              653,
+              381,
+              6,
+              2,
+              0
+            ],
+            "down": [
+              0,
+              656,
+              388,
+              9,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.5163611654707512,
+              0.4267401481140372,
+              0.028449343207603082,
+              0,
+              0.028449343207603082
+            ],
+            "gini": 0.5412275857564467,
+            "topWealthShare": 0.49737943672167184,
+            "mUp": 0.93761744880602,
+            "mDown": 0.931647992530358,
+            "segregation": -0.0277479643014647,
+            "openness": 0.8869019118503664,
+            "edgeCountAverage": 78.35342465753425,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5024076380240764,
+              0.4625267837521057,
+              0.03083511891680706,
+              0,
+              0.0042304593070104654
+            ],
+            "gini": 0.3737295254815462,
+            "topWealthShare": 0.313947738556281,
+            "mUp": 0.903366893145801,
+            "mDown": 0.9080769418601808,
+            "segregation": -0.000036630869150178823,
+            "openness": 0.9334341646088534,
+            "edgeCountAverage": 67.1041095890411,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 29,
+          "finalStateHash": "sha256:595a7b4c0c5680a108593239b3a606ec0d7d51b26379b5cab7a94ea8d4768f91",
+          "transitions": {
+            "up": [
+              709,
+              255,
+              7,
+              2,
+              0
+            ],
+            "down": [
+              0,
+              713,
+              261,
+              8,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.6023042573193685,
+              0.309729384904649,
+              0.029322119258662457,
+              0.029322119258662457,
+              0.029322119258662457
+            ],
+            "gini": 0.5775262229727637,
+            "topWealthShare": 0.5302339398560956,
+            "mUp": 0.9305811031344952,
+            "mDown": 0.9173172549426633,
+            "segregation": 0.000034846019790661444,
+            "openness": 0.8477571803616847,
+            "edgeCountAverage": 76.06438356164384,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0.5859948077772823,
+              0.31846553247900683,
+              0.03184655324790098,
+              0.03184655324790098,
+              0.03184655324790098
+            ],
+            "gini": 0.6420290859945574,
+            "topWealthShare": 0.608650952352465,
+            "mUp": 0.8986453269995615,
+            "mDown": 0.9033473265576717,
+            "segregation": -0.005787480433853159,
+            "openness": 0.7763400153238903,
+            "edgeCountAverage": 66.22465753424657,
+            "networkEmpty": false,
+            "labels": [
+              "pyramid",
+              "bipolar",
+              "highFlowNetwork"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.75+scarcity=0",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.75,
+          "scarcityWeight": 0
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 34,
+          "finalStateHash": "sha256:f5d75e3a08c7762f1d216a5bc6fb22964d3e63915dbf5307494f8b50dea4f3b5",
+          "transitions": {
+            "up": [
+              53,
+              76,
+              68,
+              66,
+              0
+            ],
+            "down": [
+              0,
+              36,
+              49,
+              37,
+              32
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.011545988258316991,
+              0.5467710371819987,
+              0.44168297455968514
+            ],
+            "gini": 0.3334192642134253,
+            "topWealthShare": 0.27133945611598875,
+            "mUp": 0.46536203522505004,
+            "mDown": 0.2254403131115459,
+            "segregation": 0.0017383144779118188,
+            "openness": 0.8011243361140896,
+            "edgeCountAverage": 74,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0,
+              0.13980660757453645,
+              0.8601933924254689
+            ],
+            "gini": 0.33328776203794896,
+            "topWealthShare": 0.27145683668594023,
+            "mUp": 0.2933924254633355,
+            "mDown": 0.15335558881086714,
+            "segregation": 0.11240030536279468,
+            "openness": 0.7394999630496147,
+            "edgeCountAverage": 72.53424657534246,
+            "networkEmpty": false,
+            "labels": [
+              "topHeavy"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:a494a1c3c13441e716f9e007daad943b0cbc110eab6d04bbd03ee24a0095b612",
+          "transitions": {
+            "up": [
+              51,
+              73,
+              70,
+              18,
+              0
+            ],
+            "down": [
+              0,
+              33,
+              44,
+              36,
+              13
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.1662542679665956,
+              0.7231995513898838,
+              0.1105461806435124
+            ],
+            "gini": 0.471081556548814,
+            "topWealthShare": 0.38390020876110936,
+            "mUp": 0.575849641999608,
+            "mDown": 0.3043125677949007,
+            "segregation": 0.18641511950770656,
+            "openness": 0.629920150492955,
+            "edgeCountAverage": 84.32191780821918,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.002473363774733634,
+              0.831430745814307,
+              0.16609589041096065
+            ],
+            "gini": 0.44786078247118777,
+            "topWealthShare": 0.36353541765586417,
+            "mUp": 0.0829528158295288,
+            "mDown": 0.051179604261796185,
+            "segregation": 0.3956949571343584,
+            "openness": 0.21533967548837707,
+            "edgeCountAverage": 79,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:2fa1310fbc6cba5d8e22917e40cfe6115ca7a22d6bcc82cfa45930dda22b06e0",
+          "transitions": {
+            "up": [
+              45,
+              83,
+              87,
+              39,
+              0
+            ],
+            "down": [
+              0,
+              27,
+              54,
+              55,
+              26
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.058732333115895714,
+              0.9133572515764414,
+              0.027910415307675875
+            ],
+            "gini": 0.4304466603624696,
+            "topWealthShare": 0.33967804714608535,
+            "mUp": 0.3342041748206116,
+            "mDown": 0.21569580343553155,
+            "segregation": 0.2463886417465016,
+            "openness": 0.5056927691259305,
+            "edgeCountAverage": 79.16438356164383,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.002935420743639917,
+              0.9590193287776029,
+              0.0380452504787722
+            ],
+            "gini": 0.43722665468406124,
+            "topWealthShare": 0.36164937640017564,
+            "mUp": 0.03486669387555778,
+            "mDown": 0.01133843325624146,
+            "segregation": 0.10336201798645442,
+            "openness": 0.36104156380464036,
+            "edgeCountAverage": 67.63835616438357,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:df00daf3907dafffdd8c9dfbeeb0d5a16a860644e62931ce79cc25df21768a48",
+          "transitions": {
+            "up": [
+              38,
+              89,
+              69,
+              33,
+              0
+            ],
+            "down": [
+              0,
+              20,
+              60,
+              36,
+              17
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.005505162696943505,
+              0.048251676333868246,
+              0.8786592855086045,
+              0.06758387546058828
+            ],
+            "gini": 0.5528681392352662,
+            "topWealthShare": 0.4907752278246808,
+            "mUp": 0.4142682310490513,
+            "mDown": 0.22184434924160876,
+            "segregation": 0.13348729813419463,
+            "openness": 0.5062536776999962,
+            "edgeCountAverage": 82.7904109589041,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0,
+              0.883583476354429,
+              0.11641652364557256
+            ],
+            "gini": 0.5303691753673488,
+            "topWealthShare": 0.4761506332267173,
+            "mUp": 0.04589652641878668,
+            "mDown": 0.018902886497064578,
+            "segregation": 0.20621473106659433,
+            "openness": 0.18276004763032516,
+            "edgeCountAverage": 71.17534246575343,
+            "networkEmpty": false,
+            "labels": []
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.75+scarcity=0.5",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.75,
+          "scarcityWeight": 0.5
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 33,
+          "finalStateHash": "sha256:4af0974be6a3666d29c926a8343dc6d20e0d4c40e6948348b4fa4573b13752c9",
+          "transitions": {
+            "up": [
+              41,
+              71,
+              86,
+              46,
+              0
+            ],
+            "down": [
+              0,
+              23,
+              44,
+              56,
+              21
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.7387809370323459,
+              0.17475883504086556,
+              0.08646022792678834
+            ],
+            "gini": 0.39133189121547673,
+            "topWealthShare": 0.34104574012916106,
+            "mUp": 0.24138252561298496,
+            "mDown": 0.1711120064464143,
+            "segregation": 0.39534637479023127,
+            "openness": 0.32626914421774056,
+            "edgeCountAverage": 71.77534246575343,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.08017727639000949,
+              0.7248186946011231,
+              0.19500402900886368
+            ],
+            "gini": 0.3603777507506429,
+            "topWealthShare": 0.3245730560178088,
+            "mUp": 0.5864222401289301,
+            "mDown": 0.3583803384367434,
+            "segregation": 0.18381428130921432,
+            "openness": 0.7497568088628656,
+            "edgeCountAverage": 68,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:8241dd547193648727b8cca11a77785f066d9c03358116208655d74217b6cb2f",
+          "transitions": {
+            "up": [
+              49,
+              90,
+              61,
+              1,
+              0
+            ],
+            "down": [
+              0,
+              31,
+              61,
+              29,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.7176219117459224,
+              0.28237808825407973,
+              0
+            ],
+            "gini": 0.4994786220482421,
+            "topWealthShare": 0.4001364481288559,
+            "mUp": 0.14242910899363673,
+            "mDown": 0.060856548690002586,
+            "segregation": 0.3626675445890946,
+            "openness": 0.16347816723941222,
+            "edgeCountAverage": 86.08904109589041,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.1468471406827596,
+              0.8531528593172452,
+              0
+            ],
+            "gini": 0.43167540076573785,
+            "topWealthShare": 0.3483683809651621,
+            "mUp": 0.419297673407264,
+            "mDown": 0.16895520765384017,
+            "segregation": 0.11836475465771457,
+            "openness": 0.6203035569428046,
+            "edgeCountAverage": 79.41095890410959,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:962cadd3ed6f235ec264697c6cc3f1dd4af458f2a0d7c3738358d3b81a812b90",
+          "transitions": {
+            "up": [
+              42,
+              72,
+              89,
+              36,
+              0
+            ],
+            "down": [
+              0,
+              24,
+              43,
+              57,
+              15
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.192541856925417,
+              0.6972983257229842,
+              0.11015981735159945
+            ],
+            "gini": 0.4283913116943662,
+            "topWealthShare": 0.33000763338576783,
+            "mUp": 0.47773972602739834,
+            "mDown": 0.2640791476407921,
+            "segregation": 0.12886904334824287,
+            "openness": 0.6853050898219322,
+            "edgeCountAverage": 82,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.017790056661934128,
+              0.5178195969130639,
+              0.46439034642499666
+            ],
+            "gini": 0.39127532618359007,
+            "topWealthShare": 0.2914745704770297,
+            "mUp": 0.41669062560682185,
+            "mDown": 0.19731931959168228,
+            "segregation": 0.1065740500961795,
+            "openness": 0.7089190330437797,
+            "edgeCountAverage": 71.45753424657535,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:12f461fe4b8293c173b82fe56a35d2cd3261f1e55d2a086d2b36cb2561441431",
+          "transitions": {
+            "up": [
+              39,
+              74,
+              69,
+              7,
+              0
+            ],
+            "down": [
+              0,
+              21,
+              45,
+              39,
+              4
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.2508757485469836,
+              0.7212879121783239,
+              0.02783633927469575
+            ],
+            "gini": 0.5312378510788276,
+            "topWealthShare": 0.4635978656224809,
+            "mUp": 0.19636660143509427,
+            "mDown": 0.08160043605249111,
+            "segregation": 0.33891488093900024,
+            "openness": 0.2613257695785788,
+            "edgeCountAverage": 82.57808219178082,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.1408302897746895,
+              0.8116142110642506,
+              0.04755549916105919
+            ],
+            "gini": 0.5264843045845219,
+            "topWealthShare": 0.46819139018032196,
+            "mUp": 0.08541796388542965,
+            "mDown": 0.039784402241594026,
+            "segregation": 0.3796136918866318,
+            "openness": 0.12727767945900065,
+            "edgeCountAverage": 68.7,
+            "networkEmpty": false,
+            "labels": []
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.75+scarcity=1",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.75,
+          "scarcityWeight": 1
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 33,
+          "finalStateHash": "sha256:636f12c0e79717b9a5c46b6c4b9e6e957598cf641a58e49b4c59ab2ca42f4b1d",
+          "transitions": {
+            "up": [
+              59,
+              69,
+              77,
+              2,
+              0
+            ],
+            "down": [
+              0,
+              42,
+              42,
+              45,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.23138597904915642,
+              0.7399884885461089,
+              0.02862553240474274
+            ],
+            "gini": 0.3727345216985996,
+            "topWealthShare": 0.3263911828723462,
+            "mUp": 0.38348912167606863,
+            "mDown": 0.23245769540693145,
+            "segregation": 0.26867350400981355,
+            "openness": 0.5688501490789055,
+            "edgeCountAverage": 69.67808219178082,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.09246575342465804,
+              0.878122481869467,
+              0.029411764705882706
+            ],
+            "gini": 0.36862679390379083,
+            "topWealthShare": 0.3265737531700773,
+            "mUp": 0.17626913779210143,
+            "mDown": 0.12107171635777866,
+            "segregation": 0.4149954537551106,
+            "openness": 0.32709333513850863,
+            "edgeCountAverage": 65,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:4d9ea874b534da84dd6b487ad8141dc1ef01392a0271df19002358bf46de0a70",
+          "transitions": {
+            "up": [
+              49,
+              76,
+              49,
+              6,
+              0
+            ],
+            "down": [
+              0,
+              31,
+              47,
+              26,
+              6
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.02710188559143153,
+              0.7296120020525275,
+              0.21618422676461707,
+              0.02710188559143153
+            ],
+            "gini": 0.5071385866289737,
+            "topWealthShare": 0.39822309340537865,
+            "mUp": 0.05702799049951166,
+            "mDown": 0.030060882800608747,
+            "segregation": 0.39651901832840786,
+            "openness": 0.12133686929796983,
+            "edgeCountAverage": 85.27945205479452,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.008942161339421587,
+              0.40415416394868253,
+              0.5588964992389683,
+              0.028007175472929084
+            ],
+            "gini": 0.5147683202145876,
+            "topWealthShare": 0.42267279095774896,
+            "mUp": 0.33828984561861575,
+            "mDown": 0.13743422483148532,
+            "segregation": 0.2622219094001133,
+            "openness": 0.3269252681415022,
+            "edgeCountAverage": 79.26575342465753,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:dbc4e631e13e1d99961c53acccc89c48cfead3e954ec714cbe0b57e1c132a3d3",
+          "transitions": {
+            "up": [
+              44,
+              75,
+              72,
+              35,
+              0
+            ],
+            "down": [
+              0,
+              26,
+              46,
+              40,
+              19
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.16704718417046976,
+              0.6453576864535824,
+              0.18759512937594924
+            ],
+            "gini": 0.4055747845749812,
+            "topWealthShare": 0.3303464709741024,
+            "mUp": 0.5485159817351555,
+            "mDown": 0.29414003044140025,
+            "segregation": 0.007166658907151834,
+            "openness": 0.8198464544134579,
+            "edgeCountAverage": 76,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.016226929127815464,
+              0.6636147709395082,
+              0.3201582999326803
+            ],
+            "gini": 0.40118969466461407,
+            "topWealthShare": 0.30785568271426583,
+            "mUp": 0.20831281620161804,
+            "mDown": 0.09261854181274101,
+            "segregation": 0.3918980224740433,
+            "openness": 0.2959591481542673,
+            "edgeCountAverage": 69.21917808219177,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:f9e9ea7e68238a7505151d7dcb0a59060e7f68bd2cb2e756787024131c902c20",
+          "transitions": {
+            "up": [
+              39,
+              71,
+              57,
+              21,
+              0
+            ],
+            "down": [
+              0,
+              21,
+              42,
+              30,
+              11
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.424571557859222,
+              0.5475197310813654,
+              0.027908711059396234
+            ],
+            "gini": 0.544889764882559,
+            "topWealthShare": 0.47168762755806837,
+            "mUp": 0.10080117299295181,
+            "mDown": 0.03009687769961762,
+            "segregation": 0.3585201719798847,
+            "openness": 0.18553781365046265,
+            "edgeCountAverage": 80.96849315068494,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.30204023514760847,
+              0.6257986834210649,
+              0.0721610814313272
+            ],
+            "gini": 0.5540721014497485,
+            "topWealthShare": 0.5100869956314247,
+            "mUp": 0.15881849315068494,
+            "mDown": 0.08154965753424658,
+            "segregation": 0.34292938975338927,
+            "openness": 0.16959393531171893,
+            "edgeCountAverage": 63.794520547945204,
+            "networkEmpty": false,
+            "labels": []
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.75+scarcity=2",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.75,
+          "scarcityWeight": 2
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 33,
+          "finalStateHash": "sha256:98f9c05253bde8277f9e0b71f5622ccfc285ffca2fb81e91ae39ecac0191bc8e",
+          "transitions": {
+            "up": [
+              40,
+              63,
+              69,
+              29,
+              0
+            ],
+            "down": [
+              0,
+              22,
+              36,
+              38,
+              14
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.25753424657534185,
+              0.4430919765166316,
+              0.29937377690802547
+            ],
+            "gini": 0.31279147025377485,
+            "topWealthShare": 0.2297426286419424,
+            "mUp": 0.5332036376194307,
+            "mDown": 0.2889397950961217,
+            "segregation": 0.047389014256883286,
+            "openness": 0.8273581215349151,
+            "edgeCountAverage": 72.86027397260274,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.059830781627720375,
+              0.5100725221595496,
+              0.430096696212729
+            ],
+            "gini": 0.30807778494445665,
+            "topWealthShare": 0.2544975001626509,
+            "mUp": 0.18211120064464148,
+            "mDown": 0.09488315874294945,
+            "segregation": 0.12378435335169094,
+            "openness": 0.6432399384801535,
+            "edgeCountAverage": 70,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:90675869f8aea818905bd353518c86d3b68916186e0ffdd16ec410212c3a15e6",
+          "transitions": {
+            "up": [
+              64,
+              87,
+              77,
+              16,
+              0
+            ],
+            "down": [
+              0,
+              46,
+              59,
+              48,
+              11
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.16851826592273672,
+              0.579115218318531,
+              0.20913095864429648,
+              0.043235557114433054
+            ],
+            "gini": 0.5759947184390178,
+            "topWealthShare": 0.486113814653,
+            "mUp": 0.4398873278469514,
+            "mDown": 0.25862919516488325,
+            "segregation": 0.17314945716342703,
+            "openness": 0.3780715102909312,
+            "edgeCountAverage": 84.36438356164383,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.017884322678843396,
+              0.36182104805392606,
+              0.5527060230484908,
+              0.06758860621874392
+            ],
+            "gini": 0.49160246462117374,
+            "topWealthShare": 0.41906609726212285,
+            "mUp": 0.40324853228962887,
+            "mDown": 0.2315579473798648,
+            "segregation": 0.09970602445025498,
+            "openness": 0.566752098936016,
+            "edgeCountAverage": 79.07945205479452,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:4373cd5a3b945133d2fcae47d60d3427158b1ff2f0ea62c7b3fcedcf56ea15d2",
+          "transitions": {
+            "up": [
+              41,
+              83,
+              73,
+              29,
+              0
+            ],
+            "down": [
+              0,
+              23,
+              54,
+              48,
+              17
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.46855512067841304,
+              0.40995433789954583,
+              0.12149054142204846
+            ],
+            "gini": 0.4333448017723097,
+            "topWealthShare": 0.3258512910075836,
+            "mUp": 0.28465862143944287,
+            "mDown": 0.11898564905414197,
+            "segregation": 0.20442168275051587,
+            "openness": 0.45571070446660805,
+            "edgeCountAverage": 81.81369863013698,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.25775844086078076,
+              0.48847417422759715,
+              0.2537673849116261
+            ],
+            "gini": 0.4030992754484337,
+            "topWealthShare": 0.30886781562814253,
+            "mUp": 0.3042487381004756,
+            "mDown": 0.18541286003816432,
+            "segregation": 0.19172169128380578,
+            "openness": 0.5429962201474053,
+            "edgeCountAverage": 73.83150684931506,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:c2a2c276632273182748ec2b702168e624714eddf93848ea9b93f3ec7966fd05",
+          "transitions": {
+            "up": [
+              40,
+              80,
+              67,
+              16,
+              0
+            ],
+            "down": [
+              0,
+              22,
+              51,
+              45,
+              9
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.03266633791613695,
+              0.5894816682689336,
+              0.34987527702676774,
+              0.02797671678815952
+            ],
+            "gini": 0.5695042996806734,
+            "topWealthShare": 0.4860729594393091,
+            "mUp": 0.16217332274141472,
+            "mDown": 0.0974092729773651,
+            "segregation": 0.22021322354671263,
+            "openness": 0.24945694489001619,
+            "edgeCountAverage": 81.85890410958905,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.022687058945620585,
+              0.5150023349937736,
+              0.39103621834786184,
+              0.07127438771274387
+            ],
+            "gini": 0.5687641438355802,
+            "topWealthShare": 0.5162148552350649,
+            "mUp": 0.1711809879618099,
+            "mDown": 0.10504228933167291,
+            "segregation": 0.36459104716352303,
+            "openness": 0.15228980087647673,
+            "edgeCountAverage": 65.68219178082192,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.75+scarcity=4",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.75,
+          "scarcityWeight": 4
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 33,
+          "finalStateHash": "sha256:d3a71bd7d42fdcd19d84b632b7fe933a111c8fbdc108cf8cc9571b392356af67",
+          "transitions": {
+            "up": [
+              53,
+              68,
+              52,
+              26,
+              0
+            ],
+            "down": [
+              0,
+              37,
+              41,
+              29,
+              17
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.002935420743639917,
+              0.4368504662138817,
+              0.4271589731783158,
+              0.13305513986416412
+            ],
+            "gini": 0.33508503539337225,
+            "topWealthShare": 0.26726198563385906,
+            "mUp": 0.30393346379647923,
+            "mDown": 0.1454713940370669,
+            "segregation": 0.2231510595388102,
+            "openness": 0.6211345532047795,
+            "edgeCountAverage": 71.5931506849315,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.34448025785656383,
+              0.4788477034649521,
+              0.17667203867848477
+            ],
+            "gini": 0.30471251339912486,
+            "topWealthShare": 0.24414909008380475,
+            "mUp": 0.19319097502014634,
+            "mDown": 0.1458501208702665,
+            "segregation": 0.29234277564361305,
+            "openness": 0.4889732086584293,
+            "edgeCountAverage": 69,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:c376f6ed2ba85a16315bcf4563bb4511ecf5212c113e1407d4734158d7dd0715",
+          "transitions": {
+            "up": [
+              55,
+              76,
+              61,
+              12,
+              0
+            ],
+            "down": [
+              0,
+              37,
+              48,
+              39,
+              6
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0.004890001753736435,
+              0.2998599175960387,
+              0.48209321433906704,
+              0.1700135427424546,
+              0.04314332356870268
+            ],
+            "gini": 0.52074109631219,
+            "topWealthShare": 0.43597220975717205,
+            "mUp": 0.495419825016077,
+            "mDown": 0.2554048641287285,
+            "segregation": 0.27026864324784877,
+            "openness": 0.41472517176778534,
+            "edgeCountAverage": 81.45205479452055,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.01788432267884333,
+              0.5339802130898045,
+              0.33489562948467155,
+              0.11323983474668448
+            ],
+            "gini": 0.4800505397176962,
+            "topWealthShare": 0.4043138719183937,
+            "mUp": 0.5110871928680156,
+            "mDown": 0.276270928462712,
+            "segregation": 0.11826082141965048,
+            "openness": 0.6300759846458269,
+            "edgeCountAverage": 76.02191780821917,
+            "networkEmpty": false,
+            "labels": [
+              "olive",
+              "highFlowNetwork"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:1f12332357f9d47317f4f9b54a3c501eb2da51e6871b22d820e42c7a0cdc3fd7",
+          "transitions": {
+            "up": [
+              40,
+              94,
+              60,
+              14,
+              0
+            ],
+            "down": [
+              0,
+              22,
+              66,
+              44,
+              8
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.08238856273102915,
+              0.4511969993476842,
+              0.4105740378343122,
+              0.055840400086975994
+            ],
+            "gini": 0.4289127431008403,
+            "topWealthShare": 0.34027474675027297,
+            "mUp": 0.523121330724071,
+            "mDown": 0.3686921069797792,
+            "segregation": 0.0708211383268357,
+            "openness": 0.7591402155969281,
+            "edgeCountAverage": 75.28219178082192,
+            "networkEmpty": false,
+            "labels": [
+              "olive",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.4714366992126883,
+              0.4844863013698662,
+              0.04407699941745112
+            ],
+            "gini": 0.4001913181905202,
+            "topWealthShare": 0.3108838327557351,
+            "mUp": 0.1837485806900613,
+            "mDown": 0.1362675091830013,
+            "segregation": 0.13868470647904255,
+            "openness": 0.495603350112621,
+            "edgeCountAverage": 64.38630136986302,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:734b4570a0dc3816786a3416072e7f938a504b5dc36ee8b3c94ad0dbbed42f2e",
+          "transitions": {
+            "up": [
+              36,
+              73,
+              41,
+              9,
+              0
+            ],
+            "down": [
+              0,
+              18,
+              45,
+              27,
+              5
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.09369754812945892,
+              0.603191759734872,
+              0.275063961163876,
+              0.028046730971791566
+            ],
+            "gini": 0.5439344291942133,
+            "topWealthShare": 0.4584522643999745,
+            "mUp": 0.2002293786822402,
+            "mDown": 0.09790668359161689,
+            "segregation": 0.2840804541600989,
+            "openness": 0.23865933366270817,
+            "edgeCountAverage": 80.32876712328768,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.02481312419114595,
+              0.5901264027685578,
+              0.2822065843772109,
+              0.10285388866308569
+            ],
+            "gini": 0.5599088204085839,
+            "topWealthShare": 0.5147847040628069,
+            "mUp": 0.2550764108620194,
+            "mDown": 0.16462631139709397,
+            "segregation": 0.30931389765300393,
+            "openness": 0.2025136228560571,
+            "edgeCountAverage": 62.88493150684931,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.5+scarcity=0",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.5,
+          "scarcityWeight": 0
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 34,
+          "finalStateHash": "sha256:e9be5b17f281e89c0b0a58ddc590f7d6484e134f9ea1cd3afa4c3282236b5409",
+          "transitions": {
+            "up": [
+              29,
+              50,
+              57,
+              1,
+              0
+            ],
+            "down": [
+              0,
+              11,
+              23,
+              26,
+              1
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.0911937377690801,
+              0.8802348336594896,
+              0.02857142857142848
+            ],
+            "gini": 0.3609648723562726,
+            "topWealthShare": 0.31083627693407184,
+            "mUp": 0.5136986301369841,
+            "mDown": 0.21115459882583254,
+            "segregation": 0.05276128277720223,
+            "openness": 0.7708712703704192,
+            "edgeCountAverage": 75,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0,
+              0.9706423391274482,
+              0.029357660872568556
+            ],
+            "gini": 0.34714192000816224,
+            "topWealthShare": 0.304754083594733,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0.1618642535931564,
+            "openness": 0.46653463454973293,
+            "edgeCountAverage": 71.25753424657535,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:f4d3895d1acd4b26a6f784ee757c4d0ab246b0db81c6e96ebbe72bc9d78dcaba",
+          "transitions": {
+            "up": [
+              36,
+              43,
+              51,
+              30,
+              0
+            ],
+            "down": [
+              0,
+              18,
+              14,
+              17,
+              12
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.026664155142886344,
+              0.8933433794284515,
+              0.07999246542865865
+            ],
+            "gini": 0.5239163488570303,
+            "topWealthShare": 0.42516626918859146,
+            "mUp": 0.0821917808219179,
+            "mDown": 0.01730353280461426,
+            "segregation": 0.5680241670652973,
+            "openness": 0.12603093291325773,
+            "edgeCountAverage": 86.6945205479452,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.00818112633181124,
+              0.8279571646009923,
+              0.1638617090671881
+            ],
+            "gini": 0.48691478026093993,
+            "topWealthShare": 0.40929673905493086,
+            "mUp": 0.1147271145901287,
+            "mDown": 0.03125896934116115,
+            "segregation": 0.36015606366647474,
+            "openness": 0.2075553005428034,
+            "edgeCountAverage": 78.9972602739726,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:440e1d30d2aaddf2e46eb9608db642ec7dd6bce1fef972851e312e99930ac734",
+          "transitions": {
+            "up": [
+              27,
+              51,
+              49,
+              2,
+              0
+            ],
+            "down": [
+              0,
+              9,
+              22,
+              20,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.9718786692759244,
+              0,
+              0.02812133072407051
+            ],
+            "gini": 0.41628611922197584,
+            "topWealthShare": 0.32080813073595277,
+            "mUp": 0,
+            "mDown": 0,
+            "segregation": 0.42453187725584546,
+            "openness": 0.14867027399379434,
+            "edgeCountAverage": 80.13424657534246,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.37969515577089674,
+              0.5902546821966689,
+              0.030050162032434918
+            ],
+            "gini": 0.4701923874563769,
+            "topWealthShare": 0.3927440153610265,
+            "mUp": 0.5117793568236757,
+            "mDown": 0.17785510219031542,
+            "segregation": 0.2575284926736385,
+            "openness": 0.5200070395266612,
+            "edgeCountAverage": 69.53835616438356,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:c2ae6e7915e905b9349f397789faf615cf36f765f429c44bf5704d319b4b4f38",
+          "transitions": {
+            "up": [
+              29,
+              51,
+              52,
+              13,
+              0
+            ],
+            "down": [
+              0,
+              11,
+              22,
+              19,
+              3
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.11735723982299422,
+              0.7657940915475064,
+              0.11684866862949245
+            ],
+            "gini": 0.5405049986314581,
+            "topWealthShare": 0.4584991941108724,
+            "mUp": 0.42229779681834295,
+            "mDown": 0.10587410306588216,
+            "segregation": 0.18501649211839352,
+            "openness": 0.4881225318721816,
+            "edgeCountAverage": 83.05205479452054,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.01057557269483133,
+              0.8562380852091759,
+              0.13318634209599176
+            ],
+            "gini": 0.5430892905031776,
+            "topWealthShare": 0.4934365637485948,
+            "mUp": 0.037993939481147425,
+            "mDown": 0.006609876827443289,
+            "segregation": 0.39499200637736726,
+            "openness": 0.0938190110835501,
+            "edgeCountAverage": 68.21369863013699,
+            "networkEmpty": false,
+            "labels": []
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.5+scarcity=0.5",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.5,
+          "scarcityWeight": 0.5
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 34,
+          "finalStateHash": "sha256:0da8803d1ffcff4a284202019369a46c055df6a13b891a87c8da3b4314a92add",
+          "transitions": {
+            "up": [
+              34,
+              48,
+              44,
+              1,
+              0
+            ],
+            "down": [
+              0,
+              16,
+              21,
+              12,
+              1
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.020547945205479385,
+              0.9508806262230758,
+              0.02857142857142848
+            ],
+            "gini": 0.335925463419725,
+            "topWealthShare": 0.27655633130744567,
+            "mUp": 0.06966731898238841,
+            "mDown": 0.014285714285714242,
+            "segregation": 0.2392213656018536,
+            "openness": 0.4971562651167933,
+            "edgeCountAverage": 71,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0,
+              0.9707309773224526,
+              0.029269022677564524
+            ],
+            "gini": 0.35815158035698363,
+            "topWealthShare": 0.30175238242771685,
+            "mUp": 0.006303672153793008,
+            "mDown": 0,
+            "segregation": 0.7398864008450368,
+            "openness": 0.06777589356421239,
+            "edgeCountAverage": 67.67945205479452,
+            "networkEmpty": false,
+            "labels": [
+              "closedStratified"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:b509dcdf26e109d4a2cd09a80e5202048f973deb06f3eb2413178a6edf568bf0",
+          "transitions": {
+            "up": [
+              28,
+              43,
+              53,
+              10,
+              0
+            ],
+            "down": [
+              0,
+              10,
+              14,
+              19,
+              4
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.3657810838957182,
+              0.5614585024822952,
+              0.07276041362198553
+            ],
+            "gini": 0.45687829831054516,
+            "topWealthShare": 0.3770969843079697,
+            "mUp": 0.4799537641462673,
+            "mDown": 0.16062964550707862,
+            "segregation": 0.19343111155336024,
+            "openness": 0.5406763938569582,
+            "edgeCountAverage": 85.98082191780821,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.008942161339421587,
+              0.8371385083713819,
+              0.15391933028919277
+            ],
+            "gini": 0.43896150638568304,
+            "topWealthShare": 0.3744996305697311,
+            "mUp": 0.10908349641226203,
+            "mDown": 0.01694933681235063,
+            "segregation": 0.32622463518822636,
+            "openness": 0.28563403340876686,
+            "edgeCountAverage": 79.52054794520548,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:21481ecc90edfcfa8f4aef79addc9a250e80b6a429efce39d526afa953088305",
+          "transitions": {
+            "up": [
+              25,
+              59,
+              52,
+              1,
+              0
+            ],
+            "down": [
+              0,
+              7,
+              30,
+              21,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.14849097629919655,
+              0.8515090237008075,
+              0
+            ],
+            "gini": 0.38754250183960387,
+            "topWealthShare": 0.3051933765769572,
+            "mUp": 0.20524570558817318,
+            "mDown": 0.07155251141552593,
+            "segregation": -0.054501955802641965,
+            "openness": 0.7296463846964163,
+            "edgeCountAverage": 77.04657534246576,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.012211350293542039,
+              0.9877886497064589,
+              0
+            ],
+            "gini": 0.36032181510286243,
+            "topWealthShare": 0.2739428308260525,
+            "mUp": 0.05676723491389161,
+            "mDown": 0.015091690474446424,
+            "segregation": 0.6881300713673334,
+            "openness": 0.2132718785515946,
+            "edgeCountAverage": 66.67808219178082,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:ab2c3186c39dae3bcb6f187dac4c7e887a67abf085de96a3db0547e30db6412f",
+          "transitions": {
+            "up": [
+              27,
+              51,
+              45,
+              15,
+              0
+            ],
+            "down": [
+              0,
+              9,
+              22,
+              20,
+              7
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.7752355094820806,
+              0.22476449051791744,
+              0
+            ],
+            "gini": 0.5381757348555262,
+            "topWealthShare": 0.4209267152997018,
+            "mUp": 0.006374182401579648,
+            "mDown": 0,
+            "segregation": 0.48647459175704344,
+            "openness": 0.06408526437057345,
+            "edgeCountAverage": 82.93150684931507,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.43273856180080955,
+              0.4799326710759022,
+              0.08732876712328767
+            ],
+            "gini": 0.5217093872240282,
+            "topWealthShare": 0.43455627837283867,
+            "mUp": 0.43081667878857655,
+            "mDown": 0.1971553780291693,
+            "segregation": 0.14305877593576014,
+            "openness": 0.4589749293411078,
+            "edgeCountAverage": 69.53972602739726,
+            "networkEmpty": false,
+            "labels": []
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.5+scarcity=1",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.5,
+          "scarcityWeight": 1
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 34,
+          "finalStateHash": "sha256:28d2ad80f5f16e72f8726becbefd200700c62f9422fd472b56426af3eafbaf83",
+          "transitions": {
+            "up": [
+              32,
+              60,
+              52,
+              39,
+              0
+            ],
+            "down": [
+              0,
+              14,
+              34,
+              20,
+              13
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.004892367906066525,
+              0.5681017612524417,
+              0.4270058708414903
+            ],
+            "gini": 0.29380142556430666,
+            "topWealthShare": 0.2429929868691751,
+            "mUp": 0.3573385518591007,
+            "mDown": 0.09295499021526571,
+            "segregation": -0.02309030421079959,
+            "openness": 0.8607323991848618,
+            "edgeCountAverage": 73,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0,
+              0.2960446644411144,
+              0.7039553355588803
+            ],
+            "gini": 0.2846291190977072,
+            "topWealthShare": 0.23243007477220362,
+            "mUp": 0.11372165304478135,
+            "mDown": 0.0366340508806262,
+            "segregation": 0.16851413719522693,
+            "openness": 0.601019126914112,
+            "edgeCountAverage": 70.68219178082192,
+            "networkEmpty": false,
+            "labels": [
+              "topHeavy"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:ad81b99d280639cea98421f0cdc9dc381f307ce57bcc32fa71ee021916079230",
+          "transitions": {
+            "up": [
+              31,
+              41,
+              44,
+              7,
+              0
+            ],
+            "down": [
+              0,
+              13,
+              12,
+              14,
+              3
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.02693414394928454,
+              0.7625394320059108,
+              0.18175978790614708,
+              0.028766636138662233
+            ],
+            "gini": 0.5191537145402231,
+            "topWealthShare": 0.44082225144207754,
+            "mUp": 0.10005364051867408,
+            "mDown": 0.037275722008959324,
+            "segregation": 0.42257763504889856,
+            "openness": 0.10867889995577854,
+            "edgeCountAverage": 87.44520547945206,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.0020928462709284604,
+              0.23196455751250633,
+              0.6762644053054996,
+              0.08967819091106738
+            ],
+            "gini": 0.5017913200633364,
+            "topWealthShare": 0.4301732951968896,
+            "mUp": 0.4252794085670771,
+            "mDown": 0.06451185040226236,
+            "segregation": 0.16319888993952972,
+            "openness": 0.49249180535368725,
+            "edgeCountAverage": 79.52602739726028,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:bfdc041dd6f97822c6cbfb12c25ee18aebd2ba09fba3ef78fb4ed1afb9c7f9be",
+          "transitions": {
+            "up": [
+              28,
+              51,
+              49,
+              15,
+              0
+            ],
+            "down": [
+              0,
+              10,
+              22,
+              20,
+              6
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.38391824309632344,
+              0.5970580560991591,
+              0.01902370080452266
+            ],
+            "gini": 0.40430788431527376,
+            "topWealthShare": 0.32840207666417653,
+            "mUp": 0.33585888236573086,
+            "mDown": 0.09578277886497166,
+            "segregation": 0.06503982515573252,
+            "openness": 0.6605945727286655,
+            "edgeCountAverage": 78.15342465753425,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.1496040059859579,
+              0.8178031959982125,
+              0.032592798015844505
+            ],
+            "gini": 0.3970872931274093,
+            "topWealthShare": 0.3241139242973783,
+            "mUp": 0.11569384416282208,
+            "mDown": 0.017222948955422753,
+            "segregation": 0.23656748433034136,
+            "openness": 0.37592935263576516,
+            "edgeCountAverage": 66.5027397260274,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:a0d07dcf008cdbb1e078f347f56c610409d16314079ea2784e0861fc21791c19",
+          "transitions": {
+            "up": [
+              30,
+              50,
+              33,
+              7,
+              0
+            ],
+            "down": [
+              0,
+              12,
+              22,
+              13,
+              4
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.08438138725810078,
+              0.8875549032398332,
+              0,
+              0.02806370950206579
+            ],
+            "gini": 0.5673753730754029,
+            "topWealthShare": 0.49315826226640735,
+            "mUp": 0.04109589041095929,
+            "mDown": 0.007610350076103485,
+            "segregation": 0.47433740638779104,
+            "openness": 0.10669299383167616,
+            "edgeCountAverage": 81.1986301369863,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.04261071489617018,
+              0.8478568029569921,
+              0.07580092797171907,
+              0.0337315541751188
+            ],
+            "gini": 0.5622001583464341,
+            "topWealthShare": 0.527429864690682,
+            "mUp": 0.126981815503689,
+            "mDown": 0.03722657976137878,
+            "segregation": 0.40930757552857827,
+            "openness": 0.12387228094836379,
+            "edgeCountAverage": 64.24931506849315,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.5+scarcity=2",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.5,
+          "scarcityWeight": 2
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 33,
+          "finalStateHash": "sha256:493e8a9d35264fa8bf3aa80ad4c79fc3991476644412a1bc8b8e3f7880750f08",
+          "transitions": {
+            "up": [
+              30,
+              47,
+              51,
+              26,
+              0
+            ],
+            "down": [
+              0,
+              12,
+              20,
+              20,
+              7
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.2235202026015916,
+              0.49225739610912767,
+              0.28422240128928145
+            ],
+            "gini": 0.3234883617095876,
+            "topWealthShare": 0.2615274430426551,
+            "mUp": 0.43787613675607084,
+            "mDown": 0.08549326579947022,
+            "segregation": 0.05498727366607562,
+            "openness": 0.7851231536726874,
+            "edgeCountAverage": 72.39041095890411,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.01692183722804185,
+              0.4709911361804984,
+              0.5120870265914584
+            ],
+            "gini": 0.2900257534033508,
+            "topWealthShare": 0.24083042737283347,
+            "mUp": 0.2042707493956488,
+            "mDown": 0.09145850120870205,
+            "segregation": 0.15332797497501732,
+            "openness": 0.6806939278323137,
+            "edgeCountAverage": 68,
+            "networkEmpty": false,
+            "labels": [
+              "highFlowNetwork",
+              "topHeavy"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:3904d4a8514c27a3ab9e7ce985af5452b03257773cd08eb17ab9842eef03c420",
+          "transitions": {
+            "up": [
+              29,
+              43,
+              40,
+              9,
+              0
+            ],
+            "down": [
+              0,
+              11,
+              14,
+              14,
+              2
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.0034246575342465747,
+              0.5232967105533857,
+              0.31927329275923577,
+              0.154005339153141
+            ],
+            "gini": 0.5224485084336974,
+            "topWealthShare": 0.3957766200823554,
+            "mUp": 0.3228132963533127,
+            "mDown": 0.058185889566567575,
+            "segregation": 0.28544199051108166,
+            "openness": 0.30350649801968055,
+            "edgeCountAverage": 86.3945205479452,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.2751141552511432,
+              0.5321537290715298,
+              0.19273211567732107
+            ],
+            "gini": 0.4716138461934579,
+            "topWealthShare": 0.3548797171284422,
+            "mUp": 0.13299086757990822,
+            "mDown": 0.037480974124810294,
+            "segregation": 0.44351667544339507,
+            "openness": 0.15468012312000315,
+            "edgeCountAverage": 80,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:c236632339d862294cb896fe98e21667b18604fe8236d01109bb328ee679a3fc",
+          "transitions": {
+            "up": [
+              24,
+              53,
+              40,
+              17,
+              0
+            ],
+            "down": [
+              0,
+              6,
+              26,
+              13,
+              6
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.4260708849749921,
+              0.4654218308327887,
+              0.10850728419221427
+            ],
+            "gini": 0.4214970879516351,
+            "topWealthShare": 0.3236219635524747,
+            "mUp": 0.22858447488584874,
+            "mDown": 0.03273646444879365,
+            "segregation": 0.2886113522480039,
+            "openness": 0.39902513859245947,
+            "edgeCountAverage": 82.93972602739726,
+            "networkEmpty": false,
+            "labels": []
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.23665244740486702,
+              0.5911643922824461,
+              0.17218316031269273
+            ],
+            "gini": 0.4205821521108656,
+            "topWealthShare": 0.32835849558644753,
+            "mUp": 0.13687274785381343,
+            "mDown": 0.0019569471624266126,
+            "segregation": 0.34388230472156234,
+            "openness": 0.2506337431517525,
+            "edgeCountAverage": 74.51369863013699,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:e3a0d3c0dcbb007fc7ce40f15fb0e796c4df43fbf156f5be37e21a822ab96bef",
+          "transitions": {
+            "up": [
+              27,
+              51,
+              34,
+              10,
+              0
+            ],
+            "down": [
+              0,
+              9,
+              22,
+              12,
+              5
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.01869780739643773,
+              0.5789214752913353,
+              0.2936152101220611,
+              0.10876550719016548
+            ],
+            "gini": 0.5315317077125422,
+            "topWealthShare": 0.4382169579807584,
+            "mUp": 0.2972548967754444,
+            "mDown": 0.10850317048947199,
+            "segregation": 0.27549557951384385,
+            "openness": 0.3049862617794965,
+            "edgeCountAverage": 83.27397260273973,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.3884892917316366,
+              0.4871218007751045,
+              0.1243889074932588
+            ],
+            "gini": 0.5510825473056088,
+            "topWealthShare": 0.5000983918131345,
+            "mUp": 0.08322256611237278,
+            "mDown": 0.009265035092492784,
+            "segregation": 0.37801521392393467,
+            "openness": 0.1079306177226694,
+            "edgeCountAverage": 64.8082191780822,
+            "networkEmpty": false,
+            "labels": []
+          }
+        }
+      ]
+    },
+    {
+      "cellKey": "share=0.5+scarcity=4",
+      "axis": "occupancy-anchor",
+      "overrides": {
+        "ascent": {
+          "displacementShare": 0.5,
+          "scarcityWeight": 4
+        }
+      },
+      "initialCondition": "ic-default",
+      "classShares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ],
+      "seeds": [
+        {
+          "seed": "p15-seed-001",
+          "extinct": false,
+          "aliveAtEnd": 33,
+          "finalStateHash": "sha256:1f8f2f0f3610e134eb208efe6b00bf469ad5183ddd173cc83c0acab689f1a0c6",
+          "transitions": {
+            "up": [
+              31,
+              49,
+              40,
+              19,
+              0
+            ],
+            "down": [
+              0,
+              14,
+              22,
+              13,
+              10
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.003522504892367899,
+              0.401402095084613,
+              0.4039069874525182,
+              0.1911684125705085
+            ],
+            "gini": 0.3684447486939715,
+            "topWealthShare": 0.2787606259002891,
+            "mUp": 0.35046276044664276,
+            "mDown": 0.12666398066076015,
+            "segregation": 0.03954199292551109,
+            "openness": 0.7329140167762075,
+            "edgeCountAverage": 74.2,
+            "networkEmpty": false,
+            "labels": [
+              "olive",
+              "highFlowNetwork"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.1980257856567275,
+              0.5551974214343205,
+              0.24677679290894045
+            ],
+            "gini": 0.31485821813341697,
+            "topWealthShare": 0.25791769813415105,
+            "mUp": 0.18734891216760616,
+            "mDown": 0.07413376309427962,
+            "segregation": 0.14159601541504252,
+            "openness": 0.6302531597613015,
+            "edgeCountAverage": 71,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-002",
+          "extinct": false,
+          "aliveAtEnd": 35,
+          "finalStateHash": "sha256:583dec17a8d2e2885036caed15a037da6f46d8117c65f9dd940f91fb87aafed2",
+          "transitions": {
+            "up": [
+              29,
+              55,
+              36,
+              10,
+              0
+            ],
+            "down": [
+              0,
+              11,
+              27,
+              14,
+              3
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.08281083895719792,
+              0.6869717951549279,
+              0.20405773473545666,
+              0.026159631152421405
+            ],
+            "gini": 0.5259801294490857,
+            "topWealthShare": 0.39520694312727217,
+            "mUp": 0.16020988544420375,
+            "mDown": 0.034343030846275185,
+            "segregation": 0.404401356259846,
+            "openness": 0.15554004778643465,
+            "edgeCountAverage": 86.58493150684932,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.010464231354642282,
+              0.47029571646009644,
+              0.3794651011089364,
+              0.13977495107632146
+            ],
+            "gini": 0.4681343722607198,
+            "topWealthShare": 0.3597049519919915,
+            "mUp": 0.36504457490758724,
+            "mDown": 0.06869101978690999,
+            "segregation": 0.23605274008364746,
+            "openness": 0.4309769870126559,
+            "edgeCountAverage": 80.62465753424658,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          }
+        },
+        {
+          "seed": "p15-seed-003",
+          "extinct": false,
+          "aliveAtEnd": 32,
+          "finalStateHash": "sha256:36f29c248f0647cd7ff886abc748ddad45b0f55b6ea23a1c6f7efb8bc8d218ca",
+          "transitions": {
+            "up": [
+              29,
+              64,
+              27,
+              4,
+              0
+            ],
+            "down": [
+              0,
+              11,
+              36,
+              9,
+              3
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.014649923896499314,
+              0.5355783866057808,
+              0.39421613394216437,
+              0.05555555555555644
+            ],
+            "gini": 0.44635361331474616,
+            "topWealthShare": 0.36116658354533066,
+            "mUp": 0.21194824961948366,
+            "mDown": 0.034436834094368596,
+            "segregation": 0.1569523309624426,
+            "openness": 0.45626534531475943,
+            "edgeCountAverage": 78,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0,
+              0.4521151475326566,
+              0.5121058555219444,
+              0.0357789969453955
+            ],
+            "gini": 0.4516376595141232,
+            "topWealthShare": 0.3530638859207915,
+            "mUp": 0.033841186848338686,
+            "mDown": 0,
+            "segregation": 0.3719515959529608,
+            "openness": 0.18008570666903093,
+            "edgeCountAverage": 68.16027397260274,
+            "networkEmpty": false,
+            "labels": []
+          }
+        },
+        {
+          "seed": "p15-seed-004",
+          "extinct": false,
+          "aliveAtEnd": 31,
+          "finalStateHash": "sha256:ea17e6efb495bc78f64535caad45e0ead4738dfbc98712c07555b6870c8dd09f",
+          "transitions": {
+            "up": [
+              26,
+              42,
+              19,
+              8,
+              0
+            ],
+            "down": [
+              0,
+              8,
+              18,
+              6,
+              5
+            ]
+          },
+          "w2b": {
+            "label": "w2b",
+            "available": true,
+            "classShares": [
+              0,
+              0.30234660260949703,
+              0.5632746452669898,
+              0.134378752123515,
+              0
+            ],
+            "gini": 0.5334277772340535,
+            "topWealthShare": 0.47275405473361226,
+            "mUp": 0.2381642341452988,
+            "mDown": 0.10321041658672687,
+            "segregation": 0.2641189286072176,
+            "openness": 0.25696868871888134,
+            "edgeCountAverage": 78.43424657534247,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          },
+          "w3": {
+            "label": "w3",
+            "available": true,
+            "classShares": [
+              0,
+              0.15314019001325632,
+              0.583464980114892,
+              0.23202330976579624,
+              0.03137152010605394
+            ],
+            "gini": 0.5251945969502348,
+            "topWealthShare": 0.48655619734031585,
+            "mUp": 0.1609644277507739,
+            "mDown": 0.021873619089703922,
+            "segregation": 0.24040633552709958,
+            "openness": 0.22701733150158465,
+            "edgeCountAverage": 64.55342465753425,
+            "networkEmpty": false,
+            "labels": [
+              "olive"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "perCell": [
+    {
+      "cellKey": "share=1+scarcity=0",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0.554390670202221,
+            0.3624429268051576,
+            0.030297437880065118,
+            0.0226234159830124,
+            0.03024554912954623
+          ],
+          "gini": 0.5670211178309402,
+          "topWealthShare": 0.5202871997398965,
+          "mUp": 0.9563003691572605,
+          "mDown": 0.9551104563315318,
+          "segregation": 0.019145312648494422,
+          "openness": 0.8444661308277044
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.16514378249927594
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=1+scarcity=0.5",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0.5502025255980767,
+            0.3665590959699665,
+            0.03954337757127135,
+            0.020522619461857055,
+            0.023172381398829635
+          ],
+          "gini": 0.5596445551061443,
+          "topWealthShare": 0.5286168591434558,
+          "mUp": 0.9608147673337389,
+          "mDown": 0.9601938778715213,
+          "segregation": -0.029012645089169647,
+          "openness": 0.8572593714278155
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.21700154849028186
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=1+scarcity=1",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0.5528123622488936,
+            0.36438122237171444,
+            0.03773118180171561,
+            0.01481113076197694,
+            0.03026410281570018
+          ],
+          "gini": 0.597620562890689,
+          "topWealthShare": 0.5681640771986491,
+          "mUp": 0.9539519007774806,
+          "mDown": 0.9530257448717556,
+          "segregation": 0.012972976832982389,
+          "openness": 0.8150308084790236
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.15072111992892484
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=1+scarcity=2",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0.5384460856611992,
+            0.3711104936692054,
+            0.04279086136071365,
+            0.01734416641812399,
+            0.03030839289076019
+          ],
+          "gini": 0.6002661979877174,
+          "topWealthShare": 0.5700996236723274,
+          "mUp": 0.9417610212219523,
+          "mDown": 0.9372648566818383,
+          "segregation": 0.04632437856150949,
+          "openness": 0.7831955339617661
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.10345350380206364
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=1+scarcity=4",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0.5602987549667728,
+            0.35571879287257163,
+            0.037764560804135434,
+            0.022580138264883018,
+            0.023637753091635634
+          ],
+          "gini": 0.5336338665935292,
+          "topWealthShare": 0.49318953629110424,
+          "mUp": 0.9321899016305252,
+          "mDown": 0.9334532499377506,
+          "segregation": 0.0210854736047086,
+          "openness": 0.8411938145281898
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.17522576130975728
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.75+scarcity=0",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0,
+            0.0013521961295933876,
+            0.7034600396302189,
+            0.2951877642401936
+          ],
+          "gini": 0.4371860936401367,
+          "topWealthShare": 0.36819806599217436,
+          "mUp": 0.11427711539680219,
+          "mDown": 0.058694128206492335,
+          "segregation": 0.20441800288755047,
+          "openness": 0.3746603124932393
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.8395323854600755
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.75+scarcity=0.5",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0,
+            0.09641119087734817,
+            0.7268513404739206,
+            0.17673746864872988
+          ],
+          "gini": 0.42745319557112316,
+          "topWealthShare": 0.3581518494100806,
+          "mUp": 0.3769571257571114,
+          "mDown": 0.19110981698096496,
+          "segregation": 0.19709169448743502,
+          "openness": 0.5515642695771126
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.5135398563742705
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.75+scarcity=1",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0.0022355403348553967,
+            0.2037217704121911,
+            0.6816081088672521,
+            0.11243458038570482
+          ],
+          "gini": 0.45966422755818526,
+          "topWealthShare": 0.39179730561837917,
+          "mUp": 0.22042257319075503,
+          "mDown": 0.10816853513406288,
+          "segregation": 0.35301119384566415,
+          "openness": 0.27989292168649926
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.552479899286409
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.75+scarcity=2",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0.010142845406115996,
+            0.2986031513840502,
+            0.48557223444587483,
+            0.20568176876396072
+          ],
+          "gini": 0.44288591721241105,
+          "topWealthShare": 0.3746615670719953,
+          "mUp": 0.26519736474913896,
+          "mDown": 0.15422406387316287,
+          "segregation": 0.19495077906231867,
+          "openness": 0.4763195146100129
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.5553579660036144
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.75+scarcity=4",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0.010674361717497319,
+            0.48500589323190363,
+            0.39510905467417523,
+            0.10921069037642651
+          ],
+          "gini": 0.43621579792898124,
+          "topWealthShare": 0.3685328747051851,
+          "mUp": 0.2857757898600607,
+          "mDown": 0.18075371747826843,
+          "segregation": 0.2146505502988275,
+          "openness": 0.4542915415682336
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.34179465544838755
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.5+scarcity=0",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0,
+            0.09961296369938483,
+            0.8112730677835713,
+            0.08911396851704584
+          ],
+          "gini": 0.46183459455716414,
+          "topWealthShare": 0.4000578504398212,
+          "mUp": 0.16612510272373796,
+          "mDown": 0.053930987089729966,
+          "segregation": 0.29363520407765925,
+          "openness": 0.3219789964256869
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.46959535495394134
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.5+scarcity=0.5",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0,
+            0.1134730183584433,
+            0.818897701619049,
+            0.06762928002251124
+          ],
+          "gini": 0.41978607226738934,
+          "topWealthShare": 0.3461877805490848,
+          "mUp": 0.1507427705671308,
+          "mDown": 0.05729910132899159,
+          "segregation": 0.47432497083408914,
+          "openness": 0.2564141837164204
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.5797438357520984
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.5+scarcity=1",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0.01117589029177466,
+            0.30735634161386405,
+            0.46647829842913635,
+            0.21498946966522772
+          ],
+          "gini": 0.43642697265872177,
+          "topWealthShare": 0.3785367897392884,
+          "mUp": 0.19541918031959238,
+          "mDown": 0.03889885749992252,
+          "segregation": 0.24439702174841904,
+          "openness": 0.39832814146298207
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        1.2386861242776477
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.5+scarcity=2",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0,
+            0.22929443290392218,
+            0.5203577645773947,
+            0.25034780251868277
+          ],
+          "gini": 0.43332607475332074,
+          "topWealthShare": 0.3560417579752144,
+          "mUp": 0.1393392327354358,
+          "mDown": 0.03504036439710794,
+          "segregation": 0.32968554226597735,
+          "openness": 0.29848460295668466
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.4570598467697593
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    },
+    {
+      "cellKey": "share=0.5+scarcity=4",
+      "axis": "occupancy-anchor",
+      "fingerprints": {
+        "ic-default": {
+          "classShares": [
+            0,
+            0.04090110534197465,
+            0.4259754074410932,
+            0.4196979219577494,
+            0.11342556525917784
+          ],
+          "gini": 0.43995621171462373,
+          "topWealthShare": 0.3643106833468125,
+          "mUp": 0.1867997754185765,
+          "mDown": 0.04117460049272338,
+          "segregation": 0.24750167174468757,
+          "openness": 0.3670832962361432
+        }
+      },
+      "withinInitialConditionSeedL1": [
+        0.582792969275752
+      ],
+      "betweenInitialCondition": null,
+      "initialConditionDependent": false
+    }
+  ],
+  "clustering": {
+    "points": 120,
+    "k2AriMedian": 1,
+    "k2AriMin": 1,
+    "note": "描述性；探索层产物，不构成 G1.5 判定，不得写入确认轮证据"
+  }
+}

@@ -1,7 +1,8 @@
-import type { RunConfig } from '../../core/config/types.js';
-import type { AgentId, Seed } from '../../core/control/ids.js';
-import type { LegalActionSet } from '../../core/legal-actions.js';
-import type { DecisionRecord } from '../../decision/types.js';
+import type { RunConfig } from '../core/config/types.js';
+import type { AgentId, Seed } from '../core/control/ids.js';
+import type { LegalActionSet } from '../core/legal-actions.js';
+import type { SimState } from '../core/model/state.js';
+import type { DecisionRecord } from './types.js';
 
 /**
  * P2-01：决策策略统一接口（02 §4 / 04 §2）。
@@ -23,6 +24,8 @@ export interface DecisionInput {
   readonly legal: LegalActionSet;
   /** 04 §3.2 的完整 state 对象（已按固定构造顺序构建）。 */
   readonly state: unknown;
+  /** 运行时只读状态；mock/random 使用，live 不得修改核心状态。 */
+  readonly simState: SimState;
   readonly topK: number;
   readonly requestedModel: string;
   readonly promptVersion: string | null;
@@ -33,5 +36,5 @@ export interface DecisionInput {
 
 export interface DecisionPolicy {
   readonly policyVersion: string;
-  decide(input: DecisionInput, signal: AbortSignal): Promise<DecisionRecord>;
+  decide(input: DecisionInput, signal: AbortSignal): DecisionRecord | Promise<DecisionRecord>;
 }

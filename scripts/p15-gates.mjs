@@ -47,7 +47,7 @@ function log(message) {
   process.stderr.write(`[gates] ${message}\n`);
 }
 
-const GATE_RULES_FLOOR = ['rules-v6', 'rules-v7', 'rules-v8'];
+const GATE_RULES_FLOOR = ['rules-v6', 'rules-v7', 'rules-v8', 'rules-v9'];
 if (!GATE_RULES_FLOOR.includes(RULES_VERSION)) {
   throw new Error(`门禁判据面向 rules-v6+ 参照系构建；当前构建 ${RULES_VERSION}`);
 }

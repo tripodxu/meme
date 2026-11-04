@@ -416,6 +416,31 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
       "'class' 模式下 refIncome 变化改变裕度（与需求线同参照系），'own' 模式与 v5 逐位一致。",
   },
   {
+    name: 'ascent.displacementShare',
+    unit: 'ratio',
+    formulaRef:
+      "03 §6 阶段 B / rule.md 9（rules-v9 位移准入份额，changes/0012；仅 'class' 参照系读取）",
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      '=1 与 rules-v8 行为一致（不消费 displacement_admit 地址）；<1 时开放准入分支的上升比例随参数单调增加，' +
+      '目标阶级净增长；=0 时不再产生位移降级事件。',
+  },
+  {
+    name: 'ascent.scarcityWeight',
+    unit: 'dimensionless',
+    formulaRef:
+      '03 §6 阶段 B / rule.md 9（rules-v10 占用锚定，changes/0013）：' +
+      'barrier = w × crossBase × max(0, P[target]/target[target] − 1)，target ∝ 1/env0',
+    domain: { kind: 'number', min: 0, max: 100 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      '=0 与 rules-v9 行为一致；>0 时目标阶级占比高于参照份额的 cell 上升余额门槛增加、' +
+      '上升次数下降，且枚举侧与引擎复核侧同时拒绝余额不足的 ascend。',
+  },
+  {
     name: 'competition.powerValueExponent',
     unit: 'exponent',
     formulaRef: '03 §6 阶段 B / rule.md 12',

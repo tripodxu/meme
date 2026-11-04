@@ -1,10 +1,13 @@
 # 0002 P2 决策层以实验目录形式留在仓库
 
-- 状态：accepted
+- 状态：superseded by 0003（2026-11-04 G1.5 通过并启动 P2，见 `changes/0014`/`0015`）
 - 日期：2026-11-03
 - 决策者：架构负责人（依据 `docs/01-implementation-plan.md` §1 阶段门禁）
 - 相关任务：P2-01~P2-04、G1.5
-- 取代/被取代：无
+- 取代/被取代：被 [ADR-0003](0003-p2-decision-layer-production.md) 取代
+
+> **后续（2026-11-04）**：G1.5 已通过 W4 确认轮（k=2 ARI median/min 1.000），
+> P2 已启动；本 ADR 的「删除 experimental 目录」条件已触发，决策见 ADR-0003。
 
 ## 背景
 

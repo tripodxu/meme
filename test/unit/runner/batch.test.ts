@@ -77,7 +77,7 @@ describe('批量 manifest 与任务生成（P5a-01/04）', () => {
       validateBatchManifest({ ...validManifestRecord(), rulesVersion: '' }),
     ).toThrowError(expect.objectContaining({ code: errorCodes.CONFIG_INVALID }));
     expect(() =>
-      validateBatchManifest({ ...validManifestRecord(), rulesVersion: 'rules-v9' }),
+      validateBatchManifest({ ...validManifestRecord(), rulesVersion: 'rules-v999' }),
     ).toThrowError(expect.objectContaining({ code: errorCodes.CONFIG_UNKNOWN_VERSION }));
     expect(() => validateBatchManifest({ ...validManifestRecord(), rulesVersion: 5 })).toThrowError(
       expect.objectContaining({ code: errorCodes.CONFIG_INVALID }),
@@ -96,7 +96,7 @@ describe('批量 manifest 与任务生成（P5a-01/04）', () => {
   it('buildBatchTasks 拒绝伪造版本的 manifest', () => {
     const lying = {
       ...manifest,
-      rulesVersion: 'rules-v9',
+      rulesVersion: 'rules-v999',
     } as unknown as BatchManifest;
     expect(() => buildBatchTasks(lying)).toThrowError(
       expect.objectContaining({ code: errorCodes.CONFIG_UNKNOWN_VERSION }),

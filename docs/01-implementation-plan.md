@@ -98,6 +98,12 @@ docs/              本施工文档与 adr/
 3. **W3 G1.5 判定：未通过——「无宏观二态」**（changes/0011）：k=2 稳定性 ARI median **0.415**（min −0.002）< 0.70 硬门槛，k=4 median 0.516 亦不达标且按协议不得充当通过；temporalConsistency 0.786 < 0.80；特征空间为连续统。均值场方向预测在全部 cell 成立（P0 下限 0.449、漂移上限 0.045）——机制按设计运转，但参数只产生**一条连续统**，不存在 ≥2 类可复现的宏观模式。
 4. **判定树全部走完**（W0→W1→门禁→W2→W3）：五轮预注册证据链齐备（三种体制画像 + 连续统直接证据）。报告见 `docs/research/2026-11-04-p15-w2-confirmation-and-g15-verdict.md`（索引 `docs/research/README.md`）。P2–P6 继续搁置（AGENTS 9）；下一步属**规则评审会**——在「接受连续统并修订项目目标（路线 C）」与「引入新离散化机制（D-06 备选 B/C 或新设计，须先探索再预注册）」之间做方向决策，见 changes/0011 §4。
 
+**P1.5 rules-v9 位移份额与探索复核（2026-11-04，D-11）**：按用户确认落地 changes/0012——新增 `ascent.displacementShare`（默认 1 与 v8 逐位一致；<1 时其余份额走开放准入，不挤下在位者），版本轴 `rules-v9`/`engine-v0.7.0`/`stratify-config-v4` + v3→v4 迁移，golden 全量重算并通过。目的：v8 的 1:1 位移使阶级占比成为守恒量（上升/下降逐层近似相等，如 810/815、309/316），经济参数无法移动稳态分布。探索层复核（`out/p15-displacement-explore.json`、`out/p15-balance-explore.json`，共 108 run）给出**负面结论**：share<1 产生净上行流并把底层抽空（P0=P1=0），同参数种子间结构离散度 >1，由棘轮与噪声主导；加强拥挤负反馈（η→3、congestionMin→0.05）也不能托住底层。因此 `displacementShare` 是有效的诊断/消融参数，**不是**产生参数区域多结构的机制；下一步需**占用锚定**机制（位置稀缺/进入壁垒）或路线 C，二者均属规则评审会级决策。探索产物不得引用为 G1.5 确认证据（07 §6.1）。
+
+**P1.5 rules-v10 占用锚定（2026-11-04，D-12）**：用户选择占用锚定方向后落地 changes/0013——新增 `ascent.scarcityWeight`（默认 0 与 v9 逐位一致；目标阶级占比超过机会隐含份额 `target[c] ∝ 1/env0[c]` 时抬升上升余额门槛 `w×crossBase×pressure`），版本轴 `rules-v10`/`engine-v0.8.0`/`stratify-config-v5` + v4→v5 迁移；tick 期初阶级占比快照同时供枚举侧与引擎复核侧使用。探索层（`out/p15-scarcity*-explore.json`，共 172 run）得到 **A/B/C 三个参数区域**：A 底重金字塔（share=1，P≈[0.56,0.36,0.03,0.02,0.03]）、B 上位中产（share=0.5，w=10–15，P2≈0.42–0.49、底层为空）、C 中产隆起（share=0.5，w≥30，P≈[0.01–0.10,0.40–0.46,0.24–0.32,0.15–0.19,0.07–0.10]）；P1 在 w≈20–30 完成平台切换（w≤15 与 w≥30 各为平台），高权重把底层恢复到 P0≈0.10，同初值种子噪声 0.11–0.24，初值依赖 ≤0.19。**仍未证明双稳态/迟滞**：每个参数组合只有一个吸引域，连续扫描的 pooled k=2 ARI 仍低（0.17–0.26）。因此不宣布 G1.5 通过；下一步须以 A/B/C 为预注册区域（并回答 k=2 硬门槛在 ≥3 类结构下的解释口径）或继续改造壁垒函数以形成同一参数下的两个盆地。
+
+**P1.5 W4 确认轮（2026-11-04，D-13）**：按用户确认跑 rules-v10 两区域确认轮——预注册 `buildV10ConfirmationManifest()`（prereg `sha256:ece0a98b…`），种子 `p15r4-seed-001…030`，6 cell × 30 种子 × 3650 tick = 180 run（wall 5 min，0 全灭，budgets.ok）。判定：k=2 ARI median/min **1.000**、轮廓 0.564、temporalConsistency **1.000**（180/180）、最小簇 60、非退化簇 2、方向预测（cell 均值）A P0 0.542 / B/C 最差 P0 0.147 与 mUp 0.178——**G1.5 通过（≥2 类可复现聚类）**，P2 可启动。必须同报：只有两类（A vs B∪C，P6-05 的 ≥3 类仍未满足）；方向子项为 cell 均值口径（C-w100 有 16/30 run 的 P0>0.15，属中心趋势非逐 run 不变量）；类是体制级（share=1 vs <1），未证明双稳态；G1.5 不构成校准完成。证据 `out/p15-v10-full.json`（871 KB，sha256 `a374bff6…`）与 changes/0014。
+
 ## 5. P2：Jev 决策层
 
 | ID    | 工作                                      | 依赖        | 交付与验收                                                   |
@@ -109,6 +115,8 @@ docs/              本施工文档与 adr/
 | P2-05 | 回退、失败率阈值、调用/Token/时间预算     | P2-04       | 超预算不再发请求；连续失败不会静默产生整轮回退实验           |
 | P2-06 | 决策日志、live 标记与重放非法处理         | P2-03,P1-08 | 原始响应可审计；replay 不伪装 live；`replay_invalid` 可统计  |
 | P2-07 | 最小真实冒烟（VPS 直连，不经 Worker）     | P2-04       | Key 不落库/日志/URL；一次低成本 Choice 成功并记录真实模型    |
+
+**P2 启动记录（2026-11-04，G1.5 通过后）**：按 ADR-0003 / changes/0015 把决策层从 `src/experimental/p2-decision/` 迁回 `src/decision/`，`DecisionPolicy` 成为生产接口；新增 `MockPolicy`/`RandomPolicy`、异步 `runSingleWithPolicy`（live/replay 路径）与 `RunOutcome.decisions`（P2-06 决策日志）；同步 `runSingle` 改为经接口调用，行为不变。测试：原 434 行决策层测试随迁移保留，`policy-wiring` 现有 9 项接线测试（接口收集、同步/异步 mock 等价、random 确定性、换策略改变终态、fallback 计数、认证失败终止、取消即停 2 项、config topK 接线）。**P2-06 replay 已接入**（`ReplayPolicy`/`buildReplayIndex`，重放只使用 `selectedAction`，非法/缺失记 `replay_invalid`）；**P2-05 预算估算已接入**（`utf8-half-v1`、在途预留、overage、`usage_missing`/`budget_exhausted` 暂停）；**P2-02 JSON Schema 已冻结**（`schema/decision-state.prompt-v3.json`，Ajv 校验序列化输出）；**P2-07 真实冒烟（VPS、低预算密钥、成本上限）尚未完成**，且 replay 尚未接入 CLI/批跑入口与预注册 manifest；P2-03 的真实响应 fixture 仍待补（P2-02 的 JSON Schema 已冻结）。证据：changes/0015、`test/unit/runner/policy-wiring.test.ts`。
 
 **闸门 G2**：故障注入覆盖超时、401、403、429、529、5xx、空响应、未知行动和过期目标；预算和取消有效；真实冒烟成本有上限。
 
@@ -232,6 +240,9 @@ CI 默认不运行 `smoke:live`，不保存真实 Key，不因外部模型不稳
 | D-08 | 位移准入是否与 W1 同批落地 | A 与 W1 同批（两个变量一起改）；B 仅在 G-A/G-B 未过时作为独立预注册启动 | 03 §5 行动语义、W2 排期、失败归因能力 | W1 门禁后 | 规则负责人 | G-A/G-B 实测结果 + 若启动则新 `experimentId` |
 | D-09 | 位移准入启动记账（diagnosis §8 判定树） | 启动（rules-v8）；不启动 | 03 §5 行动语义、G-A 残余失效归因 | G-A/G-B 未过时 | 规则负责人 | rules-v8 落地 + changes/0010 + 门禁实测产物 |
 | D-10 | 机制门禁 G-A/G-B 判据在位移体制下的重推定 | A 按意图重推定（净流量替代 mUp；P4 极差废弃为报告）；B 维持原判据（W2 永不触发） | diagnosis §5、`src/runner/gates.ts` GATE_CRITERIA、W2 资格 | rules-v8 门禁实测后 | 规则负责人 | diagnosis §5 修订注（新旧口径同报）+ gates.ts 同步 + 修订判据下门禁复跑产物 |
+| D-11 | 位移准入份额与「放松守恒能否产生参数选择结构」 | 落地 `ascent.displacementShare`（v9）；探索结论为负面，该参数不作离散化机制 | rule.md 9、03 §6、rule.md 57、G1.5 判定前提 | W3 判定后（用户确认） | 规则负责人 | changes/0012 + 探索产物 + 负面结论登记；后续占用锚定机制或 route C 另立决策 |
+| D-12 | 占用锚定（位置稀缺）能否产生参数区域多结构 | 落地 `ascent.scarcityWeight`（v10）；探索得到 A/B/C 三区域，但未证明双稳态 | rule.md 9、rule.md 57、07 §8.1 k=2 硬门槛 | D-11 负面结论后（用户选择占用锚定） | 规则负责人 | changes/0013 + 4 份探索产物；确认轮前须预注册 A/B/C 区域与聚类口径 |
+| D-13 | W4 确认轮预注册与判定口径 | A 两区域（A vs B∪C）、新种子 `p15r4-*`、cell 均值方向预测；B 继续连续扫描/运行级口径 | 01 §4.5、07 §8.1、G1.5 资格 | G1.5 W4 | 规则负责人 | `buildV10ConfirmationManifest()` + changes/0014 + `out/p15-v10-full.json` |
 **当前状态（事实，不是结论）**：D-01 的 P0 实现为选项 A；D-02 当前为选项 A；D-04 的 manifest 数字是占位值。D-01/D-02/D-04 未关闭。**D-03 已按 W0 交接单（2026-11-03）随预注册 manifest 冻结关闭（选项 A）**：`clustering.algorithm='ward-lw-v1'`（Lance–Williams 实现标识）、`distance='euclidean'`、`z-score(pooled)`、`k∈[2,5]`、`stabilityShuffles=20`（判定量 = median，必报 min）均已进入 `preregistrationHash`；07 §8.1 同批写明更换实现＝分析管线变更＝新 `experimentId`。D-05 由 P1.5 v4 复核（2026-11-03）登记：三轮预注册实验（1920 run）证明旋转门引擎与参数无关，必须由规则修订切断。用户已授权按方向 B 落地 changes/0005（rules-v5，`e531bab`），但 D-05 **仍未关闭**：G1.5 尚未通过，rules-v5 的效果分离与轮 2 证据链仍有缺口（见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`）；关闭证据仍要求 rule.md/03 修订 + changes/0005 + P1.5 复跑报告。 D-06 由 P1.5 轮 2 诊断（2026-11-03）登记并**已定**：用户授权修断机制，选 **A′**——需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价，并把「标尺高低」与「宽限期」拆开（`need` 不再乘 `buffer(classAge)`，改由 `graceDays` 只控判定计时），B 配额 / C 网络闭锁推后；D-06 的关闭条件仍是 rules-v6 落地 + `changes/0008` + 确认轮报告。同时定 **D-07**（确认轮新取 `p15r3-seed-001…030`，不沿用探索轮种子）与 **D-08**（位移准入**不与 W1 同批**，仅当 G-A/G-B 未过时作为独立预注册启动）；施工说明见 `docs/research/2026-11-03-p15-w0-w1-handoff.md`。至此 D-05/D-06 同源——D-05 修的是「升上去之后靠什么持有」，D-06 修的是「持有时按什么计价」，后者是前者的前置（参照系不对，裕度门槛只能起一半作用）。
 
 未关闭前：不得把 `hardLifeFloor`/sigma 当前域写成不可变契约；不得用示例预算运行正式 P6 扫描。

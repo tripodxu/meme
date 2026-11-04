@@ -3,6 +3,8 @@ import {
   CONFIG_SCHEMA_VERSION,
   CONFIG_SCHEMA_VERSION_V1,
   CONFIG_SCHEMA_VERSION_V2,
+  CONFIG_SCHEMA_VERSION_V3,
+  CONFIG_SCHEMA_VERSION_V4,
   RULES_VERSION,
 } from '../control/versions.js';
 import { errorCodes, type ErrorCode } from '../control/errors.js';
@@ -332,7 +334,11 @@ function checkRegisteredNumberArray(
  *（rules-v6 需求参照系，changes/0008）。迁移**不得默认开新机制**：
  * 补 `referenceMode:'own'`（v2 时期 need 即 'own' 公式）、`graceDays:0`
  *（与 v5 判定计时逐位一致）、`referenceSmoothing:0.2`（'own' 不读取，仅占位）。
- * 迁移链按序执行：v1 先升 v2 再升 v3。未知版本原样返回，交由版本校验拒绝。
+ * v3 → v4：v4 起 `ascent.displacementShare` 为必填（rules-v9，changes/0012）；
+ * 补 `1` 保持 v8 的完全位移准入语义。
+ * v4 → v5：v5 起 `ascent.scarcityWeight` 为必填（rules-v10，changes/0013）；
+ * 补 `0` 保持 v9 无占用锚定语义。
+ * 迁移链按序执行：v1 先升 v2 再升 v3，再升 v4、v5。未知版本原样返回，交由版本校验拒绝。
  */
 function migrateConfigInput(input: unknown): unknown {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
@@ -365,7 +371,29 @@ function migrateConfigInput(input: unknown): unknown {
     if (need['graceDays'] === undefined) {
       need['graceDays'] = 0;
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, need };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V3, need };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V3) {
+    const rawAscent = record['ascent'];
+    const ascent =
+      typeof rawAscent === 'object' && rawAscent !== null && !Array.isArray(rawAscent)
+        ? { ...(rawAscent as Record<string, unknown>) }
+        : {};
+    if (ascent['displacementShare'] === undefined) {
+      ascent['displacementShare'] = 1;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V4, ascent };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V4) {
+    const rawAscent = record['ascent'];
+    const ascent =
+      typeof rawAscent === 'object' && rawAscent !== null && !Array.isArray(rawAscent)
+        ? { ...(rawAscent as Record<string, unknown>) }
+        : {};
+    if (ascent['scarcityWeight'] === undefined) {
+      ascent['scarcityWeight'] = 0;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, ascent };
   }
   return record;
 }
@@ -600,6 +628,8 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'crossDays',
       'returnDiscount',
       'holdingCushionDays',
+      'displacementShare',
+      'scarcityWeight',
     ])
   ) {
     const ascent = root['ascent'];
@@ -608,6 +638,18 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       ascent['holdingCushionDays'],
       '$.ascent.holdingCushionDays',
       'ascent.holdingCushionDays',
+    );
+    checkRegisteredNumber(
+      collector,
+      ascent['displacementShare'],
+      '$.ascent.displacementShare',
+      'ascent.displacementShare',
+    );
+    checkRegisteredNumber(
+      collector,
+      ascent['scarcityWeight'],
+      '$.ascent.scarcityWeight',
+      'ascent.scarcityWeight',
     );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(

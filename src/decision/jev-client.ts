@@ -1,9 +1,12 @@
-import type { RunConfig } from '../../core/config/types.js';
-import { errorCodes, StratifyError } from '../../core/control/errors.js';
-import { DECISION_SCHEMA_VERSION } from '../../core/control/versions.js';
+import type { RunConfig } from '../core/config/types.js';
+import type { AgentId, Seed } from '../core/control/ids.js';
+import { errorCodes, StratifyError } from '../core/control/errors.js';
+import { DECISION_SCHEMA_VERSION } from '../core/control/versions.js';
+import { rngUnit } from '../core/rng/rng.js';
+import { RNG_EVENT_TAGS } from '../core/rng/tags.js';
 import type { DecisionInput } from './policy.js';
 import { buildActionCriteria, buildInstructions, PROMPT_VERSION } from './serialize.js';
-import type { DecisionRecord, FallbackReason, PromptStyle } from '../../decision/types.js';
+import type { DecisionRecord, FallbackReason, PromptStyle } from './types.js';
 
 /**
  * P2-03~05：Jev HTTP 客户端（04 §3.3/§4/§6/§7）。
@@ -22,22 +25,38 @@ export interface JevClientOptions {
   readonly serverErrorRetryLimit: number;
   readonly baseBackoffMs: number;
   readonly jitterMs: () => number;
+  /**
+   * run 级绝对截止时间（epoch ms），由 `maxRunMinutes` 换算；live run 必须设置（04 §7）。
+   * 到达截止时间后不再发起新 attempt，按 `budget_exhausted` 回退并由策略暂停 run。
+   */
+  readonly deadlineMs?: number;
   /** 共享预算（04 §7）：每次 attempt 前原子预留；success(usage) 核销。 */
   readonly budget: JevBudget;
   readonly failureWindow: CircuitFailureWindow;
   readonly fallbackRateWindow: FallbackRateWindow;
-  /** live run 必须配置；缺失属于配置错误。 */
-  readonly maxCalls?: number;
 }
 
 export interface JevBudget {
-  /** 预留一次 attempt；返回 false 表示预算耗尽（不再发请求）。 */
-  reserve(): boolean;
-  /** 成功后按实际 usage 核销预留。 */
-  settle(inputTokens: number): void;
-  /** 失败/取消保留预留（覆盖可能的上游消耗）。 */
-  keepReserved(): void;
+  /**
+   * 预留一次 attempt：1 call + `estimatedInputTokens`。
+   * 在途预留与已核销 token 之和会超过上限时返回 false（fail-closed，04 §7）。
+   */
+  reserve(estimatedInputTokens: number): boolean;
+  /** 成功：释放预留并按实际 usage 核销；actual>reserved 时记录 overage。 */
+  settle(reservedInputTokens: number, actualInputTokens: number): void;
+  /** 失败/取消/usage 缺失：保留预留并按估算计入已消耗（覆盖可能的上游消耗）。 */
+  keepReserved(reservedInputTokens: number): void;
+  /** usage 缺失计数（04 §7）；非必须实现。 */
+  recordUsageUnknown?(): void;
   readonly exhausted: boolean;
+}
+
+/** 无官方 tokenizer 时的保守估算版本（04 §7）；进入 run manifest。 */
+export const TOKEN_ESTIMATOR_VERSION = 'utf8-half-v1';
+
+/** `max(1, ceil(UTF8(payload).byteLength/2))`，只用于调度预算，不冒充上游账单。 */
+export function estimateInputTokens(payload: string): number {
+  return Math.max(1, Math.ceil(new TextEncoder().encode(payload).length / 2));
 }
 
 export interface CircuitFailureWindow {
@@ -69,10 +88,16 @@ export type JevResponse =
 
 const UPSTREAM_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
 
+/** Retry-After 头：`present=false` 表示无头；`seconds=null` 表示非法 HTTP-date（04 §6）。 */
+interface RetryAfterHeader {
+  readonly present: boolean;
+  readonly seconds: number | null;
+}
+
 /** 稳定码→可重试分类（04 §6）。 */
 function classify(
   status: number,
-  retryAfterSeconds: number | null,
+  retryAfter: RetryAfterHeader | null,
 ): {
   retryable: boolean;
   reason: FallbackReason | null;
@@ -84,12 +109,15 @@ function classify(
     return { retryable: false, reason: null, delayMs: null };
   }
   if (status === 429 || status === 529) {
-    // Retry-After 只接受整数秒 0<=v<=20；>20 或非法不等待重试（04 §6）。
-    if (retryAfterSeconds !== null && retryAfterSeconds >= 0 && retryAfterSeconds <= 20) {
-      return { retryable: true, reason: 'http_429', delayMs: retryAfterSeconds * 1000 };
-    }
-    if (retryAfterSeconds !== null && retryAfterSeconds > 20) {
-      return { retryable: false, reason: 'retry_after_exceeded', delayMs: null };
+    // Retry-After 只接受整数秒 0<=v<=20；>20 或非法 HTTP-date 不等待重试（04 §6）。
+    if (retryAfter !== null && retryAfter.present) {
+      if (retryAfter.seconds === null) {
+        return { retryable: false, reason: 'retry_after_invalid', delayMs: null };
+      }
+      if (retryAfter.seconds > 20) {
+        return { retryable: false, reason: 'retry_after_exceeded', delayMs: null };
+      }
+      return { retryable: true, reason: 'http_429', delayMs: retryAfter.seconds * 1000 };
     }
     return { retryable: true, reason: 'http_429', delayMs: null };
   }
@@ -97,10 +125,23 @@ function classify(
   return { retryable: false, reason: null, delayMs: null };
 }
 
-function backoffDelay(attempt: number, options: JevClientOptions, jitter: boolean): number {
-  // 网络/超时退避 0.5/1s；429/529 无 Retry-After 退避 1/2/4s；其他 5xx 0.5s（04 §6）。
-  const base = options.baseBackoffMs * Math.pow(2, Math.min(attempt, 2));
-  return base + (jitter ? options.jitterMs() : 0);
+/**
+ * 退避（04 §6）：网络/超时 0.5/1s（加注入抖动）；429/529 无 Retry-After 1/2/4s；
+ * 其他 5xx 固定 0.5s。`baseBackoffMs` 默认 500，由调用方配置并进入 manifest。
+ */
+function backoffDelay(
+  attempt: number,
+  options: JevClientOptions,
+  kind: 'network' | 'rate' | 'server',
+): number {
+  const base = options.baseBackoffMs;
+  if (kind === 'rate') {
+    return base * Math.pow(2, Math.min(attempt + 1, 3));
+  }
+  if (kind === 'server') {
+    return base;
+  }
+  return base * Math.pow(2, Math.min(attempt, 1)) + options.jitterMs();
 }
 
 export interface JevClientDeps {
@@ -219,6 +260,47 @@ export function selectTop1(
 }
 
 /**
+ * 选择最终行动（04 §4.4/§4.5）：
+ * - `topK<=1`：合法概率最高者，并列按 legalActions 稳定顺序；
+ * - `topK>1`：取概率前 K（并列仍按 legalActions 顺序），按非负概率归一化后
+ *   用 `R(seed,tick,agentId,"jev_topk",0)` 采样，每次最终响应最多消费一次。
+ */
+export function selectTopK(
+  probabilities: Readonly<Record<string, number>>,
+  legalActions: readonly string[],
+  topK: number,
+  seed: Seed,
+  tick: number,
+  agentId: AgentId,
+): string | null {
+  const candidates = legalActions
+    .map((action, index) => ({ action, index, p: probabilities[action] ?? 0 }))
+    .filter((candidate) => candidate.p > 0)
+    .sort((a, b) => b.p - a.p || a.index - b.index);
+  if (candidates.length === 0) {
+    return null;
+  }
+  const k = Math.min(Math.max(1, Math.trunc(topK)), candidates.length);
+  if (k === 1) {
+    return candidates[0]?.action ?? null;
+  }
+  const top = candidates.slice(0, k);
+  const total = top.reduce((sum, candidate) => sum + candidate.p, 0);
+  if (!(total > 0)) {
+    return null;
+  }
+  const unit = rngUnit(seed, tick, agentId, RNG_EVENT_TAGS.jevTopk, 0);
+  let cumulative = 0;
+  for (const candidate of top) {
+    cumulative += candidate.p / total;
+    if (unit < cumulative) {
+      return candidate.action;
+    }
+  }
+  return top[top.length - 1]?.action ?? null;
+}
+
+/**
  * 单个到期决策的完整 live 调用：重试/退避/取消/熔断/预算/回退（04 §4/§6/§7）。
  * 决不把 Key 写入日志/URL/错误对象；原始响应只进 DecisionRecord.rawResponse。
  */
@@ -232,6 +314,8 @@ export async function callJev(
 ): Promise<JevCallResult> {
   const startedAt = deps.nowMs();
   const body = buildRequestBody(input.config, input, input.requestedModel, promptStyle);
+  const payload = JSON.stringify(body);
+  const estimatedInputTokens = estimateInputTokens(payload);
   let networkErrors = 0;
   let rateLimitErrors = 0;
   let serverErrors = 0;
@@ -241,10 +325,10 @@ export async function callJev(
   let lastModel: string | null = null;
   let lastUsage: { inputTokens?: number; outputTokens?: number } = {};
 
-  const finishFallback = (reason: FallbackReason): JevCallResult => {
+  const finishFallback = (reason: FallbackReason, transportFailure = false): JevCallResult => {
     options.fallbackRateWindow.recordFallback();
     return {
-      transportFailure: false,
+      transportFailure,
       fellBack: true,
       record: {
         schemaVersion: DECISION_SCHEMA_VERSION,
@@ -279,18 +363,21 @@ export async function callJev(
     if (signal.aborted) {
       return finishFallback('cancelled');
     }
+    if (options.deadlineMs !== undefined && deps.nowMs() >= options.deadlineMs) {
+      return finishFallback('budget_exhausted');
+    }
     if (options.budget.exhausted) {
       return finishFallback('budget_exhausted');
     }
     if (options.failureWindow.open) {
       return finishFallback(lastReason ?? 'network_error');
     }
-    if (!options.budget.reserve()) {
+    if (!options.budget.reserve(estimatedInputTokens)) {
       return finishFallback('budget_exhausted');
     }
     attempts += 1;
     let status = 0;
-    let retryAfter: number | null = null;
+    let retryAfter: RetryAfterHeader | null = null;
     try {
       const timeoutSignal = AbortSignal.any([
         signal,
@@ -302,36 +389,44 @@ export async function callJev(
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(body),
+        body: payload,
         signal: timeoutSignal,
       });
       status = response.status;
       const retryAfterHeader = response.headers.get('Retry-After');
-      if (retryAfterHeader !== null && /^\d+$/.test(retryAfterHeader)) {
-        retryAfter = Number(retryAfterHeader);
-      }
+      retryAfter =
+        retryAfterHeader === null
+          ? null
+          : {
+              present: true,
+              seconds: /^\d+$/.test(retryAfterHeader) ? Number(retryAfterHeader) : null,
+            };
       if (!response.ok) {
         const verdict = classify(status, retryAfter);
         if (!verdict.retryable) {
-          options.budget.keepReserved();
+          options.budget.keepReserved(estimatedInputTokens);
+          // 400/404/422 等不可重试 4xx 是上游客户端错误，不是响应 schema 问题。
           const reason: FallbackReason =
-            verdict.reason ?? (status >= 400 ? 'invalid_schema' : 'network_error');
+            verdict.reason ?? (status >= 400 ? 'http_client_error' : 'network_error');
           return finishFallback(reason);
         }
         lastReason = verdict.reason ?? 'upstream_5xx';
         if (lastReason === 'http_429') {
           rateLimitErrors += 1;
           options.failureWindow.recordTransportFailure();
+          // 每次 attempt 都已在 reserve() 预留；失败必须保留结算，否则预算漏计。
+          options.budget.keepReserved(estimatedInputTokens);
           if (rateLimitErrors >= options.rateLimitRetryLimit) break;
-          const delay = verdict.delayMs ?? backoffDelay(rateLimitErrors - 1, options, true);
+          const delay = verdict.delayMs ?? backoffDelay(rateLimitErrors - 1, options, 'rate');
           await deps.sleep(delay, signal);
           continue;
         }
         if (lastReason === 'upstream_5xx') {
           serverErrors += 1;
           options.failureWindow.recordTransportFailure();
+          options.budget.keepReserved(estimatedInputTokens);
           if (serverErrors >= options.serverErrorRetryLimit) break;
-          await deps.sleep(backoffDelay(serverErrors - 1, options, true), signal);
+          await deps.sleep(backoffDelay(serverErrors - 1, options, 'server'), signal);
           continue;
         }
       }
@@ -340,13 +435,13 @@ export async function callJev(
       try {
         parsedBody = JSON.parse(text);
       } catch {
-        options.budget.keepReserved();
+        options.budget.keepReserved(estimatedInputTokens);
         return finishFallback('invalid_json');
       }
       const parsed = parseJevResponse(parsedBody, input.legal.actions);
       if (parsed.kind === 'invalid') {
         // 模型质量回退不计 transport 熔断（04 §6）。
-        options.budget.keepReserved();
+        options.budget.keepReserved(estimatedInputTokens);
         return finishFallback(parsed.reason);
       }
       lastRaw = parsed.raw;
@@ -354,13 +449,23 @@ export async function callJev(
       lastUsage = parsed.usage;
       // usage 缺失按预留结算并标记 usage_missing（04 §7）。
       if (parsed.usage.inputTokens === undefined) {
-        options.budget.keepReserved();
+        options.budget.keepReserved(estimatedInputTokens);
+        options.budget.recordUsageUnknown?.();
         return { ...finishFallback('usage_missing'), transportFailure: false, fellBack: true };
       }
-      options.budget.settle(parsed.usage.inputTokens);
+      options.budget.settle(estimatedInputTokens, parsed.usage.inputTokens);
       options.failureWindow.recordSuccess();
-      options.fallbackRateWindow.recordDue();
-      const selected = selectTop1(parsed.probabilities, input.legal.actions);
+      const selected =
+        input.topK > 1
+          ? selectTopK(
+              parsed.probabilities,
+              input.legal.actions,
+              input.topK,
+              input.seed,
+              input.tick,
+              input.agentId,
+            )
+          : selectTop1(parsed.probabilities, input.legal.actions);
       if (selected === null) {
         return finishFallback('empty_legal_probability');
       }
@@ -369,6 +474,8 @@ export async function callJev(
       for (const [key, p] of Object.entries(parsed.probabilities)) {
         normalized[key] = p / total;
       }
+      // 回退率窗口每次到期决策只记一次：成功记 due，回退记 fallback（04 §6）。
+      options.fallbackRateWindow.recordDue();
       return {
         transportFailure: false,
         fellBack: false,
@@ -399,20 +506,30 @@ export async function callJev(
           rawResponse: parsed.raw,
         },
       };
-    } catch {
-      options.budget.keepReserved();
+    } catch (error) {
+      options.budget.keepReserved(estimatedInputTokens);
       if (signal.aborted) {
         return finishFallback('cancelled');
       }
+      // AbortSignal.timeout / fetch 超时可能抛 TimeoutError 或 AbortError（04 §6）。
+      const isTimeout =
+        error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
       networkErrors += 1;
       options.failureWindow.recordTransportFailure();
-      lastReason = 'network_error';
+      lastReason = isTimeout ? 'timeout' : 'network_error';
       if (networkErrors >= options.networkRetryLimit) break;
-      await deps.sleep(backoffDelay(networkErrors - 1, options, true), signal);
+      await deps.sleep(backoffDelay(networkErrors - 1, options, 'network'), signal);
     }
   }
-  options.failureWindow.recordTransportFailure();
-  return finishFallback(lastReason ?? 'network_error');
+  // 每次 attempt 的 transport 失败已在循环内记录，此处不得重复记账。
+  return finishFallback(
+    lastReason ?? 'network_error',
+    lastReason === null ||
+      lastReason === 'timeout' ||
+      lastReason === 'network_error' ||
+      lastReason === 'http_429' ||
+      lastReason === 'upstream_5xx',
+  );
 }
 
 /** 便捷错误：不携带 Key（04 §10）。 */

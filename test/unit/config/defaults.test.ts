@@ -34,6 +34,8 @@ describe('DEFAULT_RUN_CONFIG', () => {
       crossDays: [30, 40, 50, 60],
       returnDiscount: [0, 0.2, 0.4],
       holdingCushionDays: 30,
+      displacementShare: 1,
+      scarcityWeight: 0,
     });
     expect(DEFAULT_RUN_CONFIG.schedule).toEqual({
       totalTicks: 3650,
