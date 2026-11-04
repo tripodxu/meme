@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "p15-w5-classshare-pooled-v1",
+  "exploratory": true,
+  "source": "out/p15-w5-classshare.json",
+  "note": "W5 方法学复核：W4 协议为 w2b+w3 pooled 聚类；本文件与 w3-only 主脚本对照，不改变 W5 的失败判定。",
+  "points": 360,
+  "k": 3,
+  "silhouette": 0.438,
+  "stability": {
+    "ariMedian": 0.781,
+    "ariMin": 0.61,
+    "shuffles": 20
+  },
+  "sizes": {
+    "0": 60,
+    "1": 104,
+    "2": 196
+  },
+  "cells": {
+    "0": {
+      "A-share1": 60
+    },
+    "1": {
+      "B-share50-w10": 55,
+      "B-share50-w15": 48,
+      "C-share50-w60": 1
+    },
+    "2": {
+      "B-share50-w10": 5,
+      "B-share50-w15": 12,
+      "C-share50-w60": 59,
+      "C-share50-w80": 60,
+      "C-share50-w100": 60
+    }
+  },
+  "minClusterRuns": 30,
+  "temporalConsistency": {
+    "matches": 170,
+    "total": 180,
+    "rate": 0.9444444444444444
+  },
+  "verdict": "pooled 协议未通过"
+}

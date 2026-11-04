@@ -29,5 +29,6 @@
 | `p15-feature-subspace.mjs`            | W4 特征子空间只读重聚类（class/network/full/traj）                                                                                     |
 | `p15-w5-classshare.mjs`               | W5 class-share 三类候选确认（新种子；非 P6-05 证据）                                                                                   |
 | `p15-w5-convergence.mjs`              | W5 边界 10950 tick 收敛探针（探索层）                                                                                                  |
+| `p15-w5-pooled.mjs`                   | W5 方法学复核：W4 协议 pooled w2b+w3 重聚类（只读）                                                                                    |
 | `p15-descend-threshold.mjs`           | descend 权重/触发条件阈值探针（streak vs always；非确认证据）                                                                          |
 | `benchmark.mjs`                       | 性能基准                                                                                                                               |
