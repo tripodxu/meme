@@ -51,3 +51,6 @@ out/*
 !out/p15-bifurcation-repl-middle.json
 !out/p15-bifurcation-repl-default.json
 !out/p15-bifurcation-repl-bottom.json
+!out/p15-bifurcation-policy-random-middle.json
+!out/p15-bifurcation-policy-random-default.json
+!out/p15-bifurcation-policy-random-bottom.json

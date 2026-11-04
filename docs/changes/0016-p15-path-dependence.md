@@ -24,9 +24,11 @@
    `share=0.5` 预热锁定 3/3，`share=1` 预热 0/3（开放准入是锁定必要条件）；
    锁定后 `w=0` 仍 3/3 底层为空，mUp 44.7 来自上层重组——说明是**组成吸收边界**，
    不是全局冻结。
-5. **全新种子复制**：按预冻结设计（`p15c-*`，3 ICs × 10 seeds × 3 mids），
+5. **全新种子复制（mock）**：按预冻结设计（`p15c-*`，3 ICs × 10 seeds × 3 mids），
    9/9 cell 通过 per-cell 门槛、0 反向 cell；up locked 1.0 / down 0，
-   mUp gap 29.6–55.0。复制成功，但仍不是经典对称双稳态分岔。
+   mUp gap 29.6–55.0。但 **`random-uniform-v1` 敏感性为负**：3 ICs × 3 mids
+   全部 locked=0、up/down mUp 差 −6.7…+6.0、`pathDependent=false`。因此锁定是
+   **策略-规则交互**，不是 rules-v10 的结构性涌现分岔；复制只在 mock 内成立。
 
 ## 2. 版本轴与兼容性
 
@@ -51,7 +53,8 @@
 - 未做预注册确认轮：当前只有探索层证据，无 ARI/锁定比例的正式门槛判定。
 - 未测试 Jev/random 策略；`mock-weighted-v1` 下的锁定不能直接外推到 live。
 - 未做恢复/扰动实验与 `displacementShare` 消融；机制归因仍是候选。
-- 不改变 P6-05（≥3 类）状态：路径依赖锁定不等于三类结构。
+- 不改变 P6-05（≥3 类）状态：路径依赖锁定不等于三类结构；且 random 策略不复现，
+  不能称为规则层涌现分岔。
 
 ## 5. 证据
 
@@ -61,4 +64,6 @@
 - `out/p15-bifurcation-long-middle.json`（45 run，后段 3650 tick）
 - `out/p15-bifurcation-probe.json`（15 run；share 消融 + 锁定后恢复）
 - `out/p15-bifurcation-repl-{middle,default,bottom}.json`（各 150 run，p15c 全新种子）
+- `out/p15-bifurcation-policy-random-{middle,default,bottom}.json`（各 150 run，
+  random 策略敏感性；全部 locked=0）
 - 研究记录：`docs/research/2026-11-04-p15-emergent-bifurcation-explore.md`

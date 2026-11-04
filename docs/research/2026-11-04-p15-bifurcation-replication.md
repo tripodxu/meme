@@ -4,6 +4,8 @@
 > 设计先于运行冻结：`docs/research/2026-11-04-p15-bifurcation-replication.design.json`，
 > `sha256:e81c0ef78032d4e7e2191b2deb523b335894695940936ac6523f819b4349aedb`。
 > 种子 `p15c-*` 与探索轮 `p15b-*`、确认轮 `p15r3/p15r4` 均不重叠。
+> **策略限定**：复制轮使用 `mock-weighted-v1`；`random-uniform-v1` 敏感性为负（§3.1），
+> 因此锁定不能外推为规则层涌现分岔。
 
 ## 1. 设计与门槛（运行前冻结）
 
@@ -41,7 +43,8 @@ P0 gap 全部≈0（−0.003…0），再次说明 P0 不能单独作为路径�
 
 ## 3. 结论与边界
 
-- 探索轮（`p15b-*`，375 run）的路径依赖锁定在 **3 个 IC × 10 个全新种子**上复制成功：
+- 探索轮（`p15b-*`，375 run）的路径依赖锁定在 **3 个 IC × 10 个全新种子**上
+  （mock 策略内）复制成功：
   `up` 全部锁定、`down`/`control` 不锁定，mUp 差 29.6–55.0，均超过 2×pooled SD。
 - 机制仍是**底层组成吸收边界 + 高壁垒后的流动性疤痕**：`up` 在无锚定预热中抽空
   class0/1，之后提高 w 无法补回；`down` 保留底层，但切回 w_mid 后流动性长期偏低。
@@ -50,10 +53,36 @@ P0 gap 全部≈0（−0.003…0），再次说明 P0 不能单独作为路径�
 - 仍不构成 G1.5/P6 的统计验收：单策略（mock）、单 share、有限视野；
   未做恢复/扰动与 Jev 策略敏感性。P6-05 的 ≥3 类结构仍未满足。
 
+### 3.1 策略敏感性（negative）
+
+对同一设计改用 `random-uniform-v1`（3 ICs × 10 个 `p15c-*` 种子 × 3 mids）：
+
+| IC      | w_mid | up locked | down locked | control locked | mUp up | mUp down | gap  | pooled SD |
+| ------- | ----- | --------- | ----------- | -------------- | ------ | -------- | ---- | --------- |
+| middle  | 20    | 0         | 0           | 0              | 346.8  | 345.5    | −1.3 | 23.43     |
+| middle  | 25    | 0         | 0           | 0              | 342.1  | 342.6    | +0.5 | 19.74     |
+| middle  | 30    | 0         | 0           | 0              | 336.2  | 335.9    | −0.3 | 18.41     |
+| default | 20    | 0         | 0           | 0              | 381.1  | 383.4    | +2.3 | 22.13     |
+| default | 25    | 0         | 0           | 0              | 373.5  | 368.1    | −5.4 | 22.74     |
+| default | 30    | 0         | 0           | 0              | 371.1  | 364.4    | −6.7 | 18.78     |
+| bottom  | 20    | 0         | 0           | 0              | 398.3  | 401.4    | +3.1 | 28.19     |
+| bottom  | 25    | 0         | 0           | 0              | 388.5  | 388.5    | 0    | 21.67     |
+| bottom  | 30    | 0         | 0           | 0              | 382.8  | 388.8    | +6.0 | 23.33     |
+
+- 9/9 cell 的 `lockedFraction` 全为 0，`pathDependent=false`；mUp gap 在 −6.7…+6.0，
+  均未超过 `max(5, 2×pooled SD)`（pooled SD 18.4–28.2）。
+- `control` 的 mUp 约为 `up`/`down` 的 1.7–1.8 倍：极端预热相本身压低流动性，
+  但 `up` 与 `down` 方向无差异。
+- **解释**：mock 的条件权重（ascend 0.8、descend 仅 streak≥7）在 w=0 预热中把底层
+  抽空；random 的均匀选择包含下降，阻止了组成锁定。锁定是**策略-规则交互**，
+  不是 rules-v10 的结构性涌现分岔。这是对“复制成功”的必要限定。
+
 ## 4. 产物
 
 - `out/p15-bifurcation-repl-middle.json`（150 run，sha256 `1d17b8ab…f884a3`）
 - `out/p15-bifurcation-repl-default.json`（150 run，sha256 `121c6099…baee79a`）
 - `out/p15-bifurcation-repl-bottom.json`（150 run，sha256 `36bef6e1…b2eeee`）
+- `out/p15-bifurcation-policy-random-{middle,default,bottom}.json`（各 150 run，
+  `random-uniform-v1` 敏感性；全部 locked=0）
 - 设计：`docs/research/2026-11-04-p15-bifurcation-replication.design.json`
   （`sha256:e81c0ef7…4349aedb`）

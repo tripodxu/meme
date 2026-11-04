@@ -33,6 +33,7 @@ const seedCount = args.includes('--seeds')
     : stage === 'long'
       ? 3
       : 10;
+const policy = args.includes('--policy') ? args[args.indexOf('--policy') + 1] : 'mock-weighted-v1';
 const seedPrefix = args.includes('--seed-prefix')
   ? args[args.indexOf('--seed-prefix') + 1]
   : 'p15b';
@@ -157,7 +158,7 @@ for (const mid of MIDS) {
     for (const path of ['up', 'down', 'control']) {
       if (path === 'control') {
         const outcome = runSingle(configMid, seedValue, {
-          policy: 'mock-weighted-v1',
+          policy,
           maxTicks: TICKS,
         });
         runCount += 1;
@@ -173,7 +174,7 @@ for (const mid of MIDS) {
       }
       const warmConfig = path === 'up' ? configLow : configHigh;
       const warm = runSingle(warmConfig, seedValue, {
-        policy: 'mock-weighted-v1',
+        policy,
         maxTicks: WARMUP,
       });
       runCount += 1;
@@ -183,7 +184,7 @@ for (const mid of MIDS) {
       }
       const warmupMetrics = finalMetrics(warm.finalState, warm, configMid.population.classCount);
       const resumed = runSingle(configMid, seedValue, {
-        policy: 'mock-weighted-v1',
+        policy,
         maxTicks: TICKS,
         initialState: resumeState(warm.finalState, configMid),
       });
