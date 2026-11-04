@@ -1,8 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-05，rev 15）
+## 1. 当前交接状态（2026-11-05，rev 16）
 
-> **接手先读**：本节的 rev 11–15 是当前有效口径。更早的 rev 3–10 是历史沿革，
+> **接手先读**：本节的 rev 11–16 是当前有效口径。更早的 rev 3–10 是历史沿革，
 > 其中「G1.5 未通过、P2–P6 搁置」等表述**已被 rev 11 取代**，不要据此判断当前状态。
 > Jev 与 VPS 的实操细节（端点、密钥、命令、踩坑）见
 > [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)。
@@ -22,8 +22,9 @@
 - rev 13（2026-11-04，P5-01 收口）：**P5a 的 P5-01 批跑 CLI 已完成**——`src/runner/batch-cli.ts`（`runBatch` + `batch-summary-v1` 机器可读摘要）与 `bin/stratify-batch.mjs`（`<manifest.json> --out <dir> [--resume]`，`package.json` 已注册 `bin`/`batch`）。stdout 纯 JSON 与报告分离；`batch-ledger-v1` ledger 逐任务原子落盘，`--resume` 跳过已完成 run，恢复后确定性指纹与不中断对照逐字一致（单测断言，G5a kill 口径）；技术失败跨 resume 保留（07 §3）；不带 `--resume` 且 ledger 已存在时拒绝启动防覆盖。新增第 13 个 hash domain `stratify-batch-manifest-v1`（golden 向量同步）。测试 605 单测 + 4 集成（真实 spawn CLI）+ 门禁全绿。证据：`changes/0031`、`src/runner/README.md`、01 §8.1 完成记录。
 - rev 14（2026-11-05，P5-03 收口）：**run 内进度检查点接入批跑**——`run-progress-v1`（`src/runner/run-progress.ts`）= `checkpoint-v1` 快照 + 部分窗口累计器（07 §5 窗口聚合依赖全程 tick 数据，纯状态快照无法重算前段窗口）；`runSingle` 启动自动恢复 meta 三元组（cellKey/seed/configHash）匹配的检查点（不匹配抛错防跨 run 污染、损坏按不存在重跑）、每 `everyTicks` tick 原子落盘、正常结束移除（护栏停止保留）；恢复 run 的窗口/标签/终态哈希与不中断运行逐字一致（单测）；G5a 磁盘写失败注入已演练。CLI `--checkpoint-ticks N`（缺省关闭）。测试 615 单测 + 4 集成全绿。证据：`changes/0032`、01 §8.1 完成记录。**至此 P6-01 mock 路径的工程前置（P1.5/P5-01/P5-03）全部满足**；G5a 三项故障注入已覆盖 kill（ledger+run 内检查点）与磁盘写失败，「预算耗尽」属 P5-02。
 - rev 15（2026-11-05，P5-04 收口）：**微扰配对执行入口**——`src/runner/perturbation.ts`：param（相对扰动 value×(1+δ)）与 wealth_absolute（存活者 += ΔValue，Value=0 也加）声明扰动；baseline/treatment 从同一预注册检查点快照克隆（07 §7.2 哈希一致由构造保证 + 单测）；「实验只改变声明变量」由叶子路径 diff 强制（`changedPaths` 恰为声明 field，违反即 INVARIANT_VIOLATED；`population.*` 拒绝）；round-trip 吸收标 invalid 不报「无敏感性」（07 §7.4）；产出 `firstDivergenceTick` 与 `perturbation-summary-v1`；同配对重复执行逐字一致。测试 626 单测 + 门禁全绿。证据：`changes/0033`、01 §8.1 完成记录。**边界**：幅度阶梯、≥30 配对种子、事件级首次翻转与结构指纹偏离属 P6-03；固定决策日志重放（07 §7.7）接进微扰入口待 P5-02。
-- 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、Runner 剩余项（P5-02 全局队列/限流/共享预算与 live 路径 run 内检查点；P5-06 无 systemd unit）、上传对接（P5b，0/2）、校准与科学验收（P6，0/5，`out/` 下无任何 p6/calib 产物；D-04 预算数字未冻结前不得跑正式扫描）、发布（P7）。
-- 下一唯一入口：**P5-06 systemd 标准部署**（依赖 P5-03 已满足）——按 09 固定一种 unit + 日志轮转，不维护两套漂移配置；随后 P5-02（live 队列/限流/共享预算 + live run 内检查点，P6-04 Jev 对照前置）。P6-01 的 mock 路径工程前置（P1.5/P5-01/P5-03）已全部满足，但正式扫描前必须先按 D-04 用基准数据冻结预算数字，不得沿用 07 的示例占位值。P3/P4/P5b 按 01 §9 可在 G6 后并行，不要先于科学前提投入。外部凭据方面：Jev 走自建网关已可用（**但旧 Key 已泄露须先轮换**），Cloudflare 账号仍缺。
+- 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、Runner 剩余项（P5-02 全局队列/限流/共享预算与 live 路径 run 内检查点）、上传对接（P5b，0/2）、校准与科学验收（P6，0/5，`out/` 下无任何 p6/calib 产物；D-04 预算数字未冻结前不得跑正式扫描）、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。
+- rev 16（2026-11-05，P5-06 收口）：`deploy/` 三工件——stratify-runner.service（oneshot、ConditionPathExists、专用用户、Restart=on-failure+StartLimit、ExecStart 固定 manifest+--resume+checkpoint-ticks 500、ProtectSystem=strict）、check-disk-space.sh（磁盘守卫 2048MB）、journald drop-in（200M/1G/14d）；11 项静态契约测试；docs/09 §6 加 deploy/ 指引，docs/01 §2 目录树补 deploy/。证据：changes/0034。**边界**：VPS systemctl 实装演练归发布前；常驻调度/budget.sqlite 归 P5-02。
+- 下一唯一入口：**P5-02 全局队列、并发、限流和共享预算**（依赖 P2-04 已满足）——live 路径的唯一剩余 Runner 件：单机多 worker 不突破调用/Token/费用上限（budget.sqlite WAL 记账口径见 09 §6）、live run 内检查点与取消（P6-04 Jev 对照前置）；G5a 最后一个故障注入（预算耗尽）随它补齐。P6-01 的 mock 路径工程前置（P1.5/P5-01/P5-03）已全部满足，正式扫描前必须先按 D-04 用基准数据冻结预算数字，不得沿用 07 示例占位值。P3/P4/P5b 按 01 §9 可在 G6 后并行，不要先于科学前提投入。外部凭据方面：Jev 走自建网关已可用（**但旧 Key 已泄露须先轮换**），Cloudflare 账号仍缺。
 - 不得提前声称：三类结构已出现（目前只有 class-share 单特征候选）、Jev 行为有效、性能已达标、生产可发布、网关免费即生产免费。
 
 ## 2. 新接手者开工清单

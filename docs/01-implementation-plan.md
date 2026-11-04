@@ -21,6 +21,7 @@ src/runner/        batch-cli, checkpoint, rate-limit, budget, uploader
 migrations/        D1 追加式迁移
 test/              unit, property, integration, fixtures, golden, e2e
 scripts/           smoke-live, verify-backup, benchmark, export-d1
+deploy/            systemd unit、journald drop-in、磁盘守卫（docs/09 §6 的机器可读落地）
 docs/              本施工文档与 adr/
 ```
 
@@ -200,6 +201,8 @@ P5 拆成两段，避免 P6 被云端依赖卡住：**P5a 只做本地批跑与�
 | P5-06 | systemd 一种标准部署及日志轮转     | P5-03 | 首选 systemd 并在运维文档固定；不维护两套漂移配置             |
 
 **闸门 G5a**：故障注入覆盖运行中 kill、磁盘写失败和预算耗尽；恢复后最终 hash 与不中断对照一致；无云端也能产出完整本地 artifact 供 P6 使用。
+
+**P5-06 完成记录（2026-11-05）**：`deploy/` 三工件已落地——`stratify-runner.service`（oneshot 批跑 unit：ConditionPathExists 无 manifest 不自动启动、EnvironmentFile=/etc/stratify/runner.env、WorkingDirectory=/opt/stratify/current、专用用户非 root、Restart=on-failure + StartLimit 300s/5 次、ExecStart 固定 manifest + --resume + --checkpoint-ticks 500、ProtectSystem=strict + ReadWritePaths 加固）、`check-disk-space.sh`（ExecStartPre 磁盘守卫 2048MB）、`journald-stratify.conf`（200M/留 1G/14 天）。测试 `test/unit/deploy/systemd-unit.test.ts` 11 项（unit 契约静态断言 + 守卫行为）。详见 changes/0034。**边界**：VPS 真实 systemctl 安装演练未做（本机 Windows；正式发布前按 deploy/README 演练并记录）；常驻调度与 budget.sqlite 共享记账属 P5-02。
 
 **P5-04 完成记录（2026-11-05）**：`src/runner/perturbation.ts` 微扰配对执行入口已落地——param（相对扰动 value×(1+δ)）与 wealth_absolute（存活者 += ΔValue）两种声明；baseline/treatment 从同一预注册检查点快照克隆（07 §7.2 哈希一致由构造保证 + 单测）；「实验只改变声明变量」由叶子路径 diff 强制（changedPaths 恰为声明 field，population.* 拒绝）；round-trip 吸收标 invalid 不报「无敏感性」（07 §7.4）；产出 firstDivergenceTick 与 perturbation-summary-v1 摘要；同配对重复执行逐字一致。测试 `test/unit/runner/perturbation.test.ts` 11 项，全套 626 单测 + 门禁全绿。详见 changes/0033。**边界**：幅度阶梯、≥30 配对种子、事件级首次翻转与结构指纹偏离属 P6-03；固定决策日志重放接进微扰入口待 P5-02。
 

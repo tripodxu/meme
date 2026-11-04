@@ -99,6 +99,9 @@ pnpm verify:backup
 > [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md) §4；两者冲突时，本节的部署
 > 规范优先，实操手册只描述现状。
 
+> **机器可读落地**：本节的 systemd unit、journald drop-in 与磁盘守卫在仓库 `deploy/` 目录
+> （`deploy/README.md` 有安装步骤与语义对照表）；本节是唯一事实来源，两者冲突以本节为准。
+
 MVP 选择 **systemd**，不维护一套漂移的 Docker 配置。建议路径：
 
 ```text
