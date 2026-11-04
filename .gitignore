@@ -84,3 +84,6 @@ out/*
 !out/p6-stageB-prereg-env0-expanded.json
 !out/p6-stageB-slim-env0-expanded.json
 !out/p6-stageB-analysis-env0-expanded.json
+!out/p6-stageB-prereg-env0-compressed.json
+!out/p6-stageB-slim-env0-compressed.json
+!out/p6-stageB-analysis-env0-compressed.json
