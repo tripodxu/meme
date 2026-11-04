@@ -35,6 +35,13 @@ export interface SocietyState {
   openness: number;
   /** 初始人口占比 P0[C]，按实际人数计算（非配置理想比例）。 */
   readonly initialClassShares: number[];
+  /**
+   * 下一 tick 使用的占用压力记忆 `m_c`（rules-v11，changes/0027）。
+   * 由上一 tick 结束时的存活阶级占比与上一期记忆按
+   * `m_c=max(p_c, e^{-1/H}·m_c)` 派生；tick 0 由初始占比派生。
+   * `ascent.occupancyMemoryDays=0` 时等于瞬时压力 `p_c`（v10 语义）。
+   */
+  readonly occupancyPressure: number[];
   /** 最近完成 tick 的基尼系数。 */
   gini: number;
   /** 调整后同层边占比 S，`[-1,1]`。 */

@@ -86,28 +86,64 @@ export function scarcityTargetShares(config: RunConfig): number[] {
 }
 
 /**
- * v10 占用锚定壁垒（changes/0013）：目标阶级实际占比超过机会隐含参照份额时，
- * 上升的**余额门槛**增加 `scarcityWeight × crossBase × pressure`，
- * `pressure = max(0, P[target]/target[target] − 1)`。不支付、只作门槛。
- * `scarcityWeight=0` 时恒为 0（行为与 v9 一致）。
+ * 占用压力 `p_c = max(0, P_c/target_c − 1)`（rules-v10/v11 共用）。
+ * `target[c] ∝ 1/env0[c]`；空目标或非正参照份额时压力为 0。
+ */
+export function occupancyPressureFromShares(
+  config: RunConfig,
+  classShares: readonly number[],
+): number[] {
+  const targets = scarcityTargetShares(config);
+  return classShares.map((actual, classIndex) => {
+    const target = targets[classIndex];
+    if (target === undefined || target <= 0) {
+      return 0;
+    }
+    return Math.max(0, actual / target - 1);
+  });
+}
+
+/**
+ * 占用压力记忆（rules-v11，changes/0027）：
+ * `m_c(t) = max(p_c(t), e^{-1/H}·m_c(t-1))`。
+ * `H=0` 时不读取上一期记忆，直接返回瞬时压力，逐位退回 v10。
+ * 记忆只升不降的“棘轮”由 max 与慢衰减共同实现：占比回落时壁垒缓慢释放，
+ * 从而把上一段高占用历史带入下一 tick 的准入判断。
+ */
+export function updateOccupancyPressure(
+  config: RunConfig,
+  classShares: readonly number[],
+  previous: readonly number[],
+): number[] {
+  const pressure = occupancyPressureFromShares(config, classShares);
+  const memoryDays = config.ascent.occupancyMemoryDays;
+  if (!(memoryDays > 0)) {
+    return pressure;
+  }
+  const decay = Math.exp(-1 / memoryDays);
+  return pressure.map((current, classIndex) =>
+    Math.max(current, decay * (previous[classIndex] ?? 0)),
+  );
+}
+
+/**
+ * 上升占用壁垒（rules-v10/v11）：目标阶级占用压力超过 0 时，
+ * 上升的**余额门槛**增加 `scarcityWeight × crossBase × pressure`。
+ * v10 传入瞬时 `pressure`；v11 传入记忆后的 `m_c`（见 `updateOccupancyPressure`）。
+ * 不支付、只作门槛；`scarcityWeight=0` 时恒为 0（行为与 v9 一致）。
  */
 export function computeAscendBarrier(
   config: RunConfig,
   classIndex: number,
   crossBase: number,
-  classShares: readonly number[],
+  occupancyPressure: readonly number[],
 ): number {
   const weight = config.ascent.scarcityWeight;
   if (!(weight > 0)) {
     return 0;
   }
   const targetClass = classIndex + 1;
-  const target = scarcityTargetShares(config)[targetClass];
-  if (target === undefined || target <= 0) {
-    return 0;
-  }
-  const actual = classShares[targetClass] ?? 0;
-  const pressure = Math.max(0, actual / target - 1);
+  const pressure = Math.max(0, occupancyPressure[targetClass] ?? 0);
   return weight * crossBase * pressure;
 }
 
@@ -262,7 +298,7 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
           config,
           agent.classIndex,
           crossBaseInfo.crossBase,
-          classShareSnapshot(state.society.agents, config.population.classCount),
+          state.society.occupancyPressure,
         );
   const canAscend =
     ascendCost !== null &&

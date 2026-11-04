@@ -1,6 +1,24 @@
 # 03 规则实现规格
 
-> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。当前规则版本为 `rules-v10`；相对 v9 的修订（D-12，changes/0013）：占用锚定 `ascent.scarcityWeight`（默认 0 与 v9 行为一致；目标阶级超机会隐含份额时抬升上升余额门槛）。相对 v8 的修订（D-11，changes/0012）：位移准入份额 `ascent.displacementShare`（默认 1 与 v8 行为一致；<1 时其余份额走开放准入）。相对 v7 的修订（D-09，changes/0010）：位移准入——'class' 参照系下上升须击败目标阶级在位者，被击败者降级（零和下行流）。相对 v6 的修订（changes/0009）：裕度与需求线同参照系（'class' 模式 `ρ×refIncome×ψ_eff`）。相对 v5 的修订（D-06 选项 A′，changes/0008）：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价（新参数 `need.referenceMode`，`'own'` 逐位退回 v5；`need.referenceSmoothing` EMA 平滑；`need.graceDays` 只控判定计时），状态 schema 升至 `stratify-state-v2`（SocietyState 增补 `refIncome`）。相对 v4 的修订（D-05 方向 B，changes/0005）：上升资格增加目标阶级持有裕度门槛（`ascent.holdingCushionDays`，默认 30，`0` 退回 v4 语义）。相对 v3 的修订：需求线阶级环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。相对 v2 的修订：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（双侧归一化，恒在 `[-1,1]`）、参数注册表。任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
+> 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。
+>
+> **当前版本**：`rules-v11`。相对 v10 的修订（changes/0027）：新增占用压力记忆
+> `ascent.occupancyMemoryDays`（默认 0 与 v10 逐位一致；
+> `m_c(t)=max(p_c(t), e^{-1/H}·m_c(t−1))`，上升壁垒改用记忆），
+> 状态 schema 升至 `stratify-state-v3`（SocietyState 增补 `occupancyPressure`）。
+>
+> **版本沿革**：
+>
+> - **v10**（changes/0013）：占用锚定 `ascent.scarcityWeight`（默认 0 与 v9 一致；目标阶级超机会隐含份额时抬升上升余额门槛）。
+> - **v9**（changes/0012）：位移准入份额 `ascent.displacementShare`（默认 1 与 v8 一致；<1 时其余份额走开放准入）。
+> - **v8**（changes/0010）：位移准入——`'class'` 参照系下上升须击败目标阶级在位者，被击败者降级（零和下行流）。
+> - **v7**（changes/0009）：裕度与需求线同参照系（`'class'` 模式 `ρ×refIncome×ψ_eff`）。
+> - **v6**（changes/0008）：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价（`need.referenceMode`，`'own'` 逐位退回 v5；`need.referenceSmoothing` EMA；`need.graceDays` 只控判定计时），状态 schema 升至 `stratify-state-v2`（增补 `refIncome`）。
+> - **v5**（changes/0005）：上升资格增加目标阶级持有裕度门槛（`ascent.holdingCushionDays`，默认 30，`0` 退回 v4）。
+> - **v4**（changes/0004）：需求线环境持有人乘子 `(env0[c]/env0[0])^φ`（`need.envExponent`，默认 1.0）、`openness.mobilityWeight` 默认 8→3。
+> - **v3**：阶级需求乘子 `needMultiplier`、初始年龄模式、365 日流动参与率、调整后网络隔离度（`[-1,1]`）、参数注册表。
+>
+> 任何行为变化必须升级 `rulesVersion`、更新 golden fixture 和本文。
 
 ## 1. 坐标、单位与通用约定
 
@@ -271,6 +289,18 @@ barrier(c)  = scarcityWeight × crossBase(c−1) × pressure[c]
 （底重金字塔 / 上位中产 / 中产隆起），w=80–100 时底层恢复到 P0≈0.10；
 但每个参数组合仍只有一个吸引域，未证明双稳态，不构成 G1.5 通过。
 
+**占用压力记忆（rules-v11，changes/0027）**：`ascent.occupancyMemoryDays ∈ [0,365]` 整数，默认 0。
+
+```text
+p_c(t)      = max(0, P_c(t)/target[c] − 1)          # 瞬时压力；P 为 tick 期初存活者占比
+m_c(t)      = H == 0 ? p_c(t) : max(p_c(t), e^{-1/H}·m_c(t−1))
+barrier(c)  = scarcityWeight × crossBase(c−1) × m_c(t)
+上升余额门槛: value >= cost + cushion + barrier
+```
+
+`m_c` 是权威状态 `society.occupancyPressure`：tick 0 由初始占比派生；之后在每 tick 结束、死亡结算后用下一 tick 的存活占比更新（下一 tick 期初占比与该时刻相同）。枚举侧与引擎复核侧共享同一 `m_c`，禁止按行动顺序重算。
+`H=0` 时 `m_c=p_c`，与 v10 的瞬时壁垒逐位一致；`H>0` 时占比回落只让 `m_c` 按 `e^{-1/H}` 衰减，不会立刻归零。该机制仍是负反馈：高占用抑制进入，有限 H 只能延迟混合，是否形成稳定第三盆地必须由独立实验判定，不得由公式推断。
+
 支付 cost，`classIndex+=1`，更新 maxClass，重置 classAge=0、baselineSum=0、belowNeedStreak=0，记 `lastAscentTick=t`。一次只能上升一层。
 
 **主动降阶**：支付 `descendDays×B×E[t,current]`，阶级减 1，重置上述阶级停留字段，记 `lastDescentTick=t`。maxClass 不变。
@@ -313,7 +343,7 @@ refIncome[c](t+1) = (1-α)·refIncome[c](t) + α·refGain[c](t)  # α = need.ref
 ```
 
 本 tick 的 `need`/`ascendCost` 一律使用**上期** `refIncome`（先算后用，禁止同期值，否则引入 agent 顺序依赖）。
-`refIncome` 属于权威状态（`stratify-state-v2`），初值 `B×env0[c]` 由 `(config, seed)` 纯函数派生；
+`refIncome` 属于权威状态（`stratify-state-v2` 起），初值 `B×env0[c]` 由 `(config, seed)` 纯函数派生；
 `'own'` 模式**不读取也不更新**（保持初值），保证与 v5 逐位一致（G-D）。
 `bufferDays` 在两种模式下语义不同：`'class'` 为持有标尺天数（`need` 对其等比缩放），`'own'` 为缓冲爬坡长度
 （`buffer(classAge)` 在 `bufferDays` 日后达到 1）；同一参数不另设 `need.needDays`。

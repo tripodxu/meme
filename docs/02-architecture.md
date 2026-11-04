@@ -109,7 +109,7 @@ interface RandomSource {
 
 ## 7. 状态、快照和事件
 
-- **权威状态**：完成某 tick 后的 `SimState`；快照包含 RNG 所需的 seed/counter 语义、慢变量、网络、baselineSum、死亡状态等全部未来所需字段。rules-v6 起 SocietyState 增补 `refIncome[C]`（需求参照系宏观状态，`stratify-state-v2`）：初值 `B×env0[c]` 由 `(config, seed)` 纯函数派生，阶段 C 全部 gain 算完后按 EMA 更新（先算后用），`'own'` 模式保持初值不更新。
+- **权威状态**：完成某 tick 后的 `SimState`；快照包含 RNG 所需的 seed/counter 语义、慢变量、网络、baselineSum、死亡状态等全部未来所需字段。rules-v6 起 SocietyState 增补 `refIncome[C]`（需求参照系宏观状态，`stratify-state-v2`）：初值 `B×env0[c]` 由 `(config, seed)` 纯函数派生，阶段 C 全部 gain 算完后按 EMA 更新（先算后用），`'own'` 模式保持初值不更新。rules-v11 起增补 `occupancyPressure[C]`（`stratify-state-v3`）：tick 0 由初始占比派生，之后每 tick 结束用下一 tick 存活占比与上一期记忆按 `m_c=max(p_c,e^{-1/H}m_c)` 更新；`H=0` 时等于瞬时压力。
 - **事件**：用于解释和审计，不作为唯一权威状态；事件 schema 版本化。
 - **聚合指标**：用于图表和查询，可由权威状态/事件重算；冲突时重算并报告。
 - **决策日志**：live 复现的必需输入，包含原始响应、合法行动集哈希和回退原因。

@@ -70,3 +70,6 @@ out/*
 !out/p15-w5-convergence-10950.json
 !out/p15-w5-convergence-10950-c80-c100.json
 !out/p15-w5-classshare-pooled.json
+!out/p15-v11-ratchet-probe.json
+!out/p15-longhorizon-probe.json
+!out/p15-w6-longhorizon.json

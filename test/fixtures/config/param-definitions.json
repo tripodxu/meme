@@ -1,7 +1,5 @@
 {
   "schemaVersion": "stratify-params-v1",
-  "description": "参数注册表契约快照；任何变更必须人工审查并同步 03 与 golden 测试。",
-  "source": "scripts/generate-param-snapshot.mjs（读取 src/core/params.ts 的构建产物）",
   "definitions": [
     {
       "name": "population.initialPopulation",
@@ -455,6 +453,19 @@
         "kind": "number",
         "min": 0,
         "max": 100
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "ascent.occupancyMemoryDays",
+      "unit": "days",
+      "formulaRef": "03 §6 阶段 B / rule.md 9（rules-v11 占用压力记忆，changes/0027）：m_c(t)=max(p_c(t), e^{-1/H}·m_c(t-1))，p_c=max(0, P_c/target_c−1)，barrier=w×crossBase×m_c",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 365,
+        "integer": true
       },
       "guardOnly": false,
       "affectsBehavior": true

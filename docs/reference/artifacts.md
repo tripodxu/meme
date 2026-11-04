@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 41 个文件、合计约 10.2 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
+   当前入库 44 个文件、合计约 10.3 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -63,6 +63,9 @@
 | `out/p15-w5-convergence-10950.json`                  | <10 KiB  | `ee72e45f…16d7aa6`   | 10950 tick 边界收敛：B-w15 25/30 同簇（全部最终在 B）；C-w60 3/30 同簇（28 个滑回 B）                                                                                                                            | **探索证据**（changes/0025）                                                                                                |
 | `out/p15-w5-convergence-10950-c80-c100.json`         | <10 KiB  | `65cb9019…bd3736`    | 10950 tick 边界收敛：C-w80 8/30 同簇、C-w100 19/30；C 类随时间滑回 B                                                                                                                                             | **探索证据**（changes/0025）                                                                                                |
 | `out/p15-w5-classshare-pooled.json`                  | <10 KiB  | `28b2b0a7…b49f66`    | W5 方法学复核：W4 协议 pooled w2b+w3（360 点）→ 轮廓 0.438、ARI 0.781/0.610（min 未过）、temporal 0.944；与 w3-only 对照，两种口径均未通过                                                                       | **探索证据**（changes/0026）                                                                                                |
+| `out/p15-v11-ratchet-probe.json`                     | 36.6 KiB | `3fd84a2c…c500`      | 探索层：rules-v11 H 扫描，6 cell × 5 seeds × 3650/10950 = 60 run；H=0/90/180/365 在 10950 几乎重合，C 终态 P≈[0,0.24,0.40,0.20,0.15]；H 只延迟不钉住 C                                                           | **探索证据**（changes/0027）                                                                                                |
+| `out/p15-longhorizon-probe.json`                     | 35.8 KiB | `9541965f…b1d81`     | 探索层：30 seeds × A/B/C × 10950 = 90 run；k=3 轮廓 0.619、ARI 1.000/1.000，A/B/C 各 30/30/30；k=2 合并 B/C；B/C L1≈0.53                                                                                         | **探索证据**（changes/0027）                                                                                                |
+| `out/p15-w6-longhorizon.json`                        | 33.2 KiB | `ea01c62a…d87a7`     | **W6 确认候选通过**：p15r6 新种子，120 run；10950 终态 k=3 轮廓 0.638、ARI 0.997/0.938、A/B/C 各 30/30/30、B/C L1 0.513、方向 3/3、14600 同簇 29/30                                                              | **确认候选（非 P6-05/校准）**（changes/0028）                                                                               |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 

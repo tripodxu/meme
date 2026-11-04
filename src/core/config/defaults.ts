@@ -54,6 +54,8 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     displacementShare: 1,
     // rules-v10：0 = 无占用锚定（barrier 恒 0，行为与 v9 一致）。
     scarcityWeight: 0,
+    // rules-v11：0 = 无占用压力记忆（逐位退回 v10）。
+    occupancyMemoryDays: 0,
   },
   competition: {
     powerValueExponent: 0.35,

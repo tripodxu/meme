@@ -28,10 +28,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v10.json');
-const golden = readJson('../fixtures/config/default-rules-v10.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v11.json');
+const golden = readJson('../fixtures/config/default-rules-v11.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v10 default config', () => {
+describe('golden: rules-v11 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -47,11 +47,11 @@ describe('golden: rules-v10 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v10.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v11.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
-  it('v10 默认参照系为 class 模式、位移份额 1、占用锚定 0（changes/0008/0009/0010/0012/0013）', () => {
+  it('v11 默认参照系为 class 模式、位移份额 1、占用锚定 0、占用记忆 0（changes/0008/0009/0010/0012/0013/0027）', () => {
     expect(DEFAULT_RUN_CONFIG.need.referenceMode).toBe('class');
     expect(DEFAULT_RUN_CONFIG.need.graceDays).toBe(30);
     expect(DEFAULT_RUN_CONFIG.need.referenceSmoothing).toBe(0.2);
@@ -60,6 +60,8 @@ describe('golden: rules-v10 default config', () => {
     expect(DEFAULT_RUN_CONFIG.ascent.displacementShare).toBe(1);
     // v10 默认 0 = 无占用锚定，行为与 v9 一致（state hash 含 config，跨版本不比较）。
     expect(DEFAULT_RUN_CONFIG.ascent.scarcityWeight).toBe(0);
+    // v11 默认 0 = 无占用压力记忆，逐位退回 v10。
+    expect(DEFAULT_RUN_CONFIG.ascent.occupancyMemoryDays).toBe(0);
   });
 
   it('matches the pinned configHash', () => {
@@ -85,31 +87,36 @@ describe('golden: rules-v10 default config', () => {
   });
 });
 
-describe('golden: 历史 fixture（v3/v4/v5 只读，累加式）', () => {
+describe('golden: 历史 fixture（v3/v4/v5/v10 只读，累加式）', () => {
   const v3Fixture = readJson('../fixtures/config/default-rules-v3.json');
   const v3Golden = readJson('../fixtures/config/default-rules-v3.hashes.json') as GoldenHashes;
   const v4Fixture = readJson('../fixtures/config/default-rules-v4.json');
   const v4Golden = readJson('../fixtures/config/default-rules-v4.hashes.json') as GoldenHashes;
   const v5Fixture = readJson('../fixtures/config/default-rules-v5.json');
   const v5Golden = readJson('../fixtures/config/default-rules-v5.hashes.json') as GoldenHashes;
+  const v10Fixture = readJson('../fixtures/config/default-rules-v10.json');
+  const v10Golden = readJson('../fixtures/config/default-rules-v10.hashes.json') as GoldenHashes;
 
-  it('v3/v4/v5 fixture configHash 仍与冻结记录一致（历史证据不被篡改）', () => {
+  it('v3/v4/v5/v10 fixture configHash 仍与冻结记录一致（历史证据不被篡改）', () => {
     expect(v3Golden.rulesVersion).toBe('rules-v3');
     expect(v4Golden.rulesVersion).toBe('rules-v4');
     expect(v5Golden.rulesVersion).toBe('rules-v5');
+    expect(v10Golden.rulesVersion).toBe('rules-v10');
     // configHash 只覆盖配置 JSON 本身，不受注册表增长影响。
     expect(computeConfigHash(v3Fixture as RunConfig)).toBe(v3Golden.configHash);
     expect(computeConfigHash(v4Fixture as RunConfig)).toBe(v4Golden.configHash);
     expect(computeConfigHash(v5Fixture as RunConfig)).toBe(v5Golden.configHash);
+    expect(computeConfigHash(v10Fixture as RunConfig)).toBe(v10Golden.configHash);
     // paramsHash 由参数注册表驱动：注册表随新参数增长后，缺字段的旧配置不再可哈希
     //（canonicalize 拒绝 undefined）；冻结历史值保留在各自记录中供审计。
     expect(() => computeParamsHash(v3Fixture as RunConfig)).toThrowError(/undefined/);
     expect(() => computeParamsHash(v4Fixture as RunConfig)).toThrowError(/undefined/);
     expect(() => computeParamsHash(v5Fixture as RunConfig)).toThrowError(/undefined/);
+    expect(() => computeParamsHash(v10Fixture as RunConfig)).toThrowError(/undefined/);
   });
 
-  it('v3/v4/v5 fixture 不再被当前版本接受（config_unknown_version）', () => {
-    for (const stale of [v3Fixture, v4Fixture, v5Fixture]) {
+  it('v3/v4/v5/v10 fixture 不再被当前版本接受（config_unknown_version）', () => {
+    for (const stale of [v3Fixture, v4Fixture, v5Fixture, v10Fixture]) {
       const result = validateRunConfig(stale);
       expect(result.ok).toBe(false);
       if (!result.ok) {

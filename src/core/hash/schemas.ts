@@ -106,7 +106,7 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
   {
     domain: HASH_DOMAINS.authoritativeState,
     fields: [
-      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v2。' },
+      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v3。' },
       { name: 'config', type: 'object', ordering: 'none', description: '完整冻结 RunConfig。' },
       { name: 'seed', type: 'string', description: 'run seed。' },
       {
@@ -157,6 +157,13 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
             type: 'array',
             ordering: 'none',
             description: 'P0[C] 按实际人数。',
+          },
+          {
+            name: 'occupancyPressure',
+            type: 'array',
+            ordering: 'none',
+            description:
+              '占用压力记忆 m[C]（rules-v11）：下一 tick 使用的 max(p_c, e^{-1/H}·m_c)；H=0 时为瞬时压力。',
           },
           { name: 'gini', type: 'number', description: 'G ∈ [0,1]。' },
           { name: 'segregation', type: 'number', description: 'S ∈ [-1,1]。' },

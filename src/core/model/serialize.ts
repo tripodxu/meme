@@ -30,7 +30,8 @@ export type SerializedAgent = {
 };
 
 /**
- * 权威状态的 canonical 序列化形状（`stratify-state-v2`；v2 增补 society.refIncome）。
+ * 权威状态的 canonical 序列化形状（`stratify-state-v3`；v3 增补
+ * society.occupancyPressure，v2 增补 society.refIncome）。
  * 字段集合固定；字段增删或含义变化必须升级 `STATE_SCHEMA_VERSION`。
  */
 export interface SerializedSimState {
@@ -46,6 +47,7 @@ export interface SerializedSimState {
     refIncome: number[];
     openness: number;
     initialClassShares: number[];
+    occupancyPressure: number[];
     gini: number;
     segregation: number;
     mUp: number;
@@ -240,6 +242,7 @@ export function encodeSimState(state: SimState): SerializedSimState {
       refIncome: [...state.society.refIncome],
       openness: state.society.openness,
       initialClassShares: [...state.society.initialClassShares],
+      occupancyPressure: [...state.society.occupancyPressure],
       gini: state.society.gini,
       segregation: state.society.segregation,
       mUp: state.society.mUp,
@@ -366,6 +369,19 @@ export function decodeSimState(value: unknown): SimState {
       return number;
     },
   );
+  if (
+    !Array.isArray(societyRecord['occupancyPressure']) ||
+    societyRecord['occupancyPressure'].length !== classCount
+  ) {
+    fail('$.society.occupancyPressure', `occupancyPressure 必须为长度 ${classCount} 的数组`);
+  }
+  const occupancyPressure = (societyRecord['occupancyPressure'] as unknown[]).map((cell, index) => {
+    const number = assertFiniteNumber(cell, `$.society.occupancyPressure[${index}]`);
+    if (number < 0) {
+      fail(`$.society.occupancyPressure[${index}]`, 'occupancyPressure 不得为负');
+    }
+    return number;
+  });
   const gini = assertFiniteNumber(societyRecord['gini'], '$.society.gini');
   const segregation = assertFiniteNumber(societyRecord['segregation'], '$.society.segregation');
   const mUp = assertFiniteNumber(societyRecord['mUp'], '$.society.mUp');
@@ -405,6 +421,7 @@ export function decodeSimState(value: unknown): SimState {
     refIncome,
     openness,
     initialClassShares,
+    occupancyPressure,
     gini,
     segregation,
     mUp,

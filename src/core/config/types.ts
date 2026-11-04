@@ -101,6 +101,12 @@ export interface AscentConfig {
    * target[c] ∝ 1/env0[c]。0 与 v9 行为一致。
    */
   readonly scarcityWeight: number;
+  /**
+   * v11 占用压力记忆天数 H（changes/0027）：`m_c(t)=max(p_c(t), e^{-1/H}·m_c(t-1))`，
+   * 上升壁垒改用 `m_c`。`H=0` 不读取记忆、逐位退回 v10；
+   * H 越大，阶级占比回落后壁垒衰减越慢。
+   */
+  readonly occupancyMemoryDays: number;
 }
 
 export interface CompetitionConfig {

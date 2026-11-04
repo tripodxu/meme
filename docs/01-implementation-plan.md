@@ -73,6 +73,8 @@ docs/              本施工文档与 adr/
 
 **闸门 G1.5**：按 07 §8.1 预注册的聚类协议，至少 2 类可复现结构聚类，且至少 1 类不是由全死亡/空网络/未归类造成；均值场预测与仿真方向一致。未通过不得启动 P2。G1.5 只是 go/no-go 闸门，不构成校准完成；P6-05 仍要求至少 3 类互不相同的结构指纹聚类。
 
+### 4.5.1 2026-11-03：首轮与规则修订
+
 **P1.5 完成记录（2026-11-03）**：P1.5-01–P1.5-04 已执行——预注册 manifest（`preregistrationHash=sha256:bdff1c9a…`，D-03/D-04 标记保留）、`src/runner` 批量核心与 `scripts/p15-grid.mjs`、16 cell × 30 配对种子 × 3650 tick（480 run，14 分钟）全量运行、均值场分析（`docs/research/p15-mean-field.md` + `scripts/p15-mean-field.mjs`）。**G1.5 判定：未通过**——全网格仅一种“顶层过重+旋转门”结构（topHeavy 30/30 全部 cell），聚类 k=4 轮廓系数 0.265、稳定性 ARI 0.471 < 0.70；pyramid/olive/closedStratified 0/480 不可达。均值场证明该结构由机制（需求与收益同源、Opportunity 顶层自我强化、O 正反馈制动不足）而非参数偶然造成；8 个补充探索变体（crossDays/decay/θM/Mref/ψ/lossRate）全部保持同一结构。证据：`docs/research/2026-11-03-p15-report.md` 与 `out/p15-full.json`。
 
 **P1.5 v4 复核（2026-11-03，用户授权自主规则负责人）**：按报告 §6 执行 changes/0004（rules-v4：需求线环境持有人乘子 `(env0[c]/env0[0])^φ` + θM 8→3 + engineVersion v0.1.0），重跑三轮预注册网格（20/20/24 cell × 30 种子；hash 4bf566b9/ad2d75fe/f1dc1bca）。φ 解耦有效（P4 梯度 0.29–0.92、olive 可达、ge.median 轴开启中重分布区域），但 **G1.5 仍未通过**：可达集为连续统，bisect-ARI∈[0.32,0.58] 全部 <0.70。机制根因已定位——旋转门引擎三要素（积累无上界、跌落携带财富并重置需求时钟、mock 无条件上升）使 Mup→1 与参数无关。**P2–P6 继续依闸门搁置**；rules-v5 候选方向（跌落财富清偿/上升持有资格/积累承载上限）已登记于报告 §8.4，待规则负责人决策。
@@ -82,6 +84,8 @@ docs/              本施工文档与 adr/
 **P1.5 轮 2 重跑（2026-11-03，changes/0006 + 0007 修复后首次有效证据）**：`preregistrationHash=sha256:4dc141e4…`，`out/p15-full.json` 4.07MB / `sha256:dc6e85f9…`，840 run × 3650 tick × 107 分钟；840/840 存活、w2b 与 w3 **各 840/840 available**（首份 w2b 有真实数值的产物）、`temporalConsistency=0.893`（门槛 0.80）、预算全达标、离线复算一致。**G1.5 判定：仍未通过**——k=4（轮廓 0.370），半样本重聚类 ARI 三次为 0.702 / 0.579 / **0.366**，按 07 §8.1 以最小值为准（0.366 < 0.70），即「未形成可复现结构」。描述性进展：四簇与参数存在可辨识对应（`envExponent=0`/`cushionDays=90+phi=0` 100% 落 c2「封闭分层」；`cushionDays=90`/`envExponent=2` 主要落 c3「顶部抽空」），但 67% 特征点集中在 c0。27 个非 baseline cell 中 24 个达到区分度门槛。详见 `docs/research/2026-11-03-p15-report.md` §10。遗留口径缺口：稳定性取 max/mean/min 未冻结（当前取 min）、`clustering.algorithm` 未记录实现标识、朴素 Ward 在 1680 点上占 107 分钟中的约 77 分钟。**P2–P6 继续依闸门搁置。**
 
 **P1.5 诊断与下一轮计划（2026-11-03）**：对上述产物做离线再分析（`node scripts/p15-diagnose.mjs`，只读、确定性）并补读实现后判定：**总根因是需求参照系错误（R1），不是缺一个抑制机制**。代码事实——`baselineSum` 只累加 `dailyBase×env`（`engine.ts:197`），按 `rule.md:118` 它是「`ge=hard=1` 参照个体的历史积累」，**不是个体自身收入**；`need = buffer(classAge)×baselineSum×ψ_eff[c]`，而升阶与降阶都执行 `classAge=0, baselineSum=0`（`engine.ts:479-480`、`:521-522`）：**一次升阶等于持有标尺归零 + 缓冲重起算 + 收入照常，升阶不是代价而是免租期**；同时标尺随停留天数 `D` 线性无界上涨（`D×B×E[c]×ψ[c]`），使持有能力退化为「生产率是否高于 `threshold×ψ[c]`」的绝对测试而非相对位置测试。这解释了 mUp≈0.95、P0 被抽空（初始 0.45→w3 0.003）与单稳态三个现象，也与最粗 k=2 的半样本 ARI 为 −0.101/−0.046/0.313（与随机无异）一致。据此登记 W0 管线硬化（Ward 换 Lance–Williams、冻结 `ward-lw-v1`、稳定性口径冻结为 20 次洗牌取 median 且必报 min）、W1 rules-v6（**D-06 选项 A′：需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价，且把标尺与宽限期拆开——`need` 不再乘 `buffer(classAge)`，改由 `graceDays` 只控判定计时**；保留 `need.referenceMode` 消融开关，`own` 逐位退回 v5）、W2 确认轮、W3 判定，并设四道机制门禁（G-A `P0(w3)≥0.15` 且 `mUp≤0.60`；G-B P4 跨度≥0.40；G-C 窗口间分布漂移<0.10；G-D 消融退回 v5 逐位一致）。判定协议另加硬约束：k=2 的 ARI median 未达 0.70 即判「无宏观二态」，不得退而报告 k=4/k=5 充作通过。计划、被否备选与可行性分析见 `docs/research/2026-11-03-p15-diagnosis-and-next-round.md`，可直接执行的施工说明见 `docs/research/2026-11-03-p15-w0-w1-handoff.md`（D-07 新种子 `p15r3-seed-001…030`、D-08 位移准入不同批已定）；**G1.5 未通过前 P2–P6 继续搁置**。
+
+### 4.5.2 2026-11-04：W0–W3 门禁与确认轮
 
 **P1.5 W0/W1 落地与 G-A..G-D 门禁实测（2026-11-04）**：W0 管线硬化已交付（commit `6df579b`）——Ward 换 Lance–Williams 递推（`ward-lw-v1` 实现标识进 `preregistrationHash`，朴素版保留为参考实现，等价性验收 = 无并列数据 ARI=1.0 + 代价序列相对误差 ≤1e-12 + 1680 点 2.5s ≪ 60s），稳定性口径冻结 `stabilityShuffles=20`、判定量 = median 且必报 min（07 §8.1 同批生效）；D-03 随预注册 manifest 冻结关闭（选项 A）。W1 rules-v6 按 D-06 选项 A′ 落地 changes/0008（`refIncome` EMA 计价 + `graceDays` 判定计时 + `referenceMode` 消融开关；版本轴 `rules-v6`/`engine-v0.4.0`/`stratify-config-v3`/`stratify-state-v2`）。门禁实测（`out/p15-gates.json`）：**G-D 通过**（own 模式 5/5 种子与 rules-v5 参照 fixture 语义状态逐位一致、class 模式序列化往返一致；对照口径偏离交接单的 finalStateHash 逐位比较，改按语义字段比较，理由与实现见 changes/0008 §9）；**G-A 未通过**（P0(w3)=0.0000 < 0.15，mUp(w3)=0.0416 合规）；**G-C 未通过**（‖P(w2b)−P(w3)‖₁=0.1624 ≥ 0.10）；G-B 实测见产物。机制根因：class 需求线是固定存量，而 v5 持有裕度（ρ=30）在 class 模式下高于需求线，新升阶者必然带高于需求线的余额进入——上升成吸收态、底层无补入，裕度与参照系尺度错位。按 handoff §8 停止：不回填参数（红线 4）、**W2 确认轮未启动**（G-A 是资格前提）、D-08 位移准入与裕度参照系后续修订待规则负责人以独立预注册决策。
 
@@ -98,6 +102,8 @@ docs/              本施工文档与 adr/
 3. **W3 G1.5 判定：未通过——「无宏观二态」**（changes/0011）：k=2 稳定性 ARI median **0.415**（min −0.002）< 0.70 硬门槛，k=4 median 0.516 亦不达标且按协议不得充当通过；temporalConsistency 0.786 < 0.80；特征空间为连续统。均值场方向预测在全部 cell 成立（P0 下限 0.449、漂移上限 0.045）——机制按设计运转，但参数只产生**一条连续统**，不存在 ≥2 类可复现的宏观模式。
 4. **判定树全部走完**（W0→W1→门禁→W2→W3）：五轮预注册证据链齐备（三种体制画像 + 连续统直接证据）。报告见 `docs/research/2026-11-04-p15-w2-confirmation-and-g15-verdict.md`（索引 `docs/research/README.md`）。P2–P6 继续搁置（AGENTS 9）；下一步属**规则评审会**——在「接受连续统并修订项目目标（路线 C）」与「引入新离散化机制（D-06 备选 B/C 或新设计，须先探索再预注册）」之间做方向决策，见 changes/0011 §4。
 
+### 4.5.3 2026-11-04：v9/v10、W4 与探索
+
 **P1.5 rules-v9 位移份额与探索复核（2026-11-04，D-11）**：按用户确认落地 changes/0012——新增 `ascent.displacementShare`（默认 1 与 v8 逐位一致；<1 时其余份额走开放准入，不挤下在位者），版本轴 `rules-v9`/`engine-v0.7.0`/`stratify-config-v4` + v3→v4 迁移，golden 全量重算并通过。目的：v8 的 1:1 位移使阶级占比成为守恒量（上升/下降逐层近似相等，如 810/815、309/316），经济参数无法移动稳态分布。探索层复核（`out/p15-displacement-explore.json`、`out/p15-balance-explore.json`，共 108 run）给出**负面结论**：share<1 产生净上行流并把底层抽空（P0=P1=0），同参数种子间结构离散度 >1，由棘轮与噪声主导；加强拥挤负反馈（η→3、congestionMin→0.05）也不能托住底层。因此 `displacementShare` 是有效的诊断/消融参数，**不是**产生参数区域多结构的机制；下一步需**占用锚定**机制（位置稀缺/进入壁垒）或路线 C，二者均属规则评审会级决策。探索产物不得引用为 G1.5 确认证据（07 §6.1）。
 
 **P1.5 rules-v10 占用锚定（2026-11-04，D-12）**：用户选择占用锚定方向后落地 changes/0013——新增 `ascent.scarcityWeight`（默认 0 与 v9 逐位一致；目标阶级占比超过机会隐含份额 `target[c] ∝ 1/env0[c]` 时抬升上升余额门槛 `w×crossBase×pressure`），版本轴 `rules-v10`/`engine-v0.8.0`/`stratify-config-v5` + v4→v5 迁移；tick 期初阶级占比快照同时供枚举侧与引擎复核侧使用。探索层（`out/p15-scarcity*-explore.json`，共 172 run）得到 **A/B/C 三个参数区域**：A 底重金字塔（share=1，P≈[0.56,0.36,0.03,0.02,0.03]）、B 上位中产（share=0.5，w=10–15，P2≈0.42–0.49、底层为空）、C 中产隆起（share=0.5，w≥30，P≈[0.01–0.10,0.40–0.46,0.24–0.32,0.15–0.19,0.07–0.10]）；P1 在 w≈20–30 完成平台切换（w≤15 与 w≥30 各为平台），高权重把底层恢复到 P0≈0.10，同初值种子噪声 0.11–0.24，初值依赖 ≤0.19。**仍未证明双稳态/迟滞**：每个参数组合只有一个吸引域，连续扫描的 pooled k=2 ARI 仍低（0.17–0.26）。因此不宣布 G1.5 通过；下一步须以 A/B/C 为预注册区域（并回答 k=2 硬门槛在 ≥3 类结构下的解释口径）或继续改造壁垒函数以形成同一参数下的两个盆地。
@@ -107,6 +113,26 @@ docs/              本施工文档与 adr/
 **P1.5 路径依赖/分叉探索（2026-11-04，探索层）**：新增 `runSingle` 的 `initialState` 续跑能力与 `scripts/p15-bifurcation-explore.mjs`。在 share=0.5、w_mid=20–30 下比较 w=0→mid（up）、w=100→mid（down）与全程 mid（control）：up 抽空 class0/1 并锁定（middle 10/10、default 6/6、bottom 5/6），down/control 均 0 锁定；mUp 差 26.7–50.0，后段延长到 3650 tick 仍持续。判为**路径依赖锁定/单向棘轮候选**，不是已确认的对称双稳态分岔；不构成 G1.5/P6 证据，P6-05 仍未满足。机制探针（3 seeds）：`share=0.5` 预热锁定 3/3、`share=1` 预热 0/3；锁定后 `w=0` 仍 3/3 底层为空，mUp 44.7 来自上层重组，说明是组成吸收边界而非全局冻结。全新种子复制（`p15c-*`，3 IC × 10 seeds × 3 mids）按预冻结设计 **9/9 cell 通过**（up locked 1.0、down 0、mUp gap 29.6–55.0），mock 策略内路径依赖锁定可复现；但 **`random-uniform-v1` 敏感性为负**（0/9 cell 锁定、up/down mUp 差不显著），说明锁定是策略-规则交互而非规则层涌现分岔，不改变 G1.5/P6 结论。证据 `out/p15-bifurcation-*.json`、research/2026-11-04-p15-emergent-bifurcation-explore.md、research/2026-11-04-p15-bifurcation-replication.md、changes/0016。
 
 **P1.5 descend 触发条件探针（2026-11-04，探索层）**：新增 `explore_descend` 探索 tag 与 `scripts/p15-descend-threshold.mjs`（streak vs always 两档，各 175 run）。streak≥7 门控下，descend 权重 d=0–4 全部保持 up locked 1.0（mUp 2.6–6.4），**提高权重不解除锁定**；无条件 descend 在 d≥0.2 时 up/down/control 全部解锁（mUp 600–1446），阈值在 0 与 0.2 之间。结论：锁定由**下降触发条件**而非权重控制；`random-uniform-v1` 的均匀选择天然包含无条件下降，解释了复制轮的负结果。锁定仍是策略-规则交互，不构成 rules-v10 结构分岔，也不改变 G1.5/P6 判定。证据 `out/p15-descend-{threshold,unconditional}-explore.json`、research/2026-11-04-p15-descend-condition.md、changes/0017。
+
+### 4.5.4 2026-11-04：W5、长视野复核与 W6
+
+**W4 特征子空间（changes/0024）**：仅用 5 个阶级占比时 k=3 轮廓 0.517、ARI 0.828/0.660，A/B/C 几乎按 cell 分开；W4 预注册 full 特征 k=3 仅 0.757/0.522 且混合 B/C。三类候选被 full 特征掩盖，但 ARI min 0.660 未过 0.70，且为 post-hoc，必须用全新种子预注册。
+
+**W5（changes/0025/0026）**：6 cell × 30 个 `p15r5-*` 种子 × 3650 tick = 180 run。w3-only 口径 k=3 轮廓 0.527、ARI 0.904/0.787、temporal 0.789 **未过**；W4 协议 pooled 口径 ARI 0.781/0.610（min 未过）、temporal 0.944。两种口径均未通过，且设计未冻结 pooling/assignment。10950 探针把终态映射到 3650 簇，得出 C 滑回 B；该映射随后被证明不适用于长视野终态。
+
+**多吸引域与开放体制（changes/0021–0023）**：A 体制（share=1）220 run 的 11 个反馈轴呈 ic-default vs ic-middle 双吸引域；A 至少三个终态族持续到 7300；开放体制 9 个反馈轴未产生稳定多吸引域；cushion365 的 3650 IC 分离在 7300 大多收敛；A 体制 30-seed k=2 稳健（ARI 0.942/0.869）、k=3 仅 0.676/0.610。结论：闭合/守恒产生稳健多结构，开放准入擦除记忆；IC 不是 P6-05 第三类捷径。
+
+**长视野复核（changes/0027）**：30 seeds × A/B/C × 10950 直接对终态聚类，k=3 轮廓 0.619、ARI 1.000/1.000，A/B/C 各 30/30/30；k=2 合并 B/C，B/C L1≈0.53。W5 的“C 滑回 B”是 3650 簇映射的产物；第三类是 10950 终态候选。详见 [长视野复核](research/2026-11-04-p15-longhorizon-reanalysis.md)。
+
+**W6（changes/0028）**：全新 `p15r6` 种子，120 run；10950 终态 k=3 轮廓 0.638、ARI 0.997/0.938、A/B/C 各 30/30/30、B/C L1 0.513、方向 3/3、14600 同簇 29/30（0.967）→ **class-share 三类候选通过**。仅 mock、单特征、3 cell；不是 P6-05 正式验收/校准，P6-05 仍需 07 的全特征、消融与 Jev 对照。详见 [W6 结果](research/2026-11-04-p15-w6-longhorizon-result.md)。
+
+### 4.5.5 2026-11-04：rules-v11 占用记忆（H=0 兼容）
+
+**实现（changes/0027）**：新增 `ascent.occupancyMemoryDays`（H，默认 0，域 [0,365] 整数）；`p_c=max(0,P_c/target_c−1)`，`m_c=max(p_c,e^{-1/H}m_c)`，上升壁垒改用 `m_c`；`H=0` 逐位退回 v10。版本轴 `rules-v11`/`engine-v0.9.0`/`stratify-config-v6`/`stratify-state-v3`，v5→v6 迁移补 0，状态增补 `society.occupancyPressure`。
+
+**H 扫描（changes/0027）**：60 run，H=0/90/180/365 在 10950 终态几乎重合，3650→10950 mean L1 0.456–0.506；**H 只延迟混合、不钉住 C**，第三类不能归因给 v11。
+
+**结论**：rules-v11 保留为默认关闭的可选机制；正式验收与规则效果见 changes/0027/0028，不在此重复。
 
 ## 5. P2：Jev 决策层
 
@@ -119,8 +145,6 @@ docs/              本施工文档与 adr/
 | P2-05 | 回退、失败率阈值、调用/Token/时间预算     | P2-04       | 超预算不再发请求；连续失败不会静默产生整轮回退实验           |
 | P2-06 | 决策日志、live 标记与重放非法处理         | P2-03,P1-08 | 原始响应可审计；replay 不伪装 live；`replay_invalid` 可统计  |
 | P2-07 | 最小真实冒烟（VPS 直连，不经 Worker）     | P2-04       | Key 不落库/日志/URL；一次低成本 Choice 成功并记录真实模型    |
-
-**P1.5 多吸引域与开放体制（2026-11-04，探索层）**：扩展反馈轴脚本（4 个 IC、`open-feedback` family）并新增 `scripts/p15-multibasin-probe.mjs`。四组探索（220+120+180+80 run）：A 体制（share=1）的 11 个反馈轴都呈 ic-default（P0≈0.57）vs ic-middle（P1≈0.55）双吸引域，between-IC L1 0.72–0.81、同 IC 噪声 0.10–0.24；A/B/C × 4 IC × 3650/7300 显示 A 至少有底重/中产/上中产三个可分离终态族并持续到 7300，而 B/C 的 IC 差异落入噪声且仍在漂移；开放体制 9 个反馈轴在测试强度下均未产生稳定多吸引域，congestion=1 的 3650 信号在 7300 复算中被视野漂移解释。结论：rules-v10 的稳健涌现来自**组成守恒/闭合**，开放准入擦除记忆；要得到 ≥3 类语义干净的结构需阶级配额、网络闭锁阈值、占用棘轮或位置外部性等 rules-v11 机制。k=3 描述性聚类（轮廓 0.538、ARI 0.964/0.886）只是候选，不构成 P6-05。证据 `out/p15-{feedback-v10,multibasin,open-feedback,multibasin-congestion}-*.json`、research/2026-11-04-p15-multibasin-emergence.md、changes/0021。追加壁垒扫描（160+80 run）：`holdingCushionDays=365` 在 3650 看似恢复 IC 多吸引域，但 7300 时 default/middle/bottom 收敛到 P1≈0.70–0.80，只有 top 保持独立；高壁垒只是减慢混合，开放体制的 3650 结构不能当作渐近多吸引域，后续确认须加 convergence gate（changes/0022）。A 体制 30-seed 复算（changes/0023）进一步表明：k=2 稳健（ARI 0.942/0.869，底重 vs 中上），k=3 只有 0.676/0.610，5-seed 的三类候选是小样本过拟合；k=4 虽稳定但只细分两族。IC 不能作为 P6-05 第三类的捷径，当前 rules-v10 最多两类，需 rules-v11 机制或不同结构轴。W4 特征子空间只读分析（changes/0024）发现：仅用 5 个阶级占比时 k=3 轮廓 0.517、ARI 0.828/0.660，A/B/C 几乎按 cell 分开；W4 预注册的 full 特征 k=3 仅 0.757/0.522 并把 B/C 混合。第三类可能是被特征选择掩盖的候选，不是规则不存在；但 ARI min 0.660 未过 0.70、且特征为 post-hoc，必须用全新 p15r5-* 种子预注册 W5（class-share、k=3、7300 收敛检查）后才能判断 P6-05。W5 已按冻结设计运行（changes/0025）：180+60 run；w3-only 口径 k=3 轮廓 0.527、ARI 0.904/0.787、temporal 0.789 **未通过**；W4 协议 pooled 口径 ARI 0.781/0.610（min 未通过）、temporal 0.944（changes/0026）。两种口径均未通过，说明设计未冻结 pooling/assignment；10950 tick 探针显示 B-w15 最终 30/30 都在 B，C-w60/80/100 仅 3/8/19 保持 C，C 类随时间滑回 B。故 A/B/C 三类是有限视野现象，A vs B/C 两类才稳健；P6-05 仍未满足，需 rules-v11 机制。
 
 **P2 启动记录（2026-11-04，G1.5 通过后）**：按 ADR-0003 / changes/0015 把决策层从 `src/experimental/p2-decision/` 迁回 `src/decision/`，`DecisionPolicy` 成为生产接口；新增 `MockPolicy`/`RandomPolicy`、异步 `runSingleWithPolicy`（live/replay 路径）与 `RunOutcome.decisions`（P2-06 决策日志）；同步 `runSingle` 改为经接口调用，行为不变。测试：原 434 行决策层测试随迁移保留，`policy-wiring` 现有 9 项接线测试（接口收集、同步/异步 mock 等价、random 确定性、换策略改变终态、fallback 计数、认证失败终止、取消即停 2 项、config topK 接线）。**P2-06 replay 已接入**（`ReplayPolicy`/`buildReplayIndex`，重放只使用 `selectedAction`，非法/缺失记 `replay_invalid`）；**P2-05 预算估算已接入**（`utf8-half-v1`、在途预留、overage、`usage_missing`/`budget_exhausted` 暂停）；**P2-02 JSON Schema 已冻结**（`schema/decision-state.prompt-v3.json`，Ajv 校验序列化输出）；**P2-07 真实冒烟（VPS、低预算密钥、成本上限）尚未完成**，且 replay 尚未接入 CLI/批跑入口与预注册 manifest；P2-03 的真实响应 fixture 仍待补（P2-02 的 JSON Schema 已冻结）。证据：changes/0015、`test/unit/runner/policy-wiring.test.ts`。
 

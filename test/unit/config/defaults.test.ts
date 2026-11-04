@@ -9,7 +9,7 @@ import { validateRunConfig } from '../../../src/core/config/validate.js';
 import { CONFIG_SCHEMA_VERSION, RULES_VERSION } from '../../../src/core/control/versions.js';
 
 describe('DEFAULT_RUN_CONFIG', () => {
-  it('matches the rules-v5 defaults in 03 §3', () => {
+  it('matches the current rules-v11 defaults in 03 §3', () => {
     expect(DEFAULT_RUN_CONFIG.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
     expect(DEFAULT_RUN_CONFIG.rulesVersion).toBe(RULES_VERSION);
     expect(DEFAULT_RUN_CONFIG.population).toEqual({
@@ -36,6 +36,7 @@ describe('DEFAULT_RUN_CONFIG', () => {
       holdingCushionDays: 30,
       displacementShare: 1,
       scarcityWeight: 0,
+      occupancyMemoryDays: 0,
     });
     expect(DEFAULT_RUN_CONFIG.schedule).toEqual({
       totalTicks: 3650,

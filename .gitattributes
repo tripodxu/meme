@@ -5,3 +5,6 @@
 *.webp binary
 *.woff binary
 *.woff2 binary
+
+# 冻结的预注册设计按文件字节哈希，禁止 EOL 归一化
+docs/research/*.design.json -text -diff

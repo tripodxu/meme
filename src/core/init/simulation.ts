@@ -1,4 +1,5 @@
 import { computeConfigHash, computeParamsHash } from '../config/hash.js';
+import { updateOccupancyPressure } from '../legal-actions.js';
 import type { RunConfig } from '../config/types.js';
 import { validateRunConfig } from '../config/validate.js';
 import { errorCodes, StratifyError } from '../control/errors.js';
@@ -48,6 +49,12 @@ export function createSimulation(config: RunConfig, seed: Seed): SimState {
     ),
     openness: validConfig.openness.initial,
     initialClassShares,
+    // rules-v11：tick 0 的记忆由初始占比派生；H=0 时即瞬时压力（v10 语义）。
+    occupancyPressure: updateOccupancyPressure(
+      validConfig,
+      initialClassShares,
+      new Array<number>(classCount).fill(0),
+    ),
     gini: computeGini(population.agents.map((agent) => agent.value)),
     segregation: computeSegregation(sameClassEdges, population.ties.length, aliveClassCounts),
     mUp: 0,

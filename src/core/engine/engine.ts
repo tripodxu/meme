@@ -19,6 +19,7 @@ import {
   computeAscendCushion,
   computeDescendCost,
   sampleDisplacementTarget,
+  updateOccupancyPressure,
 } from '../legal-actions.js';
 import {
   computeNeedClass,
@@ -116,9 +117,9 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   const isDecisionTick = tick % config.decision.interval === 0;
   const eByClass = state.society.eByClass;
   const opennessStart = state.society.openness;
-  // v10 占用锚定：阶级占比在**行动循环之前**取一次快照，所有个体共享，
-  // 避免行动执行顺序影响进入壁垒（AGENTS 4 的 tick 期初快照原则）。
-  const classSharesStart = classShareSnapshot(agents, classCount);
+  // v10/v11 占用锚定：本 tick 的占用压力记忆在上一 tick 结束时派生，
+  // 与阶级占比一样是**行动循环之前**的共享快照，避免行动顺序影响进入壁垒。
+  const occupancyPressureStart = state.society.occupancyPressure;
   // 需求参照系（rules-v6）：本 tick 的 need/ascendCost 一律使用上期 refIncome
   //（先算后用，避免同期值引入 agent 顺序依赖）；'own' 模式不读取该数组。
   const referenceMode = config.need.referenceMode;
@@ -153,7 +154,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
         decision,
         eByClass,
         openness: opennessStart,
-        classSharesStart,
+        occupancyPressure: occupancyPressureStart,
         events,
         executions,
         activeChanged,
@@ -390,6 +391,14 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   const endReason: EndReason | null =
     aliveCount === 0 ? (tick < config.schedule.totalTicks - 1 ? 'extinct' : 'scheduled') : null;
 
+  // rules-v11：为下一 tick 预计算占用压力记忆。下一 tick 期初的存活者占比
+  // 与本 tick 结束后的存活者占比相同（阶段 E 已结算死亡），因此可在此处派生。
+  const nextOccupancyPressure = updateOccupancyPressure(
+    config,
+    classShareSnapshot(agents, classCount),
+    occupancyPressureStart,
+  );
+
   const nextState: SimState = {
     schemaVersion: state.schemaVersion,
     config: state.config,
@@ -403,6 +412,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       refIncome: nextRefIncome,
       openness: nextOpenness,
       initialClassShares: state.society.initialClassShares,
+      occupancyPressure: nextOccupancyPressure,
       gini: stats.gini,
       segregation: stats.segregation,
       mUp: stats.mUp,
@@ -465,8 +475,8 @@ interface ExecuteActionInput {
   readonly decision: StepDecision;
   readonly eByClass: readonly number[];
   readonly openness: number;
-  /** v10：tick 期初存活者阶级占比快照（占用锚定壁垒的唯一输入）。 */
-  readonly classSharesStart: readonly number[];
+  /** v11：本 tick 的占用压力记忆（v10 时为瞬时阶级占比压力，由状态携带）。 */
+  readonly occupancyPressure: readonly number[];
   readonly events: EventSequence;
   readonly executions: ExecutionRecord[];
   readonly activeChanged: Set<string>;
@@ -490,7 +500,7 @@ function executeAction(input: ExecuteActionInput): void {
     decision,
     eByClass,
     openness,
-    classSharesStart,
+    occupancyPressure,
     events,
     executions,
     activeChanged,
@@ -536,7 +546,12 @@ function executeAction(input: ExecuteActionInput): void {
     const barrier =
       crossBaseInfo === null
         ? 0
-        : computeAscendBarrier(config, agent.classIndex, crossBaseInfo.crossBase, classSharesStart);
+        : computeAscendBarrier(
+            config,
+            agent.classIndex,
+            crossBaseInfo.crossBase,
+            occupancyPressure,
+          );
     // 反向比较写 `!(value >= cost + cushion + barrier)`：NaN（如 E 缺失）时枚举侧拒绝、
     // 复核侧也必须拒绝，不能因 `NaN < x` 为 false 而放行。
     if (cost === null || !(agent.value >= cost + cushion + barrier)) {

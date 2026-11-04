@@ -11,6 +11,10 @@ import {
 import { validateRunConfig } from '../../../src/core/config/validate.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { RULES_VERSION } from '../../../src/core/control/versions.js';
+import {
+  classShareSnapshot,
+  occupancyPressureFromShares,
+} from '../../../src/core/legal-actions.js';
 import { runSingle } from '../../../src/runner/run-cell.js';
 import { encodeSimState } from '../../../src/core/model/serialize.js';
 
@@ -94,7 +98,7 @@ describe('G-D：own 模式与 rules-v5 逐位一致（语义状态全字段）',
 
   for (const reference of fixture.runs.slice(0, 2)) {
     it(
-      `seed=${reference.seed}：agents 与 society（除 refIncome）逐位一致`,
+      `seed=${reference.seed}：agents 与 society（除 refIncome/occupancyPressure）逐位一致`,
       { timeout: 120_000 },
       () => {
         const config = toV6Own(reference.config);
@@ -104,14 +108,22 @@ describe('G-D：own 模式与 rules-v5 逐位一致（语义状态全字段）',
         // agents：全部字段逐位一致（Object.is 级别的浮点比较）
         expect(encoded.society.agents).toEqual(reference.society['agents']);
 
-        // society：除 refIncome 外全部字段
+        // society：除 refIncome 与 v11 新增 occupancyPressure 外全部字段
+        // （v5 参照 fixture 早于这两个字段；它们不是 v5 语义的一部分）
         const actualSociety = { ...encoded.society } as Record<string, unknown>;
         delete actualSociety['refIncome'];
+        delete actualSociety['occupancyPressure'];
         expect(actualSociety).toEqual(reference.society);
 
         // refIncome：own 模式保持初始值 B×env0[c]
         expect(encoded.society.refIncome).toEqual(
           config.opportunity.env0.map((env) => config.opportunity.dailyBase * env),
+        );
+
+        // v11：H=0 时占用压力记忆等于终态存活者占比的瞬时压力（不改变 v5 行为）
+        const finalShares = classShareSnapshot(outcome.finalState.society.agents, 5);
+        expect(encoded.society.occupancyPressure).toEqual(
+          occupancyPressureFromShares(config, finalShares),
         );
 
         // run 终态锚点：extinct/endReason 与 v5 一致（finalStateHash 属版本信封，不比）

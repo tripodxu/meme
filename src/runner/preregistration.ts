@@ -13,9 +13,12 @@ import {
   RULES_VERSION,
   ENGINE_VERSION,
   DECISION_SCHEMA_VERSION,
+  type RulesVersion,
+  type EngineVersion,
 } from '../core/control/versions.js';
 import { LABEL_THRESHOLDS_VERSION, computeLabelThresholdsHash } from '../core/labels/thresholds.js';
 import type { WindowLabel } from './window-stats.js';
+import { LEGACY_W4_MANIFEST } from './legacy-w4-manifest.js';
 
 /**
  * P1.5-04 预注册 manifest（01 §4.5 / 07 §3）。
@@ -86,8 +89,10 @@ export interface PreregManifest {
   readonly hypothesis: string;
   readonly primaryMetric: 'TV(P)' | 'G' | 'Mup' | 'Mdown' | 'S' | 'O';
   readonly experimentType: 'rule_sensitivity';
-  readonly rulesVersion: typeof RULES_VERSION;
-  readonly engineVersion: typeof ENGINE_VERSION;
+  /** 当前实验使用 `RULES_VERSION`；冻结的历史 manifest（如 W4）可保留旧版本标签。 */
+  readonly rulesVersion: RulesVersion | 'rules-v10';
+  /** 当前实验使用 `ENGINE_VERSION`；冻结的历史 manifest（如 W4）可保留旧版本标签。 */
+  readonly engineVersion: EngineVersion | 'engine-v0.8.0';
   readonly decisionSchemaVersion: typeof DECISION_SCHEMA_VERSION;
   readonly policyVersion: 'mock-weighted-v1';
   /** mock 策略不消费 prompt；字段存在于预注册哈希覆盖清单（07 §3）。 */
@@ -468,64 +473,8 @@ export function buildPreregManifest(): PreregManifest {
  * - 方向预测：A 的 P0(w3)≥0.40；B/C 的 P0(w3)≤0.15 且 mUp(w3)≤0.40。
  */
 export function buildV10ConfirmationManifest(): PreregManifest {
-  const base = buildPreregManifest();
-  const populationSize = base.populationSize;
-  const totalTicks = base.totalTicks;
-  const definitions: Omit<PreregCell, 'fullConfigHash' | 'changedPaths'>[] = [
-    {
-      cellKey: 'A-share1',
-      design: 'baseline',
-      hypothesis: '闭合位移体制（displacementShare=1）的底重金字塔（预测 P0(w3)>=0.40）',
-      overrides: {},
-    },
-    ...([10, 15] as const).map((weight) => ({
-      cellKey: `B-share50-w${weight}`,
-      design: 'interaction' as const,
-      hypothesis: `开放准入 + 弱占用锚定（share=0.5, scarcityWeight=${weight}）的底轻/上位中产（预测 P0<=0.15、mUp<=0.40）`,
-      overrides: { ascent: { displacementShare: 0.5, scarcityWeight: weight } },
-    })),
-    ...([60, 80, 100] as const).map((weight) => ({
-      cellKey: `C-share50-w${weight}`,
-      design: 'interaction' as const,
-      hypothesis: `开放准入 + 强占用锚定（share=0.5, scarcityWeight=${weight}）的中产隆起/小底层（预测 P0<=0.15、mUp<=0.40）`,
-      overrides: { ascent: { displacementShare: 0.5, scarcityWeight: weight } },
-    })),
-  ];
-  const baseConfig = buildBaseConfig(populationSize, totalTicks);
-  const cells = definitions.map((definition) => {
-    const config = buildCellConfig(definition, populationSize, totalTicks);
-    const changedPaths = diffConfigPaths(baseConfig, config);
-    if (definition.design === 'baseline' && changedPaths.length !== 0) {
-      throw new Error(`cell ${definition.cellKey}: baseline 不得有任何覆盖`);
-    }
-    if (definition.design === 'interaction' && changedPaths.length < 2) {
-      throw new Error(
-        `cell ${definition.cellKey}: interaction 至少改变 2 个参数，实际 ${changedPaths.length}`,
-      );
-    }
-    return { ...definition, changedPaths, fullConfigHash: computeConfigHash(config) };
-  });
-  const seen = new Map<string, string>();
-  for (const cell of cells) {
-    const duplicate = seen.get(cell.fullConfigHash);
-    if (duplicate !== undefined) {
-      throw new Error(`cell ${cell.cellKey} 与 ${duplicate} 的完整配置相同`);
-    }
-    seen.set(cell.fullConfigHash, cell.cellKey);
-  }
-  return {
-    ...base,
-    hypothesis:
-      'rules-v10（占用锚定）两区域网格（A: share=1；B/C: share=0.5 + scarcityWeight 10/15/60/80/100）' +
-      '内存在 >=2 类可复现（20 次半样本 ARI median>=0.70，含 k=2 硬门槛）且非退化（非全死亡/空网络）' +
-      '的结构指纹聚类；k=2 的分裂预测为 A vs B∪C；方向预测 A 的 P0(w3)>=0.40、B/C 的 P0(w3)<=0.15 且 mUp(w3)<=0.40。' +
-      'k=3 仅作描述（探索显示 B/C 边界不可复现，本轮不据此声称三类）。',
-    seeds: PREREG_SEEDS_R4,
-    cells,
-    budgets: {
-      maxRuns: cells.length * PREREG_SEEDS_R4.length,
-      maxWallMinutes: 120,
-      maxStorageBytes: 2_000_000_000,
-    },
-  };
+  // W4（rules-v10）设计已在 2026-11-04 冻结并写入 out/p15-v10-full.json。
+  // 不得用当前 DEFAULT_RUN_CONFIG 重建：rules-v11 的字段/版本会改变 configHash 与
+  // preregistrationHash，使历史证据不可复现。新实验请生成新的 manifest。
+  return LEGACY_W4_MANIFEST;
 }

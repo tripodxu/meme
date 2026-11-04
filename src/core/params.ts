@@ -441,6 +441,19 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
       '上升次数下降，且枚举侧与引擎复核侧同时拒绝余额不足的 ascend。',
   },
   {
+    name: 'ascent.occupancyMemoryDays',
+    unit: 'days',
+    formulaRef:
+      '03 §6 阶段 B / rule.md 9（rules-v11 占用压力记忆，changes/0027）：' +
+      'm_c(t)=max(p_c(t), e^{-1/H}·m_c(t-1))，p_c=max(0, P_c/target_c−1)，barrier=w×crossBase×m_c',
+    domain: { kind: 'number', min: 0, max: 365, integer: true },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      'H=0 时 m_c=p_c，与 rules-v10 逐位一致；H>0 时占比回落后 m_c 按 e^{-1/H} 衰减，' +
+      '下一 tick 的 ascend 枚举与引擎复核仍看到正壁垒；改变 H 改变壁垒序列而非当前 tick 的瞬时压力。',
+  },
+  {
     name: 'competition.powerValueExponent',
     unit: 'exponent',
     formulaRef: '03 §6 阶段 B / rule.md 12',

@@ -5,6 +5,7 @@ import {
   CONFIG_SCHEMA_VERSION_V2,
   CONFIG_SCHEMA_VERSION_V3,
   CONFIG_SCHEMA_VERSION_V4,
+  CONFIG_SCHEMA_VERSION_V5,
   RULES_VERSION,
 } from '../control/versions.js';
 import { errorCodes, type ErrorCode } from '../control/errors.js';
@@ -338,7 +339,9 @@ function checkRegisteredNumberArray(
  * 补 `1` 保持 v8 的完全位移准入语义。
  * v4 → v5：v5 起 `ascent.scarcityWeight` 为必填（rules-v10，changes/0013）；
  * 补 `0` 保持 v9 无占用锚定语义。
- * 迁移链按序执行：v1 先升 v2 再升 v3，再升 v4、v5。未知版本原样返回，交由版本校验拒绝。
+ * v5 → v6：v6 起 `ascent.occupancyMemoryDays` 为必填（rules-v11，changes/0027）；
+ * 补 `0` 保持 v10 无占用压力记忆语义。
+ * 迁移链按序执行：v1 先升 v2 再升 v3，再升 v4、v5、v6。未知版本原样返回，交由版本校验拒绝。
  */
 function migrateConfigInput(input: unknown): unknown {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
@@ -392,6 +395,17 @@ function migrateConfigInput(input: unknown): unknown {
         : {};
     if (ascent['scarcityWeight'] === undefined) {
       ascent['scarcityWeight'] = 0;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V5, ascent };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V5) {
+    const rawAscent = record['ascent'];
+    const ascent =
+      typeof rawAscent === 'object' && rawAscent !== null && !Array.isArray(rawAscent)
+        ? { ...(rawAscent as Record<string, unknown>) }
+        : {};
+    if (ascent['occupancyMemoryDays'] === undefined) {
+      ascent['occupancyMemoryDays'] = 0;
     }
     record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, ascent };
   }
@@ -630,6 +644,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'holdingCushionDays',
       'displacementShare',
       'scarcityWeight',
+      'occupancyMemoryDays',
     ])
   ) {
     const ascent = root['ascent'];
@@ -650,6 +665,12 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       ascent['scarcityWeight'],
       '$.ascent.scarcityWeight',
       'ascent.scarcityWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      ascent['occupancyMemoryDays'],
+      '$.ascent.occupancyMemoryDays',
+      'ascent.occupancyMemoryDays',
     );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(

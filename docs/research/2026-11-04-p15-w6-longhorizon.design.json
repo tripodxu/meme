@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "p15-w6-longhorizon-design-v1",
+  "frozenAt": "2026-11-04",
+  "experimentId": "exp_w6_longhorizon_3class",
+  "question": "rules-v11（H=0，等价于 rules-v10 结算）的 A/B/C 三体制在 10950 tick 终态 class-share 空间是否形成三类可复现聚类，且 C 与 B 保持分离？",
+  "postHocDisclosure": "假设来自 W5 3650 失败后的长视野探索（p15-seed 5 seeds；10950 k=3 A/B/C′ ARI 1.0），不是 W5 预注册假设；本设计使用全新 p15r6 种子，并固定终态特征与聚类口径。即使通过也只是 P6-05 候选，不构成校准或结构已涌现。",
+  "seedPrefix": "p15r6",
+  "seeds": [
+    "p15r6-seed-001",
+    "p15r6-seed-002",
+    "p15r6-seed-003",
+    "p15r6-seed-004",
+    "p15r6-seed-005",
+    "p15r6-seed-006",
+    "p15r6-seed-007",
+    "p15r6-seed-008",
+    "p15r6-seed-009",
+    "p15r6-seed-010",
+    "p15r6-seed-011",
+    "p15r6-seed-012",
+    "p15r6-seed-013",
+    "p15r6-seed-014",
+    "p15r6-seed-015",
+    "p15r6-seed-016",
+    "p15r6-seed-017",
+    "p15r6-seed-018",
+    "p15r6-seed-019",
+    "p15r6-seed-020",
+    "p15r6-seed-021",
+    "p15r6-seed-022",
+    "p15r6-seed-023",
+    "p15r6-seed-024",
+    "p15r6-seed-025",
+    "p15r6-seed-026",
+    "p15r6-seed-027",
+    "p15r6-seed-028",
+    "p15r6-seed-029",
+    "p15r6-seed-030"
+  ],
+  "cells": [
+    "A-share1-H0",
+    "B-share50-w15-H0",
+    "C-share50-w60-H0"
+  ],
+  "populationSize": 40,
+  "policy": "mock-weighted-v1",
+  "horizon": 10950,
+  "featureSet": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "P4"
+  ],
+  "featureDefinition": "horizon tick 结束时存活者阶级占比；不再使用 w2b/w3 早期窗口，避免把长视野终态映射到短视野簇。",
+  "clustering": {
+    "algorithm": "ward-lw-v1",
+    "distance": "euclidean",
+    "standardization": "z-score(pooled)",
+    "k": 3,
+    "stabilityShuffles": 20,
+    "ariMedianMin": 0.7,
+    "ariMinMin": 0.7,
+    "minClusterRuns": 5,
+    "silhouetteMin": 0.35
+  },
+  "directional": {
+    "A": "P0 >= 0.40",
+    "B": "P0 <= 0.02 and P2 >= 0.30 and P3 >= 0.30",
+    "C": "P0 <= 0.02 and P1 >= 0.20 and P2 >= 0.30 and P3 <= 0.30"
+  },
+  "cellPurity": {
+    "majorityClusterMinRuns": 27,
+    "runsPerCell": 30,
+    "method": "每个 cell 至少 27/30 run 落入同一个簇；三个 cell 必须映射到三个不同簇。"
+  },
+  "centroidSeparation": {
+    "bMinusCL1Min": 0.2,
+    "method": "10950 终态原始 class-share 空间，B 簇与 C 簇质心的 L1 距离。"
+  },
+  "convergence": {
+    "seedsPerCell": 10,
+    "horizon": 14600,
+    "sameClusterRateMin": 0.8,
+    "method": "14600 终态用 10950 scaler 标准化，分配到最近的 10950 k=3 质心；与同 run 的 10950 簇标签比较。"
+  },
+  "note": "确认候选：只回答 10950 是否存在三类可复现终态；不改写 W4/G1.5，不把 3650 的 C 瞬态当作第三类，也不因 H>0 的路径差异改判。"
+}

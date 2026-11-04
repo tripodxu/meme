@@ -1,6 +1,6 @@
 # test/fixtures
 
-测试固定数据目录。现有分组：`config/`、`hash/`。
+测试固定数据目录。现有分组：`config/`、`engine/`、`hash/`。
 
 ## 约定
 
@@ -8,3 +8,11 @@
 - 禁止写入密钥、个人数据或真实 Jev 响应原文。
 - golden 期望值更新必须附差异原因并人工审查；禁止用环境变量或 `--update` 一键覆盖后直接通过。
 - 生成脚本读取已构建的 `dist/` 或 `src/`，不联网；更新后同时提交 fixture 与对应 golden 测试。
+
+## 当前版本锚点
+
+- `config/default-rules-v11.json` + `.hashes.json`：rules-v11 默认配置（config schema v6、state v3）；
+  `default-rules-v10.json` 起为只读历史，v10 仍可复现 `configHash`，但 `paramsHash` 因注册表新增
+  `ascent.occupancyMemoryDays` 不再可复算。
+- `engine/mock-run-rules-v11.json`：rules-v11/engine-v0.9.0 的单文件前滚 golden；
+  `H=0` 的 stats/死亡率与 v10 golden 逐项相同，状态哈希因版本信封与新字段改变。

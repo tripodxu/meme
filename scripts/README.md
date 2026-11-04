@@ -30,5 +30,8 @@
 | `p15-w5-classshare.mjs`               | W5 class-share 三类候选确认（新种子；非 P6-05 证据）                                                                                   |
 | `p15-w5-convergence.mjs`              | W5 边界 10950 tick 收敛探针（探索层）                                                                                                  |
 | `p15-w5-pooled.mjs`                   | W5 方法学复核：W4 协议 pooled w2b+w3 重聚类（只读）                                                                                    |
+| `p15-v11-ratchet-probe.mjs`           | rules-v11 占用记忆 H 扫描：H=0/90/180/365 × A/B/C × 3650/10950（探索层）                                                               |
+| `p15-longhorizon-probe.mjs`           | 10950 终态 class-share 聚类复核（30 seeds；探索层）                                                                                    |
+| `p15-w6-longhorizon.mjs`              | W6 长视野三类候选确认（p15r6 新种子 + 14600 收敛；已通过）                                                                             |
 | `p15-descend-threshold.mjs`           | descend 权重/触发条件阈值探针（streak vs always；非确认证据）                                                                          |
 | `benchmark.mjs`                       | 性能基准                                                                                                                               |
