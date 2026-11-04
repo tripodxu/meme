@@ -3,7 +3,7 @@
   "stage": "full",
   "preregistrationHash": "sha256:ece0a98b70444f05769740e3c1b0838bc77d35fec434f897a6f0ef4730a36135",
   "runCount": 180,
-  "wallMinutes": 5,
+  "wallMinutes": 4,
   "manifest": {
     "schemaVersion": "experiment-v2",
     "hypothesis": "rules-v10（占用锚定）两区域网格（A: share=1；B/C: share=0.5 + scarcityWeight 10/15/60/80/100）内存在 >=2 类可复现（20 次半样本 ARI median>=0.70，含 k=2 硬门槛）且非退化（非全死亡/空网络）的结构指纹聚类；k=2 的分裂预测为 A vs B∪C；方向预测 A 的 P0(w3)>=0.40、B/C 的 P0(w3)<=0.15 且 mUp(w3)<=0.40。k=3 仅作描述（探索显示 B/C 边界不可复现，本轮不据此声称三类）。",
@@ -244,6 +244,7 @@
     "stabilityShuffles": 20,
     "stabilityStable": true,
     "minClusterSize": 60,
+    "minClusterRunsObserved": 30,
     "minClusterRuns": 5,
     "minClusterMet": true,
     "temporalConsistency": {
@@ -2794,6 +2795,7 @@
         "v10BcP0Max": 0.15,
         "v10BcMupMax": 0.4
       },
+      "minClusterRunsObserved": 30,
       "k2StabilityAriMedian": 1,
       "k2StabilityAriMin": 1,
       "k2HardGateMet": true,
@@ -2829,7 +2831,7 @@
       "seeds": [
         {
           "seed": "p15r4-seed-001",
-          "elapsedMs": 1779,
+          "elapsedMs": 1714,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -2944,7 +2946,7 @@
         },
         {
           "seed": "p15r4-seed-002",
-          "elapsedMs": 1535,
+          "elapsedMs": 1462,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3060,7 +3062,7 @@
         },
         {
           "seed": "p15r4-seed-003",
-          "elapsedMs": 1506,
+          "elapsedMs": 1469,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3173,7 +3175,7 @@
         },
         {
           "seed": "p15r4-seed-004",
-          "elapsedMs": 1444,
+          "elapsedMs": 1354,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3286,7 +3288,7 @@
         },
         {
           "seed": "p15r4-seed-005",
-          "elapsedMs": 1462,
+          "elapsedMs": 1424,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3397,7 +3399,7 @@
         },
         {
           "seed": "p15r4-seed-006",
-          "elapsedMs": 1458,
+          "elapsedMs": 1392,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3509,7 +3511,7 @@
         },
         {
           "seed": "p15r4-seed-007",
-          "elapsedMs": 1396,
+          "elapsedMs": 1332,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3621,7 +3623,7 @@
         },
         {
           "seed": "p15r4-seed-008",
-          "elapsedMs": 1404,
+          "elapsedMs": 1380,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3734,7 +3736,7 @@
         },
         {
           "seed": "p15r4-seed-009",
-          "elapsedMs": 1594,
+          "elapsedMs": 1475,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3847,7 +3849,7 @@
         },
         {
           "seed": "p15r4-seed-010",
-          "elapsedMs": 1471,
+          "elapsedMs": 1338,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -3959,7 +3961,7 @@
         },
         {
           "seed": "p15r4-seed-011",
-          "elapsedMs": 1476,
+          "elapsedMs": 1416,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4074,7 +4076,7 @@
         },
         {
           "seed": "p15r4-seed-012",
-          "elapsedMs": 1580,
+          "elapsedMs": 1466,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4186,7 +4188,7 @@
         },
         {
           "seed": "p15r4-seed-013",
-          "elapsedMs": 1382,
+          "elapsedMs": 1333,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4301,7 +4303,7 @@
         },
         {
           "seed": "p15r4-seed-014",
-          "elapsedMs": 1400,
+          "elapsedMs": 1395,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4413,7 +4415,7 @@
         },
         {
           "seed": "p15r4-seed-015",
-          "elapsedMs": 1268,
+          "elapsedMs": 1239,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4526,7 +4528,7 @@
         },
         {
           "seed": "p15r4-seed-016",
-          "elapsedMs": 1527,
+          "elapsedMs": 1516,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4638,7 +4640,7 @@
         },
         {
           "seed": "p15r4-seed-017",
-          "elapsedMs": 1422,
+          "elapsedMs": 1419,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4753,7 +4755,7 @@
         },
         {
           "seed": "p15r4-seed-018",
-          "elapsedMs": 1490,
+          "elapsedMs": 1505,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4866,7 +4868,7 @@
         },
         {
           "seed": "p15r4-seed-019",
-          "elapsedMs": 1464,
+          "elapsedMs": 1445,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -4978,7 +4980,7 @@
         },
         {
           "seed": "p15r4-seed-020",
-          "elapsedMs": 1385,
+          "elapsedMs": 1367,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5091,7 +5093,7 @@
         },
         {
           "seed": "p15r4-seed-021",
-          "elapsedMs": 1516,
+          "elapsedMs": 1482,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5204,7 +5206,7 @@
         },
         {
           "seed": "p15r4-seed-022",
-          "elapsedMs": 1433,
+          "elapsedMs": 1402,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5317,7 +5319,7 @@
         },
         {
           "seed": "p15r4-seed-023",
-          "elapsedMs": 1409,
+          "elapsedMs": 1406,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5431,7 +5433,7 @@
         },
         {
           "seed": "p15r4-seed-024",
-          "elapsedMs": 1466,
+          "elapsedMs": 1496,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5544,7 +5546,7 @@
         },
         {
           "seed": "p15r4-seed-025",
-          "elapsedMs": 1460,
+          "elapsedMs": 1486,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5657,7 +5659,7 @@
         },
         {
           "seed": "p15r4-seed-026",
-          "elapsedMs": 1536,
+          "elapsedMs": 1516,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5770,7 +5772,7 @@
         },
         {
           "seed": "p15r4-seed-027",
-          "elapsedMs": 1427,
+          "elapsedMs": 1435,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5885,7 +5887,7 @@
         },
         {
           "seed": "p15r4-seed-028",
-          "elapsedMs": 1482,
+          "elapsedMs": 1458,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -5998,7 +6000,7 @@
         },
         {
           "seed": "p15r4-seed-029",
-          "elapsedMs": 1376,
+          "elapsedMs": 1368,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6111,7 +6113,7 @@
         },
         {
           "seed": "p15r4-seed-030",
-          "elapsedMs": 1413,
+          "elapsedMs": 1410,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6237,7 +6239,7 @@
       "seeds": [
         {
           "seed": "p15r4-seed-001",
-          "elapsedMs": 1492,
+          "elapsedMs": 1467,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6345,7 +6347,7 @@
         },
         {
           "seed": "p15r4-seed-002",
-          "elapsedMs": 1428,
+          "elapsedMs": 1410,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6453,7 +6455,7 @@
         },
         {
           "seed": "p15r4-seed-003",
-          "elapsedMs": 1378,
+          "elapsedMs": 1373,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6563,7 +6565,7 @@
         },
         {
           "seed": "p15r4-seed-004",
-          "elapsedMs": 1391,
+          "elapsedMs": 1377,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6671,7 +6673,7 @@
         },
         {
           "seed": "p15r4-seed-005",
-          "elapsedMs": 1460,
+          "elapsedMs": 1441,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6781,7 +6783,7 @@
         },
         {
           "seed": "p15r4-seed-006",
-          "elapsedMs": 1427,
+          "elapsedMs": 1414,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6889,7 +6891,7 @@
         },
         {
           "seed": "p15r4-seed-007",
-          "elapsedMs": 1338,
+          "elapsedMs": 1317,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -6999,7 +7001,7 @@
         },
         {
           "seed": "p15r4-seed-008",
-          "elapsedMs": 1381,
+          "elapsedMs": 1337,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7107,7 +7109,7 @@
         },
         {
           "seed": "p15r4-seed-009",
-          "elapsedMs": 1510,
+          "elapsedMs": 1461,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7215,7 +7217,7 @@
         },
         {
           "seed": "p15r4-seed-010",
-          "elapsedMs": 1332,
+          "elapsedMs": 1285,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7325,7 +7327,7 @@
         },
         {
           "seed": "p15r4-seed-011",
-          "elapsedMs": 1419,
+          "elapsedMs": 1429,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7433,7 +7435,7 @@
         },
         {
           "seed": "p15r4-seed-012",
-          "elapsedMs": 1464,
+          "elapsedMs": 1447,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7539,7 +7541,7 @@
         },
         {
           "seed": "p15r4-seed-013",
-          "elapsedMs": 1370,
+          "elapsedMs": 1288,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7647,7 +7649,7 @@
         },
         {
           "seed": "p15r4-seed-014",
-          "elapsedMs": 1409,
+          "elapsedMs": 1353,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7755,7 +7757,7 @@
         },
         {
           "seed": "p15r4-seed-015",
-          "elapsedMs": 1296,
+          "elapsedMs": 1249,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7865,7 +7867,7 @@
         },
         {
           "seed": "p15r4-seed-016",
-          "elapsedMs": 1521,
+          "elapsedMs": 1467,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -7975,7 +7977,7 @@
         },
         {
           "seed": "p15r4-seed-017",
-          "elapsedMs": 1391,
+          "elapsedMs": 1393,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8086,7 +8088,7 @@
         },
         {
           "seed": "p15r4-seed-018",
-          "elapsedMs": 1513,
+          "elapsedMs": 1450,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8194,7 +8196,7 @@
         },
         {
           "seed": "p15r4-seed-019",
-          "elapsedMs": 1500,
+          "elapsedMs": 1443,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8302,7 +8304,7 @@
         },
         {
           "seed": "p15r4-seed-020",
-          "elapsedMs": 1408,
+          "elapsedMs": 1364,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8410,7 +8412,7 @@
         },
         {
           "seed": "p15r4-seed-021",
-          "elapsedMs": 1437,
+          "elapsedMs": 1407,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8518,7 +8520,7 @@
         },
         {
           "seed": "p15r4-seed-022",
-          "elapsedMs": 1426,
+          "elapsedMs": 1377,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8628,7 +8630,7 @@
         },
         {
           "seed": "p15r4-seed-023",
-          "elapsedMs": 1410,
+          "elapsedMs": 1380,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8736,7 +8738,7 @@
         },
         {
           "seed": "p15r4-seed-024",
-          "elapsedMs": 1419,
+          "elapsedMs": 1399,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8844,7 +8846,7 @@
         },
         {
           "seed": "p15r4-seed-025",
-          "elapsedMs": 1465,
+          "elapsedMs": 1478,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -8956,7 +8958,7 @@
         },
         {
           "seed": "p15r4-seed-026",
-          "elapsedMs": 1491,
+          "elapsedMs": 1456,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9066,7 +9068,7 @@
         },
         {
           "seed": "p15r4-seed-027",
-          "elapsedMs": 1444,
+          "elapsedMs": 1389,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9172,7 +9174,7 @@
         },
         {
           "seed": "p15r4-seed-028",
-          "elapsedMs": 1504,
+          "elapsedMs": 1471,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9282,7 +9284,7 @@
         },
         {
           "seed": "p15r4-seed-029",
-          "elapsedMs": 1356,
+          "elapsedMs": 1349,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9390,7 +9392,7 @@
         },
         {
           "seed": "p15r4-seed-030",
-          "elapsedMs": 1363,
+          "elapsedMs": 1385,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9509,7 +9511,7 @@
       "seeds": [
         {
           "seed": "p15r4-seed-001",
-          "elapsedMs": 1511,
+          "elapsedMs": 1438,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9615,7 +9617,7 @@
         },
         {
           "seed": "p15r4-seed-002",
-          "elapsedMs": 1488,
+          "elapsedMs": 1413,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9721,7 +9723,7 @@
         },
         {
           "seed": "p15r4-seed-003",
-          "elapsedMs": 1384,
+          "elapsedMs": 1408,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9831,7 +9833,7 @@
         },
         {
           "seed": "p15r4-seed-004",
-          "elapsedMs": 1362,
+          "elapsedMs": 1374,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -9940,7 +9942,7 @@
         },
         {
           "seed": "p15r4-seed-005",
-          "elapsedMs": 1439,
+          "elapsedMs": 1412,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10046,7 +10048,7 @@
         },
         {
           "seed": "p15r4-seed-006",
-          "elapsedMs": 1425,
+          "elapsedMs": 1375,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10154,7 +10156,7 @@
         },
         {
           "seed": "p15r4-seed-007",
-          "elapsedMs": 1324,
+          "elapsedMs": 1306,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10262,7 +10264,7 @@
         },
         {
           "seed": "p15r4-seed-008",
-          "elapsedMs": 1383,
+          "elapsedMs": 1340,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10370,7 +10372,7 @@
         },
         {
           "seed": "p15r4-seed-009",
-          "elapsedMs": 1512,
+          "elapsedMs": 1444,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10479,7 +10481,7 @@
         },
         {
           "seed": "p15r4-seed-010",
-          "elapsedMs": 1328,
+          "elapsedMs": 1255,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10587,7 +10589,7 @@
         },
         {
           "seed": "p15r4-seed-011",
-          "elapsedMs": 1404,
+          "elapsedMs": 1399,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10691,7 +10693,7 @@
         },
         {
           "seed": "p15r4-seed-012",
-          "elapsedMs": 1458,
+          "elapsedMs": 1423,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10799,7 +10801,7 @@
         },
         {
           "seed": "p15r4-seed-013",
-          "elapsedMs": 1305,
+          "elapsedMs": 1303,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -10909,7 +10911,7 @@
         },
         {
           "seed": "p15r4-seed-014",
-          "elapsedMs": 1396,
+          "elapsedMs": 1329,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11015,7 +11017,7 @@
         },
         {
           "seed": "p15r4-seed-015",
-          "elapsedMs": 1263,
+          "elapsedMs": 1210,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11126,7 +11128,7 @@
         },
         {
           "seed": "p15r4-seed-016",
-          "elapsedMs": 1522,
+          "elapsedMs": 1461,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11236,7 +11238,7 @@
         },
         {
           "seed": "p15r4-seed-017",
-          "elapsedMs": 1367,
+          "elapsedMs": 1366,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11344,7 +11346,7 @@
         },
         {
           "seed": "p15r4-seed-018",
-          "elapsedMs": 1475,
+          "elapsedMs": 1485,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11450,7 +11452,7 @@
         },
         {
           "seed": "p15r4-seed-019",
-          "elapsedMs": 1468,
+          "elapsedMs": 1430,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11560,7 +11562,7 @@
         },
         {
           "seed": "p15r4-seed-020",
-          "elapsedMs": 1368,
+          "elapsedMs": 1404,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11666,7 +11668,7 @@
         },
         {
           "seed": "p15r4-seed-021",
-          "elapsedMs": 1447,
+          "elapsedMs": 1514,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11772,7 +11774,7 @@
         },
         {
           "seed": "p15r4-seed-022",
-          "elapsedMs": 1403,
+          "elapsedMs": 1424,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11880,7 +11882,7 @@
         },
         {
           "seed": "p15r4-seed-023",
-          "elapsedMs": 1432,
+          "elapsedMs": 1379,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -11986,7 +11988,7 @@
         },
         {
           "seed": "p15r4-seed-024",
-          "elapsedMs": 1423,
+          "elapsedMs": 1407,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12094,7 +12096,7 @@
         },
         {
           "seed": "p15r4-seed-025",
-          "elapsedMs": 1498,
+          "elapsedMs": 1438,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12202,7 +12204,7 @@
         },
         {
           "seed": "p15r4-seed-026",
-          "elapsedMs": 1488,
+          "elapsedMs": 1531,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12308,7 +12310,7 @@
         },
         {
           "seed": "p15r4-seed-027",
-          "elapsedMs": 1410,
+          "elapsedMs": 1408,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12414,7 +12416,7 @@
         },
         {
           "seed": "p15r4-seed-028",
-          "elapsedMs": 1482,
+          "elapsedMs": 1457,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12525,7 +12527,7 @@
         },
         {
           "seed": "p15r4-seed-029",
-          "elapsedMs": 1380,
+          "elapsedMs": 1355,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12633,7 +12635,7 @@
         },
         {
           "seed": "p15r4-seed-030",
-          "elapsedMs": 1412,
+          "elapsedMs": 1399,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12754,7 +12756,7 @@
       "seeds": [
         {
           "seed": "p15r4-seed-001",
-          "elapsedMs": 1464,
+          "elapsedMs": 1478,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12860,7 +12862,7 @@
         },
         {
           "seed": "p15r4-seed-002",
-          "elapsedMs": 1464,
+          "elapsedMs": 1416,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -12966,7 +12968,7 @@
         },
         {
           "seed": "p15r4-seed-003",
-          "elapsedMs": 1392,
+          "elapsedMs": 1400,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13072,7 +13074,7 @@
         },
         {
           "seed": "p15r4-seed-004",
-          "elapsedMs": 1370,
+          "elapsedMs": 1395,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13178,7 +13180,7 @@
         },
         {
           "seed": "p15r4-seed-005",
-          "elapsedMs": 1456,
+          "elapsedMs": 1448,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13284,7 +13286,7 @@
         },
         {
           "seed": "p15r4-seed-006",
-          "elapsedMs": 1412,
+          "elapsedMs": 1392,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13390,7 +13392,7 @@
         },
         {
           "seed": "p15r4-seed-007",
-          "elapsedMs": 1333,
+          "elapsedMs": 1302,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13496,7 +13498,7 @@
         },
         {
           "seed": "p15r4-seed-008",
-          "elapsedMs": 1397,
+          "elapsedMs": 1344,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13602,7 +13604,7 @@
         },
         {
           "seed": "p15r4-seed-009",
-          "elapsedMs": 1444,
+          "elapsedMs": 1494,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13708,7 +13710,7 @@
         },
         {
           "seed": "p15r4-seed-010",
-          "elapsedMs": 1288,
+          "elapsedMs": 1301,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13815,7 +13817,7 @@
         },
         {
           "seed": "p15r4-seed-011",
-          "elapsedMs": 1429,
+          "elapsedMs": 1416,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -13921,7 +13923,7 @@
         },
         {
           "seed": "p15r4-seed-012",
-          "elapsedMs": 1479,
+          "elapsedMs": 1429,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14027,7 +14029,7 @@
         },
         {
           "seed": "p15r4-seed-013",
-          "elapsedMs": 1350,
+          "elapsedMs": 1313,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14133,7 +14135,7 @@
         },
         {
           "seed": "p15r4-seed-014",
-          "elapsedMs": 1417,
+          "elapsedMs": 1369,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14239,7 +14241,7 @@
         },
         {
           "seed": "p15r4-seed-015",
-          "elapsedMs": 1275,
+          "elapsedMs": 1245,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14347,7 +14349,7 @@
         },
         {
           "seed": "p15r4-seed-016",
-          "elapsedMs": 1478,
+          "elapsedMs": 1492,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14453,7 +14455,7 @@
         },
         {
           "seed": "p15r4-seed-017",
-          "elapsedMs": 1378,
+          "elapsedMs": 1399,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14560,7 +14562,7 @@
         },
         {
           "seed": "p15r4-seed-018",
-          "elapsedMs": 1518,
+          "elapsedMs": 1476,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14666,7 +14668,7 @@
         },
         {
           "seed": "p15r4-seed-019",
-          "elapsedMs": 1438,
+          "elapsedMs": 1449,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14772,7 +14774,7 @@
         },
         {
           "seed": "p15r4-seed-020",
-          "elapsedMs": 1371,
+          "elapsedMs": 1378,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14878,7 +14880,7 @@
         },
         {
           "seed": "p15r4-seed-021",
-          "elapsedMs": 1432,
+          "elapsedMs": 1446,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -14984,7 +14986,7 @@
         },
         {
           "seed": "p15r4-seed-022",
-          "elapsedMs": 1421,
+          "elapsedMs": 1427,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15090,7 +15092,7 @@
         },
         {
           "seed": "p15r4-seed-023",
-          "elapsedMs": 1404,
+          "elapsedMs": 1406,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15196,7 +15198,7 @@
         },
         {
           "seed": "p15r4-seed-024",
-          "elapsedMs": 1396,
+          "elapsedMs": 1412,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15304,7 +15306,7 @@
         },
         {
           "seed": "p15r4-seed-025",
-          "elapsedMs": 1430,
+          "elapsedMs": 1437,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15410,7 +15412,7 @@
         },
         {
           "seed": "p15r4-seed-026",
-          "elapsedMs": 1531,
+          "elapsedMs": 1472,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15516,7 +15518,7 @@
         },
         {
           "seed": "p15r4-seed-027",
-          "elapsedMs": 1565,
+          "elapsedMs": 1399,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15622,7 +15624,7 @@
         },
         {
           "seed": "p15r4-seed-028",
-          "elapsedMs": 1646,
+          "elapsedMs": 1465,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15728,7 +15730,7 @@
         },
         {
           "seed": "p15r4-seed-029",
-          "elapsedMs": 1521,
+          "elapsedMs": 1322,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15834,7 +15836,7 @@
         },
         {
           "seed": "p15r4-seed-030",
-          "elapsedMs": 1485,
+          "elapsedMs": 1409,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -15952,7 +15954,7 @@
       "seeds": [
         {
           "seed": "p15r4-seed-001",
-          "elapsedMs": 1552,
+          "elapsedMs": 1434,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16058,7 +16060,7 @@
         },
         {
           "seed": "p15r4-seed-002",
-          "elapsedMs": 1509,
+          "elapsedMs": 1421,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16164,7 +16166,7 @@
         },
         {
           "seed": "p15r4-seed-003",
-          "elapsedMs": 1422,
+          "elapsedMs": 1380,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16270,7 +16272,7 @@
         },
         {
           "seed": "p15r4-seed-004",
-          "elapsedMs": 1361,
+          "elapsedMs": 1314,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16378,7 +16380,7 @@
         },
         {
           "seed": "p15r4-seed-005",
-          "elapsedMs": 1463,
+          "elapsedMs": 1413,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16484,7 +16486,7 @@
         },
         {
           "seed": "p15r4-seed-006",
-          "elapsedMs": 2339,
+          "elapsedMs": 1396,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16590,7 +16592,7 @@
         },
         {
           "seed": "p15r4-seed-007",
-          "elapsedMs": 2411,
+          "elapsedMs": 1316,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16696,7 +16698,7 @@
         },
         {
           "seed": "p15r4-seed-008",
-          "elapsedMs": 2479,
+          "elapsedMs": 1336,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16802,7 +16804,7 @@
         },
         {
           "seed": "p15r4-seed-009",
-          "elapsedMs": 2686,
+          "elapsedMs": 1491,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -16908,7 +16910,7 @@
         },
         {
           "seed": "p15r4-seed-010",
-          "elapsedMs": 2397,
+          "elapsedMs": 1320,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17015,7 +17017,7 @@
         },
         {
           "seed": "p15r4-seed-011",
-          "elapsedMs": 2549,
+          "elapsedMs": 1401,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17121,7 +17123,7 @@
         },
         {
           "seed": "p15r4-seed-012",
-          "elapsedMs": 2624,
+          "elapsedMs": 1471,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17227,7 +17229,7 @@
         },
         {
           "seed": "p15r4-seed-013",
-          "elapsedMs": 2384,
+          "elapsedMs": 1307,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17333,7 +17335,7 @@
         },
         {
           "seed": "p15r4-seed-014",
-          "elapsedMs": 2500,
+          "elapsedMs": 1356,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17439,7 +17441,7 @@
         },
         {
           "seed": "p15r4-seed-015",
-          "elapsedMs": 2282,
+          "elapsedMs": 1238,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17545,7 +17547,7 @@
         },
         {
           "seed": "p15r4-seed-016",
-          "elapsedMs": 2726,
+          "elapsedMs": 1477,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17651,7 +17653,7 @@
         },
         {
           "seed": "p15r4-seed-017",
-          "elapsedMs": 2470,
+          "elapsedMs": 1357,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17758,7 +17760,7 @@
         },
         {
           "seed": "p15r4-seed-018",
-          "elapsedMs": 2681,
+          "elapsedMs": 1464,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17864,7 +17866,7 @@
         },
         {
           "seed": "p15r4-seed-019",
-          "elapsedMs": 2594,
+          "elapsedMs": 1416,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -17970,7 +17972,7 @@
         },
         {
           "seed": "p15r4-seed-020",
-          "elapsedMs": 2536,
+          "elapsedMs": 1328,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18076,7 +18078,7 @@
         },
         {
           "seed": "p15r4-seed-021",
-          "elapsedMs": 2625,
+          "elapsedMs": 1448,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18182,7 +18184,7 @@
         },
         {
           "seed": "p15r4-seed-022",
-          "elapsedMs": 2523,
+          "elapsedMs": 1378,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18288,7 +18290,7 @@
         },
         {
           "seed": "p15r4-seed-023",
-          "elapsedMs": 2527,
+          "elapsedMs": 1349,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18394,7 +18396,7 @@
         },
         {
           "seed": "p15r4-seed-024",
-          "elapsedMs": 2027,
+          "elapsedMs": 1398,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18500,7 +18502,7 @@
         },
         {
           "seed": "p15r4-seed-025",
-          "elapsedMs": 1575,
+          "elapsedMs": 1420,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18606,7 +18608,7 @@
         },
         {
           "seed": "p15r4-seed-026",
-          "elapsedMs": 1683,
+          "elapsedMs": 1468,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18712,7 +18714,7 @@
         },
         {
           "seed": "p15r4-seed-027",
-          "elapsedMs": 1522,
+          "elapsedMs": 1409,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18818,7 +18820,7 @@
         },
         {
           "seed": "p15r4-seed-028",
-          "elapsedMs": 1503,
+          "elapsedMs": 1462,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -18926,7 +18928,7 @@
         },
         {
           "seed": "p15r4-seed-029",
-          "elapsedMs": 1339,
+          "elapsedMs": 1352,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19032,7 +19034,7 @@
         },
         {
           "seed": "p15r4-seed-030",
-          "elapsedMs": 1419,
+          "elapsedMs": 1372,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19149,7 +19151,7 @@
       "seeds": [
         {
           "seed": "p15r4-seed-001",
-          "elapsedMs": 1475,
+          "elapsedMs": 1445,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19255,7 +19257,7 @@
         },
         {
           "seed": "p15r4-seed-002",
-          "elapsedMs": 2308,
+          "elapsedMs": 1367,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19361,7 +19363,7 @@
         },
         {
           "seed": "p15r4-seed-003",
-          "elapsedMs": 2498,
+          "elapsedMs": 1389,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19467,7 +19469,7 @@
         },
         {
           "seed": "p15r4-seed-004",
-          "elapsedMs": 2466,
+          "elapsedMs": 1326,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19573,7 +19575,7 @@
         },
         {
           "seed": "p15r4-seed-005",
-          "elapsedMs": 2605,
+          "elapsedMs": 1411,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19679,7 +19681,7 @@
         },
         {
           "seed": "p15r4-seed-006",
-          "elapsedMs": 2562,
+          "elapsedMs": 1371,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19785,7 +19787,7 @@
         },
         {
           "seed": "p15r4-seed-007",
-          "elapsedMs": 2414,
+          "elapsedMs": 1316,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19891,7 +19893,7 @@
         },
         {
           "seed": "p15r4-seed-008",
-          "elapsedMs": 2483,
+          "elapsedMs": 1346,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -19997,7 +19999,7 @@
         },
         {
           "seed": "p15r4-seed-009",
-          "elapsedMs": 2665,
+          "elapsedMs": 1545,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20103,7 +20105,7 @@
         },
         {
           "seed": "p15r4-seed-010",
-          "elapsedMs": 2359,
+          "elapsedMs": 1295,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20210,7 +20212,7 @@
         },
         {
           "seed": "p15r4-seed-011",
-          "elapsedMs": 2572,
+          "elapsedMs": 1386,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20316,7 +20318,7 @@
         },
         {
           "seed": "p15r4-seed-012",
-          "elapsedMs": 2635,
+          "elapsedMs": 1452,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20422,7 +20424,7 @@
         },
         {
           "seed": "p15r4-seed-013",
-          "elapsedMs": 2382,
+          "elapsedMs": 1286,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20528,7 +20530,7 @@
         },
         {
           "seed": "p15r4-seed-014",
-          "elapsedMs": 2503,
+          "elapsedMs": 1380,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20634,7 +20636,7 @@
         },
         {
           "seed": "p15r4-seed-015",
-          "elapsedMs": 2281,
+          "elapsedMs": 1262,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20742,7 +20744,7 @@
         },
         {
           "seed": "p15r4-seed-016",
-          "elapsedMs": 2699,
+          "elapsedMs": 1522,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20850,7 +20852,7 @@
         },
         {
           "seed": "p15r4-seed-017",
-          "elapsedMs": 2469,
+          "elapsedMs": 1384,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -20957,7 +20959,7 @@
         },
         {
           "seed": "p15r4-seed-018",
-          "elapsedMs": 2688,
+          "elapsedMs": 1543,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21063,7 +21065,7 @@
         },
         {
           "seed": "p15r4-seed-019",
-          "elapsedMs": 2620,
+          "elapsedMs": 1460,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21169,7 +21171,7 @@
         },
         {
           "seed": "p15r4-seed-020",
-          "elapsedMs": 2465,
+          "elapsedMs": 1382,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21275,7 +21277,7 @@
         },
         {
           "seed": "p15r4-seed-021",
-          "elapsedMs": 2618,
+          "elapsedMs": 1460,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21383,7 +21385,7 @@
         },
         {
           "seed": "p15r4-seed-022",
-          "elapsedMs": 2529,
+          "elapsedMs": 1434,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21489,7 +21491,7 @@
         },
         {
           "seed": "p15r4-seed-023",
-          "elapsedMs": 2534,
+          "elapsedMs": 1448,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21595,7 +21597,7 @@
         },
         {
           "seed": "p15r4-seed-024",
-          "elapsedMs": 2543,
+          "elapsedMs": 1527,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21701,7 +21703,7 @@
         },
         {
           "seed": "p15r4-seed-025",
-          "elapsedMs": 2604,
+          "elapsedMs": 1418,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21807,7 +21809,7 @@
         },
         {
           "seed": "p15r4-seed-026",
-          "elapsedMs": 2664,
+          "elapsedMs": 1459,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -21915,7 +21917,7 @@
         },
         {
           "seed": "p15r4-seed-027",
-          "elapsedMs": 2591,
+          "elapsedMs": 1416,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -22021,7 +22023,7 @@
         },
         {
           "seed": "p15r4-seed-028",
-          "elapsedMs": 2654,
+          "elapsedMs": 1471,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -22127,7 +22129,7 @@
         },
         {
           "seed": "p15r4-seed-029",
-          "elapsedMs": 2417,
+          "elapsedMs": 1317,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -22233,7 +22235,7 @@
         },
         {
           "seed": "p15r4-seed-030",
-          "elapsedMs": 2503,
+          "elapsedMs": 1381,
           "extinct": false,
           "endReason": null,
           "endTick": 3649,
@@ -22346,8 +22348,8 @@
     "maxStorageBytes": 2000000000,
     "observed": {
       "runCount": 180,
-      "wallMinutes": 5,
-      "storageBytes": 871127
+      "wallMinutes": 4,
+      "storageBytes": 871197
     },
     "ok": true,
     "violations": []

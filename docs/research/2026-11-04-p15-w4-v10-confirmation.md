@@ -26,8 +26,8 @@
   `featureWindows=['w2b','w3']`、`k∈[2,5]`、20 次半样本重聚类、median 判定且必报 min）。
 - 判定协议：k=2 ARI median ≥0.70 硬门槛；选中 k 稳定性 ≥0.70；
   temporalConsistency ≥0.80；非退化簇 ≥1；每簇 ≥5 run；方向预测（cell 均值）成立。
-- 规模：6 cell × 30 种子 × 3650 tick = **180 run**，wall 5 分钟，0 全灭，budgets.ok。
-- 产物：`out/p15-v10-full.json`（871 KB，sha256 `a374bff6…cee4ee`）；
+- 规模：6 cell × 30 种子 × 3650 tick = **180 run**，wall 4 分钟，0 全灭，budgets.ok。
+- 产物：`out/p15-v10-full.json`（871 KB，sha256 `cb9758b2…a4faa82`）；
   预检 `out/p15-v10-screen.json`（6 run × 400 tick）。
 
 ## 2. 判定结果
@@ -65,10 +65,10 @@
    （最差 cell P0=0、drift=0.315），不适用于 rules-v10；本轮判定使用预注册的
    `directional` 子项（cell 均值），两者在产物中分列，避免混读。
 6. **最小簇门槛按 run 计。** 07 §8.1 的 `minClusterRuns` 以 run 为单位；同一 run 的
-   w2b/w3 是两个特征点。从 `assignment` 重算：c0 为 30 run（60 点）、c1 为 150 run
-   （300 点），最小 30 run ≥5，结论不变。已入库产物的 `clustering.minClusterMet`
-   由按点数比较的旧脚本生成（60≥5）；脚本已改为 `minClusterRunCount`，后续运行使用
-   按 run 计的新口径。
+   w2b/w3 是两个特征点。旧脚本把特征点数直接与门槛比较（把门槛放松一倍），已修正为
+   `minClusterRunCount` 并重跑 W4：产物记录 `minClusterRunsObserved=30`
+   （c0 30 run/60 点、c1 150 run/300 点），最小 30 run ≥5；其余指标与旧产物一致，
+   G1.5 结论不变。旧产物 sha256 `a374bff6…cee4ee`，新产物 `cb9758b2…a4faa82`。
 
 ## 4. 与历史轮的关系
 

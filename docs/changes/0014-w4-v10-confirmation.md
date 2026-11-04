@@ -7,7 +7,7 @@
   （运行前冻结；screen 与 full 两次运行哈希一致）
 - 产物：
   - `out/p15-v10-screen.json`（6 run × 400 tick，预检）
-  - `out/p15-v10-full.json`（**180 run**，871,367 B，sha256 `a374bff6…cee4ee`，wall 5 min，budgets.ok）
+  - `out/p15-v10-full.json`（**180 run**，871,437 B，sha256 `cb9758b2…a4faa82`，wall 4 min，budgets.ok）
 
 ## 1. 预注册设计（运行前冻结）
 
@@ -77,10 +77,10 @@ c1 (300 点): B/C 五个 cell 全部 300 点
    预注册的 `directional` 子项（cell 均值），两者在产物中分列，避免混读。
 5. G1.5 只是 go/no-go 闸门，**不构成校准完成**；不得据此声称默认参数已校准或结构已涌现。
 6. **最小簇门槛按 run 计。** 07 §8.1 的 `minClusterRuns` 以 run 为单位；同一 run 的
-   w2b/w3 是两个特征点。从 `assignment` 重算：c0 为 30 run（60 点）、c1 为 150 run
-   （300 点），最小 30 run ≥5，结论不变。已入库产物的 `clustering.minClusterMet`
-   由按点数比较的旧脚本生成（60≥5）；脚本已改为 `minClusterRunCount`，本记录不重写
-   既有证据，后续运行使用按 run 计的新口径。
+   w2b/w3 是两个特征点。旧脚本把特征点数直接与门槛比较（把门槛放松一倍），已修正为
+   `minClusterRunCount` 并重跑 W4：产物记录 `minClusterRunsObserved=30`
+   （c0 30 run/60 点、c1 150 run/300 点），最小 30 run ≥5；其余指标与旧产物一致，
+   G1.5 结论不变。旧产物 sha256 `a374bff6…cee4ee`，新产物 `cb9758b2…a4faa82`。
 
 ## 4. 处置
 
