@@ -10,6 +10,7 @@ import { asAgentId, asSeed, type AgentId } from '../../../src/core/control/ids.j
 import { createSimulation } from '../../../src/core/init/simulation.js';
 import { step, type StepDecisions } from '../../../src/core/engine/engine.js';
 import {
+  classShareSnapshot,
   computeAscendBarrier,
   computeAscendCost,
   computeAscendCrossBase,
@@ -19,6 +20,9 @@ import {
   scarcityTargetShares,
   updateOccupancyPressure,
 } from '../../../src/core/legal-actions.js';
+import { decideMockWeighted } from '../../../src/decision/mock.js';
+import { decideRandomUniform } from '../../../src/decision/random.js';
+import type { RunConfig } from '../../../src/core/config/types.js';
 import type { SimState } from '../../../src/core/model/state.js';
 
 /**
@@ -231,4 +235,133 @@ describe('占用锚定与压力记忆：参照份额与壁垒（rules-v10/v11）
     expect(enumerateLegalActions(noMemory, noMemoryBottom.id).actions).toContain('ascend');
     expect(enumerateLegalActions(withMemory, withMemoryBottom.id).actions).not.toContain('ascend');
   });
+});
+
+/**
+ * 长跑等价性（changes/0027）：v11 把占用压力从“本 tick 现算”改成“上一 tick 派生进状态”，
+ * 两者逐位等价依赖一个**逐 tick 不变量**——
+ *   `society.occupancyPressure` ≡ `occupancyPressureFromShares(当期存活者占比)`。
+ *
+ * v10 在每个 tick 期初对当期占比现算压力，v11 在 tick 末把同一次派生写入状态；
+ * 只要上式在每个 tick 期初成立，且 H=0 时 `updateOccupancyPressure` 不做记忆合并，
+ * 引擎读到的壁垒就与 v10 逐位相同。这条断言取代了已不在树里的 v10 engine golden。
+ */
+describe('占用压力记忆：H=0 与 v10 的逐 tick 等价性（rules-v11）', () => {
+  const CLASS_COUNT = 5;
+  const TICKS = 600;
+  const SEED_H0 = asSeed('v11-h0-parity');
+  const RUN_ID = 'v11-h0-parity';
+
+  function parityConfig(occupancyMemoryDays = 0): RunConfig {
+    const result = validateRunConfig(
+      mergeConfig(DEFAULT_RUN_CONFIG, {
+        // 默认占比已高于参照份额：tick 0 起即有正占用压力，等价性不靠空跑成立。
+        ascent: { scarcityWeight: 2, occupancyMemoryDays },
+        schedule: { totalTicks: TICKS, statsStride: 10, snapshotStride: 100 },
+      } as DeepPartialConfig),
+    );
+    if (!result.ok) {
+      throw new Error(`配置非法: ${JSON.stringify(result.issues)}`);
+    }
+    return result.config;
+  }
+
+  function decisionsFor(state: SimState, policy: RunConfig['decision']['policy']): StepDecisions {
+    const map = new Map<AgentId, { selectedAction: string }>();
+    for (const agent of state.society.agents) {
+      if (!agent.alive) continue;
+      const legal = enumerateLegalActions(state, agent.id);
+      const input = {
+        runId: RUN_ID,
+        seed: state.seed,
+        state,
+        agentId: agent.id,
+        stateHash: 'sha256:00',
+        actionSetHash: 'sha256:00',
+        legal,
+      };
+      const decision =
+        policy === 'mock-weighted-v1' ? decideMockWeighted(input) : decideRandomUniform(input);
+      map.set(agent.id, { selectedAction: decision.selectedAction });
+    }
+    return map;
+  }
+
+  function driveAndAudit(policy: RunConfig['decision']['policy']) {
+    let state = createSimulation(parityConfig(), SEED_H0);
+    let maxPressure = 0;
+    let tickWithPressure = 0;
+    let ascents = 0;
+    let descents = 0;
+    let ticks = 0;
+
+    while (state.society.tick < state.config.schedule.totalTicks) {
+      const derived = occupancyPressureFromShares(
+        state.config,
+        classShareSnapshot(state.society.agents, CLASS_COUNT),
+      );
+      // 核心不变量：本 tick 读取的记忆必须等于当期占比派生的瞬时压力（逐位）。
+      expect(state.society.occupancyPressure).toEqual(derived);
+      if (derived.some((value) => value > 0)) {
+        tickWithPressure += 1;
+      }
+      for (const value of derived) {
+        maxPressure = Math.max(maxPressure, value);
+      }
+
+      const result = step(state, decisionsFor(state, policy), { runId: RUN_ID });
+      for (const event of result.events) {
+        if (event.type === 'class_ascended') ascents += 1;
+        else if (event.type === 'class_descended') descents += 1;
+      }
+      state = result.state;
+      ticks += 1;
+      if (result.endReason !== null) break;
+    }
+    return { state, maxPressure, tickWithPressure, ascents, descents, ticks };
+  }
+
+  // 两侧各跑 600 tick 全量仿真：覆盖率插桩下会超出 vitest 默认 5s，显式放开上限。
+  it.each(['mock-weighted-v1', 'random-uniform-v1'] as const)(
+    '%s：600 tick 内每期压力等于当期占比派生值',
+    (policy) => {
+      const audit = driveAndAudit(policy);
+      // 场景有效性：跑满 600 tick，且大部分 tick 存在正占用压力（不是空跑通过）。
+      expect(audit.ticks).toBe(TICKS);
+      expect(audit.maxPressure).toBeGreaterThan(0);
+      expect(audit.tickWithPressure).toBeGreaterThan(TICKS / 2);
+      // 升/降阶事件发生 → 壁垒读取路径真实被执行，而非全员 accumulate。
+      expect(audit.ascents + audit.descents).toBeGreaterThan(0);
+      // H=0 状态里不应出现记忆衰减残留：压力恒为 max(0, P/target−1) 的非负结果。
+      for (const value of audit.state.society.occupancyPressure) {
+        expect(value).toBeGreaterThanOrEqual(0);
+      }
+    },
+    30_000,
+  );
+
+  it('H>0 时同一断言不成立，证明上面的等式确实约束了实现而非恒真', () => {
+    // H=10：记忆按 e^{-1/10} 衰减并与瞬时压力取 max，因此只有在占比回落、
+    // 瞬时压力下降后才会与派生值分叉（默认配置下约在首个降阶 tick，实测 tick 41）。
+    let state = createSimulation(parityConfig(10), SEED_H0);
+    let divergedAt = -1;
+    for (let i = 0; i < TICKS; i += 1) {
+      const derived = occupancyPressureFromShares(
+        state.config,
+        classShareSnapshot(state.society.agents, CLASS_COUNT),
+      );
+      if (
+        state.society.occupancyPressure.some(
+          (value, classIndex) => value !== (derived[classIndex] ?? 0),
+        )
+      ) {
+        divergedAt = state.society.tick;
+        break;
+      }
+      const result = step(state, decisionsFor(state, 'mock-weighted-v1'), { runId: RUN_ID });
+      state = result.state;
+      if (result.endReason !== null) break;
+    }
+    expect(divergedAt).toBeGreaterThan(0);
+  }, 30_000);
 });

@@ -14,5 +14,10 @@
 - `config/default-rules-v11.json` + `.hashes.json`：rules-v11 默认配置（config schema v6、state v3）；
   `default-rules-v10.json` 起为只读历史，v10 仍可复现 `configHash`，但 `paramsHash` 因注册表新增
   `ascent.occupancyMemoryDays` 不再可复算。
-- `engine/mock-run-rules-v11.json`：rules-v11/engine-v0.9.0 的单文件前滚 golden；
-  `H=0` 的 stats/死亡率与 v10 golden 逐项相同，状态哈希因版本信封与新字段改变。
+- `engine/mock-run-rules-v11.json`：rules-v11/engine-v0.9.0 的单文件前滚 golden。
+  v10 的 engine golden 按改名前滚不保留，因此 `H=0` 与 v10 的等价性不再由 golden 承担，
+  而由 `test/unit/engine/scarcity.test.ts` 的逐 tick 不变式固定：
+  `society.occupancyPressure` 必须每期等于当期存活者占比派生的瞬时压力
+  （600 tick × mock/random 两种策略逐位断言；H>0 时该等式应失效，作为反向对照）。
+- `config/param-definitions.json`：参数注册表契约快照，由 `pnpm params:snapshot` 生成；
+  生成器输出经 Prettier 格式化，无注册表变更时重复运行应为空 diff。

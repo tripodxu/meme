@@ -96,6 +96,9 @@
 至少冻结：
 
 - 40 人默认 mock 的 tick 0/1/10/120/400 状态与指标（`rules-v11`）；
+- 跨版本等价性不变式：`H=0` 时 `society.occupancyPressure` 每期等于当期存活者占比派生值，
+  600 tick × mock/random 两种策略逐位断言，并以 `H>0` 必然失效作为反向对照
+  （`test/unit/engine/scarcity.test.ts`）；v10 的 engine golden 按改名前滚不保留，等价性由该不变式承担；
 - 含主动升降、被动跌落、四种竞争方向、死亡和网络重构的人工小世界；
 - 初始年龄 uniform/newborn 两种模式的初始化与 3650 tick 死亡率对照；
 - 365+ tick 的反馈 fixture，验证 E/O、调整后 S、365 日 Mup/Mdown；
