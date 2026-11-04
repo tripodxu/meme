@@ -12,10 +12,13 @@ import { buildDecisionState, PROMPT_VERSION } from '../../../src/decision/serial
 import {
   buildRequestBody,
   callJev,
+  DEFAULT_UPSTREAM_ENDPOINT,
   estimateInputTokens,
   parseJevResponse,
+  resolveEndpoint,
   selectTop1,
   selectTopK,
+  TOKEN_ESTIMATOR_VERSION,
   type CircuitFailureWindow,
   type FallbackRateWindow,
   type JevBudget,
@@ -628,10 +631,17 @@ describe('Jev 客户端故障注入（04 §4/§6/§7）', () => {
     expect(result.record.fallbackReason).toBe('usage_missing');
   });
 
-  it('token 估算：max(1, ceil(UTF8/2))', () => {
-    // `{"a":1}` 是 7 字节 → ceil(3.5)=4
-    expect(estimateInputTokens('{"a":1}')).toBe(4);
+  it('token 估算：max(1, ceil(UTF8*3/4))', () => {
+    // `{"a":1}` 是 7 字节 → ceil(5.25)=6
+    expect(estimateInputTokens('{"a":1}')).toBe(6);
     expect(estimateInputTokens('')).toBe(1);
+    expect(TOKEN_ESTIMATOR_VERSION).toBe('utf8-three-quarter-v1');
+  });
+
+  it('估算器对真实 payload 必须保守（P2-07 实测：1524 字节 → 上游 908 tokens）', () => {
+    // 旧版 `utf8-half-v1` 给出 762 < 908，直接触发 overage 并永久锁死 live run。
+    const realPayload = 'x'.repeat(1524);
+    expect(estimateInputTokens(realPayload)).toBeGreaterThanOrEqual(908);
   });
 
   it('AttemptBudget：预留/核销/超估算 overage/失败保留', () => {
@@ -890,5 +900,78 @@ describe('Jev 客户端故障注入（04 §4/§6/§7）', () => {
     expect(selectTop1({ ascend: 0.5, accumulate: 0.5 }, ['accumulate', 'ascend'])).toBe(
       'accumulate',
     );
+  });
+});
+
+/**
+ * P2-07 真实冒烟前置：官方端点按地域返回 451（`Typesafe is not available in your
+ * region`），受限网络只能经自建网关转发，因此端点必须可配置而非硬编码。
+ */
+describe('上游端点可配置（P2-07）', () => {
+  it('未配置时回落到官方端点', () => {
+    expect(resolveEndpoint(undefined)).toBe(DEFAULT_UPSTREAM_ENDPOINT);
+    expect(DEFAULT_UPSTREAM_ENDPOINT).toBe('https://api.typesafe.ai/v1/systemone');
+  });
+
+  it('接受自建 https 网关', () => {
+    const gateway = 'https://jev.logicc.top/v1/systemone';
+    expect(resolveEndpoint(gateway)).toBe(gateway);
+  });
+
+  it.each([
+    ['http://jev.example.test/v1/systemone', '远端明文'],
+    ['http://127.0.0.1:8080/v1/systemone', '本地明文'],
+  ])('拒绝明文端点，避免 Bearer Key 走明文：%s', (endpoint) => {
+    expect(() => resolveEndpoint(endpoint)).toThrowError(StratifyError);
+    expect(() => resolveEndpoint(endpoint)).toThrowError(/https/);
+  });
+
+  it('拒绝内嵌凭据的端点（Key 只经 Authorization 头）', () => {
+    expect(() => resolveEndpoint('https://user:pass@jev.example.test/v1/systemone')).toThrowError(
+      /用户信息/,
+    );
+  });
+
+  it('拒绝非法 URL', () => {
+    expect(() => resolveEndpoint('not-a-url')).toThrowError(/合法 URL/);
+  });
+
+  it('callJev 实际请求配置的端点，而非硬编码地址', async () => {
+    const { input, apiKey } = await makeInput();
+    const seen: string[] = [];
+    const result = await callJev(
+      input,
+      apiKey,
+      baseOptions({ endpoint: 'https://gateway.example.test/v1/systemone' }),
+      depsWith(async (target) => {
+        seen.push(String(target));
+        return okResponse();
+      }),
+      'neutral',
+      new AbortController().signal,
+    );
+    expect(seen).toEqual(['https://gateway.example.test/v1/systemone']);
+    expect(result.fellBack).toBe(false);
+  });
+
+  it('端点非法时在预留预算与发起请求之前失败', async () => {
+    const { input, apiKey } = await makeInput();
+    const budget = okBudget();
+    let called = 0;
+    await expect(
+      callJev(
+        input,
+        apiKey,
+        baseOptions({ endpoint: 'http://insecure.example.test/v1/systemone', budget }),
+        depsWith(async () => {
+          called += 1;
+          return okResponse();
+        }),
+        'neutral',
+        new AbortController().signal,
+      ),
+    ).rejects.toThrowError(StratifyError);
+    expect(called).toBe(0);
+    expect(budget.reserved).toBe(0);
   });
 });

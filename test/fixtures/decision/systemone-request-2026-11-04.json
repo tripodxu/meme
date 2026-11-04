@@ -1,0 +1,86 @@
+{
+  "state": {
+    "schema": "stratify-decision-v1",
+    "tick": 0,
+    "decisionIntervalDays": 10,
+    "self": {
+      "id": "a-0005",
+      "classIndex": 1,
+      "highestClassEver": 1,
+      "value": 0,
+      "talent": 2.7351194667705867,
+      "effort": 0.7886485841264486,
+      "remainingLifeDays": 21100.442848567618,
+      "daysInClass": 0,
+      "needRatio": 0,
+      "belowNeedDays": 0,
+      "neighborCount": 4
+    },
+    "society": {
+      "openness": 0.5,
+      "gini": 0,
+      "classPopulationShares": [0.5, 0.25, 0.125, 0.125, 0]
+    },
+    "costs": {
+      "ascend": 176,
+      "descend": 21
+    },
+    "targets": [
+      {
+        "id": "a-0000",
+        "classIndex": 2,
+        "value": 0,
+        "isNeighbor": true
+      },
+      {
+        "id": "a-0001",
+        "classIndex": 0,
+        "value": 0,
+        "isNeighbor": true
+      },
+      {
+        "id": "a-0002",
+        "classIndex": 3,
+        "value": 0,
+        "isNeighbor": false
+      },
+      {
+        "id": "a-0003",
+        "classIndex": 0,
+        "value": 0,
+        "isNeighbor": true
+      },
+      {
+        "id": "a-0004",
+        "classIndex": 0,
+        "value": 0,
+        "isNeighbor": true
+      },
+      {
+        "id": "a-0006",
+        "classIndex": 1,
+        "value": 0,
+        "isNeighbor": false
+      }
+    ],
+    "recentEvents": []
+  },
+  "model": "jev-1.13.0",
+  "questions": {
+    "action": {
+      "type": "choice",
+      "instructions": "Choose exactly one action for this agent for the next decision cycle. Use only the supplied state; do not calculate outcomes. Facts: competition moves value between agents and may destroy part of the transferred value; the engine determines the result..",
+      "criteria": {
+        "accumulate": "Take no active class or competition action; receive normal daily accumulation.",
+        "ascend": "Pay 176 value to move one class upward if still affordable.",
+        "descend": "Pay 21 value to move one class downward and reset class tenure.",
+        "compete:a-0000": "Compete with agent a-0000 in class 2 with current value 0; the engine determines the result and wealth loss.",
+        "compete:a-0001": "Compete with agent a-0001 in class 0 with current value 0; the engine determines the result and wealth loss.",
+        "compete:a-0002": "Compete with agent a-0002 in class 3 with current value 0; the engine determines the result and wealth loss.",
+        "compete:a-0003": "Compete with agent a-0003 in class 0 with current value 0; the engine determines the result and wealth loss.",
+        "compete:a-0004": "Compete with agent a-0004 in class 0 with current value 0; the engine determines the result and wealth loss.",
+        "compete:a-0006": "Compete with agent a-0006 in class 1 with current value 0; the engine determines the result and wealth loss."
+      }
+    }
+  }
+}

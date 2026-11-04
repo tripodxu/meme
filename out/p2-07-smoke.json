@@ -1,0 +1,43 @@
+{
+  "endpoint": "https://jev.logicc.top/v1/systemone",
+  "endpointIsDefault": false,
+  "requestedModel": "jev-1.13.0",
+  "promptStyle": "neutral",
+  "population": 8,
+  "maxTicks": 30,
+  "seed": "p2-07-smoke",
+  "elapsedMs": 38307,
+  "budget": {
+    "maxCalls": 64,
+    "maxInputTokens": 300000
+  },
+  "runId": "local-01M6KG5EPE5W7YAHR3CA61HA2D",
+  "decisionsDue": 24,
+  "decisionsOk": 24,
+  "fallbacks": 0,
+  "fallbackRate": 0,
+  "fallbackReasons": {},
+  "usage": {
+    "inputTokens": 39753,
+    "outputTokens": 2981,
+    "listCost": 0,
+    "missingRecords": 0,
+    "tokenEstimator": "utf8-three-quarter-v1"
+  },
+  "latencyMs": {
+    "min": 1093,
+    "p50": 1302,
+    "max": 4405,
+    "samples": 24
+  },
+  "responseModels": [
+    "jev-1.13-free"
+  ],
+  "finalStateHash": "sha256:b4e52e628358147d90176dbafee7d9d719eadc438a7487617f91a74e984c5e24",
+  "aliveAtEnd": 8,
+  "endReason": null,
+  "endTick": 29,
+  "cancelled": false,
+  "isExperimentalEvidence": false,
+  "passed": true
+}

@@ -39,13 +39,18 @@
   避免全部个体静默 accumulate；错误消息不得包含 Key。
 - 熔断打开（`jev_circuit_open`）与回退率超阈值（`jev_fallback_rate_exceeded`）同样终止 run；
   单次可重试失败才走逐决策 fallback。
-- 预算按 attempt 预留 1 call + `utf8-half-v1` 估算 token（04 §7）；实际 usage 超估算记
-  overage 并停止新调用；`usage_missing`/`budget_exhausted` 同样终止 run。
+- 预算按 attempt 预留 1 call + `utf8-three-quarter-v1` 估算 token（04 §7）；实际 usage 超估算记
+  overage 并停止新调用；`usage_missing`/`budget_exhausted` 同样终止 run。估算器必须高估：
+  旧口径 `utf8-half-v1`（`bytes/2`）实测低估，第一次调用就 overage 并永久锁死 run。
+- 上游端点可配置（`JevClientOptions.endpoint`，只接受 https 且不得内嵌凭据）：官方域名按地域
+  返回 451，受限网络须经自建网关；响应里的真实 `model` 可能与请求名不同，必须落日志。
 - 密钥只从运行时环境注入，不写入数据库、fixture 或日志；`JevLivePolicy` 构造时只校验非空，不记录内容。
 - 契约见 [04 Jev 决策协议](../../docs/04-jev-decision-contract.md)，模块边界见 [02 架构](../../docs/02-architecture.md)。
 
 ## 尚未完成
 
-- P2-07 真实冒烟（VPS 直连、预算上限、Key 不落日志）需要独立低预算密钥，未在 CI 运行；
+- P2-07 真实冒烟已跑通（`scripts/smoke-live.mjs`，经自建网关，`cost=0`，见
+  `docs/changes/0030`），但它只是链路验证：规模与视野远低于 07 §8 的验收口径，
+  也不是 P6 证据；CI 默认不运行，需显式提供 `JEV_API_KEY`。
 - replay 策略已接入 `runSingleWithPolicy`（作为普通 `DecisionPolicy`），但尚未接入
   CLI/批跑入口与预注册 manifest；真实 live 日志的端到端回放待 P2-07 之后验证。

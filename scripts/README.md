@@ -2,7 +2,7 @@
 
 仓库级脚本。Node-only，不进入构建产物，也不得被 `src/core` 引用。
 
-计划脚本：`smoke-live`、`verify-backup`、`export-d1`（对应阶段尚未开工，当前不存在）。
+计划脚本：`verify-backup`、`export-d1`（对应阶段尚未开工，当前不存在）。
 
 ## 约定
 
@@ -15,6 +15,7 @@
 | 脚本                                  | 作用                                                                                                                                   |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `check-doc-links.mjs`                 | 校验 Markdown 相对链接目标存在                                                                                                         |
+| `smoke-live.mjs`                      | P2-07 真实 Jev 冒烟：`JEV_API_KEY` + 可选 `JEV_ENDPOINT`/`JEV_MODEL`，输出成功率/回退原因/usage/延迟摘要；`--dry-run` 不发请求         |
 | `generate-param-snapshot.mjs`         | 生成参数注册表契约快照（`pnpm params:snapshot`）                                                                                       |
 | `generate-default-config-fixture.mjs` | 生成当前 rulesVersion 的 config golden fixture（累加式）                                                                               |
 | `p15-grid.mjs`                        | P1.5 批量网格与聚类：W2（默认）与 `--manifest v10` W4 确认轮；`--policy`/`--seeds` 做策略敏感性（random / unconditional-descend 消融） |

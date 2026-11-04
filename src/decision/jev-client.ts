@@ -18,6 +18,14 @@ import type { DecisionRecord, FallbackReason, PromptStyle } from './types.js';
 
 /** 单次请求预算与重试参数（04 §6 表；全部可配置并入 run manifest）。 */
 export interface JevClientOptions {
+  /**
+   * 上游端点，默认 `DEFAULT_UPSTREAM_ENDPOINT`（04 §3.3）。
+   *
+   * 必须可配置的原因：官方域名按地域返回 451（`Typesafe is not available in
+   * your region`），受限网络只能经自建网关转发；端点不同不改变决策语义，但
+   * 影响可达性与实际模型名，必须随 run manifest 记录。
+   */
+  readonly endpoint?: string;
   readonly requestTimeoutMs: number;
   readonly maxTotalAttempts: number;
   readonly networkRetryLimit: number;
@@ -51,12 +59,22 @@ export interface JevBudget {
   readonly exhausted: boolean;
 }
 
-/** 无官方 tokenizer 时的保守估算版本（04 §7）；进入 run manifest。 */
-export const TOKEN_ESTIMATOR_VERSION = 'utf8-half-v1';
+/**
+ * 无官方 tokenizer 时的保守估算版本（04 §7）；进入 run manifest。
+ *
+ * 版本沿革：
+ * - `utf8-half-v1`（`bytes/2`）：**实测不保守**。真实 payload 1524 字节估算 762，
+ *   上游实际 `input_tokens=908`，低估 16%。`AttemptBudget` 一旦 `overageDetected`
+ *   就永久 `exhausted`（04 §7 的 fail-closed），于是第一个真实调用就会锁死整个
+ *   live run——P2-07 冒烟在第二次决策即 `budget_exhausted`，attempts=0。
+ * - `utf8-three-quarter-v1`（`bytes×3/4`）：对英文 JSON 高估约 26%，对中文 payload
+ *   高估更多；满足「估算 >= 上游实际」这一前提，overage 才能回到真正的异常告警。
+ */
+export const TOKEN_ESTIMATOR_VERSION = 'utf8-three-quarter-v1';
 
-/** `max(1, ceil(UTF8(payload).byteLength/2))`，只用于调度预算，不冒充上游账单。 */
+/** `max(1, ceil(UTF8(payload).byteLength*3/4))`，只用于调度预算，不冒充上游账单。 */
 export function estimateInputTokens(payload: string): number {
-  return Math.max(1, Math.ceil(new TextEncoder().encode(payload).length / 2));
+  return Math.max(1, Math.ceil((new TextEncoder().encode(payload).length * 3) / 4));
 }
 
 export interface CircuitFailureWindow {
@@ -86,7 +104,33 @@ export interface JevResponseOk {
 export type JevResponse =
   JevResponseOk | { readonly kind: 'invalid'; readonly reason: FallbackReason };
 
-const UPSTREAM_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
+/** 官方 System One 端点（04 §3.3）；未显式配置端点时使用。 */
+export const DEFAULT_UPSTREAM_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
+
+/**
+ * 解析并校验上游端点（04 §10：Key 只进 Authorization 头）。
+ *
+ * - 只接受 `https:`：明文 `http:` 会把 Bearer Key 暴露在链路上；
+ * - 拒绝 URL 内嵌 `user:pass`：凭据不得经 URL 传递，也不得进入日志与错误对象。
+ */
+export function resolveEndpoint(endpoint: string | undefined): string {
+  if (endpoint === undefined) {
+    return DEFAULT_UPSTREAM_ENDPOINT;
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(endpoint);
+  } catch {
+    throw jevConfigError('Jev 端点不是合法 URL');
+  }
+  if (parsed.protocol !== 'https:') {
+    throw jevConfigError('Jev 端点必须使用 https（Bearer Key 不得经明文传输）');
+  }
+  if (parsed.username !== '' || parsed.password !== '') {
+    throw jevConfigError('Jev 端点不得内嵌用户信息（Key 只经 Authorization 头传递）');
+  }
+  return endpoint;
+}
 
 /** Retry-After 头：`present=false` 表示无头；`seconds=null` 表示非法 HTTP-date（04 §6）。 */
 interface RetryAfterHeader {
@@ -313,6 +357,8 @@ export async function callJev(
   signal: AbortSignal,
 ): Promise<JevCallResult> {
   const startedAt = deps.nowMs();
+  // 提前解析：端点非法属于配置错误，必须在消耗预算与发起 attempt 之前失败。
+  const endpoint = resolveEndpoint(options.endpoint);
   const body = buildRequestBody(input.config, input, input.requestedModel, promptStyle);
   const payload = JSON.stringify(body);
   const estimatedInputTokens = estimateInputTokens(payload);
@@ -383,7 +429,7 @@ export async function callJev(
         signal,
         AbortSignal.timeout(options.requestTimeoutMs),
       ]);
-      const response = await deps.fetchImpl(UPSTREAM_ENDPOINT, {
+      const response = await deps.fetchImpl(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

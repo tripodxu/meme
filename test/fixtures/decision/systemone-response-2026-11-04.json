@@ -1,0 +1,38 @@
+{
+  "model": "jev-1.13-free",
+  "answers": {
+    "action": {
+      "type": "choice",
+      "choice": "accumulate",
+      "confidence": 0.76,
+      "probabilities": {
+        "accumulate": 0.79,
+        "ascend": 0.01,
+        "descend": 0,
+        "compete:a-0000": 0.05,
+        "compete:a-0001": 0.01,
+        "compete:a-0002": 0,
+        "compete:a-0003": 0.01,
+        "compete:a-0004": 0,
+        "compete:a-0006": 0.13
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 1200,
+    "output_tokens": 128,
+    "cost": 0,
+    "opencode": {
+      "billing_source": "free",
+      "list_cost": 0,
+      "tokens": {
+        "input": 1200,
+        "output": 128,
+        "reasoning": 0,
+        "cache_read": 0,
+        "cache_write_5m": 0,
+        "cache_write_1h": 0
+      }
+    }
+  }
+}

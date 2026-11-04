@@ -125,7 +125,9 @@ interface ExecutionRecord {
 
 ### 3.3 System One 请求
 
-上游端点：`https://api.typesafe.ai/v1/systemone`。浏览器经同源 `POST /api/jev`，VPS 可直连。直连使用 `Authorization: Bearer <key>`；Worker 代理接收 `X-Api-Key` 并转成上游鉴权。Worker 代理在 P4-08 交付；P2 的真实冒烟走 VPS 直连，不依赖 Worker。
+上游端点：默认 `https://api.typesafe.ai/v1/systemone`，**必须可配置**（`JevClientOptions.endpoint`）。浏览器经同源 `POST /api/jev`，VPS 可直连。直连使用 `Authorization: Bearer <key>`；Worker 代理接收 `X-Api-Key` 并转成上游鉴权。Worker 代理在 P4-08 交付；P2 的真实冒烟走 VPS 直连，不依赖 Worker。
+
+端点可配置的现实原因（2026-11-04 实测）：官方域名按来源地域返回 `451 Typesafe is not available in your region`，受限网络只能经自建网关转发；网关会把请求的模型名归一化成它实际提供的档位（请求 `jev-1.13.0` → 响应 `model` 为 `jev-1.13-free`）。因此**响应中的真实 `model` 必须落日志**，不得用请求名冒充。端点与 `tokenEstimatorVersion` 一样进入 run manifest：端点不同不改变决策语义，但影响可达性、实际模型名与计费单位。
 
 ```json
 {
@@ -212,7 +214,7 @@ maxHttpAttempts    = maxDueDecisions × 4                                      #
 
 `maxDueDecisions` 只用于预算和完成前上界检查；`expectedDueDecisions` 用于 complete 的记录数核对，二者不得混用。真实 live run 必须设置：`maxCalls`（按 HTTP attempt 计，含重试）、`maxInputTokens`、`maxRunMinutes`；VPS 另设批次级 `maxCostUsd`（若上游返回可靠成本）和 `maxRuns`。
 
-共享 BudgetManager 在**每次 HTTP attempt 前**原子预留 1 call 和本请求估算 input tokens；估算器使用版本化 `tokenEstimatorVersion`，输入为完整上游 body。无官方 tokenizer 时使用保守估算 `max(1,ceil(UTF8(body).byteLength/2))`，该值用于调度预算，不冒充上游账单。成功响应按实际 usage 做 `actual-reserved` 核销；失败/abort 保留预留以覆盖可能的上游消耗。usage 缺失按预留量结算、增加 usageUnknownCount，并暂停正式 live run（`usage_missing`），不伪报 0。
+共享 BudgetManager 在**每次 HTTP attempt 前**原子预留 1 call 和本请求估算 input tokens；估算器使用版本化 `tokenEstimatorVersion`，输入为完整上游 body。无官方 tokenizer 时使用保守估算 `max(1,ceil(UTF8(body).byteLength*3/4))`（`utf8-three-quarter-v1`），该值用于调度预算，不冒充上游账单。**估算器必须严格高估**：`AttemptBudget` 一旦 `overageDetected` 就永久 `exhausted`，低估会让 live run 在第一次调用后自锁。先前的 `utf8-half-v1`（`bytes/2`）经 P2-07 实测为低估（真实请求 2170 字节 → 上游 `input_tokens=1200`，估算仅 1085），已废弃；样本与回归断言见 `test/fixtures/decision/`。成功响应按实际 usage 做 `actual-reserved` 核销；失败/abort 保留预留以覆盖可能的上游消耗。usage 缺失按预留量结算、增加 usageUnknownCount，并暂停正式 live run（`usage_missing`），不伪报 0。
 
 在途请求不能超过剩余预留额度。实际 usage 超出估算时记录 budgetOverage 并立即停止新调用；由于上游 tokenizer 和在途响应不可预知，maxInputTokens 是 fail-closed 调度阈值，不宣称数学上保证供应商账单绝不越界。达到任一预算先停止新调用，等待在途 settled 后标记 `budget_exhausted`，不得标正常 completed。价格、上下文与速率限制接线前以官方文档为准，配置外置。
 
