@@ -1,7 +1,17 @@
 import { open, readFile, rename, rm, access } from 'node:fs/promises';
+import {
+  closeSync,
+  existsSync,
+  fsyncSync,
+  openSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeSync,
+} from 'node:fs';
 import { dirname } from 'node:path';
 
-import type { CheckpointHost } from './checkpoint.js';
+import type { CheckpointHost, SyncCheckpointHost } from './checkpoint.js';
 
 /**
  * P5a-03：基于 `node:fs/promises` 的检查点宿主（runner 层允许 Node）。
@@ -55,6 +65,37 @@ export function nodeCheckpointHost(): CheckpointHost {
     },
     async remove(path) {
       await rm(path, { force: true });
+    },
+  };
+}
+
+/**
+ * P5-03：基于 `node:fs` 同步 API 的检查点宿主（runSingle 的 tick 循环是同步的）。
+ * 语义与异步版相同：writeTemp 写入并 fsync；promote rename 原子替换 + 尽力 fsync 目录。
+ */
+export function nodeCheckpointHostSync(): SyncCheckpointHost {
+  return {
+    writeTemp(path, payload) {
+      const handle = openSync(path, 'w');
+      try {
+        writeSync(handle, payload, 0, 'utf8');
+        fsyncSync(handle);
+      } finally {
+        closeSync(handle);
+      }
+    },
+    promote(tempPath, path) {
+      renameSync(tempPath, path);
+      fsyncDirectoryBestEffort(dirname(path));
+    },
+    read(path) {
+      return readFileSync(path, 'utf8');
+    },
+    exists(path) {
+      return existsSync(path);
+    },
+    remove(path) {
+      rmSync(path, { force: true });
     },
   };
 }

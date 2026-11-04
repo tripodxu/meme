@@ -21,6 +21,13 @@ import type { TickStats } from '../core/macros/tick-metrics.js';
 import { computeAuthoritativeStateHash } from '../core/hash/state-hash.js';
 import { ANALYSIS_WINDOWS, summarizeWindow, type WindowSummary } from './window-stats.js';
 import { evaluateLabels } from './labels.js';
+import type { SyncCheckpointHost } from './checkpoint.js';
+import {
+  buildRunProgressPayload,
+  loadRunProgress,
+  removeRunProgress,
+  saveRunProgress,
+} from './run-progress.js';
 
 /** 单 run 的窗口聚合结果（P1.5-01 报告契约的一部分）。 */
 export interface RunWindowReport {
@@ -34,6 +41,21 @@ export interface RunWindowReport {
   readonly cancelled: boolean;
   readonly finalStateHash: string;
   readonly aliveAtEnd: number;
+}
+
+/**
+ * P5-03：run 内进度检查点选项（`run-progress-v1`，见 `run-progress.ts`）。
+ * 提供时每 `everyTicks` 个已完成 tick 原子落盘一次（状态 + 窗口累计器）；
+ * 启动时若存在 meta 匹配的检查点则自动恢复，恢复后的窗口聚合与不中断运行逐字一致；
+ * run 正常结束（scheduled/extinct 或到达 totalTicks）后移除检查点文件。
+ */
+export interface RunCheckpointOptions {
+  readonly host: SyncCheckpointHost;
+  readonly path: string;
+  /** 每 N 个已完成 tick 落一次检查点；>=1。注意单次写是 O(已完成 tick) 序列化。 */
+  readonly everyTicks: number;
+  /** 批量任务标识（进 meta，恢复时校验，防跨 run 污染）。 */
+  readonly cellKey: string;
 }
 
 export interface RunOptions {
@@ -51,6 +73,8 @@ export interface RunOptions {
    * 其 `configHash` 与 `seed` 必须与本次 run 一致；状态自身不得被外部修改。
    */
   readonly initialState?: SimState;
+  /** P5-03：run 内进度检查点；与 `initialState` 不得同时给出（起点歧义）。 */
+  readonly runCheckpoint?: RunCheckpointOptions;
 }
 
 export interface RunOutcome {
@@ -99,10 +123,31 @@ export function deriveExtinct(endReason: string | null, aliveAtEnd: number): boo
 /**
  * 运行单个 (config, seed) 到结束（scheduled/extinct 或 maxTicks 护栏），
  * 收集全分辨率 stats、每 tick 转移矩阵与决策计数，并产出窗口聚合与标签。
+ *
+ * P5-03：提供 `runCheckpoint` 时，启动先尝试恢复 meta 匹配的进度检查点
+ * （状态 + 窗口累计器；损坏按不存在处理，meta 不匹配抛错），每 `everyTicks`
+ * 个已完成 tick 原子落盘一次，run 正常结束后移除检查点文件。恢复路径不重建
+ * 前段 `decisions` 决策日志（批量摘要不消费它；live 决策日志经 P2 管线另行落盘）。
  */
 export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): RunOutcome {
   const validatedSeed = asSeed(seed);
+  const runCheckpoint = options.runCheckpoint;
+  if (options.initialState !== undefined && runCheckpoint !== undefined) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      'initialState 与 runCheckpoint 不得同时给出（起点歧义）',
+    );
+  }
   let state: SimState;
+  let savedAtSequence = 0;
+  let resumedStats: readonly TickStats[] = [];
+  let resumedFlows: readonly (readonly (readonly number[])[])[] = [];
+  let resumedFlowTicks: readonly number[] = [];
+  let resumedDecisions: readonly {
+    readonly tick: number;
+    readonly due: number;
+    readonly fallbacks: number;
+  }[] = [];
   if (options.initialState !== undefined) {
     if (computeConfigHash(options.initialState.config) !== computeConfigHash(config)) {
       throw new StratifyError(
@@ -117,13 +162,38 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
       );
     }
     state = options.initialState;
+  } else if (runCheckpoint !== undefined) {
+    const configHash = computeConfigHash(config);
+    const loaded = loadRunProgress(runCheckpoint.host, runCheckpoint.path, {
+      cellKey: runCheckpoint.cellKey,
+      seed: validatedSeed,
+      configHash,
+    });
+    if (loaded !== null) {
+      state = loaded.state;
+      savedAtSequence = loaded.meta.savedAtSequence;
+      resumedStats = loaded.progress.stats;
+      resumedFlowTicks = loaded.progress.flows.map((entry) => entry.tick);
+      resumedFlows = loaded.progress.flows.map((entry) => entry.matrix);
+      resumedDecisions = loaded.progress.decisions;
+    } else {
+      state = createSimulation(config, validatedSeed);
+    }
   } else {
     state = createSimulation(config, validatedSeed);
   }
   const classCount = config.population.classCount;
-  const stats: TickStats[] = [];
+  // P5-03：从进度检查点恢复时，累计器由检查点重建（窗口聚合依赖全程数据）。
+  const stats: TickStats[] = [...resumedStats];
   const flowsByTick = new Map<number, readonly (readonly number[])[]>();
+  resumedFlowTicks.forEach((tick, index) => {
+    flowsByTick.set(tick, resumedFlows[index] as readonly (readonly number[])[]);
+  });
   const decisionsByTick = new Map<number, { due: number; fallbacks: number }>();
+  for (const entry of resumedDecisions) {
+    decisionsByTick.set(entry.tick, { due: entry.due, fallbacks: entry.fallbacks });
+  }
+  const checkpointConfigHash = runCheckpoint !== undefined ? computeConfigHash(config) : null;
   const maxTicks = options.maxTicks ?? config.schedule.totalTicks;
   // P2-01：同步路径只接受同步策略；缺省按 policy 字符串选择内置实现。
   const policy =
@@ -131,7 +201,8 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     (options.policy === 'mock-weighted-v1' ? new MockPolicy() : new RandomPolicy());
   const decisionRecords: DecisionRecord[] = [];
   let endReason: string | null = null;
-  let endTick = 0;
+  // 初值 = 已完成 tick（P5-03 恢复路径可能无需再跑任何 tick，endTick 仍是检查点位置）。
+  let endTick = state.society.tick;
   while (state.society.tick < Math.min(config.schedule.totalTicks, maxTicks)) {
     const tick = state.society.tick;
     const isDecisionTick = tick % config.decision.interval === 0;
@@ -184,9 +255,47 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     flowsByTick.set(tick, flowsFromEvents(result.events, classCount));
     endTick = tick;
     endReason = result.endReason;
+    if (
+      runCheckpoint !== undefined &&
+      checkpointConfigHash !== null &&
+      state.society.tick % runCheckpoint.everyTicks === 0
+    ) {
+      savedAtSequence += 1;
+      saveRunProgress(
+        runCheckpoint.host,
+        runCheckpoint.path,
+        buildRunProgressPayload(
+          {
+            cellKey: runCheckpoint.cellKey,
+            seed: validatedSeed,
+            configHash: checkpointConfigHash,
+            tickCompleted: state.society.tick,
+            savedAtSequence,
+          },
+          state,
+          {
+            stats,
+            flows: [...flowsByTick].map(([flowTick, matrix]) => ({ tick: flowTick, matrix })),
+            decisions: [...decisionsByTick].map(([decisionTick, value]) => ({
+              tick: decisionTick,
+              due: value.due,
+              fallbacks: value.fallbacks,
+            })),
+          },
+        ),
+      );
+    }
     if (endReason !== null) {
       break;
     }
+  }
+  // P5-03：run 真正结束（引擎 endReason 或到达 totalTicks）后移除进度检查点；
+  // maxTicks 护栏触发的异常终止保留检查点供下次恢复。
+  if (
+    runCheckpoint !== undefined &&
+    (endReason !== null || state.society.tick >= config.schedule.totalTicks)
+  ) {
+    removeRunProgress(runCheckpoint.host, runCheckpoint.path);
   }
   return finalizeRun({
     config,

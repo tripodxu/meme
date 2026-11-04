@@ -4,8 +4,13 @@ import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { HASH_DOMAINS } from '../core/hash/domains.js';
 import { hashValue } from '../core/hash/hash.js';
 import { buildBatchTasks, type BatchManifest } from './batch.js';
-import type { CheckpointHost } from './checkpoint.js';
-import { runSingle, type RunOptions, type RunWindowReport } from './run-cell.js';
+import type { CheckpointHost, SyncCheckpointHost } from './checkpoint.js';
+import {
+  runSingle,
+  type RunCheckpointOptions,
+  type RunOptions,
+  type RunWindowReport,
+} from './run-cell.js';
 
 /**
  * P5-01：批量执行器与机器可读摘要（01 §8.1）。
@@ -80,6 +85,14 @@ export interface BatchLedgerOptions {
   readonly path: string;
 }
 
+export interface BatchRunCheckpointOptions {
+  readonly host: SyncCheckpointHost;
+  /** 进度检查点目录（非空）；任务 i 的检查点为 `<dir>/run-<i>.progress.json`。 */
+  readonly dir: string;
+  /** 每 N 个已完成 tick 落一次；>=1。 */
+  readonly everyTicks: number;
+}
+
 export interface BatchRunOptions {
   /** 逐 run 完成回调（CLI 层写 stderr；嵌入方可静默）。 */
   readonly onProgress?: (progress: BatchProgress) => void;
@@ -89,6 +102,8 @@ export interface BatchRunOptions {
   readonly maxTicksPerRun?: number;
   /** 故障注入缺口（G5a：kill/磁盘失败后恢复对照）；缺省 `runSingle`。 */
   readonly runSingleImpl?: typeof runSingle;
+  /** P5-03：run 内进度检查点（kill 后从 tick 级完整点恢复，窗口聚合逐字一致）。 */
+  readonly runCheckpoints?: BatchRunCheckpointOptions;
 }
 
 export interface BatchLedger {
@@ -217,6 +232,18 @@ export async function runBatch(
 ): Promise<BatchSummary> {
   const manifestHash = computeBatchManifestHash(manifest);
   const tasks = buildBatchTasks(manifest);
+  const runCheckpoints = options.runCheckpoints;
+  if (runCheckpoints !== undefined) {
+    if (runCheckpoints.dir.length === 0) {
+      throw new StratifyError(errorCodes.CONFIG_INVALID, 'runCheckpoints.dir 必须为非空目录');
+    }
+    if (!Number.isInteger(runCheckpoints.everyTicks) || runCheckpoints.everyTicks < 1) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        'runCheckpoints.everyTicks 必须为 >=1 的整数',
+      );
+    }
+  }
 
   const ledgerOptions = options.ledger;
   const completed = new Map<string, BatchRunRecord>();
@@ -278,9 +305,19 @@ export async function runBatch(
     try {
       const startedAt = performance.now();
       const runImpl = options.runSingleImpl ?? runSingle;
+      const runCheckpoint: RunCheckpointOptions | undefined =
+        runCheckpoints === undefined
+          ? undefined
+          : {
+              host: runCheckpoints.host,
+              path: `${runCheckpoints.dir}/run-${index}.progress.json`,
+              everyTicks: runCheckpoints.everyTicks,
+              cellKey: task.cellKey,
+            };
       const runOptions: RunOptions = {
         policy: manifest.policy,
         ...(options.maxTicksPerRun !== undefined ? { maxTicks: options.maxTicksPerRun } : {}),
+        ...(runCheckpoint !== undefined ? { runCheckpoint } : {}),
       };
       const outcome = runImpl(task.config, task.seed, runOptions);
       const elapsedMs = performance.now() - startedAt;

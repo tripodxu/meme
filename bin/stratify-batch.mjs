@@ -14,6 +14,9 @@
  * - 断点续跑（G5a）：ledger 固定写 `<out>/batch-ledger.json`，逐任务原子落盘；
  *   `--resume` 从 ledger 跳过已完成 run；不带 `--resume` 且 ledger 已存在时拒绝启动，
  *   防止静默覆盖既有证据；技术失败跨 resume 保留（07 §3）。
+ * - run 内检查点（P5-03）：`--checkpoint-ticks N` 每 N tick 原子落盘
+ *   `<out>/run-checkpoints/run-<i>.progress.json`（状态+窗口累计器），
+ *   kill 后从 tick 级完整点恢复，恢复 run 的窗口聚合与不中断运行逐字一致。
  * - 单写者：同一输出目录不得并发运行两个批跑进程（并发/共享预算属 P5-02）。
  *
  * 退出码：0 全部任务完成（历史失败可保留在 failures）；1 仍有任务未完成；2 用法/配置错误。
@@ -35,20 +38,22 @@ if (!existsSync(distBatchCli) || !existsSync(distBatch)) {
 
 const { runBatch } = await import(`file://${distBatchCli.replace(/\\/g, '/')}`);
 const { validateBatchManifest } = await import(`file://${distBatch.replace(/\\/g, '/')}`);
-const { nodeCheckpointHost } = await import(
+const { nodeCheckpointHost, nodeCheckpointHostSync } = await import(
   `file://${join(here, '..', 'dist', 'runner', 'checkpoint-fs.js').replace(/\\/g, '/')}`
 );
 
 function printHelp() {
   process.stdout.write(
     [
-      '用法：node bin/stratify-batch.mjs <manifest.json> --out <dir> [--resume]',
+      '用法：node bin/stratify-batch.mjs <manifest.json> --out <dir> [--resume] [--checkpoint-ticks N]',
       '',
       '参数：',
-      '  <manifest.json>  batch manifest（schemaVersion=batch-v1；cells×seeds 笛卡尔）',
-      '  --out <dir>      输出目录（batch-summary.json / batch-manifest.json / batch-ledger.json）',
-      '  --resume         从 ledger 恢复，跳过已完成 run（kill 后续跑）',
-      '  --help           显示本帮助',
+      '  <manifest.json>     batch manifest（schemaVersion=batch-v1；cells×seeds 笛卡尔）',
+      '  --out <dir>         输出目录（batch-summary.json / batch-manifest.json / batch-ledger.json）',
+      '  --resume            从 ledger 恢复，跳过已完成 run（kill 后续跑）',
+      '  --checkpoint-ticks N  每 N 个 tick 落 run 内进度检查点（<out>/run-checkpoints/；',
+      '                        kill 后从 tick 级完整点恢复，长 run 建议开启，如 500）',
+      '  --help              显示本帮助',
       '',
       'stdout：batch-summary-v1 纯 JSON；进度走 stderr。',
       '退出码：0 全部任务完成；1 仍有任务未完成；2 用法/配置错误。',
@@ -73,7 +78,7 @@ function printHelp() {
 }
 
 function parseArgs(argv) {
-  const args = { manifest: null, out: null, resume: false, help: false };
+  const args = { manifest: null, out: null, resume: false, help: false, checkpointTicks: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--help') {
@@ -87,6 +92,15 @@ function parseArgs(argv) {
         process.exit(2);
       }
       args.out = value;
+      i += 1;
+    } else if (arg === '--checkpoint-ticks') {
+      const value = argv[i + 1];
+      const parsed = value === undefined ? Number.NaN : Number(value);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        process.stderr.write('[batch] --checkpoint-ticks 需要 >=1 的整数。\n');
+        process.exit(2);
+      }
+      args.checkpointTicks = parsed;
       i += 1;
     } else if (args.manifest === null && !arg.startsWith('--')) {
       args.manifest = arg;
@@ -147,6 +161,19 @@ try {
 
   const summary = await runBatch(manifest, {
     ledger: { host, path: ledgerPath },
+    ...(args.checkpointTicks !== null
+      ? (() => {
+          const checkpointDir = join(outDir, 'run-checkpoints');
+          mkdirSync(checkpointDir, { recursive: true });
+          return {
+            runCheckpoints: {
+              host: nodeCheckpointHostSync(),
+              dir: checkpointDir,
+              everyTicks: args.checkpointTicks,
+            },
+          };
+        })()
+      : {}),
     onProgress: (progress) => {
       const status = progress.resumed ? 'resumed' : progress.ok ? 'ok' : 'FAILED';
       log(
