@@ -106,6 +106,8 @@ docs/              本施工文档与 adr/
 
 **P1.5 路径依赖/分叉探索（2026-11-04，探索层）**：新增 `runSingle` 的 `initialState` 续跑能力与 `scripts/p15-bifurcation-explore.mjs`。在 share=0.5、w_mid=20–30 下比较 w=0→mid（up）、w=100→mid（down）与全程 mid（control）：up 抽空 class0/1 并锁定（middle 10/10、default 6/6、bottom 5/6），down/control 均 0 锁定；mUp 差 26.7–50.0，后段延长到 3650 tick 仍持续。判为**路径依赖锁定/单向棘轮候选**，不是已确认的对称双稳态分岔；不构成 G1.5/P6 证据，P6-05 仍未满足。机制探针（3 seeds）：`share=0.5` 预热锁定 3/3、`share=1` 预热 0/3；锁定后 `w=0` 仍 3/3 底层为空，mUp 44.7 来自上层重组，说明是组成吸收边界而非全局冻结。全新种子复制（`p15c-*`，3 IC × 10 seeds × 3 mids）按预冻结设计 **9/9 cell 通过**（up locked 1.0、down 0、mUp gap 29.6–55.0），mock 策略内路径依赖锁定可复现；但 **`random-uniform-v1` 敏感性为负**（0/9 cell 锁定、up/down mUp 差不显著），说明锁定是策略-规则交互而非规则层涌现分岔，不改变 G1.5/P6 结论。证据 `out/p15-bifurcation-*.json`、research/2026-11-04-p15-emergent-bifurcation-explore.md、research/2026-11-04-p15-bifurcation-replication.md、changes/0016。
 
+**P1.5 descend 触发条件探针（2026-11-04，探索层）**：新增 `explore_descend` 探索 tag 与 `scripts/p15-descend-threshold.mjs`（streak vs always 两档，各 175 run）。streak≥7 门控下，descend 权重 d=0–4 全部保持 up locked 1.0（mUp 2.6–6.4），**提高权重不解除锁定**；无条件 descend 在 d≥0.2 时 up/down/control 全部解锁（mUp 600–1446），阈值在 0 与 0.2 之间。结论：锁定由**下降触发条件**而非权重控制；`random-uniform-v1` 的均匀选择天然包含无条件下降，解释了复制轮的负结果。锁定仍是策略-规则交互，不构成 rules-v10 结构分岔，也不改变 G1.5/P6 判定。证据 `out/p15-descend-{threshold,unconditional}-explore.json`、research/2026-11-04-p15-descend-condition.md、changes/0017。
+
 ## 5. P2：Jev 决策层
 
 | ID    | 工作                                      | 依赖        | 交付与验收                                                   |

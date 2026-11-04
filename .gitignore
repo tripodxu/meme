@@ -54,3 +54,5 @@ out/*
 !out/p15-bifurcation-policy-random-middle.json
 !out/p15-bifurcation-policy-random-default.json
 !out/p15-bifurcation-policy-random-bottom.json
+!out/p15-descend-threshold-explore.json
+!out/p15-descend-unconditional-explore.json

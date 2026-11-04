@@ -22,6 +22,8 @@ export const RNG_EVENT_TAGS = {
   randomAction: 'random_action',
   /** Jev topK>1 时的加权采样；每次最终响应最多消费一次。 */
   jevTopk: 'jev_topk',
+  /** 探索层 descend 权重阈值实验；不进入生产策略。 */
+  exploreDescend: 'explore_descend',
   competitionResolve: 'competition_resolve',
   /** 位移准入（rules-v8，D-09）：上升前抽样目标阶级在位者；仅 'class' 参照系消费。 */
   displacementTarget: 'displacement_target',

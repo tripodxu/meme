@@ -1,0 +1,2113 @@
+{
+  "schemaVersion": "p15-descend-threshold-explore-v1",
+  "stage": "full",
+  "exploratory": true,
+  "note": "探索层：固定其它 mock 权重，仅扫描 descend 权重；不构成 G1.5/P6 证据，也不改变生产策略。",
+  "design": {
+    "share": 0.5,
+    "midWeight": 25,
+    "warmupTicks": 1825,
+    "totalTicks": 3650,
+    "seeds": [
+      "p15d-seed-001",
+      "p15d-seed-002",
+      "p15d-seed-003",
+      "p15d-seed-004",
+      "p15d-seed-005"
+    ]
+  },
+  "execution": {
+    "runCount": 175,
+    "wallMinutes": 5
+  },
+  "analysis": [
+    {
+      "descendWeight": 0,
+      "locked": {
+        "up": 1,
+        "down": 0,
+        "control": 0
+      },
+      "mUp": {
+        "up": 6,
+        "down": 31.8,
+        "control": 54.4
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "locked": {
+        "up": 1,
+        "down": 0,
+        "control": 0
+      },
+      "mUp": {
+        "up": 4.6,
+        "down": 30.8,
+        "control": 51.4
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "locked": {
+        "up": 1,
+        "down": 0,
+        "control": 0
+      },
+      "mUp": {
+        "up": 6.2,
+        "down": 31.2,
+        "control": 57.6
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "locked": {
+        "up": 1,
+        "down": 0,
+        "control": 0
+      },
+      "mUp": {
+        "up": 5.6,
+        "down": 32.8,
+        "control": 53.8
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "locked": {
+        "up": 1,
+        "down": 0,
+        "control": 0
+      },
+      "mUp": {
+        "up": 4.8,
+        "down": 32.6,
+        "control": 53
+      }
+    },
+    {
+      "descendWeight": 2,
+      "locked": {
+        "up": 1,
+        "down": 0,
+        "control": 0
+      },
+      "mUp": {
+        "up": 6.4,
+        "down": 37.4,
+        "control": 54.2
+      }
+    },
+    {
+      "descendWeight": 4,
+      "locked": {
+        "up": 1,
+        "down": 0,
+        "control": 0
+      },
+      "mUp": {
+        "up": 2.6,
+        "down": 38.8,
+        "control": 54
+      }
+    }
+  ],
+  "rows": [
+    {
+      "descendWeight": 0,
+      "path": "up",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0,
+          0.7105263157894737,
+          0.18421052631578946,
+          0.10526315789473684
+        ],
+        "locked": true,
+        "mUp": 9,
+        "mDown": 5
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "down",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.42105263157894735,
+          0.18421052631578946,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 27,
+        "mDown": 5
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "control",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.42105263157894735,
+          0.18421052631578946,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 61,
+        "mDown": 55
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "up",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0,
+          0.7352941176470589,
+          0.14705882352941177,
+          0.11764705882352941
+        ],
+        "locked": true,
+        "mUp": 5,
+        "mDown": 3
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "down",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.3235294117647059,
+          0.38235294117647056,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 31,
+        "mDown": 9
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "control",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.2647058823529412,
+          0.4411764705882353,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 51,
+        "mDown": 51
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "up",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0,
+          0.75,
+          0.19444444444444445,
+          0.05555555555555555
+        ],
+        "locked": true,
+        "mUp": 3,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "down",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.2777777777777778,
+          0.4166666666666667,
+          0.16666666666666666,
+          0.1388888888888889
+        ],
+        "locked": false,
+        "mUp": 40,
+        "mDown": 9
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "control",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3055555555555556,
+          0.3888888888888889,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 57,
+        "mDown": 50
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "up",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0,
+          0.4857142857142857,
+          0.42857142857142855,
+          0.08571428571428572
+        ],
+        "locked": true,
+        "mUp": 7,
+        "mDown": 4
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "down",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.3142857142857143,
+          0.4,
+          0.17142857142857143,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 29,
+        "mDown": 6
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "control",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.22857142857142856,
+          0.42857142857142855,
+          0.22857142857142856,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 61,
+        "mDown": 53
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "up",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0,
+          0.7297297297297297,
+          0.16216216216216217,
+          0.10810810810810811
+        ],
+        "locked": true,
+        "mUp": 6,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "down",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3611111111111111,
+          0.3333333333333333,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 32,
+        "mDown": 10
+      }
+    },
+    {
+      "descendWeight": 0,
+      "path": "control",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3055555555555556,
+          0.3888888888888889,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 42,
+        "mDown": 37
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "up",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0,
+          0.10526315789473684,
+          0.8947368421052632,
+          0
+        ],
+        "locked": true,
+        "mUp": 0,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "down",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.42105263157894735,
+          0.18421052631578946,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 38,
+        "mDown": 11
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "control",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.3684210526315789,
+          0.34210526315789475,
+          0.18421052631578946,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 65,
+        "mDown": 62
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "up",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.029411764705882353,
+          0.6764705882352942,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": true,
+        "mUp": 5,
+        "mDown": 1
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "down",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.35294117647058826,
+          0.35294117647058826,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 37,
+        "mDown": 14
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "control",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.35294117647058826,
+          0.35294117647058826,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 48,
+        "mDown": 50
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "up",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.027777777777777776,
+          0.5277777777777778,
+          0.3333333333333333,
+          0.1111111111111111
+        ],
+        "locked": true,
+        "mUp": 7,
+        "mDown": 4
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "down",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3888888888888889,
+          0.3333333333333333,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 36,
+        "mDown": 10
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "control",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3333333333333333,
+          0.3888888888888889,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 54,
+        "mDown": 48
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "up",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0,
+          0.7142857142857143,
+          0.17142857142857143,
+          0.11428571428571428
+        ],
+        "locked": true,
+        "mUp": 11,
+        "mDown": 3
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "down",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.35294117647058826,
+          0.38235294117647056,
+          0.20588235294117646,
+          0.058823529411764705
+        ],
+        "locked": false,
+        "mUp": 20,
+        "mDown": 3
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "control",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.3142857142857143,
+          0.4,
+          0.17142857142857143,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 50,
+        "mDown": 47
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "up",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0,
+          0.02702702702702703,
+          0.8648648648648649,
+          0.10810810810810811
+        ],
+        "locked": true,
+        "mUp": 0,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "down",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3333333333333333,
+          0.3611111111111111,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 23,
+        "mDown": 5
+      }
+    },
+    {
+      "descendWeight": 0.2,
+      "path": "control",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3055555555555556,
+          0.3888888888888889,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 40,
+        "mDown": 35
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "up",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0,
+          0.05263157894736842,
+          0.8421052631578947,
+          0.10526315789473684
+        ],
+        "locked": true,
+        "mUp": 3,
+        "mDown": 1
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "down",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2631578947368421,
+          0.39473684210526316,
+          0.21052631578947367,
+          0.13157894736842105
+        ],
+        "locked": false,
+        "mUp": 36,
+        "mDown": 9
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "control",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.23684210526315788,
+          0.4473684210526316,
+          0.18421052631578946,
+          0.13157894736842105
+        ],
+        "locked": false,
+        "mUp": 66,
+        "mDown": 56
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "up",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0,
+          0.7058823529411765,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": true,
+        "mUp": 7,
+        "mDown": 3
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "down",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.3235294117647059,
+          0.38235294117647056,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 30,
+        "mDown": 8
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "control",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.3235294117647059,
+          0.38235294117647056,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 46,
+        "mDown": 48
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "up",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0,
+          0.7222222222222222,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": true,
+        "mUp": 4,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "down",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3611111111111111,
+          0.3611111111111111,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 30,
+        "mDown": 6
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "control",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3055555555555556,
+          0.3888888888888889,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 62,
+        "mDown": 54
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "up",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0,
+          0.6857142857142857,
+          0.2,
+          0.11428571428571428
+        ],
+        "locked": true,
+        "mUp": 13,
+        "mDown": 4
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "down",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.35294117647058826,
+          0.38235294117647056,
+          0.14705882352941177,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 25,
+        "mDown": 5
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "control",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.23529411764705882,
+          0.47058823529411764,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 59,
+        "mDown": 53
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "up",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0,
+          0.7837837837837838,
+          0.16216216216216217,
+          0.05405405405405406
+        ],
+        "locked": true,
+        "mUp": 4,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "down",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.2777777777777778,
+          0.3888888888888889,
+          0.2222222222222222,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 35,
+        "mDown": 7
+      }
+    },
+    {
+      "descendWeight": 0.5,
+      "path": "control",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3333333333333333,
+          0.3611111111111111,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 55,
+        "mDown": 52
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "up",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0,
+          0.05263157894736842,
+          0.8421052631578947,
+          0.10526315789473684
+        ],
+        "locked": true,
+        "mUp": 2,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "down",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.3157894736842105,
+          0.3684210526315789,
+          0.18421052631578946,
+          0.13157894736842105
+        ],
+        "locked": false,
+        "mUp": 34,
+        "mDown": 11
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "control",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.3157894736842105,
+          0.3684210526315789,
+          0.21052631578947367,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 61,
+        "mDown": 55
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "up",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0,
+          0.6764705882352942,
+          0.20588235294117646,
+          0.11764705882352941
+        ],
+        "locked": true,
+        "mUp": 12,
+        "mDown": 4
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "down",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.3235294117647059,
+          0.38235294117647056,
+          0.20588235294117646,
+          0.08823529411764706
+        ],
+        "locked": false,
+        "mUp": 33,
+        "mDown": 11
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "control",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.29411764705882354,
+          0.38235294117647056,
+          0.20588235294117646,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 52,
+        "mDown": 51
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "up",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0,
+          0.6388888888888888,
+          0.25,
+          0.1111111111111111
+        ],
+        "locked": true,
+        "mUp": 7,
+        "mDown": 2
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "down",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3888888888888889,
+          0.3333333333333333,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 34,
+        "mDown": 13
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "control",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3055555555555556,
+          0.4166666666666667,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 62,
+        "mDown": 55
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "up",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0,
+          0.7428571428571429,
+          0.14285714285714285,
+          0.11428571428571428
+        ],
+        "locked": true,
+        "mUp": 4,
+        "mDown": 1
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "down",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.2647058823529412,
+          0.4411764705882353,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 33,
+        "mDown": 9
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "control",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.29411764705882354,
+          0.4117647058823529,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 58,
+        "mDown": 54
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "up",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0,
+          0.02702702702702703,
+          0.8648648648648649,
+          0.10810810810810811
+        ],
+        "locked": true,
+        "mUp": 3,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "down",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3888888888888889,
+          0.3333333333333333,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 30,
+        "mDown": 8
+      }
+    },
+    {
+      "descendWeight": 0.8,
+      "path": "control",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.4166666666666667,
+          0.3611111111111111,
+          0.19444444444444445,
+          0.027777777777777776
+        ],
+        "locked": false,
+        "mUp": 36,
+        "mDown": 42
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "up",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0,
+          0.13157894736842105,
+          0.7631578947368421,
+          0.10526315789473684
+        ],
+        "locked": true,
+        "mUp": 3,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "down",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.39473684210526316,
+          0.21052631578947367,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 39,
+        "mDown": 9
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "control",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.3157894736842105,
+          0.39473684210526316,
+          0.18421052631578946,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 54,
+        "mDown": 49
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "up",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0,
+          0.7058823529411765,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": true,
+        "mUp": 9,
+        "mDown": 3
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "down",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.23529411764705882,
+          0.4411764705882353,
+          0.20588235294117646,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 35,
+        "mDown": 8
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "control",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.35294117647058826,
+          0.38235294117647056,
+          0.17647058823529413,
+          0.08823529411764706
+        ],
+        "locked": false,
+        "mUp": 47,
+        "mDown": 51
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "up",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0,
+          0.3055555555555556,
+          0.6388888888888888,
+          0.05555555555555555
+        ],
+        "locked": true,
+        "mUp": 1,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "down",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.4166666666666667,
+          0.3055555555555556,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 30,
+        "mDown": 8
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "control",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3611111111111111,
+          0.3611111111111111,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 50,
+        "mDown": 46
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "up",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0,
+          0.7428571428571429,
+          0.17142857142857143,
+          0.08571428571428572
+        ],
+        "locked": true,
+        "mUp": 5,
+        "mDown": 1
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "down",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.2571428571428571,
+          0.42857142857142855,
+          0.2,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 23,
+        "mDown": 2
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "control",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.20588235294117646,
+          0.5,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 58,
+        "mDown": 51
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "up",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0,
+          0.7297297297297297,
+          0.16216216216216217,
+          0.10810810810810811
+        ],
+        "locked": true,
+        "mUp": 6,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "down",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3888888888888889,
+          0.3055555555555556,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 36,
+        "mDown": 9
+      }
+    },
+    {
+      "descendWeight": 1.2,
+      "path": "control",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3611111111111111,
+          0.3333333333333333,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 56,
+        "mDown": 52
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "up",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0,
+          0.05263157894736842,
+          0.9473684210526315,
+          0
+        ],
+        "locked": true,
+        "mUp": 0,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "down",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.3684210526315789,
+          0.21052631578947367,
+          0.13157894736842105
+        ],
+        "locked": false,
+        "mUp": 42,
+        "mDown": 14
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "control",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.39473684210526316,
+          0.21052631578947367,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 54,
+        "mDown": 47
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "up",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0,
+          0.6764705882352942,
+          0.20588235294117646,
+          0.11764705882352941
+        ],
+        "locked": true,
+        "mUp": 11,
+        "mDown": 4
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "down",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.35294117647058826,
+          0.4411764705882353,
+          0.14705882352941177,
+          0.058823529411764705
+        ],
+        "locked": false,
+        "mUp": 26,
+        "mDown": 8
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "control",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.2647058823529412,
+          0.47058823529411764,
+          0.14705882352941177,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 51,
+        "mDown": 52
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "up",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0,
+          0.1388888888888889,
+          0.8333333333333334,
+          0.027777777777777776
+        ],
+        "locked": true,
+        "mUp": 0,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "down",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3888888888888889,
+          0.3333333333333333,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 40,
+        "mDown": 13
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "control",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3333333333333333,
+          0.3611111111111111,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 64,
+        "mDown": 58
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "up",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0,
+          0.6571428571428571,
+          0.22857142857142856,
+          0.11428571428571428
+        ],
+        "locked": true,
+        "mUp": 5,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "down",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.22857142857142856,
+          0.45714285714285713,
+          0.2,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 36,
+        "mDown": 7
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "control",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.2857142857142857,
+          0.4,
+          0.2,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 55,
+        "mDown": 48
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "up",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0,
+          0.7027027027027027,
+          0.1891891891891892,
+          0.10810810810810811
+        ],
+        "locked": true,
+        "mUp": 16,
+        "mDown": 3
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "down",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3333333333333333,
+          0.3611111111111111,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 43,
+        "mDown": 11
+      }
+    },
+    {
+      "descendWeight": 2,
+      "path": "control",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3333333333333333,
+          0.3611111111111111,
+          0.19444444444444445,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 47,
+        "mDown": 44
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "up",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0,
+          0.02631578947368421,
+          0.868421052631579,
+          0.10526315789473684
+        ],
+        "locked": true,
+        "mUp": 4,
+        "mDown": 1
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "down",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.39473684210526316,
+          0.21052631578947367,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 39,
+        "mDown": 12
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "control",
+      "seed": "p15d-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.42105263157894735,
+          0.18421052631578946,
+          0.10526315789473684
+        ],
+        "locked": false,
+        "mUp": 52,
+        "mDown": 46
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "up",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0,
+          0.6470588235294118,
+          0.23529411764705882,
+          0.11764705882352941
+        ],
+        "locked": true,
+        "mUp": 3,
+        "mDown": 1
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "down",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.29411764705882354,
+          0.4117647058823529,
+          0.17647058823529413,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 35,
+        "mDown": 10
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "control",
+      "seed": "p15d-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.23529411764705882,
+          0.4411764705882353,
+          0.20588235294117646,
+          0.11764705882352941
+        ],
+        "locked": false,
+        "mUp": 56,
+        "mDown": 54
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "up",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0,
+          0.3333333333333333,
+          0.5277777777777778,
+          0.1388888888888889
+        ],
+        "locked": true,
+        "mUp": 1,
+        "mDown": 0
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "down",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3888888888888889,
+          0.3333333333333333,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 46,
+        "mDown": 13
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "control",
+      "seed": "p15d-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.3333333333333333,
+          0.3888888888888889,
+          0.16666666666666666,
+          0.1111111111111111
+        ],
+        "locked": false,
+        "mUp": 67,
+        "mDown": 60
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "up",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0,
+          0.6,
+          0.2857142857142857,
+          0.11428571428571428
+        ],
+        "locked": true,
+        "mUp": 3,
+        "mDown": 2
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "down",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.2571428571428571,
+          0.45714285714285713,
+          0.17142857142857143,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 40,
+        "mDown": 12
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "control",
+      "seed": "p15d-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.3142857142857143,
+          0.4,
+          0.17142857142857143,
+          0.11428571428571428
+        ],
+        "locked": false,
+        "mUp": 54,
+        "mDown": 51
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "up",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0,
+          0.2702702702702703,
+          0.6216216216216216,
+          0.10810810810810811
+        ],
+        "locked": true,
+        "mUp": 2,
+        "mDown": 1
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "down",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.4166666666666667,
+          0.3333333333333333,
+          0.16666666666666666,
+          0.08333333333333333
+        ],
+        "locked": false,
+        "mUp": 34,
+        "mDown": 7
+      }
+    },
+    {
+      "descendWeight": 4,
+      "path": "control",
+      "seed": "p15d-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 36,
+        "classShares": [
+          0,
+          0.4166666666666667,
+          0.3611111111111111,
+          0.19444444444444445,
+          0.027777777777777776
+        ],
+        "locked": false,
+        "mUp": 41,
+        "mDown": 47
+      }
+    }
+  ]
+}

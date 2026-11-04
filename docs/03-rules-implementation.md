@@ -183,6 +183,9 @@ R   = Number(u >> 11n) / 2^53
 | 网络重构判定    | `id/"network_rewire"/0`，每决策周期每 agent 都消费                                        |
 | 选旧关系/新关系 | 同 tag counter 1/2；判定成功且有旧边才消费 1，随后无论是否有新候选都消费 2                |
 
+探索/脚本层 tag（不得用于生产策略或规则结算）：`id/"explore_descend"/0`，仅由
+`scripts/p15-descend-threshold.mjs` 的加权抽样消费（changes/0017）。
+
 ## 5. 合法行动与执行前复核
 
 ```text
