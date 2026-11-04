@@ -61,7 +61,7 @@ export interface PreregCell {
 }
 
 /** 设计类型与差异路径数量的自洽校验（07 §6.2/§6.3）。 */
-function assertCellDesign(
+export function assertCellDesign(
   cellKey: string,
   design: PreregCellDesign,
   changedPaths: readonly string[],
@@ -106,10 +106,12 @@ export interface PreregManifest {
   readonly artifactProfile: 'full' | 'metrics-only';
   readonly seeds: readonly string[];
   readonly pairing: 'same-seed-derived-initial-population-and-addressed-random';
-  readonly warmupTicks: 1825;
-  readonly warmupDiagnostic:
-    | '90-day rolling mean change < threshold on P/G/O'
-    | 'attractor stability: same-run w2/w3 feature points fall in the same cluster (limit-cycle system)';
+  /**
+   * burn-in tick 数；P1.5 各轮冻结为 1825。P6-01 Stage A（730 tick 筛查）预注册为 365，
+   * 与该视野的筛选窗口一并冻结（changes/0037）——类型放宽为 number，既有构造不变。
+   */
+  readonly warmupTicks: number;
+  readonly warmupDiagnostic: string;
   readonly windows: readonly {
     readonly label: string;
     readonly start: number;
