@@ -48,3 +48,6 @@ out/*
 !out/p15-bifurcation-explore-bottom.json
 !out/p15-bifurcation-long-middle.json
 !out/p15-bifurcation-probe.json
+!out/p15-bifurcation-repl-middle.json
+!out/p15-bifurcation-repl-default.json
+!out/p15-bifurcation-repl-bottom.json

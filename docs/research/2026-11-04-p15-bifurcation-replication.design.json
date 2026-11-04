@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "p15-bifurcation-replication-design-v1",
+  "frozenAt": "2026-11-04",
+  "question": "在 share=0.5、w_mid=20/25/30 下，w=0→mid 与 w=100→mid 的长期结构是否在全新种子上稳定分离？",
+  "seedPrefix": "p15c",
+  "seeds": [
+    "p15c-seed-001",
+    "p15c-seed-002",
+    "p15c-seed-003",
+    "p15c-seed-004",
+    "p15c-seed-005",
+    "p15c-seed-006",
+    "p15c-seed-007",
+    "p15c-seed-008",
+    "p15c-seed-009",
+    "p15c-seed-010"
+  ],
+  "initialConditions": {
+    "default": [0.45, 0.3, 0.15, 0.08, 0.02],
+    "middle": [0.1, 0.25, 0.35, 0.22, 0.08],
+    "bottom": [0.6, 0.25, 0.1, 0.04, 0.01]
+  },
+  "grid": {
+    "share": 0.5,
+    "midWeights": [20, 25, 30],
+    "lowWeight": 0,
+    "highWeight": 100,
+    "warmupTicks": 1825,
+    "phaseTicks": 1825,
+    "totalTicks": 3650
+  },
+  "policy": "mock-weighted-v1",
+  "gates": {
+    "perCell": {
+      "upLockedFractionMin": 0.8,
+      "downLockedFractionMax": 0.2,
+      "mUpGapMin": 5,
+      "mUpGapOverPooledSd": 2
+    },
+    "overall": "9 个 (IC × mid) cell 中至少 7 个通过全部 per-cell 门槛，且不存在 upLockedFraction < downLockedFraction 的反向 cell"
+  },
+  "secondary": ["P0 gap", "class-share L1"],
+  "note": "全新种子 p15c-*（与 p15b-* 探索轮、p15r3/p15r4 确认轮均不重叠）；设计先于运行冻结。"
+}

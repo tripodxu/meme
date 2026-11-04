@@ -24,6 +24,9 @@
    `share=0.5` 预热锁定 3/3，`share=1` 预热 0/3（开放准入是锁定必要条件）；
    锁定后 `w=0` 仍 3/3 底层为空，mUp 44.7 来自上层重组——说明是**组成吸收边界**，
    不是全局冻结。
+5. **全新种子复制**：按预冻结设计（`p15c-*`，3 ICs × 10 seeds × 3 mids），
+   9/9 cell 通过 per-cell 门槛、0 反向 cell；up locked 1.0 / down 0，
+   mUp gap 29.6–55.0。复制成功，但仍不是经典对称双稳态分岔。
 
 ## 2. 版本轴与兼容性
 
@@ -57,4 +60,5 @@
 - `out/p15-bifurcation-explore-bottom.json`（90 run）
 - `out/p15-bifurcation-long-middle.json`（45 run，后段 3650 tick）
 - `out/p15-bifurcation-probe.json`（15 run；share 消融 + 锁定后恢复）
+- `out/p15-bifurcation-repl-{middle,default,bottom}.json`（各 150 run，p15c 全新种子）
 - 研究记录：`docs/research/2026-11-04-p15-emergent-bifurcation-explore.md`

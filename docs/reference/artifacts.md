@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 19 个文件、合计约 6.8 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
+   当前入库 22 个文件、合计约 6.9 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -41,6 +41,9 @@
 | `out/p15-bifurcation-explore-bottom.json`  | 43.7 KiB | `543eb5e1…95b124`    | 探索层：ic-bottom，6 seeds × 3 mids × 3 paths = 90 run；up locked 0.833、down/control 0；mUp gap 41.3–50.0                                                                                                       | **探索证据**（changes/0016）                                                                                                |
 | `out/p15-bifurcation-long-middle.json`     | 25.2 KiB | `196d5fcb…a04329`    | 探索层：ic-middle，3 seeds，后段延长到 3650 tick；up locked 1.0、down/control 0；mUp gap 35.3–37.7                                                                                                               | **探索证据**（changes/0016）                                                                                                |
 | `out/p15-bifurcation-probe.json`           | 5.7 KiB  | `5674c2b1…23db39`    | 探索层机制探针：3 seeds ×（share=0.5/1 预热 + 锁定后 w=0 恢复）= 15 run；share=0.5 锁定 3/3、share=1 0/3；恢复后仍 3/3 底层空，mUp 44.7 来自上层流动                                                             | **探索证据**（changes/0016）                                                                                                |
+| `out/p15-bifurcation-repl-middle.json`     | 69.0 KiB | `1d17b8ab…f884a3`    | 复制轮：ic-middle，10 个全新 p15c 种子 × 3 mids × 3 paths = 150 run；up locked 1.0、down/control 0；mUp gap 34.7–40.7；9/9 门槛通过                                                                              | **复制证据**（changes/0016）                                                                                                |
+| `out/p15-bifurcation-repl-default.json`    | 69.5 KiB | `121c6099…baee79a`   | 复制轮：ic-default，10 seeds × 3 mids × 3 paths = 150 run；up locked 1.0、down/control 0；mUp gap 29.6–37.0                                                                                                      | **复制证据**（changes/0016）                                                                                                |
+| `out/p15-bifurcation-repl-bottom.json`     | 68.0 KiB | `36bef6e1…b2eeee`    | 复制轮：ic-bottom，10 seeds × 3 mids × 3 paths = 150 run；up locked 1.0、down 0；mUp gap 48.3–55.0                                                                                                               | **复制证据**（changes/0016）                                                                                                |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 

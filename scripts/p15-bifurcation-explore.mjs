@@ -33,9 +33,12 @@ const seedCount = args.includes('--seeds')
     : stage === 'long'
       ? 3
       : 10;
+const seedPrefix = args.includes('--seed-prefix')
+  ? args[args.indexOf('--seed-prefix') + 1]
+  : 'p15b';
 const SEEDS = Array.from(
   { length: seedCount },
-  (_, index) => `p15b-seed-${String(index + 1).padStart(3, '0')}`,
+  (_, index) => `${seedPrefix}-seed-${String(index + 1).padStart(3, '0')}`,
 );
 
 const POPULATION = 40;
@@ -57,7 +60,12 @@ if (IC === undefined) {
   throw new Error(`未知 --ic=${icKey}；可选 ${Object.keys(IC_PRESETS).join('/')}`);
 }
 const MIDS = stage === 'screen' ? [20] : [20, 25, 30];
-const OUTPUT_PATH = `out/p15-bifurcation-${stage === 'long' ? 'long-' : 'explore-'}${icKey}.json`;
+const outTag = args.includes('--out-tag')
+  ? args[args.indexOf('--out-tag') + 1]
+  : stage === 'long'
+    ? 'long'
+    : 'explore';
+const OUTPUT_PATH = `out/p15-bifurcation-${outTag}-${icKey}.json`;
 
 function log(message) {
   process.stderr.write(`[bifurcation] ${message}\n`);
@@ -331,6 +339,7 @@ const output = {
     highWeight: W_HIGH,
     warmupTicks: WARMUP,
     totalTicks: TICKS,
+    seedPrefix,
     seeds: SEEDS,
   },
   execution: { runCount, wallMinutes },
