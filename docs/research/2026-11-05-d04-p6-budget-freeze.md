@@ -4,8 +4,9 @@
   `docs/benchmarks/2026-11-05-p5a-engine.md`、changes/0031–0035
 - 性质：**实验预算决策记录**；本文件把 D-04 的「P1.5 基准后确定
   `maxRuns/maxWallMinutes/maxStorageBytes`」落为冻结数字。
-- 状态：**已冻结（v1）**，冻结基准 = VPS `2zhou` 实测（正式环境）；引擎或执行环境
-  变更时须按 §4 重冻结。
+- 状态：**已冻结（v2，2026-11-05）**。v1 = VPS 基准（statsStride=10）；Stage B 开跑实测
+  statsStride=1（07 §8 强制）单 run ≈ 280 s，偏差 +130% > 50% → 触发 §4 重冻结：
+  Stage B maxWallMinutes 240 → 480（maxRuns/存储不变）。其余数字 v1 → v2 不变。
 
 ## 1. 冻结依据（实测，非占位）
 
@@ -46,10 +47,18 @@
 3. Stage A 结果只用于筛选方向与效应量；Stage B 不复用 Stage A 择优种子（07 §8 种子集分离）。
 4. 本文件不构成校准完成或结构已涌现的声明（AGENTS #9）；P6 判定仍以 07 §8 统计验收为准。
 
-## 4. 重冻结条件
+## 4. 重冻结记录
+
+- **v2（2026-11-05，changes/0039）**：Stage B 首个确认（env0=expanded）实测
+  ~4.5 min/run（statsStride=1 全分辨率统计 + 窗口/标签计算，基准未含），
+  60 run ≈ 275 min > v1 的 240 min → 按本节条件重冻结为 480 min；
+  已启动的 11 run 归属旧 experimentId（env0=expanded 66918ef0）作废，
+  全部 6 个确认 manifest 以新哈希重新冻结。
+
+## 5. 重冻结条件
 
 - `engineVersion` 或 `rulesVersion` 变化；或
 - 执行环境变化（开发机 ↔ VPS ↔ CI）；或
 - 单 run 实测与冻结基准偏差 > 50%（基准漂移，先复测后重冻结）。
 
-重冻结 = 更新本文件 v2+ 并在 changes/ 追加记录；旧 manifest 不改预算数字。
+重冻结 = 更新本文件并在 changes/ 追加记录；旧 manifest 不改预算数字（作废 run 归旧 experimentId 留档）。

@@ -38,10 +38,14 @@ export const P6_STAGE_B_SEEDS: readonly string[] = Array.from(
 
 export const P6_STAGE_B_TICKS = 3650 as const;
 export const P6_STAGE_B_WARMUP = 1825 as const;
-/** D-04 v1 Stage B 冻结预算。 */
+/**
+ * D-04 v2 Stage B 冻结预算（changes/0039）：v1 的 240 min 基于 statsStride=10 基准估计，
+ * 实测 statsStride=1（07 §8 Stage B 强制）单 run ≈ 280 s（基准偏差 +130% > 50%，
+ * 触发 §4 重冻结）；60 run ≈ 280 min → 480 min（≈1.7× 余量）。
+ */
 export const P6_STAGE_B_BUDGET = {
   maxRuns: 60,
-  maxWallMinutes: 240,
+  maxWallMinutes: 480,
   maxStorageBytes: 512 * 1024 * 1024,
 } as const;
 
