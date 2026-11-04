@@ -1,10 +1,22 @@
 # src/runner
 
-Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用；P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）、**P5-01 批跑 CLI（`batch-cli` + `bin/stratify-batch.mjs`，changes/0031）** 与 **P5-03 run 内进度检查点（`run-progress`，changes/0032）** 已落地；预算限流与上传仍未完成。
+Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用；P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）、**P5-01 批跑 CLI（`batch-cli` + `bin/stratify-batch.mjs`，changes/0031）**、**P5-03 run 内进度检查点（`run-progress`，changes/0032）** 与 **P5-04 微扰配对执行入口（`perturbation`，changes/0033）** 已落地；预算限流与上传仍未完成。
 
-已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`。
+已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`。
 
 计划模块：`rate-limit`、`budget`、`uploader`。
+
+## 微扰配对（P5-04）
+
+```ts
+import { runPerturbationBatch } from '<dist>/runner/perturbation.js';
+const summary = runPerturbationBatch(config, tasks, { policy, checkpointTick });
+```
+
+- `param`（相对扰动 value×(1+δ)）与 `wealth_absolute`（存活者 += ΔValue）两种声明；
+- baseline/treatment 从同一检查点快照克隆（07 §7.2），叶子路径 diff 强制「只改声明变量」；
+- round-trip 后哈希不变 → `invalid=true`（07 §7.4），不报「无敏感性」；
+- 产出 `perturbation-summary-v1`（任务回显 + 逐对 `firstDivergenceTick`/两侧报告）。
 
 ## 批跑 CLI（P5-01/P5-03）
 
