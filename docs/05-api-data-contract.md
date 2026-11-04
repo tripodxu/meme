@@ -69,8 +69,8 @@ running -> completed | failed | cancelled
   "experiment": null,
   "config": {},
   "identity": {
-    "rulesVersion": "rules-v3",
-    "engineVersion": "engine-v0.0.0",
+    "rulesVersion": "rules-v11",
+    "engineVersion": "engine-v0.9.0",
     "decisionSchemaVersion": "stratify-decision-v1",
     "policyVersion": "mock-weighted-v1",
     "promptVersion": "prompt-v3",

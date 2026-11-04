@@ -4,7 +4,12 @@
 
 Jev 负责从代码枚举的合法行动中做结构化选择，确定性 TypeScript 引擎负责财富、阶级、竞争、寿命、网络与宏观指标的全部结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 
-> **当前状态：P0 工程骨架已完成，P1 确定性核心尚未开始。** 仓库已有 TS/pnpm 脚手架、配置校验、参数注册表、JCS/SHA-256 哈希与测试；`rules-v3` 的默认参数尚未通过仿真校准，任何“三类结构已涌现”“Jev 行为有效”“性能已达标”“生产可发布”的说法都尚未成立。
+> **当前状态（2026-11-04）：P0/P1 完成；P1.5 只通过一部分闸门；P2 决策层进行中；P3–P7 未开工。**
+> 版本轴 `rules-v11` / `engine-v0.9.0` / `stratify-config-v6` / `stratify-state-v3`。
+> G1.5 已通过（k=2、两类结构）；W5 在 3650 tick 未通过；W6 在 10950 tick 终态 class-share 得到
+> **三类候选**（仅 `mock`、仅单特征，**不是 P6-05 正式验收，也不是参数校准**）。
+> 前端、Worker、上传与 P6 校准均未开始；默认参数尚未校准，任何“三类结构已涌现”“Jev 行为有效”
+> “性能已达标”“生产可发布”的说法仍不成立。
 
 ---
 
@@ -67,18 +72,34 @@ VPS Batch CLI ──> 同一 Pure Core + 同一 DecisionPolicy
 
 ---
 
-## 4. rules-v3 关键机制
+## 4. 规则当前口径（rules-v11）
 
-`rules-v3` 共 13 章 59 条。相对 v2 的关键修订：
+`rule.md` 仍是社会机制的唯一事实来源（13 章），结算细节以
+[docs/03](docs/03-rules-implementation.md) 为准。`rules-v11` 相对 `rules-v3` 的机制线：
 
-- **阶级持有成本 `needMultiplier`**：`need = buffer(classAge) × baselineSum × needMultiplier[class]`，默认 `[1.0, 1.3, 1.8, 2.5, 3.5]`，防止人口向顶层塌缩。
-- **初始年龄 `initialAgeMode`**：`uniform`（默认）时 `remainingLife = initialLife × (1-u_age)`；`newborn` 仅用于演示。两种模式都消费 `init_age` 地址。
-- **365 日流动参与率**：`Mup/Mdown` 为过去 365 日内至少发生一次上升/下降的存活者占比，不使用 EMA，也不做“单日事件数 × 365”。
-- **调整后网络隔离度 `S`**：双侧归一化后恒在 `[-1, 1]`；`edgeCount=0` 时 `S=0` 并单独标记，不得用 `S=1` 冒充完全隔离。
-- **参数注册表**：所有业务常数集中注册，`hardLifeFloor` 标记为 `guardOnly`。
-- **P1.5 可达性闸门**：先用 headless 原型与均值场分析证明规则能产生多于一种可归类结构，未通过不得启动 P2–P6。
+- **需求参照系（v6，D-06 A′）**：`'class'` 模式（默认）需求线 = `refIncome[c] × bufferDays × ψ_eff[c]`，
+  即「在该阶级按人均水平生活 `bufferDays` 天所需的价值」；`'own'` 逐位保留 v3–v5 语义，仅作消融对照。
+  跌落计时改由 `need.graceDays`（默认 30）单独控制，不再与需求线高低耦合。
+- **持有裕度（v5 / v7）**：上升资格从「费用可负担」升级为「费用 + 目标阶级持有裕度可负担」，
+  `ascent.holdingCushionDays` 默认 30；`'class'` 模式下裕度与需求线共用 `refIncome` 参照系。
+- **位移准入（v8 / v9）**：`'class'` 参照系下上升须击败目标阶级在位者，被击败者降级；
+  `ascent.displacementShare`（默认 1）控制走位移而非开放准入的份额。
+- **占用锚定与压力记忆（v10 / v11）**：壁垒按目标阶级占用压力 `p_c = max(0, P_c/target_c − 1)`
+  计费，权重 `ascent.scarcityWeight`；`ascent.occupancyMemoryDays`（默认 0）为该压力的指数记忆，
+  `H=0` 时逐位退回 v10。**H 不改变 10950 终态，第三类在 `H=0` 已出现，因此 rules-v11 不作为三类成因。**
+- **初始年龄 `initialAgeMode`**：`uniform`（默认）时 `remainingLife = initialLife × (1-u_age)`；
+  `newborn` 仅用于演示。两种模式都消费 `init_age` 地址。
+- **365 日流动参与率**：`Mup/Mdown` 为过去 365 日内至少发生一次上升/下降的存活者占比，
+  不使用 EMA，也不做「单日事件数 × 365」。
+- **调整后网络隔离度 `S`**：双侧归一化后恒在 `[-1, 1]`；`edgeCount=0` 时 `S=0` 并单独标记，
+  不得用 `S=1` 冒充完全隔离。
+- **参数注册表**：所有业务常数集中注册（92 条定义，含单位、域、公式引用与接线测试），
+  进入 `paramsHash`；`hardLifeFloor` 标记为 `guardOnly`。
+- **P1.5 可达性闸门**：先用 headless 原型与均值场分析证明规则能产生多于一种可归类结构，
+  未通过不得启动 P2–P6。当前 G1.5 已过（≥2 类），但 ≥3 类只有 W6 候选。
 
-完整公式、字段、默认值和不变量见 [docs/03-rules-implementation.md](docs/03-rules-implementation.md)。
+完整公式、字段、默认值和不变量见 [docs/03-rules-implementation.md](docs/03-rules-implementation.md)；
+版本沿革见 [docs/changes/](docs/changes/README.md)。
 
 ---
 
@@ -91,18 +112,18 @@ P0 → P1 → P1.5（Go/No-Go）→ P2 → P5a → P6（G6 校准）
                                       └→ P4 / P5b / P3（云端与产品化并行）→ P7
 ```
 
-| 阶段     | 目标                                                       | 闸门                                                              |
-| -------- | ---------------------------------------------------------- | ----------------------------------------------------------------- |
-| **P0**   | 规格冻结、TS 骨架、配置校验、11 个 hash domain、参数注册表 | G0：配置可 round-trip；`paramsHash` 入 golden；零裸字面量         |
-| **P1**   | 确定性核心：RNG、8 阶段结算、快照、微扰克隆                | G1：机制规则逐条测试；同输入最终哈希一致；10,000 tick soak 无 NaN |
-| **P1.5** | 涌现可达性预研（**阻断层**）                               | G1.5：至少 2 类非退化、可复现结构聚类；否则回改规则               |
-| **P2**   | Jev 决策层：Choice 协议、重试、预算、重放                  | G2：故障注入覆盖超时/401/403/429/5xx/非法 JSON；预算与取消有效    |
-| **P3**   | 前端交互 MVP                                               | G3：离线 mock、live 小额、导入回放三条路径 E2E 通过               |
-| **P4**   | Cloudflare 数据服务                                        | G4：幂等、并发、越权、超限测试通过；无密钥泄漏                    |
-| **P5a**  | 本地批量 Runner 与检查点                                   | G5a：kill 后恢复最终哈希一致；不依赖云端                          |
-| **P5b**  | 分批上传与断点续传                                         | G5b：断网/重复上传不产生虚假 complete                             |
-| **P6**   | 校准与科学验收                                             | G6：满足 `rule.md` 56–59 条；至少 3 类互异结构指纹聚类            |
-| **P7**   | 发布硬化                                                   | 备份/回滚演练、安全扫描、渐进发布                                 |
+| 阶段     | 目标                                                       | 闸门                                                              | 当前状态                                       |
+| -------- | ---------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------- |
+| **P0**   | 规格冻结、TS 骨架、配置校验、12 个 hash domain、参数注册表 | G0：配置可 round-trip；`paramsHash` 入 golden；零裸字面量         | 完成                                           |
+| **P1**   | 确定性核心：RNG、8 阶段结算、快照、微扰克隆                | G1：机制规则逐条测试；同输入最终哈希一致；10,000 tick soak 无 NaN | 完成（含 10,000 tick soak）                    |
+| **P1.5** | 涌现可达性预研（**阻断层**）                               | G1.5：至少 2 类非退化、可复现结构聚类；否则回改规则               | 部分：G1.5 过（2 类）；≥3 类仅 W6 候选         |
+| **P2**   | Jev 决策层：Choice 协议、重试、预算、重放                  | G2：故障注入覆盖超时/401/403/429/5xx/非法 JSON；预算与取消有效    | 进行中：接口/预算/重放已实现，P2-07 真实冒烟缺 |
+| **P3**   | 前端交互 MVP                                               | G3：离线 mock、live 小额、导入回放三条路径 E2E 通过               | 未开始（`src/ui` 仅占位）                      |
+| **P4**   | Cloudflare 数据服务                                        | G4：幂等、并发、越权、超限测试通过；无密钥泄漏                    | 未开始（`src/worker` 仅占位）                  |
+| **P5a**  | 本地批量 Runner 与检查点                                   | G5a：kill 后恢复最终哈希一致；不依赖云端                          | 部分：batch/检查点/cluster 已实现，CLI 入口缺  |
+| **P5b**  | 分批上传与断点续传                                         | G5b：断网/重复上传不产生虚假 complete                             | 未开始（依赖 P4）                              |
+| **P6**   | 校准与科学验收                                             | G6：满足 `rule.md` 56–59 条；至少 3 类互异结构指纹聚类            | 未开始：需全特征向量 + 消融 + Jev/mock 对照    |
+| **P7**   | 发布硬化                                                   | 备份/回滚演练、安全扫描、渐进发布                                 | 未开始                                         |
 
 任务编号、依赖与验收标准见 [docs/01-implementation-plan.md](docs/01-implementation-plan.md)。
 
@@ -173,31 +194,35 @@ P0 → P1 → P1.5（Go/No-Go）→ P2 → P5a → P6（G6 校准）
 
 ---
 
-## 7. 计划中的工程结构
+## 7. 工程结构
 
 ```text
-src/core/          model, config, engine, competition, life, network, macros, feedback, stats, rng, replay
-src/decision/      legal-actions, serialize, policy, jev-client, mock, replay, fallback
-src/app/           run-controller, api-client, experiment, local-store
-src/ui/            setup, dashboard, agent-inspector, charts, replay
-src/worker/        routes, db, middleware, maintenance, index
-src/runner/        batch-cli, checkpoint, rate-limit, budget, uploader
-migrations/        D1 追加式迁移
+src/core/          model, config, engine, competition, life, network, macros, feedback, stats, rng, replay, hash, init, control
+src/decision/      policy, policies, serialize, schema, jev-client, live, mock, random, replay
+src/app/           （占位）run-controller, api-client, experiment, local-store
+src/ui/            （占位）setup, dashboard, agent-inspector, charts, replay
+src/worker/        （占位）routes, db, middleware, maintenance, index
+src/runner/        batch, run-cell, checkpoint, checkpoint-fs, cluster, distance, gates, labels, window-stats, mean-field, preregistration
+migrations/        D1 追加式迁移（当前只有迁移约定说明）
 test/              unit, property, integration, fixtures, golden, e2e
-scripts/           smoke-live, verify-backup, benchmark, export-d1
-docs/              施工文档（编号规格 + guides/ + reference/ + adr/）
+scripts/           check-doc-links, params/config fixture 生成, benchmark, p15-* 实验脚本
+docs/              施工文档（编号规格 + guides/ + reference/ + research/ + changes/ + adr/）
 ```
 
-技术基线：Node.js >=22.18、pnpm（版本锁定）、TypeScript strict、Vite、Hono、Vitest、fast-check、workerd/Wrangler。前端默认原生 DOM/SVG；图表库需经 ADR 引入。
+技术基线：Node.js >=22.18、pnpm（版本锁定）、TypeScript strict、Vitest、fast-check、
+ESLint/Prettier。Vite、Hono、workerd/Wrangler 尚未引入（P3/P4 才需要）；图表库需经 ADR 引入。
 
 ---
 
-## 8. 标准验证命令（脚手架建立后）
+## 8. 标准验证命令
 
-> P0 已提供 `package.json` 与本地可运行命令；`smoke:*`、`benchmark` 等脚本仍待对应阶段补齐。
+> 下列命令均已在 `package.json` 中真实存在。`smoke:local` / `smoke:live` 尚未提供，
+> 真实 Jev 冒烟（P2-07）尚无 CLI 入口；`test:integration` / `test:e2e` 目前没有测试文件，
+> 以 `--passWithNoTests` 放行，P3/P4 开工后才有实质覆盖。
 
 ```bash
 pnpm install --frozen-lockfile
+pnpm check:docs    # Markdown 相对链接
 pnpm format        # prettier --check
 pnpm lint
 pnpm typecheck
@@ -207,28 +232,47 @@ pnpm test:coverage # 核心 statements/branches >= 95%
 pnpm test:integration
 pnpm test:e2e
 pnpm build
-pnpm smoke:local
-pnpm smoke:live    # 显式设置预算与 Key 后运行
-pnpm benchmark
+pnpm params:snapshot  # 参数注册表契约快照，diff 需人工审查
+node scripts/benchmark.mjs  # 40/200/1000 人基准
 ```
 
-CI 默认不运行 `smoke:live`，不保存真实 Key，不因外部模型不稳定阻断纯核心测试。
+实验脚本按轮次单独运行（`node scripts/p15-w6-longhorizon.mjs` 等），清单见
+[scripts/README.md](scripts/README.md)。CI 默认不运行真实 Jev 调用，不保存真实 Key，
+不因外部模型不稳定阻断纯核心测试。
 
 ---
 
 ## 9. 当前限制与已知风险
 
-- **仅完成 P0 地基**：已有包管理、核心配置/哈希基础层与测试；确定性核心、决策层、UI、Worker、迁移和任何仿真结果尚未实现。
+- **产品端为零**：`src/app`、`src/ui`、`src/worker` 只有占位 README；`migrations/` 只有说明文档。
+  没有可运行的界面、Worker、D1/R2 与上传链路。
+- **科学验收未达成**：G1.5 只证明 ≥2 类（k=2 ARI 1.000）；≥3 类仅有 W6 候选
+  （10950 tick、class-share 单特征、仅 `mock`）。P6-05 要求的全特征向量、五个消融与
+  Jev/mock 对照均未执行。
 - **未校准**：默认参数是首轮校准起点，不是现实结论，也不承诺产生三类结构。
-- **Jev 非确定性**：真实 Jev 输出不承诺跨时间确定；只有 mock/random 承诺种子级复现，live 运行通过保存决策日志重放。
-- **P1.5 未通过前不得启动 P2–P6**：避免用更多工程掩盖规则问题。
+- **3650 视野内只有两类**：若要短视野三类，需正反馈机制（占用优势 / 网络闭锁），
+  继续增大 `occupancyMemoryDays` 无效（H=0/90/180/365 终态几乎重合）。
+- **`rule.md` 与实现存在口径差**：`rule.md` 的修订注记停在 v8，v9/v10/v11 的机制
+  （位移份额、占用锚定、占用记忆）目前只记在 `docs/03` 与 `docs/changes/`，
+  `rule.md` 尚未同步——这是 D-05 关闭条件的一部分，需规则负责人确认后补齐。
+- **Jev 非确定性**：真实 Jev 输出不承诺跨时间确定；只有 mock/random 承诺种子级复现，
+  live 运行通过保存决策日志重放。
+- **决策层依赖尚未验证**：P2-07 真实冒烟未跑（需独立低预算密钥 + VPS 直连），
+  实际模型行为、成本与延迟均无实测数据。
 - **权威哈希仅承诺 V8**：Node >=22、workerd、Chromium；Safari/Firefox 标记 `nonAuthoritativeRuntime`。
 - **外部服务限制会变化**：Jev 模型名、价格、限流、Cloudflare 配额在接线和发布前必须复核官方文档。
+- **待议决策未全关闭**：`docs/01` §12 的 D-01/D-02/D-04 仍开放（manifest 含占位值），
+  D-05 关闭条件未满足。
 
 ---
 
 ## 10. 下一步
 
 1. 阅读 [AGENTS.md](AGENTS.md) 与 [docs/README.md](docs/README.md) 的效力规则。
-2. P0 已完成；按 [docs/01-implementation-plan.md](docs/01-implementation-plan.md) 执行 **P1 确定性核心**。
-3. 完成 **P1 确定性核心** 后，先跑 **P1.5 涌现可达性预研**；未通过则回改规则，不进入 P2。
+2. **P2 收口**：跑 P2-07 真实冒烟（VPS 直连、独立低预算密钥、成本上限），
+   补 P2-03 真实响应 fixture，把 `ReplayPolicy` 接入批跑入口。
+3. **P5-01**：交付 batch CLI 与 manifest（`src/runner` 已有 batch/检查点核心，缺命令行入口），
+   这是 P6「每点 ≥30 配对种子」的前提。
+4. **P6**：按 [docs/07](docs/07-experiment-calibration.md) §8.1 用全特征向量重做三类判定，
+   补五个消融与 Jev/mock 对照，再谈校准。
+5. P3/P4/P5b 在 G6 通过后并行，不要用更多工程掩盖规则与统计问题。

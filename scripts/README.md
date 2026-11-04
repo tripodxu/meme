@@ -2,7 +2,7 @@
 
 仓库级脚本。Node-only，不进入构建产物，也不得被 `src/core` 引用。
 
-计划脚本：`smoke-live`、`verify-backup`、`benchmark`、`export-d1`。
+计划脚本：`smoke-live`、`verify-backup`、`export-d1`（对应阶段尚未开工，当前不存在）。
 
 ## 约定
 
