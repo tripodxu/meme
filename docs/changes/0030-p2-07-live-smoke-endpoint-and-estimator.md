@@ -100,6 +100,29 @@ source=fallback reason=budget_exhausted attempts=0
 **这不是实验证据**：规模与视野远低于 07 §8 的验收口径（≥30 配对种子、40/200/1000 人、
 730/3650 tick），脚本输出里 `isExperimentalEvidence: false` 显式标注。
 
+### 6.1 VPS 复核（`2zhou`，InstaBox，4 核 / 7.8 GB）
+
+同一命令在 VPS 上也跑通，且与本地结果**逐位一致**：
+
+| 指标             | 本地                    | VPS                        |
+| ---------------- | ----------------------- | -------------------------- |
+| 决策             | 6/6 成功                | 6/6 成功                   |
+| usage            | input 6772 / output 660 | input 6772 / output 660    |
+| `finalStateHash` | `sha256:c3129c4d…`      | `sha256:c3129c4d…`（相同） |
+| 延迟 p50         | 1.331 s                 | 1.005 s                    |
+
+`finalStateHash` 相同说明确定性核心的哈希承诺在跨机器环境下也成立（同一 seed + 同一
+config ⇒ 同一终态哈希），与 Jev 的非确定性无关——决策日志按 04 §4 重放时才需要一致。
+
+部署方式（不需要克隆仓库或 `pnpm install`）：`dist/` 只有一个运行时依赖
+`@noble/hashes`，打包时必须用 `tar -czh`（**跟随符号链接**），因为 pnpm 的
+`node_modules/@noble/hashes` 是指向 `.pnpm/…` 的软链，普通 `tar -cz` 打进去的是断链，
+在 VPS 上会得到 `ERR_MODULE_NOT_FOUND`。密钥经 `ssh` 的 stdin 传入并置于子进程环境，
+不出现在命令行参数（避免 `ps` 泄露），跑完即删。
+
+VPS 在这条链路上的价值是「出口可达 + 可长期占用」，而不是「能连官方域名」：
+它对官方端点网络可达，但同一个 Key 在官方端点上仍是 `401`。
+
 ## 7. 未完成与风险
 
 - CI 默认不跑真实冒烟；需要 `JEV_API_KEY` 显式注入，密钥从不落盘、不打印、不进摘要。
