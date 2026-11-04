@@ -79,7 +79,19 @@ export class SlidingFallbackRateWindow implements FallbackRateWindow {
  * 成功按实际 usage 核销，失败/取消/usage 缺失保留预留；实际超出估算记 overage
  * 并立即停止新调用。
  */
+/** P5-02 批级 usage 快照（只读诊断；tokensReserved 批结束必须归零）。 */
+export interface AttemptBudgetUsage {
+  readonly maxCalls: number;
+  readonly maxInputTokens: number;
+  readonly callsUsed: number;
+  readonly tokensSpent: number;
+  readonly tokensReserved: number;
+  readonly overageDetected: boolean;
+  readonly exhausted: boolean;
+}
+
 export class AttemptBudget implements JevBudget {
+  private readonly maxCalls: number;
   private remaining: number;
   private spentTokens = 0;
   private reservedTokens = 0;
@@ -90,6 +102,7 @@ export class AttemptBudget implements JevBudget {
     maxCalls: number,
     private readonly maxInputTokens: number,
   ) {
+    this.maxCalls = maxCalls;
     this.remaining = maxCalls;
   }
 
@@ -132,6 +145,19 @@ export class AttemptBudget implements JevBudget {
 
   get overage(): boolean {
     return this.overageDetected;
+  }
+
+  /** P5-02 批级 usage 摘要（只读快照；tokensReserved 批结束必须归零）。 */
+  usage(): AttemptBudgetUsage {
+    return {
+      maxCalls: this.maxCalls,
+      maxInputTokens: this.maxInputTokens,
+      callsUsed: this.maxCalls - Math.max(0, this.remaining),
+      tokensSpent: this.spentTokens,
+      tokensReserved: this.reservedTokens,
+      overageDetected: this.overageDetected,
+      exhausted: this.exhausted,
+    };
   }
 
   /** 在途预留（诊断/测试）：必须最终归零，否则说明有 attempt 漏结算。 */

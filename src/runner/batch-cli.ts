@@ -66,6 +66,19 @@ export interface BatchSummary {
     /** 已执行 run 的耗时之和（resumed run 计 0）；不是整批 wall time。 */
     readonly elapsedMs: number;
   };
+  /**
+   * P5-02：live 批跑（`runBatchWithPolicy`）且提供共享预算时的用量快照；
+   * mock 批跑缺省无此字段。批结束时 `tokensReserved` 必须为 0。
+   */
+  readonly budgetUsage?: {
+    readonly maxCalls: number;
+    readonly maxInputTokens: number;
+    readonly callsUsed: number;
+    readonly tokensSpent: number;
+    readonly tokensReserved: number;
+    readonly overageDetected: boolean;
+    readonly exhausted: boolean;
+  };
 }
 
 export interface BatchProgress {
@@ -172,7 +185,7 @@ function assertFailure(value: unknown, index: number): BatchFailure {
   return { ...(value as unknown as Omit<BatchFailure, 'attempt'>), attempt };
 }
 
-function parseLedger(text: string, manifestHash: string): BatchLedger {
+export function parseLedger(text: string, manifestHash: string): BatchLedger {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
@@ -206,13 +219,17 @@ function parseLedger(text: string, manifestHash: string): BatchLedger {
   };
 }
 
-async function writeLedger(host: CheckpointHost, path: string, ledger: BatchLedger): Promise<void> {
+export async function writeLedger(
+  host: CheckpointHost,
+  path: string,
+  ledger: BatchLedger,
+): Promise<void> {
   const tempPath = `${path}.tmp`;
   await host.writeTemp(tempPath, JSON.stringify(ledger));
   await host.promote(tempPath, path);
 }
 
-function taskKey(cellKey: string, seed: string): string {
+export function taskKey(cellKey: string, seed: string): string {
   return JSON.stringify([cellKey, seed]);
 }
 
