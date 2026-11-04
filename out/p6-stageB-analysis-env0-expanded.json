@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "p6-stageB-analysis-v1",
+  "cellKey": "env0=expanded",
+  "preregistrationHash": "sha256:b8aef285988d6fe08607b485329f77aa01c94c54b947cef1e7f2e76c793e9079",
+  "experimentId": "p6-stageB-env0-expanded-b8aef285",
+  "runs": {
+    "due": 60,
+    "ok": 60,
+    "failed": 0,
+    "resumed": 0,
+    "elapsedMs": 6698409.8803
+  },
+  "extinctCount": 0,
+  "baselineD95": 0.019930456262808052,
+  "windows": [
+    {
+      "window": "w2b",
+      "paired": 30,
+      "stats": {
+        "tv": {
+          "median": 0.06465737333457816,
+          "ci95": [
+            0.04908620171829558,
+            0.08795895817402412
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.1,
+          "overThreshold": false
+        },
+        "gini": {
+          "median": 0.03390187675982684,
+          "ci95": [
+            0.005972809012989078,
+            0.062348254983914
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.03,
+          "overThreshold": true
+        },
+        "mUp": {
+          "median": -0.04344827629688708,
+          "ci95": [
+            -0.061896592028715336,
+            -0.02959825197605126
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.05,
+          "overThreshold": false
+        },
+        "mDown": {
+          "median": -0.04555524245920389,
+          "ci95": [
+            -0.06585508057122447,
+            -0.030622833723527698
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "overThreshold": false
+        },
+        "segregation": {
+          "median": 0.008250353301423083,
+          "ci95": [
+            -0.006269825577562144,
+            0.025228702566605924
+          ],
+          "ci95CrossesZero": true,
+          "directionAgree": 0.9,
+          "threshold": 0.05,
+          "overThreshold": false
+        },
+        "openness": {
+          "median": -0.03370225872688254,
+          "ci95": [
+            -0.061215036760969954,
+            -0.016578390096924633
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.05,
+          "overThreshold": false
+        }
+      }
+    },
+    {
+      "window": "w3",
+      "paired": 30,
+      "stats": {
+        "tv": {
+          "median": 0.06337640858257049,
+          "ci95": [
+            0.047884167328640696,
+            0.08180691350766081
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.1,
+          "overThreshold": false
+        },
+        "gini": {
+          "median": 0.029492931600876626,
+          "ci95": [
+            0.002895658111290722,
+            0.06098083933478049
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.03,
+          "overThreshold": false
+        },
+        "mUp": {
+          "median": -0.04094898483201137,
+          "ci95": [
+            -0.04992575606206906,
+            -0.030082186278967527
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.05,
+          "overThreshold": false
+        },
+        "mDown": {
+          "median": -0.041120037218494054,
+          "ci95": [
+            -0.0512806717672557,
+            -0.031087352435661297
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "overThreshold": false
+        },
+        "segregation": {
+          "median": 0.004395226651251593,
+          "ci95": [
+            -0.005753452314785426,
+            0.02607479258405247
+          ],
+          "ci95CrossesZero": true,
+          "directionAgree": 0.6,
+          "threshold": 0.05,
+          "overThreshold": false
+        },
+        "openness": {
+          "median": -0.030513114710969513,
+          "ci95": [
+            -0.049544445510722124,
+            -0.009075187408322027
+          ],
+          "ci95CrossesZero": false,
+          "directionAgree": 1,
+          "threshold": 0.05,
+          "overThreshold": false
+        }
+      }
+    }
+  ],
+  "criteria": {
+    "anyThreshold": true,
+    "directionOk": true,
+    "ci95NotCrossingZero": true,
+    "beyondBaselineBand": 1,
+    "artifactFree": true
+  },
+  "confirmed": true,
+  "claim": "Stage B 确认：Stage A 效应在 1000 人 × 3650 tick 复现（07 §8 全条件）。",
+  "isExperimentalEvidence": true,
+  "stageClaim": "确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）"
+}
