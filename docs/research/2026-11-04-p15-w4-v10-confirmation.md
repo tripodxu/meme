@@ -71,13 +71,13 @@
    G1.5 结论不变。旧产物 sha256 `a374bff6…cee4ee`，新产物 `cb9758b2…a4faa82`。
 7. **策略范围是 `mock-weighted-v1`，不是策略无关结论。** 预注册 manifest 的
    `policyVersion` 即为 `mock-weighted-v1`，180 run 全部使用该策略。后续策略敏感性
-   探索（changes/0018，60 run，10 seeds/cell）用 `random-uniform-v1` 覆盖同一格点：
-   A vs B∪C 的 k=2 聚类仍复现（ARI 1.000、temporal 1.000），但方向预测失败
-   （B/C P0 0.612–0.677、mUp 0.857–0.906）。因此分裂的**聚类结构**对该替换稳健，
-   **B/C 的底轻/中产方向含义不稳健**。后续门控消融（changes/0019，60 run）只去掉
-   mock 的 `belowNeedStreak>=7` 门控、保留其随机流，也复现了 random 的 B/C 形态
-   （P0 0.691–0.727、mUp 0.964–0.978），把原因定位到 descend 触发条件；Jev 仍未测试。P2/Jev 实验必须记录实际下降
-   触发条件并按策略分层报告。
+   探索（changes/0018/0019/0020，各 180 run，30 seeds/cell）用 `random-uniform-v1`
+   与 `unconditional-descend` 覆盖同一格点：A vs B∪C 的 k=2 聚类仍复现
+   （ARI 1.000、temporal 1.000），但方向预测失败（random B/C P0 0.617–0.680、
+   mUp 0.864–0.906；unconditional-descend P0 0.691–0.725、mUp 0.975–0.979）。
+   因此分裂的**聚类结构**对该替换稳健，**B/C 的底轻/中产方向含义不稳健**；
+   门控消融把原因定位到 descend 触发条件。Jev 仍未测试；P2/Jev 实验必须记录
+   实际下降触发条件并按策略分层报告。
 
 ## 4. 与历史轮的关系
 
