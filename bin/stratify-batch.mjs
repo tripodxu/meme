@@ -38,6 +38,9 @@ if (!existsSync(distBatchCli) || !existsSync(distBatch)) {
 
 const { runBatch } = await import(`file://${distBatchCli.replace(/\\/g, '/')}`);
 const { validateBatchManifest } = await import(`file://${distBatch.replace(/\\/g, '/')}`);
+const { DEFAULT_RUN_CONFIG, mergeConfig } = await import(
+  `file://${join(here, '..', 'dist', 'core', 'config', 'defaults.js').replace(/\\/g, '/')}`
+);
 const { nodeCheckpointHost, nodeCheckpointHostSync } = await import(
   `file://${join(here, '..', 'dist', 'runner', 'checkpoint-fs.js').replace(/\\/g, '/')}`
 );
@@ -53,6 +56,8 @@ function printHelp() {
       '  --resume            从 ledger 恢复，跳过已完成 run（kill 后续跑）',
       '  --checkpoint-ticks N  每 N 个 tick 落 run 内进度检查点（<out>/run-checkpoints/；',
       '                        kill 后从 tick 级完整点恢复，长 run 建议开启，如 500）',
+      '  --population N     实验级人口规模（P6-01 Stage A 200 / Stage B 1000；',
+      '                     manifest.populationSize 必须与之一致），缺省 40',
       '  --help              显示本帮助',
       '',
       'stdout：batch-summary-v1 纯 JSON；进度走 stderr。',
@@ -78,7 +83,14 @@ function printHelp() {
 }
 
 function parseArgs(argv) {
-  const args = { manifest: null, out: null, resume: false, help: false, checkpointTicks: null };
+  const args = {
+    manifest: null,
+    out: null,
+    resume: false,
+    help: false,
+    checkpointTicks: null,
+    population: null,
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--help') {
@@ -92,6 +104,15 @@ function parseArgs(argv) {
         process.exit(2);
       }
       args.out = value;
+      i += 1;
+    } else if (arg === '--population') {
+      const value = argv[i + 1];
+      const parsed = value === undefined ? Number.NaN : Number(value);
+      if (!Number.isInteger(parsed) || parsed < 2) {
+        process.stderr.write('[batch] --population 需要 >=2 的整数。\n');
+        process.exit(2);
+      }
+      args.population = parsed;
       i += 1;
     } else if (arg === '--checkpoint-ticks') {
       const value = argv[i + 1];
@@ -143,7 +164,12 @@ try {
   }
 
   // 校验在 src/runner/batch.ts（版本/人口/cell 唯一性等），非法即 2 退出。
-  const manifest = validateBatchManifest(manifestRecord);
+  // 人口是实验级声明：--population 改变校验基准（P6-01 Stage A 200 / Stage B 1000）。
+  const baseConfig =
+    args.population !== null
+      ? mergeConfig(DEFAULT_RUN_CONFIG, { population: { initialPopulation: args.population } })
+      : undefined;
+  const manifest = validateBatchManifest(manifestRecord, baseConfig);
   mkdirSync(outDir, { recursive: true });
 
   const ledgerPath = join(outDir, 'batch-ledger.json');
@@ -160,6 +186,7 @@ try {
   await host.promote(`${manifestOutPath}.tmp`, manifestOutPath);
 
   const summary = await runBatch(manifest, {
+    ...(baseConfig !== undefined ? { baseConfig } : {}),
     ledger: { host, path: ledgerPath },
     ...(args.checkpointTicks !== null
       ? (() => {

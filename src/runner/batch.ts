@@ -69,14 +69,22 @@ function assertManifestVersions(rulesVersion: unknown, engineVersion: unknown): 
 }
 
 /** `populationSize` 必须等于 base config 的人口；cell 不得用同一字段冒充不同人口（07 §3）。 */
-function assertPopulationSize(populationSize: number): void {
-  const basePopulation = DEFAULT_RUN_CONFIG.population.initialPopulation;
+function assertPopulationSize(populationSize: number, basePopulation: number): void {
   if (populationSize !== basePopulation) {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
       `manifest.populationSize 必须等于 base config 的 population.initialPopulation（${basePopulation}），实际为 ${populationSize}`,
     );
   }
+}
+
+/**
+ * P6-01 Stage A（200 人）与 Stage B（1000 人）的人口是**实验级**声明：
+ * manifest.populationSize 必须与本次批跑的 base config 一致（缺省 DEFAULT_RUN_CONFIG，
+ * 大规模扫描经 `--population`/`baseConfig` 显式给出并进实验预注册）。
+ */
+export function resolveBatchBaseConfig(baseConfig?: RunConfig): RunConfig {
+  return baseConfig ?? DEFAULT_RUN_CONFIG;
 }
 
 /**
@@ -123,7 +131,8 @@ function parseCell(value: unknown, index: number, seen: Set<string>): BatchCell 
 }
 
 /** 校验 manifest 结构；cells 覆盖必须可构造为合法 RunConfig。 */
-export function validateBatchManifest(value: unknown): BatchManifest {
+export function validateBatchManifest(value: unknown, baseConfig?: RunConfig): BatchManifest {
+  const basePopulation = resolveBatchBaseConfig(baseConfig).population.initialPopulation;
   if (!isPlainObject(value)) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'batch manifest 必须是对象');
   }
@@ -163,7 +172,7 @@ export function validateBatchManifest(value: unknown): BatchManifest {
   ) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'manifest.populationSize 非法');
   }
-  assertPopulationSize(populationSize);
+  assertPopulationSize(populationSize, basePopulation);
   if (typeof totalTicks !== 'number' || !Number.isInteger(totalTicks) || totalTicks < 1) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'manifest.totalTicks 非法');
   }
@@ -187,9 +196,12 @@ export function validateBatchManifest(value: unknown): BatchManifest {
 }
 
 /** manifest → 任务列表（cells × seeds；配置深合并 + 校验，失败拒绝该任务）。 */
-export function buildBatchTasks(manifest: BatchManifest): BatchTask[] {
+export function buildBatchTasks(manifest: BatchManifest, baseConfig?: RunConfig): BatchTask[] {
   assertManifestVersions(manifest.rulesVersion, manifest.engineVersion);
-  assertPopulationSize(manifest.populationSize);
+  assertPopulationSize(
+    manifest.populationSize,
+    resolveBatchBaseConfig(baseConfig).population.initialPopulation,
+  );
   const tasks: BatchTask[] = [];
   const seenCellKeys = new Set<string>();
   manifest.cells.forEach((rawCell, index) => {

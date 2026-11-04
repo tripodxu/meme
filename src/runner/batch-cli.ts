@@ -1,5 +1,6 @@
 import { performance } from 'node:perf_hooks';
 
+import type { RunConfig } from '../core/config/types.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { HASH_DOMAINS } from '../core/hash/domains.js';
 import { hashValue } from '../core/hash/hash.js';
@@ -117,6 +118,8 @@ export interface BatchRunOptions {
   readonly runSingleImpl?: typeof runSingle;
   /** P5-03：run 内进度检查点（kill 后从 tick 级完整点恢复，窗口聚合逐字一致）。 */
   readonly runCheckpoints?: BatchRunCheckpointOptions;
+  /** P6-01：实验级 base config（人口规模校验基准）；缺省 DEFAULT_RUN_CONFIG。 */
+  readonly baseConfig?: RunConfig;
 }
 
 export interface BatchLedger {
@@ -248,7 +251,7 @@ export async function runBatch(
   options: BatchRunOptions = {},
 ): Promise<BatchSummary> {
   const manifestHash = computeBatchManifestHash(manifest);
-  const tasks = buildBatchTasks(manifest);
+  const tasks = buildBatchTasks(manifest, options.baseConfig);
   const runCheckpoints = options.runCheckpoints;
   if (runCheckpoints !== undefined) {
     if (runCheckpoints.dir.length === 0) {

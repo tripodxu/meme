@@ -3,6 +3,7 @@ import { performance } from 'node:perf_hooks';
 
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { asLocalRunId } from '../core/control/ids.js';
+import type { RunConfig } from '../core/config/types.js';
 import type { DecisionPolicy } from '../decision/policy.js';
 import type { JevBudget } from '../decision/jev-client.js';
 import { buildBatchTasks, type BatchManifest, type BatchTask } from './batch.js';
@@ -87,6 +88,8 @@ export interface BatchWithPolicyOptions {
   readonly budget?: JevBudget;
   readonly requestedModel?: string;
   readonly promptStyle?: 'neutral' | 'survival_hint';
+  /** P6-01：实验级 base config（人口规模校验基准）；缺省 DEFAULT_RUN_CONFIG。 */
+  readonly baseConfig?: RunConfig;
 }
 
 const STOP_CAUSE_CANCELLED = 'cancelled';
@@ -95,7 +98,7 @@ const STOP_CAUSE_BUDGET_EXHAUSTED = errorCodes.JEV_BUDGET_EXHAUSTED;
 export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promise<BatchSummary> {
   const { manifest } = options;
   const manifestHash = computeBatchManifestHash(manifest);
-  const tasks = buildBatchTasks(manifest);
+  const tasks = buildBatchTasks(manifest, options.baseConfig);
   const concurrency = options.concurrency ?? 1;
   if (!Number.isInteger(concurrency) || concurrency < 1) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'concurrency 必须为 >=1 的整数');
