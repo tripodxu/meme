@@ -18,6 +18,8 @@ coverage/
 .dev.vars
 .env
 .env.*
+# 模板文件只含变量名与注释，可以入库（供新接手者复制）
+!.env.example
 
 # Logs / local artifacts
 *.log

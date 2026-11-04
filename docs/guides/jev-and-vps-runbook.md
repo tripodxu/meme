@@ -41,6 +41,10 @@ mock 与 live 冒烟，且 `finalStateHash` 与本地逐字相同。
 
 - 只从环境变量 `JEV_API_KEY` 读取；**禁止**写入仓库、fixture、日志、URL、命令行参数。
   上传到 VPS 时用 `ssh` 的 stdin 传，见 §4.3。
+- **本机存放位置**：仓库根 `.env`（已被 `.gitignore` 第 19 行忽略，不会入库）；变量名与注释的
+  模板是 `.env.example`（可入库）。用 Node 22 内置的 `--env-file` 加载，不需要额外依赖，
+  也不需要在代码里读 `.env`。仓库外存放可用 `~/.stratify/jev.env` + `chmod 600`，
+  用时 `set -a; . ./.env; set +a`。
 - **本文档不记录密钥**。上一轮联调使用的 `jv-…` 已出现在对话记录中，应按已泄露处理，
   **接手后的第一件事是到密钥页轮换**，旧 Key 立即吊销。
 - 日志脱敏已实现：决策记录只落 `requestedModel`、真实 `model`、`usage`、`fallbackReason`，
@@ -98,6 +102,9 @@ mock 与 live 冒烟，且 `finalStateHash` 与本地逐字相同。
 
 ```bash
 pnpm build
+
+# 0) 本机已建好 .env 时，用 Node 内置 --env-file 加载（无额外依赖）
+node --env-file=.env scripts/smoke-live.mjs --dry-run
 
 # 1) 只校验配置与端点格式，不发请求
 node scripts/smoke-live.mjs --dry-run
