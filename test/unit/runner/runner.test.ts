@@ -16,6 +16,7 @@ import {
   chooseKBySilhouette,
   fitStandardizer,
   meetsMinClusterSize,
+  minClusterRunCount,
   minClusterSize,
   seededShuffle,
   silhouetteScore,
@@ -517,5 +518,14 @@ describe('聚类标尺与最小簇（复用同一 z-score）', () => {
     expect(minClusterSize([0, 0, 1, 1, 1])).toBe(2);
     expect(meetsMinClusterSize([0, 0, 1, 1, 1], 2)).toBe(true);
     expect(meetsMinClusterSize([0, 0, 1, 1, 1], 3)).toBe(false);
+  });
+
+  it('minClusterRunCount 按 run 而非特征点计数', () => {
+    expect(minClusterRunCount([], [])).toBe(0);
+    // 0 号簇只有 r1 一个 run；1 号簇有 r2/r3/r4 三个 run。
+    expect(minClusterRunCount([0, 0, 1, 1, 1], ['r1', 'r1', 'r2', 'r3', 'r4'])).toBe(1);
+    // 同一 run 的窗口分属两簇时分别计入（宽松口径），两簇各 1 个 run。
+    expect(minClusterRunCount([0, 1], ['r1', 'r1'])).toBe(1);
+    expect(() => minClusterRunCount([0], [])).toThrow(/长度不一致/);
   });
 });

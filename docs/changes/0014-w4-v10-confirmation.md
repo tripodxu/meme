@@ -32,7 +32,7 @@
 | **k=2 稳定性 ARI median（硬门槛）** | **1.000**（min 1.000）                        | ≥0.70                    | **过** |
 | 选中 k / 轮廓系数                   | k=2 / 0.564                                   | —                        | 稳定   |
 | temporalConsistency（w2b↔w3 同簇）  | 1.000（180/180）                              | ≥0.80                    | 过     |
-| 最小簇规模                          | 60                                            | ≥5                       | 过     |
+| 最小簇规模                          | 30 run（60 点）                               | 每簇 ≥5 run              | 过     |
 | 非退化簇                            | 2                                             | ≥1                       | 过     |
 | 全灭 run                            | 0/180                                         | —                        | 过     |
 | `budgets.ok`                        | true（180/120 min/2e9）                       | —                        | 过     |
@@ -72,10 +72,15 @@ c1 (300 点): B/C 五个 cell 全部 300 点
    若按运行级解读方向预测，本轮不通过。该口径歧义须在下一轮预注册中写死。
 3. **类是体制级，不是涌现分叉。** 分裂主要由 `displacementShare`（1:1 位移 vs 开放准入）
    决定，`scarcityWeight` 只在第二类内部移动程度；没有证明迟滞/双稳态。
-4. `out/p15-v10-full.json` 的 `g15.meanField` 仍报告 v8 均值场子项 `met=false`
+4. `out/p15-v10-full.json` 的 `clustering.g15.meanField` 仍报告 v8 均值场子项 `met=false`
    （最差 cell P0=0、drift=0.315）——该子项不适用于 rules-v10；本轮判定使用
    预注册的 `directional` 子项（cell 均值），两者在产物中分列，避免混读。
-5. G1.5 只是 go/no-go 闸门，**不构成校准完成**；不得据此声称默认参数已校准。
+5. G1.5 只是 go/no-go 闸门，**不构成校准完成**；不得据此声称默认参数已校准或结构已涌现。
+6. **最小簇门槛按 run 计。** 07 §8.1 的 `minClusterRuns` 以 run 为单位；同一 run 的
+   w2b/w3 是两个特征点。从 `assignment` 重算：c0 为 30 run（60 点）、c1 为 150 run
+   （300 点），最小 30 run ≥5，结论不变。已入库产物的 `clustering.minClusterMet`
+   由按点数比较的旧脚本生成（60≥5）；脚本已改为 `minClusterRunCount`，本记录不重写
+   既有证据，后续运行使用按 run 计的新口径。
 
 ## 4. 处置
 

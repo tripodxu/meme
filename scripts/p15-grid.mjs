@@ -25,6 +25,7 @@ import {
   fitStandardizer,
   chooseKBySilhouette,
   bisectStability,
+  minClusterRunCount,
   minClusterSize,
   seededShuffle,
 } from '../dist/runner/cluster.js';
@@ -196,7 +197,10 @@ if (stage === 'full') {
       clusterSizes.set(a, (clusterSizes.get(a) ?? 0) + 1);
     }
     const smallestCluster = minClusterSize(choice.assignment);
-    const minClusterMet = smallestCluster >= manifest.clustering.minClusterRuns;
+    // 07 §8.1 的 minClusterRuns 按 run 计；特征点数是 run 数 × 窗口数，不能直接比较。
+    const runKeys = pointMeta.map((meta) => `${meta.cell}|${meta.seed}`);
+    const smallestClusterRuns = minClusterRunCount(choice.assignment, runKeys);
+    const minClusterMet = smallestClusterRuns >= manifest.clustering.minClusterRuns;
     // 吸引子稳定性（07 §5 v5 修订）：同一 run 的 w2b 与 w3 特征点在同一 z-score
     // 空间各自入簇，直接比较簇号是否一致；阈值来自预注册，不做事后择取。
     let temporalConsistency = null;
@@ -305,6 +309,7 @@ if (stage === 'full') {
       stabilityShuffles,
       stabilityStable: minClusterMet && medianAri >= manifest.clustering.stabilityMinAri,
       minClusterSize: smallestCluster,
+      minClusterRunsObserved: smallestClusterRuns,
       minClusterRuns: manifest.clustering.minClusterRuns,
       minClusterMet,
       temporalConsistency,
@@ -325,6 +330,7 @@ if (stage === 'full') {
           v10BcP0Max: 0.15,
           v10BcMupMax: 0.4,
         },
+        minClusterRunsObserved: smallestClusterRuns,
         k2StabilityAriMedian: Math.round(k2MedianAri * 1000) / 1000,
         k2StabilityAriMin: Math.round(Math.min(...k2Runs.map((run) => run.ari)) * 1000) / 1000,
         k2HardGateMet,

@@ -1,3 +1,5 @@
+import { errorCodes, StratifyError } from '../core/control/errors.js';
+
 /**
  * 结构指纹聚类协议（07 §8.1）。
  *
@@ -92,9 +94,47 @@ export function minClusterSize(assignment: readonly number[]): number {
   return smallest;
 }
 
-/** 是否每个簇的规模均 >= `minRuns`（预注册 minClusterRuns 门槛）。 */
-export function meetsMinClusterSize(assignment: readonly number[], minRuns: number): boolean {
-  return minClusterSize(assignment) >= minRuns;
+/**
+ * 是否每个簇的**特征点数**均 >= `minPoints`。
+ * 预注册的 `minClusterRuns` 按 run 计，必须用 `minClusterRunCount`，不要用本函数。
+ */
+export function meetsMinClusterSize(assignment: readonly number[], minPoints: number): boolean {
+  return minClusterSize(assignment) >= minPoints;
+}
+
+/**
+ * 每个簇包含的不同 run 数的最小值（07 §8.1 的 `minClusterRuns` 按 run 计）。
+ *
+ * 同一 run 的 `w2b`/`w3` 是两个特征点；直接把特征点数与 `minClusterRuns` 比较
+ * 会把门槛放松一倍。`runKeys[i]` 标识第 i 个点所属 run；同一 run 的窗口若落入
+ * 不同簇，则分别计入各自簇（宽松口径，时间一致性另由 `temporalConsistency` 门禁约束）。
+ */
+export function minClusterRunCount(
+  assignment: readonly number[],
+  runKeys: readonly string[],
+): number {
+  if (assignment.length !== runKeys.length) {
+    throw new StratifyError(errorCodes.INVARIANT_VIOLATED, '聚类分配与 runKeys 长度不一致');
+  }
+  if (assignment.length === 0) {
+    return 0;
+  }
+  const runsByCluster = new Map<number, Set<string>>();
+  for (let index = 0; index < assignment.length; index += 1) {
+    const cluster = assignment[index] as number;
+    const runKey = runKeys[index] as string;
+    let runs = runsByCluster.get(cluster);
+    if (runs === undefined) {
+      runs = new Set<string>();
+      runsByCluster.set(cluster, runs);
+    }
+    runs.add(runKey);
+  }
+  let smallest = Number.POSITIVE_INFINITY;
+  for (const runs of runsByCluster.values()) {
+    smallest = Math.min(smallest, runs.size);
+  }
+  return smallest;
 }
 
 /** z-score 标准化；方差为 0 的维度保持 0（避免除零，且该维度无判别力）。 */
