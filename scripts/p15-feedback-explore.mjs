@@ -40,10 +40,12 @@ function log(message) {
   process.stderr.write(`[feedback] ${message}\n`);
 }
 
-/** 初始阶级分布：默认 vs 中层偏重（同一参数、不同初值 → 检验吸引域选择）。 */
+/** 初始阶级分布：默认/中层/底层/顶层偏重（同一参数、不同初值 → 检验吸引域选择）。 */
 const INITIAL_CONDITIONS = [
   { key: 'ic-default', classShares: [0.45, 0.3, 0.15, 0.08, 0.02] },
   { key: 'ic-middle', classShares: [0.1, 0.25, 0.35, 0.22, 0.08] },
+  { key: 'ic-bottom', classShares: [0.6, 0.25, 0.1, 0.04, 0.01] },
+  { key: 'ic-top', classShares: [0.05, 0.15, 0.3, 0.3, 0.2] },
 ];
 
 /** 单轴 cell（07 §6.2：一次只变一项；交互轴不在本探索轮）。 */
@@ -98,6 +100,82 @@ const FEEDBACK_CELLS = [
     cellKey: 'crossDays×0.5',
     axis: 'mobility-cost',
     overrides: { ascent: { crossDays: [15, 20, 25, 30] } },
+  },
+];
+
+/**
+ * 开放准入体制（share=0.5, w=10）下的反馈轴：检验网络/制度反馈能否在
+ * 高流动体制中恢复多吸引域。A 体制（share=1）的反馈轴已由 FEEDBACK_CELLS 覆盖。
+ */
+const OPEN_FEEDBACK_CELLS = [
+  {
+    cellKey: 'open-baseline-w10',
+    axis: 'open-baseline',
+    overrides: { ascent: { displacementShare: 0.5, scarcityWeight: 10 } },
+  },
+  {
+    cellKey: 'open+beta=0',
+    axis: 'open-positive',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      networkOpportunity: { beta: 0 },
+    },
+  },
+  {
+    cellKey: 'open+beta=2+max2',
+    axis: 'open-positive',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      networkOpportunity: { beta: 2.0, max: 2.0 },
+    },
+  },
+  {
+    cellKey: 'open+classWeight=3+value1.5',
+    axis: 'open-positive',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      network: { classWeight: 3.0, valueWeight: 1.5 },
+    },
+  },
+  {
+    cellKey: 'open+rewireProb=0.3',
+    axis: 'open-positive',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      network: { rewireProb: 0.3 },
+    },
+  },
+  {
+    cellKey: 'open+congestionExponent=1',
+    axis: 'open-negative',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      dynamics: { congestionExponent: 1.0 },
+    },
+  },
+  {
+    cellKey: 'open+polarizationExponent=1.5',
+    axis: 'open-negative',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      dynamics: { polarizationExponent: 1.5 },
+    },
+  },
+  {
+    cellKey: 'open+openness-weights=0',
+    axis: 'open-institutional-ablation',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      openness: { mobilityWeight: 0, giniWeight: 0, segregationWeight: 0 },
+    },
+  },
+  {
+    cellKey: 'open+openness-tau=10',
+    axis: 'open-institutional',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 10 },
+      openness: { timeConstantDays: 10 },
+    },
   },
 ];
 
@@ -199,7 +277,9 @@ const CELLS =
               ? SCARCITY_MAX_CELLS
               : family === 'plateau'
                 ? PLATEAU_CELLS
-                : FEEDBACK_CELLS;
+                : family === 'open-feedback'
+                  ? OPEN_FEEDBACK_CELLS
+                  : FEEDBACK_CELLS;
 
 const cellsForStage = stage === 'screen' ? CELLS.slice(0, 2) : CELLS;
 const icCount = args.includes('--ics')

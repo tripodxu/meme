@@ -1,0 +1,1979 @@
+{
+  "schemaVersion": "p15-multibasin-probe-v1",
+  "exploratory": true,
+  "note": "探索层（07 §6.1）：检验多吸引域与第三/第四初始条件；不构成 G1.5/P6 证据。",
+  "execution": {
+    "runCount": 80,
+    "wallMinutes": 3,
+    "seeds": [
+      "p15-seed-001",
+      "p15-seed-002",
+      "p15-seed-003",
+      "p15-seed-004",
+      "p15-seed-005",
+      "p15-seed-006",
+      "p15-seed-007",
+      "p15-seed-008",
+      "p15-seed-009",
+      "p15-seed-010"
+    ],
+    "horizons": [
+      3650,
+      7300
+    ]
+  },
+  "cells": [
+    "D-open-congestion"
+  ],
+  "ics": [
+    {
+      "key": "ic-default",
+      "shares": [
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.02
+      ]
+    },
+    {
+      "key": "ic-middle",
+      "shares": [
+        0.1,
+        0.25,
+        0.35,
+        0.22,
+        0.08
+      ]
+    },
+    {
+      "key": "ic-bottom",
+      "shares": [
+        0.6,
+        0.25,
+        0.1,
+        0.04,
+        0.01
+      ]
+    },
+    {
+      "key": "ic-top",
+      "shares": [
+        0.05,
+        0.15,
+        0.3,
+        0.3,
+        0.2
+      ]
+    }
+  ],
+  "perGroup": [
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.09457773895486118,
+        0.7367934481622936,
+        0.06789772727272728,
+        0.10073108561011787
+      ],
+      "mUp": 87.2,
+      "mDown": 39.6
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.00625,
+        0.6867289728151798,
+        0.17366071428571428,
+        0.133360312899106
+      ],
+      "mUp": 98.7,
+      "mDown": 43.1
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.10186108246592115,
+        0.4734020683617458,
+        0.24622963058446928,
+        0.17850721858786373
+      ],
+      "mUp": 77.3,
+      "mDown": 59.4
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0,
+        0.16169100487634971,
+        0.4262507111343318,
+        0.4120582839893185
+      ],
+      "mUp": 109,
+      "mDown": 67.4
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.147970022690948,
+        0.7529136769427517,
+        0.03939393939393939,
+        0.059722360972360965
+      ],
+      "mUp": 87.8,
+      "mDown": 34.6
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.049617604617604616,
+        0.83188975137251,
+        0.05517241379310345,
+        0.06332023021678194
+      ],
+      "mUp": 94.1,
+      "mDown": 37.1
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.275616892844497,
+        0.5202615466235885,
+        0.12994238712617318,
+        0.07417917340574136
+      ],
+      "mUp": 33.4,
+      "mDown": 54.3
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "n": 10,
+      "extinct": 0,
+      "classShares": [
+        0,
+        0.006904761904761905,
+        0.4644730071920005,
+        0.3785330408272566,
+        0.15008919007598095
+      ],
+      "mUp": 61.7,
+      "mDown": 61.9
+    }
+  ],
+  "icSeparation": [
+    {
+      "cellKey": "D-open-congestion",
+      "horizon": 3650,
+      "noise": [
+        {
+          "ic": "ic-default",
+          "noise": 0.572084926193585
+        },
+        {
+          "ic": "ic-middle",
+          "noise": 0.41156797801959094
+        },
+        {
+          "ic": "ic-bottom",
+          "noise": 0.44885745738886657
+        },
+        {
+          "ic": "ic-top",
+          "noise": 0.4214760061559223
+        }
+      ],
+      "pairs": [
+        {
+          "a": "ic-default",
+          "b": "ic-middle",
+          "meanL1": 0.6797338773548451
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-bottom",
+          "meanL1": 0.5047179516555578
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-top",
+          "meanL1": 0.6496463873465022
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-bottom",
+          "meanL1": 0.7378669717379395
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-top",
+          "meanL1": 0.5351454096188442
+        },
+        {
+          "a": "ic-bottom",
+          "b": "ic-top",
+          "meanL1": 0.5872952843205266
+        }
+      ]
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "horizon": 7300,
+      "noise": [
+        {
+          "ic": "ic-default",
+          "noise": 0.7421645076932435
+        },
+        {
+          "ic": "ic-middle",
+          "noise": 0.27128306694015514
+        },
+        {
+          "ic": "ic-bottom",
+          "noise": 0.37464504560289985
+        },
+        {
+          "ic": "ic-top",
+          "noise": 0.42612876741352823
+        }
+      ],
+      "pairs": [
+        {
+          "a": "ic-default",
+          "b": "ic-middle",
+          "meanL1": 1.140812426398633
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-bottom",
+          "meanL1": 0.6646981639050604
+        },
+        {
+          "a": "ic-default",
+          "b": "ic-top",
+          "meanL1": 0.7828214550558822
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-bottom",
+          "meanL1": 1.4633108631470702
+        },
+        {
+          "a": "ic-middle",
+          "b": "ic-top",
+          "meanL1": 0.7411643409838626
+        },
+        {
+          "a": "ic-bottom",
+          "b": "ic-top",
+          "meanL1": 0.8721325877290838
+        }
+      ]
+    }
+  ],
+  "clustering": [
+    {
+      "k": 2,
+      "silhouette": 0.435,
+      "sizes": {
+        "0": 63,
+        "1": 17
+      },
+      "composition": {
+        "0": {
+          "D-open-congestion|ic-default|h3650": 10,
+          "D-open-congestion|ic-default|h7300": 7,
+          "D-open-congestion|ic-middle|h3650": 8,
+          "D-open-congestion|ic-bottom|h3650": 10,
+          "D-open-congestion|ic-bottom|h7300": 9,
+          "D-open-congestion|ic-top|h3650": 10,
+          "D-open-congestion|ic-top|h7300": 9
+        },
+        "1": {
+          "D-open-congestion|ic-default|h7300": 3,
+          "D-open-congestion|ic-middle|h3650": 2,
+          "D-open-congestion|ic-middle|h7300": 10,
+          "D-open-congestion|ic-bottom|h7300": 1,
+          "D-open-congestion|ic-top|h7300": 1
+        }
+      },
+      "ariMedian": 0.705,
+      "ariMin": 0.405
+    },
+    {
+      "k": 3,
+      "silhouette": 0.384,
+      "sizes": {
+        "0": 26,
+        "1": 37,
+        "2": 17
+      },
+      "composition": {
+        "0": {
+          "D-open-congestion|ic-default|h3650": 6,
+          "D-open-congestion|ic-default|h7300": 7,
+          "D-open-congestion|ic-bottom|h3650": 4,
+          "D-open-congestion|ic-bottom|h7300": 9
+        },
+        "1": {
+          "D-open-congestion|ic-default|h3650": 4,
+          "D-open-congestion|ic-middle|h3650": 8,
+          "D-open-congestion|ic-bottom|h3650": 6,
+          "D-open-congestion|ic-top|h3650": 10,
+          "D-open-congestion|ic-top|h7300": 9
+        },
+        "2": {
+          "D-open-congestion|ic-default|h7300": 3,
+          "D-open-congestion|ic-middle|h3650": 2,
+          "D-open-congestion|ic-middle|h7300": 10,
+          "D-open-congestion|ic-bottom|h7300": 1,
+          "D-open-congestion|ic-top|h7300": 1
+        }
+      },
+      "ariMedian": 0.65,
+      "ariMin": 0.4
+    },
+    {
+      "k": 4,
+      "silhouette": 0.438,
+      "sizes": {
+        "0": 26,
+        "1": 10,
+        "2": 27,
+        "3": 17
+      },
+      "composition": {
+        "0": {
+          "D-open-congestion|ic-default|h3650": 6,
+          "D-open-congestion|ic-default|h7300": 7,
+          "D-open-congestion|ic-bottom|h3650": 4,
+          "D-open-congestion|ic-bottom|h7300": 9
+        },
+        "1": {
+          "D-open-congestion|ic-default|h3650": 2,
+          "D-open-congestion|ic-bottom|h3650": 4,
+          "D-open-congestion|ic-top|h3650": 4
+        },
+        "2": {
+          "D-open-congestion|ic-default|h3650": 2,
+          "D-open-congestion|ic-middle|h3650": 8,
+          "D-open-congestion|ic-bottom|h3650": 2,
+          "D-open-congestion|ic-top|h3650": 6,
+          "D-open-congestion|ic-top|h7300": 9
+        },
+        "3": {
+          "D-open-congestion|ic-default|h7300": 3,
+          "D-open-congestion|ic-middle|h3650": 2,
+          "D-open-congestion|ic-middle|h7300": 10,
+          "D-open-congestion|ic-bottom|h7300": 1,
+          "D-open-congestion|ic-top|h7300": 1
+        }
+      },
+      "ariMedian": 0.722,
+      "ariMin": 0.458
+    },
+    {
+      "k": 5,
+      "silhouette": 0.435,
+      "sizes": {
+        "0": 26,
+        "1": 10,
+        "2": 13,
+        "3": 17,
+        "4": 14
+      },
+      "composition": {
+        "0": {
+          "D-open-congestion|ic-default|h3650": 6,
+          "D-open-congestion|ic-default|h7300": 7,
+          "D-open-congestion|ic-bottom|h3650": 4,
+          "D-open-congestion|ic-bottom|h7300": 9
+        },
+        "1": {
+          "D-open-congestion|ic-default|h3650": 2,
+          "D-open-congestion|ic-bottom|h3650": 4,
+          "D-open-congestion|ic-top|h3650": 4
+        },
+        "2": {
+          "D-open-congestion|ic-default|h3650": 2,
+          "D-open-congestion|ic-middle|h3650": 3,
+          "D-open-congestion|ic-bottom|h3650": 1,
+          "D-open-congestion|ic-top|h7300": 7
+        },
+        "3": {
+          "D-open-congestion|ic-default|h7300": 3,
+          "D-open-congestion|ic-middle|h3650": 2,
+          "D-open-congestion|ic-middle|h7300": 10,
+          "D-open-congestion|ic-bottom|h7300": 1,
+          "D-open-congestion|ic-top|h7300": 1
+        },
+        "4": {
+          "D-open-congestion|ic-middle|h3650": 5,
+          "D-open-congestion|ic-bottom|h3650": 1,
+          "D-open-congestion|ic-top|h3650": 6,
+          "D-open-congestion|ic-top|h7300": 2
+        }
+      },
+      "ariMedian": 0.716,
+      "ariMin": 0.545
+    }
+  ],
+  "rows": [
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0,
+          0.8787878787878788,
+          0,
+          0.12121212121212122
+        ],
+        "mUp": 77,
+        "mDown": 33
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.02857142857142857,
+          0.8285714285714286,
+          0,
+          0.14285714285714285
+        ],
+        "mUp": 88,
+        "mDown": 36
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.03125,
+          0.90625,
+          0,
+          0.0625
+        ],
+        "mUp": 71,
+        "mDown": 27
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.03225806451612903,
+          0.8064516129032258,
+          0,
+          0.16129032258064516
+        ],
+        "mUp": 99,
+        "mDown": 46
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.09090909090909091,
+          0.8787878787878788,
+          0,
+          0.030303030303030304
+        ],
+        "mUp": 77,
+        "mDown": 36
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.0625,
+          0.90625,
+          0,
+          0.03125
+        ],
+        "mUp": 78,
+        "mDown": 39
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.21052631578947367,
+          0.7894736842105263,
+          0,
+          0
+        ],
+        "mUp": 80,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.030303030303030304,
+          0.48484848484848486,
+          0.2727272727272727,
+          0.21212121212121213
+        ],
+        "mUp": 123,
+        "mDown": 54
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0,
+          0.375,
+          0.40625,
+          0.21875
+        ],
+        "mUp": 123,
+        "mDown": 50
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 37,
+        "classShares": [
+          0,
+          0.4594594594594595,
+          0.5135135135135135,
+          0,
+          0.02702702702702703
+        ],
+        "mUp": 56,
+        "mDown": 30
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0,
+          0.8571428571428571,
+          0,
+          0.14285714285714285
+        ],
+        "mUp": 77,
+        "mDown": 33
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0,
+          0,
+          0.8666666666666667,
+          0,
+          0.13333333333333333
+        ],
+        "mUp": 89,
+        "mDown": 36
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0,
+          0.8214285714285714,
+          0.03571428571428571,
+          0.14285714285714285
+        ],
+        "mUp": 79,
+        "mDown": 29
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 25,
+        "classShares": [
+          0,
+          0,
+          0.84,
+          0,
+          0.16
+        ],
+        "mUp": 102,
+        "mDown": 48
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0,
+          0.9629629629629629,
+          0,
+          0.037037037037037035
+        ],
+        "mUp": 80,
+        "mDown": 37
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0,
+          0,
+          0.9655172413793104,
+          0,
+          0.034482758620689655
+        ],
+        "mUp": 81,
+        "mDown": 40
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.0625,
+          0.9375,
+          0,
+          0
+        ],
+        "mUp": 83,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0,
+          0.25,
+          0.5,
+          0.25
+        ],
+        "mUp": 136,
+        "mDown": 58
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0,
+          0.17857142857142858,
+          0.6071428571428571,
+          0.21428571428571427
+        ],
+        "mUp": 132,
+        "mDown": 54
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-default",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0,
+          0.1875,
+          0.59375,
+          0.21875
+        ],
+        "mUp": 128,
+        "mDown": 51
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0,
+          0.36363636363636365,
+          0.3333333333333333,
+          0.30303030303030304
+        ],
+        "mUp": 89,
+        "mDown": 58
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.05714285714285714,
+          0.5714285714285714,
+          0.17142857142857143,
+          0.2
+        ],
+        "mUp": 75,
+        "mDown": 54
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.09375,
+          0.3125,
+          0.28125,
+          0.3125
+        ],
+        "mUp": 78,
+        "mDown": 52
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.1935483870967742,
+          0.3870967741935484,
+          0.1935483870967742,
+          0.22580645161290322
+        ],
+        "mUp": 67,
+        "mDown": 57
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.24242424242424243,
+          0.48484848484848486,
+          0.24242424242424243,
+          0.030303030303030304
+        ],
+        "mUp": 65,
+        "mDown": 64
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.09375,
+          0.625,
+          0.21875,
+          0.0625
+        ],
+        "mUp": 70,
+        "mDown": 58
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 39,
+        "classShares": [
+          0,
+          0.10256410256410256,
+          0.5128205128205128,
+          0.3076923076923077,
+          0.07692307692307693
+        ],
+        "mUp": 69,
+        "mDown": 53
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.030303030303030304,
+          0.5151515151515151,
+          0.18181818181818182,
+          0.2727272727272727
+        ],
+        "mUp": 103,
+        "mDown": 78
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0,
+          0.5,
+          0.25,
+          0.25
+        ],
+        "mUp": 99,
+        "mDown": 71
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 39,
+        "classShares": [
+          0,
+          0.20512820512820512,
+          0.46153846153846156,
+          0.28205128205128205,
+          0.05128205128205128
+        ],
+        "mUp": 58,
+        "mDown": 49
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0,
+          0,
+          0.06666666666666667,
+          0.43333333333333335,
+          0.5
+        ],
+        "mUp": 105,
+        "mDown": 59
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0,
+          0.28125,
+          0.34375,
+          0.375
+        ],
+        "mUp": 103,
+        "mDown": 63
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0,
+          0,
+          0.1,
+          0.43333333333333335,
+          0.4666666666666667
+        ],
+        "mUp": 102,
+        "mDown": 58
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0,
+          0.16666666666666666,
+          0.5416666666666666,
+          0.2916666666666667
+        ],
+        "mUp": 93,
+        "mDown": 61
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0,
+          0.2222222222222222,
+          0.2962962962962963,
+          0.48148148148148145
+        ],
+        "mUp": 110,
+        "mDown": 72
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0,
+          0,
+          0.06896551724137931,
+          0.4827586206896552,
+          0.4482758620689655
+        ],
+        "mUp": 113,
+        "mDown": 68
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0,
+          0.24242424242424243,
+          0.3333333333333333,
+          0.42424242424242425
+        ],
+        "mUp": 107,
+        "mDown": 63
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 25,
+        "classShares": [
+          0,
+          0,
+          0.08,
+          0.56,
+          0.36
+        ],
+        "mUp": 129,
+        "mDown": 88
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0,
+          0,
+          0.20689655172413793,
+          0.41379310344827586,
+          0.3793103448275862
+        ],
+        "mUp": 116,
+        "mDown": 75
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-middle",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0,
+          0.18181818181818182,
+          0.42424242424242425,
+          0.3939393939393939
+        ],
+        "mUp": 112,
+        "mDown": 67
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0,
+          0.42424242424242425,
+          0.3939393939393939,
+          0.18181818181818182
+        ],
+        "mUp": 127,
+        "mDown": 49
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.05714285714285714,
+          0.8571428571428571,
+          0,
+          0.08571428571428572
+        ],
+        "mUp": 94,
+        "mDown": 37
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.3125,
+          0.65625,
+          0,
+          0.03125
+        ],
+        "mUp": 92,
+        "mDown": 48
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.25806451612903225,
+          0.7419354838709677,
+          0,
+          0
+        ],
+        "mUp": 65,
+        "mDown": 21
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.06060606060606061,
+          0.9090909090909091,
+          0,
+          0.030303030303030304
+        ],
+        "mUp": 80,
+        "mDown": 29
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.03125,
+          0.90625,
+          0,
+          0.0625
+        ],
+        "mUp": 81,
+        "mDown": 26
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.3157894736842105,
+          0.6842105263157895,
+          0,
+          0
+        ],
+        "mUp": 74,
+        "mDown": 31
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.24242424242424243,
+          0.696969696969697,
+          0,
+          0.06060606060606061
+        ],
+        "mUp": 76,
+        "mDown": 26
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.125,
+          0.78125,
+          0,
+          0.09375
+        ],
+        "mUp": 98,
+        "mDown": 44
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 39,
+        "classShares": [
+          0,
+          0.07692307692307693,
+          0.8717948717948718,
+          0,
+          0.05128205128205128
+        ],
+        "mUp": 91,
+        "mDown": 35
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0,
+          0,
+          0.20689655172413793,
+          0.5517241379310345,
+          0.2413793103448276
+        ],
+        "mUp": 140,
+        "mDown": 54
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0,
+          0.03333333333333333,
+          0.9,
+          0,
+          0.06666666666666667
+        ],
+        "mUp": 95,
+        "mDown": 37
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0.07407407407407407,
+          0.8888888888888888,
+          0,
+          0.037037037037037035
+        ],
+        "mUp": 107,
+        "mDown": 55
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.08333333333333333,
+          0.9166666666666666,
+          0,
+          0
+        ],
+        "mUp": 73,
+        "mDown": 24
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0.037037037037037035,
+          0.9259259259259259,
+          0,
+          0.037037037037037035
+        ],
+        "mUp": 82,
+        "mDown": 30
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0.03571428571428571,
+          0.9285714285714286,
+          0,
+          0.03571428571428571
+        ],
+        "mUp": 81,
+        "mDown": 26
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.125,
+          0.875,
+          0,
+          0
+        ],
+        "mUp": 79,
+        "mDown": 31
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0.041666666666666664,
+          0.875,
+          0,
+          0.08333333333333333
+        ],
+        "mUp": 83,
+        "mDown": 28
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0.03571428571428571,
+          0.8928571428571429,
+          0,
+          0.07142857142857142
+        ],
+        "mUp": 102,
+        "mDown": 45
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-bottom",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.030303030303030304,
+          0.9090909090909091,
+          0,
+          0.06060606060606061
+        ],
+        "mUp": 99,
+        "mDown": 41
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.06060606060606061,
+          0.6060606060606061,
+          0.21212121212121213,
+          0.12121212121212122
+        ],
+        "mUp": 47,
+        "mDown": 55
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 35,
+        "classShares": [
+          0,
+          0.14285714285714285,
+          0.6571428571428571,
+          0.14285714285714285,
+          0.05714285714285714
+        ],
+        "mUp": 38,
+        "mDown": 51
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.21875,
+          0.4375,
+          0.25,
+          0.09375
+        ],
+        "mUp": 43,
+        "mDown": 57
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.25806451612903225,
+          0.4838709677419355,
+          0.16129032258064516,
+          0.0967741935483871
+        ],
+        "mUp": 43,
+        "mDown": 64
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 34,
+        "classShares": [
+          0,
+          0.3235294117647059,
+          0.6470588235294118,
+          0,
+          0.029411764705882353
+        ],
+        "mUp": 17,
+        "mDown": 49
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0.4838709677419355,
+          0.4838709677419355,
+          0.03225806451612903,
+          0
+        ],
+        "mUp": 14,
+        "mDown": 50
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.39473684210526316,
+          0.3684210526315789,
+          0.13157894736842105,
+          0.10526315789473684
+        ],
+        "mUp": 37,
+        "mDown": 58
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 33,
+        "classShares": [
+          0,
+          0.30303030303030304,
+          0.45454545454545453,
+          0.18181818181818182,
+          0.06060606060606061
+        ],
+        "mUp": 33,
+        "mDown": 55
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0.28125,
+          0.40625,
+          0.1875,
+          0.125
+        ],
+        "mUp": 40,
+        "mDown": 55
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 3650,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 38,
+        "classShares": [
+          0,
+          0.2894736842105263,
+          0.6578947368421053,
+          0,
+          0.05263157894736842
+        ],
+        "mUp": 22,
+        "mDown": 49
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-001",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0,
+          0.32142857142857145,
+          0.4642857142857143,
+          0.21428571428571427
+        ],
+        "mUp": 68,
+        "mDown": 62
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-002",
+      "extinct": false,
+      "metrics": {
+        "alive": 31,
+        "classShares": [
+          0,
+          0,
+          0.4838709677419355,
+          0.3548387096774194,
+          0.16129032258064516
+        ],
+        "mUp": 68,
+        "mDown": 62
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-003",
+      "extinct": false,
+      "metrics": {
+        "alive": 29,
+        "classShares": [
+          0,
+          0,
+          0.5172413793103449,
+          0.27586206896551724,
+          0.20689655172413793
+        ],
+        "mUp": 61,
+        "mDown": 59
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-004",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0,
+          0.5416666666666666,
+          0.3333333333333333,
+          0.125
+        ],
+        "mUp": 69,
+        "mDown": 73
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-005",
+      "extinct": false,
+      "metrics": {
+        "alive": 27,
+        "classShares": [
+          0,
+          0,
+          0.6296296296296297,
+          0.2962962962962963,
+          0.07407407407407407
+        ],
+        "mUp": 52,
+        "mDown": 64
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-006",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0.03571428571428571,
+          0.5,
+          0.32142857142857145,
+          0.14285714285714285
+        ],
+        "mUp": 50,
+        "mDown": 57
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-007",
+      "extinct": false,
+      "metrics": {
+        "alive": 32,
+        "classShares": [
+          0,
+          0,
+          0.34375,
+          0.5,
+          0.15625
+        ],
+        "mUp": 75,
+        "mDown": 66
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-008",
+      "extinct": false,
+      "metrics": {
+        "alive": 24,
+        "classShares": [
+          0,
+          0,
+          0.5,
+          0.2916666666666667,
+          0.20833333333333334
+        ],
+        "mUp": 55,
+        "mDown": 59
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-009",
+      "extinct": false,
+      "metrics": {
+        "alive": 28,
+        "classShares": [
+          0,
+          0,
+          0.10714285714285714,
+          0.7142857142857143,
+          0.17857142857142858
+        ],
+        "mUp": 72,
+        "mDown": 60
+      }
+    },
+    {
+      "cellKey": "D-open-congestion",
+      "ic": "ic-top",
+      "horizon": 7300,
+      "seed": "p15-seed-010",
+      "extinct": false,
+      "metrics": {
+        "alive": 30,
+        "classShares": [
+          0,
+          0.03333333333333333,
+          0.7,
+          0.23333333333333334,
+          0.03333333333333333
+        ],
+        "mUp": 47,
+        "mDown": 57
+      }
+    }
+  ]
+}

@@ -16,6 +16,7 @@
 | [2026-11-04-p15-bifurcation-replication.md](2026-11-04-p15-bifurcation-replication.md)                 | 复制轮报告  | `mock` 策略内全新种子复制（3 ICs × 10 seeds × 3 mids）：9/9 cell 通过，up locked 1.0 / down 0；但 `random-uniform-v1` 敏感性为负（0/9 锁定、mUp 差不显著），锁定是**策略-规则交互**而非规则层涌现分岔，不构成 G1.5/P6 验收                                   |
 | [2026-11-04-p15-descend-condition.md](2026-11-04-p15-descend-condition.md)                             | 探索层报告  | descend 触发条件探针（175+175 run，5 seeds）：streak≥7 门控下 d=0–4 均锁定（up 1.0）；无条件 descend 在 d≥0.2 时 up/down/control 全部解锁；锁定由**下降触发条件**而非权重控制，解释 random 的负结果                                                          |
 | [2026-11-04-p15-w4-policy-sensitivity.md](2026-11-04-p15-w4-policy-sensitivity.md)                     | 探索层报告  | W4 格点改用 random 与 unconditional-descend（各 180 run，30 seeds/cell）：两种替代策略下 k=2 ARI 1.0、temporal 1.0，A vs B∪C 聚类保留；但 B/C 变为底重/高流动（random P0 0.617–0.680、unconditional 0.691–0.725），方向预测失败——聚类稳健、方向解释仅限 mock |
+| [2026-11-04-p15-multibasin-emergence.md](2026-11-04-p15-multibasin-emergence.md)                       | 探索层报告  | 涌现来源（220+120+180+80 run）：闭合体制 A 同参数下至少三个 IC 终态族并持续到 7300；开放 B/C 的 IC 差异落入噪声或随视野漂移；反馈轴不能恢复开放多吸引域；结论是守恒/闭合而非开放性产生稳健涌现                                                               |
 
 按时间顺序的完整链路：预研报告 → 均值场 → 诊断（登记 W0–W3）→ 交接单（W0/W1 施工）→
 W2/W3 确认轮 → v9/v10 机制探索 → W4 确认轮（G1.5 通过）→ 路径依赖与策略敏感性研究。

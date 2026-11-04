@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 29 个文件、合计约 9.0 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
+   当前入库 33 个文件、合计约 9.9 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -51,6 +51,10 @@
 | `out/p15-descend-unconditional-explore.json`         | 41.2 KiB | `8034deb0…a0b238`    | 探索层：无条件 descend，同格点 175 run；d=0 时 up locked 1.0，d≥0.2 时 up/down/control 全 0；mUp 600–1446                                                                                                        | **探索证据**（changes/0017）                                                                                                |
 | `out/p15-v10-policy-random-full.json`                | 864 KiB  | `12fcd1eb…0005c`     | 策略敏感性（探索）：W4 v10 格点，random-uniform-v1，6 cell × 30 seeds = 180 run；k=2 ARI 1.000、temporal 1.000（聚类保留），但 B/C P0 0.617–0.680、mUp 0.864–0.906 → 方向预测失败                                | **探索证据**（changes/0020；`exploratoryPolicySensitivity=true`）                                                           |
 | `out/p15-v10-policy-unconditional-descend-full.json` | 859 KiB  | `ab123cf0…fc5b52`    | 门控消融（探索）：W4 v10 格点，仅去掉 mock 的 streak≥7 descend 门控，180 run；k=2 ARI 1.000、temporal 1.000（聚类保留），但 B/C P0 0.691–0.725、mUp 0.975–0.979 → 方向失败                                       | **探索证据**（changes/0020；`exploratoryPolicySensitivity=true`）                                                           |
+| `out/p15-feedback-v10-explore.json`                  | 443 KiB  | `bc9f1f28…eeabaa`    | 探索层：rules-v10 A 体制（share=1）11 个反馈轴 × 2 IC × 10 seeds = 220 run；ic-default P0≈0.57 vs ic-middle P1≈0.55，between-IC L1 0.72–0.81，同 IC 噪声 0.10–0.24                                               | **探索证据**（changes/0021）                                                                                                |
+| `out/p15-multibasin-probe.json`                      | 68 KiB   | `4836d01c…46b62a`    | 探索层：A/B/C × 4 IC × 5 seeds × 3650/7300 = 120 run；A 的多吸引域持续到 7300；B/C 的 IC 差异落入噪声；k=3 轮廓 0.538、ARI 0.964/0.886，但簇组成混合                                                             | **探索证据**（changes/0021）                                                                                                |
+| `out/p15-open-feedback-explore.json`                 | 366 KiB  | `9b8088ec…65b842`    | 探索层：开放体制（share=0.5,w=10）9 个反馈轴 × 4 IC × 5 seeds = 180 run；除 congestion 外 IC 差异 < 噪声；congestion 的 3650 信号未跨视野保持                                                                    | **探索证据**（changes/0021）                                                                                                |
+| `out/p15-multibasin-congestion-probe.json`           | 40 KiB   | `7ae91bd8…12b2be`    | 探索层：congestion=1 × 4 IC × 10 seeds × 3650/7300 = 80 run；聚类按视野而非 IC 分裂，否定稳定多吸引域                                                                                                            | **探索证据**（changes/0021）                                                                                                |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
@@ -73,6 +77,10 @@ b999751f2773c2059302b8fff8c793fd4e0171f76a024a775a2c46622529aa40  out/p15-descen
 8034deb0988fe13a7d9bf224f31392b496a3b9135ce7296015cd3e7ed2a0b238  out/p15-descend-unconditional-explore.json
 12fcd1eb09caf01225587e84120634026780341417597e0b6a71cc8d5ca0005c  out/p15-v10-policy-random-full.json
 ab123cf077115e28628a3f0eac51f2b39d7fc5a83f0dbb3cace13ca241fc5b52  out/p15-v10-policy-unconditional-descend-full.json
+bc9f1f282ee4e71b9e6f00051e9408f600f5612ddc02734e075f004048eeabaa  out/p15-feedback-v10-explore.json
+4836d01c0fc14d9a49ed4cdedb862ab6375d0538802d80b3c9fc69ef1446b62a  out/p15-multibasin-probe.json
+9b8088ec8872d023231aa728d5775e62e9970b8cfa274151943df11ed965b842  out/p15-open-feedback-explore.json
+7ae91bd8fd07fab85ff6f8f81e87a1b0f8a8ed4ac4b6addf700e59dbd212b2be  out/p15-multibasin-congestion-probe.json
 ```
 
 校验方式：`sha256sum out/*.json`。
