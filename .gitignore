@@ -64,3 +64,4 @@ out/*
 !out/p15-multibasin-congestion-probe.json
 !out/p15-barrier-probe.json
 !out/p15-cushion365-probe.json
+!out/p15-a-ic30-probe.json

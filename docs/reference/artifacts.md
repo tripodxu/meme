@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 35 个文件、合计约 10.0 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
+   当前入库 36 个文件、合计约 10.0 MiB（最大 `out/p15-full.json` 3.88 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -57,6 +57,7 @@
 | `out/p15-multibasin-congestion-probe.json`           | 40 KiB   | `7ae91bd8…12b2be`    | 探索层：congestion=1 × 4 IC × 10 seeds × 3650/7300 = 80 run；聚类按视野而非 IC 分裂，否定稳定多吸引域                                                                                                            | **探索证据**（changes/0021）                                                                                                |
 | `out/p15-barrier-probe.json`                         | 77 KiB   | `8bf2dd8f…3544ca`    | 探索层：开放体制壁垒扫描（cushion 90/180/365、cross120）× 4 IC × 10 seeds = 160 run；仅 cushion365 在 3650 出现 >2× 噪声的 IC 分离                                                                               | **探索证据**（changes/0022）                                                                                                |
 | `out/p15-cushion365-probe.json`                      | 39 KiB   | `427d729c…1baa10`    | 探索层：cushion365 × 4 IC × 10 seeds × 3650/7300 = 80 run；3650 的 IC 分离在 7300 大多收敛，仅 top 保持独立；高壁垒是慢混合而非稳定多吸引域                                                                      | **探索证据**（changes/0022）                                                                                                |
+| `out/p15-a-ic30-probe.json`                          | 55 KiB   | `dde1fad0…deb28d`    | 探索层：A-share1 × 4 IC × 30 seeds = 120 run；k=2 ARI 0.942/0.869（底重 vs 中上），k=3 ARI 0.676/0.610 不成立，k=4 0.991/0.962 仅细分两族                                                                        | **探索证据**（changes/0023）                                                                                                |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
@@ -85,6 +86,7 @@ bc9f1f282ee4e71b9e6f00051e9408f600f5612ddc02734e075f004048eeabaa  out/p15-feedba
 7ae91bd8fd07fab85ff6f8f81e87a1b0f8a8ed4ac4b6addf700e59dbd212b2be  out/p15-multibasin-congestion-probe.json
 8bf2dd8f6399673a3f73006328a85976d0586ba563ff36e0b73c792d6b3544ca  out/p15-barrier-probe.json
 427d729c444f71b62b4859602cc6f87b5f47835af36556b8e37a8e125f1baa10  out/p15-cushion365-probe.json
+dde1fad0a4b682fc9349b41eb718b1cf6d0231bbd44059d10e677f2598deb28d  out/p15-a-ic30-probe.json
 ```
 
 校验方式：`sha256sum out/*.json`。
