@@ -91,10 +91,25 @@ W4 确认轮得到 A（share=1 闭合位移）vs B∪C（share=0.5 开放准入 
    “涌现”体现在集体组成阈值（底层抽空）产生了吸收态，但触发来自参数路径，
    不是自发对称破缺。**不宣布已确认分岔**。
 
+### 4.1 机制消融与恢复（probe，3 seeds，w_mid=25，ic-middle）
+
+| 条件                        | lockedFraction | mUp 均值 | 末态形态                           |
+| --------------------------- | -------------- | -------- | ---------------------------------- |
+| `share=0.5` 预热 → mid      | 1.000（3/3）   | 2.7      | 底层空，class2–4 随 seed 重分配    |
+| `share=1` 预热 → mid        | 0（0/3）       | 37.7     | class1≈0.41–0.45，保留底层         |
+| 锁定后 `w=0` 恢复 1825 tick | 1.000（3/3）   | 44.7     | 底层仍空；上层继续向 class3/4 重组 |
+
+- 开放准入预热是锁定的必要条件：`share=1` 的 1:1 位移不抽空底层，随后切到
+  `share=0.5` 也不锁定。
+- 去掉占用锚定不能让底层恢复：没有 class0/1 个体可供上升；恢复期的 mUp 来自
+  上层内部流动。“锁定”是**底层组成吸收边界**，不是全局冻结；上层仍继续重组，
+  且末态高度依赖 seed。
+
 ## 5. 限制
 
 - 只测 `share=0.5`、`w_mid=20/25/30`、w 两相极端 0/100；未扫 share、w 连续阈值。
-- 只有 3 个阶级分布 IC，未做财富/网络/寿命维度的状态扰动。
+- 只有 3 个阶级分布 IC，未做财富/网络/寿命维度的状态扰动；机制探针只有 3 seeds、
+  单一 `w_mid=25`，恢复实验只试了 `w=0`。
 - 只用 `mock-weighted-v1`；Jev live/random 策略可能改变流动性，结论不可直接外推。
 - 有限视野（5475 tick）；锁定是否为真正吸收态需要更长跑或政策干预实验。
 - 探索层无预注册、无 G1.5/P6 判定效力；种子与确认轮隔离。
@@ -118,5 +133,6 @@ W4 确认轮得到 A（share=1 闭合位移）vs B∪C（share=0.5 开放准入 
 - `out/p15-bifurcation-explore-default.json`（90 run，6 seeds）
 - `out/p15-bifurcation-explore-bottom.json`（90 run，6 seeds）
 - `out/p15-bifurcation-long-middle.json`（45 run，3 seeds，后段 3650 tick）
+- `out/p15-bifurcation-probe.json`（15 run，3 seeds；share 消融 + 锁定后恢复）
 - 脚本 `scripts/p15-bifurcation-explore.mjs`；`runSingle` 的 `initialState`
   （续跑/多阶段路径）见 changes/0016。

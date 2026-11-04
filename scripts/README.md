@@ -24,4 +24,5 @@
 | `p15-mean-field.mjs`                  | 均值场方向分析                                               |
 | `p15-feedback-explore.mjs`            | 反馈轴 / 位移份额 / 占用锚定的探索层网格（非确认证据）       |
 | `p15-bifurcation-explore.mjs`         | 参数路径迟滞/底层锁定探索（up/down/control；非确认证据）     |
+| `p15-bifurcation-probe.mjs`           | 分叉机制探针：share 消融与锁定后恢复（非确认证据）           |
 | `benchmark.mjs`                       | 性能基准                                                     |

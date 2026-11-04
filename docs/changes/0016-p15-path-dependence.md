@@ -20,6 +20,10 @@
    31.2–53.0，`control` 为 50.8–109.8；后段延长到 3650 tick 后差异仍持续。
    机制是**底层抽空形成的吸收边界 + 高壁垒后的流动性疤痕**，判为路径依赖锁定/
    单向棘轮候选，**不是已确认的对称双稳态分岔**。
+4. **机制探针**（`scripts/p15-bifurcation-probe.mjs`，3 seeds，w_mid=25）：
+   `share=0.5` 预热锁定 3/3，`share=1` 预热 0/3（开放准入是锁定必要条件）；
+   锁定后 `w=0` 仍 3/3 底层为空，mUp 44.7 来自上层重组——说明是**组成吸收边界**，
+   不是全局冻结。
 
 ## 2. 版本轴与兼容性
 
@@ -52,4 +56,5 @@
 - `out/p15-bifurcation-explore-default.json`（90 run）
 - `out/p15-bifurcation-explore-bottom.json`（90 run）
 - `out/p15-bifurcation-long-middle.json`（45 run，后段 3650 tick）
+- `out/p15-bifurcation-probe.json`（15 run；share 消融 + 锁定后恢复）
 - 研究记录：`docs/research/2026-11-04-p15-emergent-bifurcation-explore.md`
