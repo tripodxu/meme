@@ -9,7 +9,8 @@
 > 但 **B/C 的方向含义完全改变**：mock 下 B/C 是底轻/中产（P0≈0–0.15、mUp≈0.12–0.18），
 > random 下 B/C 是底重/高流动（P0≈0.61–0.68、mUp≈0.86–0.91）。因此：
 > **聚类结构对该策略替换稳健，方向预测不稳健**；不得把「开放准入 + 锚定 → 底轻/中产」
-> 表述为策略无关的机制结论。
+> 表述为策略无关的机制结论。后续 descend 门控消融（`unconditional-descend`，60 run）
+> 复现同一模式，把原因定位到 mock 的 `belowNeedStreak>=7` 门控，而非一般随机性。
 
 ## 1. 设计
 
@@ -66,6 +67,27 @@
 c1 = B/C 的全部 100 点。**聚类分裂保留，方向预测失败**；脚本判定为
 `G1.5 未通过：方向预测不满足`。
 
+### 2.4 descend 门控消融（unconditional-descend，n=10）
+
+只去掉 mock 的 `belowNeedStreak>=7` 门控（descend 恒有正权重），保留 mock 的
+`mock_action` 随机地址与其它权重：
+
+| cell     | P0    | P1    | P2    | P3    | P4    | mUp   | mDown |
+| -------- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| A-share1 | 0.965 | 0.032 | 0.003 | 0.000 | 0.000 | 0.905 | 0.905 |
+| B-w10    | 0.691 | 0.267 | 0.040 | 0.002 | 0.000 | 0.978 | 0.977 |
+| B-w15    | 0.702 | 0.258 | 0.037 | 0.003 | 0.000 | 0.964 | 0.964 |
+| C-w60    | 0.717 | 0.243 | 0.038 | 0.002 | 0.000 | 0.978 | 0.977 |
+| C-w80    | 0.723 | 0.235 | 0.040 | 0.001 | 0.000 | 0.974 | 0.974 |
+| C-w100   | 0.727 | 0.233 | 0.039 | 0.001 | 0.000 | 0.974 | 0.973 |
+
+- 与 random **同向**：B/C 变为底重/高流动（P0 0.691–0.727、mUp 0.964–0.978，
+  P3/P4 ≤0.003），方向预测失败（最差 P0 0.727、最差 mUp 0.978）。
+- 聚类仍为 k=2、轮廓 0.560、ARI 1.000、temporal 1.000，簇组成仍
+  c0=A（20 点）/ c1=B/C（100 点）；A P0=0.965。
+- 与 random 的差别是 mUp 更高（mock 的 ascend 权重仍在），但
+  「底层抽空/上层消失」的结论一致。
+
 ## 3. 解释
 
 - **结构层**：A vs B∪C 的分裂由 `displacementShare=1` vs `0.5` 驱动，在两种策略下
@@ -74,6 +96,9 @@ c1 = B/C 的全部 100 点。**聚类分裂保留，方向预测失败**；脚�
   中上层并压低流动；random 的无条件下降与均匀上升把社会留在底层并保持近最大流动。
   `scarcityWeight` 在 random 下几乎不起作用——高流动不断把个体送回底层，锚定
   无法积累成阶级结构。
+- **原因定位**：`unconditional-descend` 消融只去掉 `belowNeedStreak>=7` 门控、
+  保留 mock 的随机流与其它权重，结果与 random 同向。因此方向失败由**下降门控**
+  驱动，不是 random 的均匀抽样本身；这与 changes/0017 的 5-seed 路径实验一致。
 - **G1.5 的范围**：W4 的通过是「预注册 mock 策略 + 该格点」下的通过；本探索表明
   聚类子项对 random 替换稳健，但**方向子项不稳健**。因此不能把 B/C 的
   「底轻/中产」写成规则层、策略无关的涌现结论；Jev 策略必须单独预注册与报告。
@@ -83,13 +108,13 @@ c1 = B/C 的全部 100 点。**聚类分裂保留，方向预测失败**；脚�
 
 ## 4. 限制
 
-- `random-uniform-v1` 是粗基线，不是 Jev；10 seeds/cell，非 30，未做 ARI 的
-  30-seed 复算；60 run 的结论只作探索。
+- 已补 `unconditional-descend` 消融，但仍未测 Jev；10 seeds/cell，非 30，未做
+  ARI 的 30-seed 复算；60 run 的结论只作探索。
 - 产物携带 W4 的 `preregistrationHash`（设计未变），但策略被覆盖；已用
   `exploratoryPolicySensitivity=true` 与 `policy.executed` 标记，不得引用为
   G1.5 确认证据。
-- 未测试「无条件 descend + mock 其它权重」的中间策略，无法区分随机性本身与
-  下降条件各自的贡献；该区分由 changes/0017 的 descend 探针部分回答。
+- 无条件下降与 random 的 mUp 水平仍不同（约 0.96–0.98 vs 0.86–0.91），说明除
+  门控外还有策略差异；但两者对 B/C 方向预测的否定一致。未做更细的权重扫描。
 - 未改变 P6-05（≥3 类）状态；未做 Jev。
 
 ## 5. 产物与重跑
@@ -97,8 +122,12 @@ c1 = B/C 的全部 100 点。**聚类分裂保留，方向预测失败**；脚�
 ```bash
 pnpm build
 node scripts/p15-grid.mjs --manifest v10 --stage full --policy random-uniform-v1 --seeds 10
+node scripts/p15-grid.mjs --manifest v10 --stage full --policy unconditional-descend --seeds 10
 ```
 
 - `out/p15-v10-policy-random-full.json`（60 run，302,989 B，
   sha256 `a10dff5b…21b6de`；`exploratoryPolicySensitivity=true`）
-- 预检 `out/p15-v10-policy-random-screen.json`（6 run × 400 tick，未入库）
+- `out/p15-v10-policy-unconditional-descend-full.json`（60 run，300,763 B，
+  sha256 `e386bcaa…f9908e`；`exploratoryPolicySensitivity=true`）
+- 预检 `out/p15-v10-policy-{random,unconditional-descend}-screen.json`
+  （各 6 run × 400 tick，未入库）

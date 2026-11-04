@@ -20,6 +20,12 @@ import {
 } from '../dist/core/../runner/preregistration.js';
 import { runSingle } from '../dist/runner/run-cell.js';
 import { asSeed } from '../dist/core/control/ids.js';
+import { MOCK_WEIGHTED_V1_CONSTANTS } from '../dist/decision/mock.js';
+import { DECISION_SCHEMA_VERSION } from '../dist/core/control/versions.js';
+import { rngUnit } from '../dist/core/rng/rng.js';
+import { RNG_EVENT_TAGS } from '../dist/core/rng/tags.js';
+import { weightedSampleIndex } from '../dist/core/rng/sampling.js';
+import { agentIndexFromId } from '../dist/core/model/agent.js';
 import { featureVector, meetsInitialDifference } from '../dist/runner/distance.js';
 import {
   fitStandardizer,
@@ -37,8 +43,14 @@ const manifestKind = args.includes('--manifest') ? args[args.indexOf('--manifest
 // 策略敏感性（探索层）：仅允许对 v10 manifest 覆盖策略，产物标记 exploratory，
 // 不得当作 G1.5 确认证据。`--seeds` 用于限制探索规模。
 const policy = args.includes('--policy') ? args[args.indexOf('--policy') + 1] : 'mock-weighted-v1';
-if (policy !== 'mock-weighted-v1' && policy !== 'random-uniform-v1') {
-  throw new Error(`未知 policy=${policy}（仅 mock-weighted-v1/random-uniform-v1）`);
+if (
+  policy !== 'mock-weighted-v1' &&
+  policy !== 'random-uniform-v1' &&
+  policy !== 'unconditional-descend'
+) {
+  throw new Error(
+    `未知 policy=${policy}（仅 mock-weighted-v1/random-uniform-v1/unconditional-descend）`,
+  );
 }
 if (policy !== 'mock-weighted-v1' && manifestKind !== 'v10') {
   throw new Error('策略覆盖仅允许 --manifest v10（探索层策略敏感性）');
@@ -51,6 +63,77 @@ if (seedLimit !== null && (!Number.isInteger(seedLimit) || seedLimit < 1)) {
 function log(message) {
   process.stderr.write(`[p15] ${message}\n`);
 }
+
+/**
+ * 探索层消融策略：与 `mock-weighted-v1` 完全相同，唯一差异是去掉 descend 的
+ * `belowNeedStreak>=7` 门控（只要 descend 合法即给正权重）。随机地址仍用
+ * `mock_action`，因此与 mock 的对比只改变触发条件，不改变随机流。
+ */
+class UnconditionalDescendPolicy {
+  constructor() {
+    this.policyVersion = 'explore-mock-unconditional-descend-v1';
+  }
+
+  decide(input) {
+    const agent = input.simState.society.agents[agentIndexFromId(input.agentId)];
+    if (agent === undefined || agent.id !== input.agentId || !agent.alive) {
+      throw new Error(`决策个体不存在或已死亡: ${input.agentId}`);
+    }
+    const constants = MOCK_WEIGHTED_V1_CONSTANTS;
+    const weights = input.legal.actions.map((action) => {
+      if (action === 'accumulate') return constants.accumulateWeight;
+      if (action === 'ascend') {
+        const cost = input.legal.ascendCost;
+        return cost !== null && agent.value >= constants.ascendAffordabilityFactor * cost
+          ? constants.ascendWeight
+          : 0;
+      }
+      if (action === 'descend') return constants.descendWeight;
+      return constants.competeWeight;
+    });
+    const r = rngUnit(input.seed, input.tick, input.agentId, RNG_EVENT_TAGS.mockAction, 0);
+    const index = weightedSampleIndex(weights, r);
+    const selected = input.legal.actions[index];
+    if (selected === undefined) {
+      throw new Error('加权抽样未产生合法行动');
+    }
+    const total = weights.reduce((sum, weight) => sum + weight, 0);
+    const probabilities = {};
+    input.legal.actions.forEach((action, actionIndex) => {
+      probabilities[action] = (weights[actionIndex] ?? 0) / total;
+    });
+    return {
+      schemaVersion: DECISION_SCHEMA_VERSION,
+      runId: input.runId,
+      tick: input.tick,
+      agentId: input.agentId,
+      stateHash: input.stateHash,
+      actionSetHash: input.actionSetHash,
+      legalActions: [...input.legal.actions],
+      policyVersion: this.policyVersion,
+      promptVersion: null,
+      promptStyle: null,
+      requestedAction: null,
+      selectedAction: selected,
+      source: 'mock',
+      probabilitySource: 'derived',
+      requestedModel: 'mock',
+      responseModel: null,
+      probabilities,
+      confidence: null,
+      topK: 1,
+      usage: {},
+      latencyMs: 0,
+      attempts: 1,
+      fallbackReason: null,
+      rawResponse: null,
+    };
+  }
+}
+
+const policyImpl =
+  policy === 'unconditional-descend' ? new UnconditionalDescendPolicy() : undefined;
+const builtinPolicy = policyImpl === undefined ? policy : 'mock-weighted-v1';
 
 // W0-3 冻结口径（07 §8.1）：20 次确定性洗牌，判定量 = median，必报 min。
 // 洗牌种子是任意但固定的字面量；修改它们＝分析管线变更＝新 experimentId。
@@ -101,7 +184,11 @@ for (const cell of manifest.cells) {
   const seedResults = [];
   for (const seed of seedsForStage) {
     const runStart = performance.now();
-    const outcome = runSingle(config, asSeed(seed), { policy });
+    const outcome = runSingle(
+      config,
+      asSeed(seed),
+      policyImpl === undefined ? { policy: builtinPolicy } : { policy: builtinPolicy, policyImpl },
+    );
     const elapsedMs = Math.round(performance.now() - runStart);
     const w1 = outcome.report.windows.find((window) => window.label === 'w1');
     const w3 = outcome.report.windows.find((window) => window.label === 'w3');
