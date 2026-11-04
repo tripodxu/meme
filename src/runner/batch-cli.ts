@@ -13,9 +13,16 @@ import { runSingle, type RunOptions, type RunWindowReport } from './run-cell.js'
  * - 单实验/矩阵/消融共用同一 manifest 语义（cells × seeds 笛卡尔），校验在 `batch.ts`；
  * - mock/random 批跑不依赖 P2：只走 `runSingle` 同步路径，本模块不 import 决策 HTTP 层；
  * - stdout 与报告分离：本模块只产出数据与进度回调；stdout 输出与报告文件由 CLI 层（`bin/stratify-batch.mjs`）负责；
- * - 断点续跑（G5a）：原子 ledger 逐 run 落盘（writeTemp + rename，复用 `CheckpointHost` 语义）；
- *   kill 后按 `manifestHash` 匹配跳过已完成 run，恢复后的最终摘要与不中断运行的
- *   `finalStateHash/configHash/paramsHash` 逐字一致（确定性引擎保证；耗时与 resumed 计数除外）。
+ * - 断点续跑（G5a）：原子 ledger 逐任务落盘（writeTemp + rename，复用 `CheckpointHost` 语义），
+ *   成功 run 与失败事件都即时持久化；kill 后按 `manifestHash` 匹配跳过已完成 run，
+ *   恢复后的最终摘要与不中断运行的 `finalStateHash/configHash/paramsHash` 逐字一致
+ *   （确定性引擎保证；耗时与 resumed 计数除外）。
+ * - 失败保留（07 §3「技术失败必须保留失败原因和次数」）：`failures` 是跨 resume 累积的
+ *   全部技术失败事件（`attempt` 为该任务第几次失败，含已被后续重试成功者）；
+ *   最终仍未完成的任务数是 `totals.due - totals.ok`，退出码语义以它为准。
+ * - 已知取舍：ledger 是单文件全量重写（每次成功/失败后原子替换），I/O 为 O(N²)；
+ *   在 P6 Stage B 规模（30 run 级）可忽略；更大规模如成为瓶颈再改追加式 journal（P5-02）。
+ * - 单写者假设：同一输出目录不得并发运行两个批跑进程（并发/共享预算属 P5-02）。
  */
 
 export interface BatchRunRecord {
@@ -32,6 +39,8 @@ export interface BatchFailure {
   readonly seed: string;
   readonly code: string;
   readonly error: string;
+  /** 该 (cellKey, seed) 第几次技术失败（跨 resume 累计，从 1 起）。 */
+  readonly attempt: number;
 }
 
 export interface BatchSummary {
@@ -86,6 +95,8 @@ export interface BatchLedger {
   readonly schemaVersion: 'batch-ledger-v1';
   readonly manifestHash: string;
   readonly runs: readonly BatchRunRecord[];
+  /** 跨 resume 累积的技术失败事件（07 §3）；旧版无此字段时按 [] 处理。 */
+  readonly failures: readonly BatchFailure[];
 }
 
 const LEDGER_SCHEMA_VERSION = 'batch-ledger-v1';
@@ -123,6 +134,29 @@ function assertRunRecord(value: unknown, index: number): BatchRunRecord {
   return value as unknown as BatchRunRecord;
 }
 
+function assertFailure(value: unknown, index: number): BatchFailure {
+  if (!isPlainObject(value)) {
+    throw new StratifyError(errorCodes.CONFIG_INVALID, `ledger.failures[${index}] 必须是对象`);
+  }
+  for (const key of ['cellKey', 'seed', 'code', 'error'] as const) {
+    if (typeof value[key] !== 'string' || (value[key] as string).length === 0) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.failures[${index}].${key} 必须为非空字符串`,
+      );
+    }
+  }
+  // 旧版 ledger 无 attempt 字段：按第 1 次失败处理。
+  const attempt = value['attempt'] === undefined ? 1 : value['attempt'];
+  if (typeof attempt !== 'number' || !Number.isInteger(attempt) || attempt < 1) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `ledger.failures[${index}].attempt 必须为正整数`,
+    );
+  }
+  return { ...(value as unknown as Omit<BatchFailure, 'attempt'>), attempt };
+}
+
 function parseLedger(text: string, manifestHash: string): BatchLedger {
   let parsed: unknown;
   try {
@@ -145,10 +179,15 @@ function parseLedger(text: string, manifestHash: string): BatchLedger {
   if (!Array.isArray(parsed['runs'])) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'ledger.runs 必须为数组');
   }
+  const rawFailures = parsed['failures'] === undefined ? [] : parsed['failures'];
+  if (!Array.isArray(rawFailures)) {
+    throw new StratifyError(errorCodes.CONFIG_INVALID, 'ledger.failures 必须为数组');
+  }
   return {
     schemaVersion: LEDGER_SCHEMA_VERSION,
     manifestHash,
     runs: parsed['runs'].map(assertRunRecord),
+    failures: rawFailures.map(assertFailure),
   };
 }
 
@@ -165,10 +204,12 @@ function taskKey(cellKey: string, seed: string): string {
 /**
  * 顺序执行 manifest 的全部任务（cells × seeds）。
  *
- * - 单任务失败记录进 `failures` 并继续后续任务（技术失败不冒充完成，07 §3）；
- *   ledger 只写成功 run，失败任务在 resume 时自动重试；
+ * - 单任务失败记录进 `failures`（跨 resume 累积，含 attempt）并继续后续任务；
+ *   失败任务不进 `runs`，resume 时自动重试（07 §3：保留失败原因和次数）；
  * - `resumed` 计入 ledger 中直接复用的 run 数，其记录逐字保留；
- * - 不抛出任务级错误：批跑的失败通过 `failures` 与 CLI 退出码表达。
+ * - `totals.failed` 是本次调用后仍未完成的任务数（due - ok），
+ *   已被重试成功的历史失败保留在 `failures` 中但不计入 failed；
+ * - 不抛出任务级错误：批跑的失败通过 `failures`/`totals.failed` 与 CLI 退出码表达。
  */
 export async function runBatch(
   manifest: BatchManifest,
@@ -179,6 +220,7 @@ export async function runBatch(
 
   const ledgerOptions = options.ledger;
   const completed = new Map<string, BatchRunRecord>();
+  let ledgerFailures: BatchFailure[] = [];
   if (ledgerOptions !== undefined) {
     const host = ledgerOptions.host;
     if (await host.exists(ledgerOptions.path)) {
@@ -186,12 +228,33 @@ export async function runBatch(
       for (const record of ledger.runs) {
         completed.set(taskKey(record.cellKey, record.seed), record);
       }
+      ledgerFailures = [...ledger.failures];
     }
   }
 
+  const attemptCounts = new Map<string, number>();
+  for (const failure of ledgerFailures) {
+    const key = taskKey(failure.cellKey, failure.seed);
+    attemptCounts.set(key, Math.max(attemptCounts.get(key) ?? 0, failure.attempt));
+  }
+
   const runs: BatchRunRecord[] = [];
-  const failures: BatchFailure[] = [];
+  const failures: BatchFailure[] = [...ledgerFailures];
   let resumed = 0;
+
+  // 成功与失败都即时原子落盘：kill 在任意点都留下至多缺最后一个事件的完整 ledger。
+  const persistLedger = async (): Promise<void> => {
+    if (ledgerOptions === undefined) {
+      return;
+    }
+    const ledger: BatchLedger = {
+      schemaVersion: LEDGER_SCHEMA_VERSION,
+      manifestHash,
+      runs: [...runs],
+      failures: [...failures],
+    };
+    await writeLedger(ledgerOptions.host, ledgerOptions.path, ledger);
+  };
 
   for (const [index, task] of tasks.entries()) {
     const key = taskKey(task.cellKey, task.seed);
@@ -232,7 +295,10 @@ export async function runBatch(
     } catch (error) {
       const code = error instanceof StratifyError ? error.code : errorCodes.INVARIANT_VIOLATED;
       const message = error instanceof Error ? error.message : String(error);
-      failures.push({ cellKey: task.cellKey, seed: task.seed, code, error: message });
+      const attempt = (attemptCounts.get(key) ?? 0) + 1;
+      attemptCounts.set(key, attempt);
+      failures.push({ cellKey: task.cellKey, seed: task.seed, code, error: message, attempt });
+      await persistLedger();
       options.onProgress?.({
         cellKey: task.cellKey,
         seed: task.seed,
@@ -246,15 +312,7 @@ export async function runBatch(
     }
 
     runs.push(record);
-    if (ledgerOptions !== undefined) {
-      const ledger: BatchLedger = {
-        schemaVersion: LEDGER_SCHEMA_VERSION,
-        manifestHash,
-        runs: [...runs],
-      };
-      // 逐 run 原子落盘：kill 在任意点都会留下至多缺最后一个 run 的完整 ledger。
-      await writeLedger(ledgerOptions.host, ledgerOptions.path, ledger);
-    }
+    await persistLedger();
     options.onProgress?.({
       cellKey: task.cellKey,
       seed: task.seed,
@@ -281,7 +339,7 @@ export async function runBatch(
     totals: {
       due: tasks.length,
       ok: runs.length,
-      failed: failures.length,
+      failed: tasks.length - runs.length,
       resumed,
       elapsedMs: totalElapsedMs,
     },

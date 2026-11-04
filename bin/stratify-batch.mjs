@@ -9,17 +9,18 @@
  * - 单实验/矩阵/消融共用同一 batch manifest 语义（cells × seeds 笛卡尔）；
  * - stdout 与报告分离：stdout 只输出 batch-summary-v1 纯 JSON（可管道），
  *   进度日志走 stderr；报告文件落 `<out>/batch-summary.json`，
- *   审计用已校验 manifest 落 `<out>/batch-manifest.json`；
+ *   审计用已校验 manifest 落 `<out>/batch-manifest.json`（均原子写，kill 不留半截 JSON）；
  * - mock/random 批跑不依赖 P2：不读密钥、不发网络请求；
- * - 断点续跑（G5a）：ledger 固定写 `<out>/batch-ledger.json`，逐 run 原子落盘；
+ * - 断点续跑（G5a）：ledger 固定写 `<out>/batch-ledger.json`，逐任务原子落盘；
  *   `--resume` 从 ledger 跳过已完成 run；不带 `--resume` 且 ledger 已存在时拒绝启动，
- *   防止静默覆盖既有证据。
+ *   防止静默覆盖既有证据；技术失败跨 resume 保留（07 §3）。
+ * - 单写者：同一输出目录不得并发运行两个批跑进程（并发/共享预算属 P5-02）。
  *
- * 退出码：0 全部成功；1 批跑完成但有失败（failures 非空）；2 用法/配置错误。
+ * 退出码：0 全部任务完成（历史失败可保留在 failures）；1 仍有任务未完成；2 用法/配置错误。
  *
  * 依赖 `dist/`（先 `pnpm build`）。
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -50,7 +51,7 @@ function printHelp() {
       '  --help           显示本帮助',
       '',
       'stdout：batch-summary-v1 纯 JSON；进度走 stderr。',
-      '退出码：0 全部成功；1 有失败（failures 非空）；2 用法/配置错误。',
+      '退出码：0 全部任务完成；1 仍有任务未完成；2 用法/配置错误。',
       '',
       'manifest 示例：',
       '  {',
@@ -138,14 +139,14 @@ try {
   }
 
   // 审计：记录本次实际消费的（已校验）manifest，可复算 manifestHash。
-  writeFileSync(
-    join(outDir, 'batch-manifest.json'),
-    `${JSON.stringify(manifest, null, 2)}\n`,
-    'utf8',
-  );
+  // 报告/审计文件与 ledger 一样走临时文件+rename 原子替换，kill 不留半截 JSON。
+  const host = nodeCheckpointHost();
+  const manifestOutPath = join(outDir, 'batch-manifest.json');
+  await host.writeTemp(`${manifestOutPath}.tmp`, `${JSON.stringify(manifest, null, 2)}\n`);
+  await host.promote(`${manifestOutPath}.tmp`, manifestOutPath);
 
   const summary = await runBatch(manifest, {
-    ledger: { host: nodeCheckpointHost(), path: ledgerPath },
+    ledger: { host, path: ledgerPath },
     onProgress: (progress) => {
       const status = progress.resumed ? 'resumed' : progress.ok ? 'ok' : 'FAILED';
       log(
@@ -157,7 +158,8 @@ try {
 
   const summaryPath = join(outDir, 'batch-summary.json');
   const summaryText = `${JSON.stringify(summary, null, 2)}\n`;
-  writeFileSync(summaryPath, summaryText, 'utf8');
+  await host.writeTemp(`${summaryPath}.tmp`, summaryText);
+  await host.promote(`${summaryPath}.tmp`, summaryPath);
 
   // stdout 只输出摘要 JSON（报告分离：报告文件已落盘）。
   process.stdout.write(summaryText);
@@ -165,7 +167,8 @@ try {
   log(
     `完成 ${summary.totals.ok}/${summary.totals.due}（resumed ${summary.totals.resumed}，failed ${summary.totals.failed}）；报告 ${summaryPath}`,
   );
-  process.exit(summary.totals.failed > 0 ? 1 : 0);
+  // 退出码按「本次调用后仍未完成的任务数」：历史失败已被重试成功时不阻断（07 §3 保留记录）。
+  process.exit(summary.totals.due - summary.totals.ok > 0 ? 1 : 0);
 } catch (error) {
   log(`批跑中止：${error instanceof Error ? error.message : String(error)}`);
   process.exit(2);

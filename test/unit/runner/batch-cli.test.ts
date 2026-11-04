@@ -161,12 +161,16 @@ describe('批量 ledger 断点续跑（G5a）', () => {
       ledger: { host, path: ledgerPath },
       runSingleImpl: killAfterFirst,
     });
-    expect(interrupted.totals.ok).toBe(2);
+    expect(interrupted.totals).toMatchObject({ due: 4, ok: 2, failed: 2 });
+    // 07 §3：失败原因和次数保留在 ledger。
+    expect(interrupted.failures).toHaveLength(2);
+    expect(interrupted.failures.every((failure) => failure.attempt === 1)).toBe(true);
     expect(host.files.get(ledgerPath)).toBeDefined();
     const storedLedger = JSON.parse(host.files.get(ledgerPath) as string) as BatchLedger;
     expect(storedLedger.schemaVersion).toBe('batch-ledger-v1');
     expect(storedLedger.manifestHash).toBe(manifestHash);
     expect(storedLedger.runs).toHaveLength(2);
+    expect(storedLedger.failures).toHaveLength(2);
 
     // 第二段：恢复，重试失败任务并复用已完成任务。
     const resumedProgress: string[] = [];
@@ -176,7 +180,7 @@ describe('批量 ledger 断点续跑（G5a）', () => {
     });
     expect(resumed.totals).toMatchObject({ due: 4, ok: 4, failed: 0, resumed: 2 });
     expect(resumed.manifestHash).toBe(manifestHash);
-    // ledger 只存成功 run（按完成顺序）：baseline:s1 与 threshold=0.9:s1 被复用，
+    // ledger 按完成顺序存成功 run：baseline:s1 与 threshold=0.9:s1 被复用，
     // 两个 s2 失败任务被重试执行。
     expect(resumedProgress).toEqual([
       'baseline:s1:true',
@@ -184,6 +188,9 @@ describe('批量 ledger 断点续跑（G5a）', () => {
       'threshold=0.9:s1:true',
       'threshold=0.9:s2:false',
     ]);
+    // 历史失败保留但不计入 failed（07 §3）。
+    expect(resumed.failures).toHaveLength(2);
+    expect(resumed.failures.every((failure) => failure.attempt === 1)).toBe(true);
 
     // 对照：无 ledger 的一次性完整运行。
     const control = await runBatch(manifest);
@@ -199,7 +206,70 @@ describe('批量 ledger 断点续跑（G5a）', () => {
     expect(summary.totals.resumed).toBe(0);
     const stored = JSON.parse(host.files.get('ledger.json') as string) as BatchLedger;
     expect(stored.runs).toHaveLength(4);
+    expect(stored.failures).toHaveLength(0);
     expect(stored.manifestHash).toBe(computeBatchManifestHash(manifest));
+  });
+
+  it('同一任务多次失败 attempt 递增，重试成功后历史保留且 failed=0', async () => {
+    const manifest = validateBatchManifest({
+      ...manifestRecord(),
+      seeds: ['s1'],
+      cells: [{ cellKey: 'baseline', overrides: {} }],
+    });
+    const host = memoryCheckpointHost();
+    const ledgerPath = 'ledger.json';
+    let call = 0;
+    const failTwice = (
+      config: Parameters<typeof runSingle>[0],
+      seed: Parameters<typeof runSingle>[1],
+      options: RunOptions,
+    ): RunOutcome => {
+      call += 1;
+      if (call <= 2) {
+        throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `fail #${call}`);
+      }
+      return runSingle(config, seed, options);
+    };
+    const first = await runBatch(manifest, {
+      ledger: { host, path: ledgerPath },
+      runSingleImpl: failTwice,
+    });
+    expect(first.totals).toMatchObject({ due: 1, ok: 0, failed: 1 });
+    expect(first.failures).toHaveLength(1);
+    expect(first.failures[0]).toMatchObject({ attempt: 1, error: 'fail #1' });
+
+    const second = await runBatch(manifest, {
+      ledger: { host, path: ledgerPath },
+      runSingleImpl: failTwice,
+    });
+    expect(second.totals).toMatchObject({ due: 1, ok: 0, failed: 1 });
+    expect(second.failures).toHaveLength(2);
+    expect(second.failures[1]).toMatchObject({ attempt: 2, error: 'fail #2' });
+
+    const third = await runBatch(manifest, {
+      ledger: { host, path: ledgerPath },
+      runSingleImpl: failTwice,
+    });
+    expect(third.totals).toMatchObject({ due: 1, ok: 1, failed: 0 });
+    // 两次失败都保留（07 §3）；任务最终完成，退出码判据 due-ok=0。
+    expect(third.failures).toHaveLength(2);
+    expect(third.failures.map((failure) => failure.attempt)).toEqual([1, 2]);
+  });
+
+  it('旧版 ledger 无 failures 字段时按空处理', async () => {
+    const manifest = smallManifest();
+    const host = memoryCheckpointHost();
+    host.files.set(
+      'ledger.json',
+      JSON.stringify({
+        schemaVersion: 'batch-ledger-v1',
+        manifestHash: computeBatchManifestHash(manifest),
+        runs: [],
+      }),
+    );
+    const summary = await runBatch(manifest, { ledger: { host, path: 'ledger.json' } });
+    expect(summary.totals.ok).toBe(4);
+    expect(summary.failures).toHaveLength(0);
   });
 
   it('损坏的 ledger 拒绝恢复，不得静默覆盖', async () => {
