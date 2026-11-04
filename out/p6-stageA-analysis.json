@@ -1,0 +1,845 @@
+{
+  "schemaVersion": "p6-stageA-analysis-v1",
+  "isExperimentalEvidence": true,
+  "stageClaim": "Stage A 筛选（方向/效应量）；不构成结构结论或校准（AGENTS #9）",
+  "thresholds": {
+    "gini": 0.03,
+    "tv": 0.1,
+    "mUp": 0.05,
+    "segregation": 0.05,
+    "openness": 0.05
+  },
+  "populations": [
+    {
+      "populationSize": 40,
+      "preregistrationHash": "sha256:b9cd2fd95a9d5b8e5c7e9464258bc7c6de6f503159e5552b30b9250526313705",
+      "batchManifestHash": "sha256:7c082b9e14fa15e8d5f538e53c9e51f6f8aa1496f1c93ef44e6498dfab08b055",
+      "runs": {
+        "due": 420,
+        "ok": 420,
+        "failed": 0,
+        "resumed": 0,
+        "elapsedMs": 165104.2531999999
+      },
+      "extinctCount": 0,
+      "baselineRuns": 30,
+      "baselineD95": 0.13788020894654981,
+      "cells": [
+        {
+          "cellKey": "psi=1",
+          "paired": 30,
+          "medians": {
+            "tv": 0.08382308047052048,
+            "gini": 0.027596320370845723,
+            "mUp": 0.10713031260976774,
+            "mDown": 0.11523182297155177,
+            "segregation": -0.010244563016152449,
+            "openness": 0.04553790437358185
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.9,
+            "mUp": 0.9333333333333333,
+            "mDown": 0.9,
+            "segregation": 0.6,
+            "openness": 0.7666666666666667
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.06778524380415932
+        },
+        {
+          "cellKey": "needMult=flat",
+          "paired": 30,
+          "medians": {
+            "tv": 0.06835480036633468,
+            "gini": 0.025008331025654945,
+            "mUp": -0.045719178082196776,
+            "mDown": -0.06655178943570883,
+            "segregation": 0.023743111268211235,
+            "openness": -0.05164427634361346
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.8666666666666667,
+            "mUp": 0.7333333333333333,
+            "mDown": 0.8333333333333334,
+            "segregation": 0.7,
+            "openness": 0.8333333333333334
+          },
+          "thresholdHit": true,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.0525799006230949
+        },
+        {
+          "cellKey": "needMult=steep",
+          "paired": 30,
+          "medians": {
+            "tv": 0.04419301018615919,
+            "gini": -0.012558222043472345,
+            "mUp": 0.03208243210766809,
+            "mDown": 0.029742711626272456,
+            "segregation": -0.010160286105522713,
+            "openness": 0.01481916075292461
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.5666666666666667,
+            "mUp": 0.7,
+            "mDown": 0.6666666666666666,
+            "segregation": 0.6666666666666666,
+            "openness": 0.7333333333333333
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.03460029178294437
+        },
+        {
+          "cellKey": "needMult=steeper",
+          "paired": 30,
+          "medians": {
+            "tv": 0.04825162220619828,
+            "gini": -0.0065958521775496826,
+            "mUp": -0.0462074575268514,
+            "mDown": -0.05037802763109134,
+            "segregation": 0.010303122763967911,
+            "openness": -0.023242318842984278
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.6666666666666666,
+            "mUp": 0.7666666666666667,
+            "mDown": 0.7333333333333333,
+            "segregation": 0.5666666666666667,
+            "openness": 0.6666666666666666
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.04206918372965886
+        },
+        {
+          "cellKey": "needThreshold=0.3",
+          "paired": 30,
+          "medians": {
+            "tv": 0.10208141534024961,
+            "gini": 0.007237375718492478,
+            "mUp": 0.01805441554360049,
+            "mDown": 0.01962328767123045,
+            "segregation": 0.004289036013598667,
+            "openness": -0.007325653111160679
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.7,
+            "mUp": 0.6,
+            "mDown": 0.5333333333333333,
+            "segregation": 0.5666666666666667,
+            "openness": 0.5333333333333333
+          },
+          "thresholdHit": true,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.053409278784075365
+        },
+        {
+          "cellKey": "needThreshold=0.7",
+          "paired": 30,
+          "medians": {
+            "tv": 0.08035730131440266,
+            "gini": -0.022050265411397124,
+            "mUp": -0.017066718429369687,
+            "mDown": -0.015750048340167744,
+            "segregation": 0.005146296325828154,
+            "openness": -0.002005697237042414
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.6666666666666666,
+            "mUp": 0.6666666666666666,
+            "mDown": 0.5666666666666667,
+            "segregation": 0.5333333333333333,
+            "openness": 0.5333333333333333
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0.03333333333333333,
+          "dMedian": 0.059441425163658745
+        },
+        {
+          "cellKey": "needThreshold=0.9",
+          "paired": 30,
+          "medians": {
+            "tv": 0.1796909027046012,
+            "gini": -0.0269701148306275,
+            "mUp": -0.09080883848187471,
+            "mDown": -0.07326012607916044,
+            "segregation": 0.02182723862799426,
+            "openness": -0.047955340393515816
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.8,
+            "mUp": 0.8666666666666667,
+            "mDown": 0.7333333333333333,
+            "segregation": 0.6333333333333333,
+            "openness": 0.7
+          },
+          "thresholdHit": true,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0.1,
+          "dMedian": 0.09469675008997133
+        },
+        {
+          "cellKey": "env0=compressed",
+          "paired": 30,
+          "medians": {
+            "tv": 0.057332279592553305,
+            "gini": -0.05214863071251516,
+            "mUp": 0.14985418630876501,
+            "mDown": 0.1413806777217032,
+            "segregation": -0.03821309965891698,
+            "openness": 0.1054415252095176
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.9666666666666667,
+            "mUp": 1,
+            "mDown": 0.9666666666666667,
+            "segregation": 0.7,
+            "openness": 1
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0.1,
+          "dMedian": 0.07356331511708859
+        },
+        {
+          "cellKey": "env0=expanded",
+          "paired": 30,
+          "medians": {
+            "tv": 0.07660432033719516,
+            "gini": 0.01846191135721298,
+            "mUp": -0.3647898064444571,
+            "mDown": -0.3427560455192033,
+            "segregation": 0.09557137010231392,
+            "openness": -0.33237396299131117
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.7666666666666667,
+            "mUp": 1,
+            "mDown": 1,
+            "segregation": 1,
+            "openness": 1
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0.5666666666666667,
+          "dMedian": 0.14376079950215193
+        },
+        {
+          "cellKey": "crossDays=half",
+          "paired": 30,
+          "medians": {
+            "tv": 0.0124209694415174,
+            "gini": 0.0036623763998173686,
+            "mUp": 0.08013730981827705,
+            "mDown": 0.07080417059508459,
+            "segregation": -0.01080586173411797,
+            "openness": 0.03295372451335349
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.5333333333333333,
+            "mUp": 0.9,
+            "mDown": 0.8333333333333334,
+            "segregation": 0.6333333333333333,
+            "openness": 0.7666666666666667
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.037468890958130746
+        },
+        {
+          "cellKey": "crossDays=double",
+          "paired": 30,
+          "medians": {
+            "tv": 0.012285046124267186,
+            "gini": -0.0017052055712955816,
+            "mUp": -0.18737544599116623,
+            "mDown": -0.19202207309633296,
+            "segregation": 0.043856766313998916,
+            "openness": -0.14493303570829408
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.5666666666666667,
+            "mUp": 1,
+            "mDown": 1,
+            "segregation": 0.8666666666666667,
+            "openness": 1
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0.1,
+          "dMedian": 0.06921846289997029
+        },
+        {
+          "cellKey": "decay=flat1",
+          "paired": 30,
+          "medians": {
+            "tv": 0.0032525465402174765,
+            "gini": 0,
+            "mUp": 0.00012252047399691213,
+            "mDown": 0,
+            "segregation": 0,
+            "openness": 0
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.23333333333333334,
+            "mUp": 0.5666666666666667,
+            "mDown": 0.23333333333333334,
+            "segregation": 0.23333333333333334,
+            "openness": 0.3
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.008862686224485862
+        },
+        {
+          "cellKey": "decay=steeper",
+          "paired": 30,
+          "medians": {
+            "tv": 0.011974007727431665,
+            "gini": 0,
+            "mUp": 0.0026363967261570642,
+            "mDown": 0.0010069232617894164,
+            "segregation": 0.001793340891554666,
+            "openness": 0
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.1,
+            "mUp": 0.6666666666666666,
+            "mDown": 0.5,
+            "segregation": 0.5333333333333333,
+            "openness": 0.1
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.016636020570055754
+        }
+      ]
+    },
+    {
+      "populationSize": 200,
+      "preregistrationHash": "sha256:366198c53560d904bb4358db02244836d68fab6c60db7638c1ef557078e82518",
+      "batchManifestHash": "sha256:8f334279911514bbdb37d8d39f3f966d8b99cfee7174313b8765f6777fd7d81e",
+      "runs": {
+        "due": 420,
+        "ok": 420,
+        "failed": 0,
+        "resumed": 0,
+        "elapsedMs": 1228892.8474999988
+      },
+      "extinctCount": 0,
+      "baselineRuns": 30,
+      "baselineD95": 0.10393156259362218,
+      "cells": [
+        {
+          "cellKey": "psi=1",
+          "paired": 30,
+          "medians": {
+            "tv": 0.09059907751946736,
+            "gini": 0.019101988564470734,
+            "mUp": 0.13938301744251158,
+            "mDown": 0.1274209969994084,
+            "segregation": -0.012271177859017057,
+            "openness": 0.07828972284169838
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.7666666666666667,
+            "mUp": 1,
+            "mDown": 1,
+            "segregation": 0.7333333333333333,
+            "openness": 0.9666666666666667
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.06936115779855126
+        },
+        {
+          "cellKey": "needMult=flat",
+          "paired": 30,
+          "medians": {
+            "tv": 0.06357401786472995,
+            "gini": 0.008353504317682142,
+            "mUp": -0.047647460666641495,
+            "mDown": -0.053807563698715366,
+            "segregation": 0.03340616383962948,
+            "openness": -0.06821013872947823
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.6666666666666666,
+            "mUp": 0.8,
+            "mDown": 0.8666666666666667,
+            "segregation": 0.8,
+            "openness": 0.8
+          },
+          "thresholdHit": true,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.03798754806810957
+        },
+        {
+          "cellKey": "needMult=steep",
+          "paired": 30,
+          "medians": {
+            "tv": 0.019338200025029045,
+            "gini": 0.0009960389984081108,
+            "mUp": 0.05810913827370212,
+            "mDown": 0.045036437008326546,
+            "segregation": -0.008800521697841346,
+            "openness": 0.04247531424826134
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.5666666666666667,
+            "mUp": 0.9,
+            "mDown": 0.9333333333333333,
+            "segregation": 0.5666666666666667,
+            "openness": 0.8333333333333334
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.02646587703641219
+        },
+        {
+          "cellKey": "needMult=steeper",
+          "paired": 30,
+          "medians": {
+            "tv": 0.025562962803668585,
+            "gini": -0.004099755769140012,
+            "mUp": -0.035655434812739306,
+            "mDown": -0.03575334857137996,
+            "segregation": 0.0071675960927652105,
+            "openness": -0.026690362691125874
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.6666666666666666,
+            "mUp": 0.8,
+            "mDown": 0.7666666666666667,
+            "segregation": 0.6,
+            "openness": 0.6333333333333333
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.02355377579820738
+        },
+        {
+          "cellKey": "needThreshold=0.3",
+          "paired": 30,
+          "medians": {
+            "tv": 0.08386537781836603,
+            "gini": 0.008015783998174986,
+            "mUp": 0.048139695798402216,
+            "mDown": 0.04789599634176206,
+            "segregation": 0.009134012345581172,
+            "openness": 0.028090941443146278
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.6333333333333333,
+            "mUp": 0.9333333333333333,
+            "mDown": 0.9,
+            "segregation": 0.6333333333333333,
+            "openness": 0.7
+          },
+          "thresholdHit": false,
+          "directionOk": true,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.04253049579592779
+        },
+        {
+          "cellKey": "needThreshold=0.7",
+          "paired": 30,
+          "medians": {
+            "tv": 0.08376775810285504,
+            "gini": -0.02006215652382412,
+            "mUp": -0.03298047127809006,
+            "mDown": -0.028866314506937885,
+            "segregation": -0.0033315966897958793,
+            "openness": 0.0017369723046751218
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.9666666666666667,
+            "mUp": 0.7666666666666667,
+            "mDown": 0.7333333333333333,
+            "segregation": 0.5666666666666667,
+            "openness": 0.5
+          },
+          "thresholdHit": false,
+          "directionOk": true,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.04154370197833243
+        },
+        {
+          "cellKey": "needThreshold=0.9",
+          "paired": 30,
+          "medians": {
+            "tv": 0.1682790507942177,
+            "gini": -0.03898000557887324,
+            "mUp": -0.08647562337544296,
+            "mDown": -0.07485724920764891,
+            "segregation": -0.000011320528550143316,
+            "openness": -0.014919755977167548
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 1,
+            "mUp": 1,
+            "mDown": 0.9333333333333333,
+            "segregation": 0.5,
+            "openness": 0.7666666666666667
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0.1,
+          "dMedian": 0.0726178138442099
+        },
+        {
+          "cellKey": "env0=compressed",
+          "paired": 30,
+          "medians": {
+            "tv": 0.056028070581801315,
+            "gini": -0.06112276541982342,
+            "mUp": 0.20761023417298363,
+            "mDown": 0.20149936657062995,
+            "segregation": -0.03938886783086417,
+            "openness": 0.21930211736003957
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 1,
+            "mUp": 1,
+            "mDown": 1,
+            "segregation": 1,
+            "openness": 1
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0.5,
+          "dMedian": 0.10366285103656336
+        },
+        {
+          "cellKey": "env0=expanded",
+          "paired": 30,
+          "medians": {
+            "tv": 0.07125597266234171,
+            "gini": 0.024632428275339152,
+            "mUp": -0.3776814419732395,
+            "mDown": -0.34835027288214887,
+            "segregation": 0.1427704162409467,
+            "openness": -0.381946119867828
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.9666666666666667,
+            "mUp": 1,
+            "mDown": 1,
+            "segregation": 1,
+            "openness": 1
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0.9666666666666667,
+          "dMedian": 0.16178730969534177
+        },
+        {
+          "cellKey": "crossDays=half",
+          "paired": 30,
+          "medians": {
+            "tv": 0.006645530039695096,
+            "gini": -0.010419014264788667,
+            "mUp": 0.11373744406067177,
+            "mDown": 0.11952444844890342,
+            "segregation": -0.03448779799616115,
+            "openness": 0.11161090352722003
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.8333333333333334,
+            "mUp": 1,
+            "mDown": 1,
+            "segregation": 0.8,
+            "openness": 1
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.04481693991298469
+        },
+        {
+          "cellKey": "crossDays=double",
+          "paired": 30,
+          "medians": {
+            "tv": 0.0046415816167895245,
+            "gini": 0.00017394532110723282,
+            "mUp": -0.25669859607043854,
+            "mDown": -0.24198451136439544,
+            "segregation": 0.08373303215615213,
+            "openness": -0.22245075061298966
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.5,
+            "mUp": 1,
+            "mDown": 1,
+            "segregation": 1,
+            "openness": 1
+          },
+          "thresholdHit": true,
+          "directionOk": true,
+          "screenedIn": true,
+          "dOverBaselineBandShare": 0.36666666666666664,
+          "dMedian": 0.0913431588082089
+        },
+        {
+          "cellKey": "decay=flat1",
+          "paired": 30,
+          "medians": {
+            "tv": 0.005712068118758488,
+            "gini": -0.0032910168047487753,
+            "mUp": 0.0042516202780030765,
+            "mDown": 0.012113655290493797,
+            "segregation": 0.003900861975226627,
+            "openness": 0.003992646971362368
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.6333333333333333,
+            "mUp": 0.6666666666666666,
+            "mDown": 0.6666666666666666,
+            "segregation": 0.5333333333333333,
+            "openness": 0.5333333333333333
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.011313328395682451
+        },
+        {
+          "cellKey": "decay=steeper",
+          "paired": 30,
+          "medians": {
+            "tv": 0.006408028100686048,
+            "gini": -0.002705005268641092,
+            "mUp": 0.0010994952442973105,
+            "mDown": 0.006787663782832076,
+            "segregation": -0.00378374533546557,
+            "openness": -0.0010060646727986233
+          },
+          "directionAgree": {
+            "tv": 0,
+            "gini": 0.6,
+            "mUp": 0.5,
+            "mDown": 0.6666666666666666,
+            "segregation": 0.5666666666666667,
+            "openness": 0.5333333333333333
+          },
+          "thresholdHit": false,
+          "directionOk": false,
+          "screenedIn": false,
+          "dOverBaselineBandShare": 0,
+          "dMedian": 0.014721602342157466
+        }
+      ]
+    }
+  ],
+  "screenedIn": [
+    {
+      "populationSize": 40,
+      "cellKey": "psi=1",
+      "medians": {
+        "tv": 0.08382308047052048,
+        "gini": 0.027596320370845723,
+        "mUp": 0.10713031260976774,
+        "mDown": 0.11523182297155177,
+        "segregation": -0.010244563016152449,
+        "openness": 0.04553790437358185
+      }
+    },
+    {
+      "populationSize": 40,
+      "cellKey": "env0=compressed",
+      "medians": {
+        "tv": 0.057332279592553305,
+        "gini": -0.05214863071251516,
+        "mUp": 0.14985418630876501,
+        "mDown": 0.1413806777217032,
+        "segregation": -0.03821309965891698,
+        "openness": 0.1054415252095176
+      }
+    },
+    {
+      "populationSize": 40,
+      "cellKey": "env0=expanded",
+      "medians": {
+        "tv": 0.07660432033719516,
+        "gini": 0.01846191135721298,
+        "mUp": -0.3647898064444571,
+        "mDown": -0.3427560455192033,
+        "segregation": 0.09557137010231392,
+        "openness": -0.33237396299131117
+      }
+    },
+    {
+      "populationSize": 40,
+      "cellKey": "crossDays=half",
+      "medians": {
+        "tv": 0.0124209694415174,
+        "gini": 0.0036623763998173686,
+        "mUp": 0.08013730981827705,
+        "mDown": 0.07080417059508459,
+        "segregation": -0.01080586173411797,
+        "openness": 0.03295372451335349
+      }
+    },
+    {
+      "populationSize": 40,
+      "cellKey": "crossDays=double",
+      "medians": {
+        "tv": 0.012285046124267186,
+        "gini": -0.0017052055712955816,
+        "mUp": -0.18737544599116623,
+        "mDown": -0.19202207309633296,
+        "segregation": 0.043856766313998916,
+        "openness": -0.14493303570829408
+      }
+    },
+    {
+      "populationSize": 200,
+      "cellKey": "psi=1",
+      "medians": {
+        "tv": 0.09059907751946736,
+        "gini": 0.019101988564470734,
+        "mUp": 0.13938301744251158,
+        "mDown": 0.1274209969994084,
+        "segregation": -0.012271177859017057,
+        "openness": 0.07828972284169838
+      }
+    },
+    {
+      "populationSize": 200,
+      "cellKey": "needMult=steep",
+      "medians": {
+        "tv": 0.019338200025029045,
+        "gini": 0.0009960389984081108,
+        "mUp": 0.05810913827370212,
+        "mDown": 0.045036437008326546,
+        "segregation": -0.008800521697841346,
+        "openness": 0.04247531424826134
+      }
+    },
+    {
+      "populationSize": 200,
+      "cellKey": "needThreshold=0.9",
+      "medians": {
+        "tv": 0.1682790507942177,
+        "gini": -0.03898000557887324,
+        "mUp": -0.08647562337544296,
+        "mDown": -0.07485724920764891,
+        "segregation": -0.000011320528550143316,
+        "openness": -0.014919755977167548
+      }
+    },
+    {
+      "populationSize": 200,
+      "cellKey": "env0=compressed",
+      "medians": {
+        "tv": 0.056028070581801315,
+        "gini": -0.06112276541982342,
+        "mUp": 0.20761023417298363,
+        "mDown": 0.20149936657062995,
+        "segregation": -0.03938886783086417,
+        "openness": 0.21930211736003957
+      }
+    },
+    {
+      "populationSize": 200,
+      "cellKey": "env0=expanded",
+      "medians": {
+        "tv": 0.07125597266234171,
+        "gini": 0.024632428275339152,
+        "mUp": -0.3776814419732395,
+        "mDown": -0.34835027288214887,
+        "segregation": 0.1427704162409467,
+        "openness": -0.381946119867828
+      }
+    },
+    {
+      "populationSize": 200,
+      "cellKey": "crossDays=half",
+      "medians": {
+        "tv": 0.006645530039695096,
+        "gini": -0.010419014264788667,
+        "mUp": 0.11373744406067177,
+        "mDown": 0.11952444844890342,
+        "segregation": -0.03448779799616115,
+        "openness": 0.11161090352722003
+      }
+    },
+    {
+      "populationSize": 200,
+      "cellKey": "crossDays=double",
+      "medians": {
+        "tv": 0.0046415816167895245,
+        "gini": 0.00017394532110723282,
+        "mUp": -0.25669859607043854,
+        "mDown": -0.24198451136439544,
+        "segregation": 0.08373303215615213,
+        "openness": -0.22245075061298966
+      }
+    }
+  ],
+  "screenedInNote": "入选单元进入 Stage B（1000 人 × 3650 tick 独立确认）候选清单"
+}

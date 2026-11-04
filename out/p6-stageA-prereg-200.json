@@ -1,0 +1,349 @@
+{
+  "experimentId": "p6-stageA-200-366198c5",
+  "preregistrationHash": "sha256:366198c53560d904bb4358db02244836d68fab6c60db7638c1ef557078e82518",
+  "manifest": {
+    "schemaVersion": "experiment-v2",
+    "hypothesis": "rules-v11 体制下，五主导参数（needMultiplier/needThreshold/env0/crossDays/decay，07 §6.2）的单参数扰动在 Stage A 视野（40/200 人 × 730 tick，warmup 365）产生方向可辨识、超过 baseline 跨种子波动区间的配对效应；筛选出配对中位数超阈值且方向一致率 ≥90% 的单元进入 Stage B（1000 人 × 3650 tick 独立种子确认）。Stage A 不产出结构结论；筛选指标 = w1 窗口观测段 [365,729] 的日均值（730 tick 视野的预注册取舍，missingTicks>0）。预算 = D-04 v1（changes/0036）；预算数字进哈希，换预算即新 experimentId。",
+    "primaryMetric": "TV(P)",
+    "experimentType": "rule_sensitivity",
+    "rulesVersion": "rules-v11",
+    "engineVersion": "engine-v0.9.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
+    "promptVersion": "prompt-none-v1",
+    "promptStyle": "neutral",
+    "populationSize": 200,
+    "totalTicks": 730,
+    "baseConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e",
+    "artifactProfile": "metrics-only",
+    "seeds": [
+      "p6-stageA-seed-001",
+      "p6-stageA-seed-002",
+      "p6-stageA-seed-003",
+      "p6-stageA-seed-004",
+      "p6-stageA-seed-005",
+      "p6-stageA-seed-006",
+      "p6-stageA-seed-007",
+      "p6-stageA-seed-008",
+      "p6-stageA-seed-009",
+      "p6-stageA-seed-010",
+      "p6-stageA-seed-011",
+      "p6-stageA-seed-012",
+      "p6-stageA-seed-013",
+      "p6-stageA-seed-014",
+      "p6-stageA-seed-015",
+      "p6-stageA-seed-016",
+      "p6-stageA-seed-017",
+      "p6-stageA-seed-018",
+      "p6-stageA-seed-019",
+      "p6-stageA-seed-020",
+      "p6-stageA-seed-021",
+      "p6-stageA-seed-022",
+      "p6-stageA-seed-023",
+      "p6-stageA-seed-024",
+      "p6-stageA-seed-025",
+      "p6-stageA-seed-026",
+      "p6-stageA-seed-027",
+      "p6-stageA-seed-028",
+      "p6-stageA-seed-029",
+      "p6-stageA-seed-030"
+    ],
+    "pairing": "same-seed-derived-initial-population-and-addressed-random",
+    "warmupTicks": 365,
+    "warmupDiagnostic": "Stage A 筛查：warmup=365 后的 [365,729] 单窗口日均值；w1 完整窗口（365–1094）超出 730 tick 视野，观测段覆盖是预注册取舍",
+    "windows": [
+      {
+        "label": "w1",
+        "start": 365,
+        "end": 1094
+      }
+    ],
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "clustering": {
+      "distance": "euclidean",
+      "algorithm": "ward-lw-v1",
+      "standardization": "z-score(pooled)",
+      "featureWindows": [
+        "w1"
+      ],
+      "kRange": [
+        2,
+        5
+      ],
+      "stabilityMinAri": 0.7,
+      "stabilityShuffles": 20,
+      "minClusterRuns": 5,
+      "temporalConsistencyMinRate": 0.8,
+      "d03Note": "Stage A 为效应量筛选，不执行聚类判定；聚类块按 07 §3 权威字段清单保留并进哈希，口径与 D-03 冻结一致"
+    },
+    "differenceThresholds": {
+      "gini": 0.03,
+      "tv": 0.1,
+      "mUp": 0.05,
+      "segregation": 0.05,
+      "openness": 0.05
+    },
+    "budgets": {
+      "maxRuns": 1200,
+      "maxWallMinutes": 180,
+      "maxStorageBytes": 268435456
+    },
+    "exclusionRules": {
+      "excludeExtinctRuns": true,
+      "excludeUnavailableWindows": true,
+      "excludeNetworkEmptyFromSegregation": true,
+      "maxTechnicalRetries": 1
+    },
+    "cells": [
+      {
+        "cellKey": "baseline",
+        "design": "baseline",
+        "hypothesis": "baseline（07 §6.2 各参数默认值）：跨种子波动区间与配对效应的对照",
+        "overrides": {},
+        "changedPaths": [],
+        "fullConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e"
+      },
+      {
+        "cellKey": "psi=1",
+        "design": "single",
+        "hypothesis": "needMultiplier ψ=1 消融（rule.md 56 的 ψ=1 预留对照）",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:14dc53decc71320c63fd4c446f9cfda274973510796570cc8a5178d2c854c3c2"
+      },
+      {
+        "cellKey": "needMult=flat",
+        "design": "single",
+        "hypothesis": "needMultiplier 扁平 [1,1.5,1.5,1.5,1.5]：持有标尺层级差压缩",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:be0a9257fb445857969bc4d743c3dbdda77f0848eabbef5c93b1d08622f44f7e"
+      },
+      {
+        "cellKey": "needMult=steep",
+        "design": "single",
+        "hypothesis": "needMultiplier 陡峭 [1,1.2,1.6,2.2,3.0]：持有标尺层级差加大",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.2,
+              1.6,
+              2.2,
+              3
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:f32a5511d39a5aba63252bd94a1f7696f89e8c851a76b9b9b2110ab134623a48"
+      },
+      {
+        "cellKey": "needMult=steeper",
+        "design": "single",
+        "hypothesis": "needMultiplier 更陡 [1,1.4,2.1,3.0,4.2]：持有标尺层级差最大",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.4,
+              2.1,
+              3,
+              4.2
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:3d6e7fd71132e0643ee148c57b7f28344e1112b35d8934ed2fbbcb347a3a8af2"
+      },
+      {
+        "cellKey": "needThreshold=0.3",
+        "design": "single",
+        "hypothesis": "need.threshold 0.3：升阶门槛下移",
+        "overrides": {
+          "need": {
+            "threshold": 0.3
+          }
+        },
+        "changedPaths": [
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:e093a3f5da5a2686ae76bdf958d971559a7a04972048ff3be45e97927e8539a2"
+      },
+      {
+        "cellKey": "needThreshold=0.7",
+        "design": "single",
+        "hypothesis": "need.threshold 0.7：升阶门槛上移",
+        "overrides": {
+          "need": {
+            "threshold": 0.7
+          }
+        },
+        "changedPaths": [
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:a7da6ca5f0ab6f6f311b721ebdce09cd9c8619515c306cad64a26ed7ed675e31"
+      },
+      {
+        "cellKey": "needThreshold=0.9",
+        "design": "single",
+        "hypothesis": "need.threshold 0.9：升阶门槛最高档",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          }
+        },
+        "changedPaths": [
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:ee15e06613ad6af459ba8786334d589dff002376124fcf7808f4d8273ae8ea30"
+      },
+      {
+        "cellKey": "env0=compressed",
+        "design": "single",
+        "hypothesis": "opportunity.env0 压缩 [1,1.2,1.5,1.9,2.4]：机会环境梯度压缩",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              1.2,
+              1.5,
+              1.9,
+              2.4
+            ]
+          }
+        },
+        "changedPaths": [
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:2f5559f70b9d0a283e4c63bd950639011fc67234c8da522b2c73108f4d334f1e"
+      },
+      {
+        "cellKey": "env0=expanded",
+        "design": "single",
+        "hypothesis": "opportunity.env0 扩大 [1,2,3.5,5,7]：机会环境梯度扩大",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          }
+        },
+        "changedPaths": [
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:bba63ebe00c4d355be09dc74006d6d76a03c361e32be10249b0ca99d3c2a2b20"
+      },
+      {
+        "cellKey": "crossDays=half",
+        "design": "single",
+        "hypothesis": "ascent.crossDays 减半 [15,20,25,30]：升阶所需连续天数减半",
+        "overrides": {
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays"
+        ],
+        "fullConfigHash": "sha256:7487f049a418f9d897227153cfe52bd6e293d4d4c34e786c3ef300f1fc59b4b0"
+      },
+      {
+        "cellKey": "crossDays=double",
+        "design": "single",
+        "hypothesis": "ascent.crossDays 加倍 [60,80,100,120]：升阶所需连续天数加倍",
+        "overrides": {
+          "ascent": {
+            "crossDays": [
+              60,
+              80,
+              100,
+              120
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays"
+        ],
+        "fullConfigHash": "sha256:21aae2186d690e807574027dc18a063de1adccb4cf78a9ca90325898873b9f82"
+      },
+      {
+        "cellKey": "decay=flat1",
+        "design": "single",
+        "hypothesis": "lifespan.decay 全 1.0：寿命折算与阶级无关",
+        "overrides": {
+          "lifespan": {
+            "decay": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay"
+        ],
+        "fullConfigHash": "sha256:aa8792183355adc402dab04e9e4eb35bb2386a7d3192d12b0afebaa8952619a0"
+      },
+      {
+        "cellKey": "decay=steeper",
+        "design": "single",
+        "hypothesis": "lifespan.decay 更陡 [2.0,1.6,1.2,0.9,0.7]：上层寿命折算惩罚加大",
+        "overrides": {
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay"
+        ],
+        "fullConfigHash": "sha256:0b6aba97b46c40a409d965a719ca71a8fdc4ed72d6c4720d835a7fd189ea4ec2"
+      }
+    ]
+  }
+}

@@ -67,16 +67,20 @@ function freeze() {
 
 function batchManifestFor(populationSize) {
   const prereg = buildP6StageAManifest(populationSize);
-  return validateBatchManifest({
-    schemaVersion: 'batch-v1',
-    rulesVersion: prereg.rulesVersion,
-    engineVersion: prereg.engineVersion,
-    populationSize,
-    totalTicks: prereg.totalTicks,
-    policy: prereg.policyVersion,
-    seeds: prereg.seeds,
-    cells: prereg.cells.map((cell) => ({ cellKey: cell.cellKey, overrides: cell.overrides })),
-  });
+  const baseConfig = buildBaseConfig(populationSize, P6_STAGE_A_TICKS);
+  return validateBatchManifest(
+    {
+      schemaVersion: 'batch-v1',
+      rulesVersion: prereg.rulesVersion,
+      engineVersion: prereg.engineVersion,
+      populationSize,
+      totalTicks: prereg.totalTicks,
+      policy: prereg.policyVersion,
+      seeds: prereg.seeds,
+      cells: prereg.cells.map((cell) => ({ cellKey: cell.cellKey, overrides: cell.overrides })),
+    },
+    baseConfig,
+  );
 }
 
 async function run(populationSize) {
@@ -138,6 +142,54 @@ async function run(populationSize) {
       withinBudget: true,
     })}\n`,
   );
+}
+
+// ---------- 入库瘦身（artifacts §1：单产物 ≤ 5 MiB；全量 summary 用命令重建） ----------
+
+function slimOne(populationSize) {
+  const summary = JSON.parse(
+    readFileSync(`${outDir}/p6-stageA-summary-${populationSize}.json`, 'utf8'),
+  );
+  const runs = summary.runs.map((run) => {
+    const w1 = run.report.windows.find((window) => window.label === 'w1');
+    return {
+      cellKey: run.cellKey,
+      seed: run.seed,
+      configHash: run.configHash,
+      paramsHash: run.paramsHash,
+      finalStateHash: run.report.finalStateHash,
+      aliveAtEnd: run.report.aliveAtEnd,
+      extinct: run.report.extinct,
+      endReason: run.report.endReason,
+      endTick: run.report.endTick,
+      w1,
+      w1Labels: run.report.labelsByWindow.w1 ?? [],
+      w1Evidence: run.report.labelsEvidenceByWindow.w1 ?? {},
+    };
+  });
+  return {
+    schemaVersion: 'p6-stageA-slim-v1',
+    populationSize,
+    preregistrationHash: computeP6StageAHash(populationSize),
+    batchManifestHash: summary.manifestHash,
+    totals: summary.totals,
+    runs,
+  };
+}
+
+function slim() {
+  for (const populationSize of [40, 200]) {
+    const payload = slimOne(populationSize);
+    const path = `${outDir}/p6-stageA-slim-${populationSize}.json`;
+    writeFileSync(
+      path,
+      `${JSON.stringify(payload, null, 2)}
+`,
+      'utf8',
+    );
+    const sizeKiB = Buffer.byteLength(JSON.stringify(payload)) / 1024;
+    log(`slim ${path} ${sizeKiB.toFixed(0)} KiB runs=${payload.runs.length}`);
+  }
 }
 
 // ---------- 分析（离线、只读、确定性） ----------
@@ -318,7 +370,9 @@ function analyze() {
 
     return {
       populationSize,
-      preregistrationHash: summary.manifestHash,
+      // 预注册哈希来自冻结产物（batch manifestHash 是执行件哈希，两者并存可对账）。
+      preregistrationHash: computeP6StageAHash(populationSize),
+      batchManifestHash: summary.manifestHash,
       runs: summary.totals,
       extinctCount,
       baselineRuns: baselineRuns.length,
@@ -363,7 +417,9 @@ const mode = args.includes('--freeze')
     ? 'run'
     : args.includes('--analyze')
       ? 'analyze'
-      : null;
+      : args.includes('--slim')
+        ? 'slim'
+        : null;
 if (mode === null) {
   log('用法：--freeze | --run <40|200|both> | --analyze');
   process.exit(2);
@@ -384,6 +440,8 @@ if (mode === 'freeze') {
     log(`未知 --run 目标：${target}（40|200|both）`);
     process.exit(2);
   }
+} else if (mode === 'slim') {
+  slim();
 } else {
   analyze();
 }

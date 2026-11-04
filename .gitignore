@@ -76,3 +76,8 @@ out/*
 !out/p15-longhorizon-probe.json
 !out/p15-w6-longhorizon.json
 !out/p2-07-smoke.json
+!out/p6-stageA-prereg-40.json
+!out/p6-stageA-prereg-200.json
+!out/p6-stageA-slim-40.json
+!out/p6-stageA-slim-200.json
+!out/p6-stageA-analysis.json
