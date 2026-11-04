@@ -58,6 +58,7 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 
 - [总体施工计划与契约总览](guides/plan-and-contracts.md)：架构铁律、阶段表、核心公式、哈希与 API 的一页式汇总。
 - [前端设计指南](guides/frontend-design.md)：设计令牌、五大工作区、帧预算调度与降采样方案。
+- [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)：端点实测结论、密钥处理、冒烟命令、VPS `2zhou` 部署与故障速查。
 
 ### 3.3 参考资料（非契约）
 

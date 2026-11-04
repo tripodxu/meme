@@ -94,6 +94,11 @@ pnpm verify:backup
 
 ## 6. VPS Runner 标准部署
 
+> 本节是**目标形态**（systemd、路径、权限）。当前实际可用于跑实验的机器、连接方式、
+> 已实测的规格与「如何只推 dist 跑冒烟」见
+> [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md) §4；两者冲突时，本节的部署
+> 规范优先，实操手册只描述现状。
+
 MVP 选择 **systemd**，不维护一套漂移的 Docker 配置。建议路径：
 
 ```text

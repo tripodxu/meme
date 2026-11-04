@@ -1,8 +1,13 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-02，rev 5）
+## 1. 当前交接状态（2026-11-04，rev 12）
 
-- 已有：`rule.md` v3 59 条、本施工文档套件（`docs/` 13 篇编号文档 + `docs/README.md` + `docs/adr/` + `docs/guides/` 导读 2 篇 + `docs/reference/` 参考资料）、根目录 `AGENTS.md` 与 `README.md`；P0 工程骨架（TS/pnpm/Vitest/ESLint/Prettier、配置类型与校验、参数注册表、JCS 与 11 个 hash domain、golden 与 160 个测试）。
+> **接手先读**：本节的 rev 11/12 是当前有效口径。更早的 rev 3–10 是历史沿革，
+> 其中「G1.5 未通过、P2–P6 搁置」等表述**已被 rev 11 取代**，不要据此判断当前状态。
+> Jev 与 VPS 的实操细节（端点、密钥、命令、踩坑）见
+> [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)。
+
+- 已有（截至 rev 12）：`rule.md` **rules-v11 13 章 59 条**、本施工文档套件（`docs/` 13 篇编号文档 + `docs/README.md` + `docs/adr/` + `docs/guides/` 3 篇 + `docs/reference/` 参考资料 + `docs/changes/` 30 篇 + `docs/research/`）、根目录 `AGENTS.md` 与 `README.md`；P0/P1 工程骨架（TS/pnpm/Vitest/ESLint/Prettier、配置类型与校验 v1→v6 迁移链、**87 条**参数注册表、JCS 与 **12 个** hash domain、golden 与 **590 个**测试），以及 P2 决策层（Policy 接口、Choice 序列化、超时重试熔断、预算、决策日志与重放、真实冒烟）。
 - 已完成交叉复核与首轮修订：阶级持有成本 `needMultiplier`、初始年龄分布、365 日流动参与率、调整后 S、参数注册表、P1.5 可达性闸门、契约洞与统计口径已写入对应文档；未校准项均标注为待验证。
 - rev 3（P0 定稿前修订）：`S` 改为双侧归一化保证 `[-1,1]`；`returnDiscount[0]` 接入 `d=1`；`seed` 明确不进入 `configHash`，补齐 `paramsHash/preregistrationHash` 域与排除字段；`initialAgeMode`、`hardLife*/returnDiscount` 进入注册表与扫描表；P0-02/P0-03/P0-06 验收同步。
 - rev 4（P0 落地前补齐）：P5 拆为 P5a（本地批跑，G6 前）/P5b（上传云，G6 后），P6 只依赖 P5a；`P0[c]=0` 空阶级机会语义在 03/rule.md 对齐；回放来源区分 `jev_replay/mock_replay/random_replay`，`skipped_dead` 标为防御性枚举；state 固定构造顺序与 JCS 哈希分离；runId 字符集与 R2 key 校验；行动类型显式排序；`deathReason` 枚举；标准命令补 `format/coverage`；`docs/README` 与 `AGENTS.md` 入口补 02/06/10。
@@ -12,9 +17,11 @@
 - rev 8（2026-11-03，P1 落地）：P1-01–P1-10 已实现（RNG、初始化派生、状态/序列化/哈希、合法行动与 mock/random、A→H 管线、事件/执行记录、重构、宏观与慢变量、快照/回放/克隆、`openness.updateMode`）；10,000 tick soak 与 fast-check 性质测试通过；40/200/1000 人基准见 `docs/benchmarks/`；完成记录见 01 §4。变更详情见 `docs/changes/0003-p1-deterministic-core.md`。
 - rev 9（2026-11-03，P1.5 判定）：P1.5 已按预注册流程执行完毕，**G1.5 未通过**——单一“顶层过重+旋转门”结构、聚类不稳定（ARI 0.471<0.70）、pyramid/olive/closedStratified 全网格不可达；机制级根因与 rules-v4 修订建议见 `docs/research/2026-11-03-p15-report.md`。**P2–P6 依闸门搁置；规则修订须规则负责人批准后重开 rules 版本并重跑 P1.5。**
 - rev 10（2026-11-03，rules-v4 复核）：用户授权自主规则负责人执行 changes/0004（rules-v4：φ 解耦 + θM 再平衡 + engine v0.1.0）并重跑三轮预注册网格（共 1920 run）。φ 解耦与 ge.median 轴有效拓宽了可达集（P4∈[0.29,0.92]、olive 可达），但可达集仍为连续统，bisect-ARI∈[0.32,0.58] 全部 <0.70——**G1.5 仍未通过，P2–P6 继续搁置**。旋转门引擎三要素已定位（积累无上界/跌落携带财富+时钟重置/mock 无条件上升），rules-v5 候选方向（跌落财富清偿、上升持有资格、积累承载上限）登记于报告 §8.4。
-- 尚无：Jev HTTP 决策层（P2，闸门阻断）、UI（P3）、Worker/D1/R2（P4，需 Cloudflare 账号）、Runner 批量硬化（P5a，闸门阻断）、真实 Jev 冒烟（P2-07，需 TypeSafe API Key）、发布（P7）。
-- 下一唯一入口：规则负责人对 `docs/research/2026-11-03-p15-report.md` §8.4 的 rules-v5 三方向做决策；批准后修订 rule.md/03 并重跑 P1.5。P2-07/P4/P7 另需外部凭据（TypeSafe API Key、Cloudflare 账号），与闸门无关的独立受阻项。
-- 不得提前声称：三类结构已出现、Jev 行为有效、性能已达标、生产可发布。
+- rev 11（2026-11-03/04，rules-v5→v11 与 G1.5 通过）：经 changes/0005–0028 九轮规则迭代（v5 跌落清偿/v6 需求参照系/v7 持有裕度/v8–v9 位移准入与位移份额/v10 占用锚定/v11 占用记忆），**G1.5 已在 W4 确认轮通过**（rules-v10，180 run，k=2 ARI median/min **1.000**，两类 A vs B∪C）。W5 在 3650 tick 未通过（temporal 0.789<0.80）；W6 在 10950 tick 终态得到**三类候选**（120 run，轮廓 0.638、ARI 0.997/0.938、A/B/C 各 30/30/30、B/C 质心 L1 0.513、14600 同簇 29/30），但**仅 mock、仅 class-share 单特征、仅 3 cell**，不是 P6-05 正式验收也不是校准。版本轴 `rules-v11`/`engine-v0.9.0`/`stratify-config-v6`/`stratify-state-v3`。证据：`docs/changes/0015`–`0029`、`docs/research/2026-11-04-*`。
+- rev 12（2026-11-04，P2 收口与 Jev/VPS 实测）：**P2 已完成 7/7**——P2-03 真实响应 fixture 入库（`test/fixtures/decision/`，脱敏后），P2-07 真实冒烟跑通。三条决定实现的实测事实：(1) 官方 `api.typesafe.ai` 在开发机返回 `451` 地域限制、在 VPS 上网络可达但该 Key 返回 `401`，**现有 Key 只对自建网关 `https://jev.logicc.top` 有效**，故 `JevClientOptions.endpoint` 改为可配置（只接受 https、禁内嵌凭据，默认值不变）；(2) 网关把模型名归一化为 `jev-1.13-free`，`usage.cost=0`、`billing_source=free`，该免费档不代表生产免费；(3) 冒烟暴露**预算估算器低估**（`utf8-half-v1` 对真实请求估 1085 / 实际 1200），`AttemptBudget` overage 后永久 `exhausted`，使 live run 第一次调用后自锁——已升级 `utf8-three-quarter-v1` 并用真实 fixture 固定「估算必须 ≥ 实测」的回归断言。冒烟结果：8 人/30 tick/24 决策全成功、0 回退、p50 1.30 s；VPS `2zhou` 同一命令 6/6 成功且 `finalStateHash` 与本地逐字相同，**跨机器确定性成立**。证据：`docs/guides/jev-and-vps-runbook.md`、`changes/0030`、`out/p2-07-smoke.json`。
+- 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、Runner 批跑 CLI（P5a 的 P5-01 缺 `bin` 与机器可读摘要，P5-02 无全局队列/限流/共享预算，P5-06 无 systemd unit）、上传对接（P5b，0/2）、校准与科学验收（P6，0/5，`out/` 下无任何 p6/calib 产物）、发布（P7）。
+- 下一唯一入口：**P5-01 批跑 CLI** —— 它是 P6-01（每点 ≥30 配对种子、Stage A 40/200 人 730 tick、Stage B 1000 人 3650 tick）的唯一工程前置；P6-04 的 Jev 对照另需 P5-02。P3/P4/P5b 按 01 §9 可在 G6 后并行，不要先于科学前提投入。外部凭据方面：Jev 走自建网关已可用（**但旧 Key 已泄露须先轮换**），Cloudflare 账号仍缺。
+- 不得提前声称：三类结构已出现（目前只有 class-share 单特征候选）、Jev 行为有效、性能已达标、生产可发布、网关免费即生产免费。
 
 ## 2. 新接手者开工清单
 
@@ -87,8 +94,13 @@
 
 ## 8. Jev/真实调用清单
 
+> 端点、密钥、模型名归一化、冒烟命令与已知坑见
+> [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)；此处只列每次 live 前必须逐条确认的门禁项。
+
 - [ ] 只使用合法 Choice，模型不做结算；promptVersion 已判断。
 - [ ] Key 来源安全，不落盘/日志/URL；模型在 allowlist。
+- [ ] **端点已确认**：当前只有自建网关 `jev.logicc.top` 可用，官方域名返回 451/401；报告中须注明「经自建网关，非官方端点」。
+- [ ] **估算器仍为 `utf8-three-quarter-v1`**：若改比例，`real-response-fixture.test.ts` 的「估算 ≥ 实测」断言必须先通过。
 - [ ] maxCalls/maxInputTokens/maxRunMinutes 已设置且足够小。
 - [ ] 超时、有限重试、Abort、共享限流、失败熔断已验证。
 - [ ] 原始响应、usage、真实 model、回退和延迟可审计。
