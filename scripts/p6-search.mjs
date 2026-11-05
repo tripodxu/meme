@@ -17,7 +17,9 @@ import { dirname, join } from 'node:path';
 import { asSeed } from '../dist/core/control/ids.js';
 import { hashValue } from '../dist/core/hash/hash.js';
 import { HASH_DOMAINS } from '../dist/core/hash/domains.js';
-import { buildCellConfig } from '../dist/runner/preregistration.js';
+import { assertFrozenVersions, buildCellConfig } from '../dist/runner/preregistration.js';
+import { readNdjsonTolerant } from '../dist/runner/ndjson.js';
+import { median } from '../dist/runner/p6-analysis.js';
 import { runSingle } from '../dist/runner/run-cell.js';
 import { summarizeWindow } from '../dist/runner/window-stats.js';
 import {
@@ -343,11 +345,12 @@ function ledgerPath(options, shard) {
 }
 
 function readLedger(path) {
-  if (!existsSync(path)) return new Map();
+  const { records, repairedTail } = readNdjsonTolerant(path, { repairTail: true });
+  if (repairedTail) {
+    process.stderr.write(`[search] 已截断末尾半行: ${path}\n`);
+  }
   const map = new Map();
-  for (const line of readFileSync(path, 'utf8').split('\n')) {
-    if (line.trim().length === 0) continue;
-    const record = JSON.parse(line);
+  for (const record of records) {
     if (record.status === 'ok')
       map.set(`${record.candidateId}:${record.horizon}:${record.seed}`, record);
   }
@@ -357,6 +360,7 @@ function readLedger(path) {
 function run(options) {
   const artifact = loadPrereg(options);
   const design = artifact.design;
+  assertFrozenVersions(design);
   const candidates = (() => {
     const selected = buildCandidates().filter(
       (_, index) => index % options.shardCount === options.shard,
@@ -398,9 +402,11 @@ function readAllShards(options, dir) {
   for (let shard = 0; shard < options.shardCount; shard += 1) {
     const path = join(dir, `runs.shard-${shard}.ndjson`);
     if (!existsSync(path)) continue;
-    for (const line of readFileSync(path, 'utf8').split('\n')) {
-      if (line.trim().length === 0) continue;
-      const record = JSON.parse(line);
+    const { records: shardRecords, repairedTail } = readNdjsonTolerant(path, { repairTail: true });
+    if (repairedTail) {
+      process.stderr.write(`[search] 已截断末尾半行: ${path}\n`);
+    }
+    for (const record of shardRecords) {
       if (record.status === 'ok') records.push(record);
     }
   }
@@ -428,7 +434,7 @@ function candidateMetrics(records, design) {
     aris.push(bisectStability(matrix, k, [shuffle], 0.7).ari);
   }
   aris.sort((left, right) => left - right);
-  const ariMedian = aris[Math.floor(aris.length / 2)];
+  const ariMedian = median(aris);
   const minSize = Math.min(...sizes);
   const penalties =
     (usable.length < records.length ? 0.2 : 0) +
@@ -558,6 +564,7 @@ function validateRun(options) {
   if (!existsSync(options.validationPrereg)) throw new Error('先运行 --validate-freeze');
   const artifact = JSON.parse(readFileSync(options.validationPrereg, 'utf8'));
   const design = artifact.design;
+  assertFrozenVersions(design);
   const candidates = design.candidates.filter(
     (_, index) => index % options.shardCount === options.shard,
   );
@@ -641,7 +648,7 @@ function validateAnalyze(options) {
     aris.push(bisectStability(matrix, design.clustering.k, [shuffle], 0.7).ari);
   }
   aris.sort((left, right) => left - right);
-  const ariMedian = aris[Math.floor(aris.length / 2)];
+  const ariMedian = median(aris);
   const standardizedCentroids = clusterCentroids(matrix, assignment, design.clustering.k);
   const rawCentroids = clusterCentroids(points, assignment, design.clustering.k);
   const baseByKey = new Map(

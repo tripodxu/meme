@@ -101,6 +101,14 @@ describe('微扰声明与审计（P5-04）', () => {
       computeAuthoritativeStateHash(result.treatment),
     );
   });
+
+  it('wealth_absolute 负扰动不得产生负财富', () => {
+    const state = runSingle(CONFIG, asSeed(SEED), { policy: POLICY, maxTicks: 5 }).finalState;
+    const minAlive = Math.min(
+      ...state.society.agents.filter((agent) => agent.alive).map((agent) => agent.value),
+    );
+    expect(() => applyWealthPerturbation(state, -(minAlive + 1))).toThrowError(/财富为负/);
+  });
 });
 
 describe('首次偏离（P5-04 修复）', () => {

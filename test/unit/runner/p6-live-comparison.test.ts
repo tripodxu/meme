@@ -116,7 +116,15 @@ describe('percentileNearestRank', () => {
 
   it('最近秩不插值', () => {
     expect(percentileNearestRank([1, 2, 3, 4], 0.95)).toBe(4);
-    expect(percentileNearestRank([1, 2, 3, 4], 0.5)).toBe(3);
+    // 最近秩定义：rank=ceil(0.5*4)=2，取第 2 个值（旧实现 floor 下标会多取一位）。
+    expect(percentileNearestRank([1, 2, 3, 4], 0.5)).toBe(2);
+  });
+
+  it('p*n 为整数时取第 ceil(p*n) 个值（不是多取一位）', () => {
+    const twenty = Array.from({ length: 20 }, (_, index) => index);
+    expect(percentileNearestRank(twenty, 0.95)).toBe(18);
+    const oneTwenty = Array.from({ length: 120 }, (_, index) => index);
+    expect(percentileNearestRank(oneTwenty, 0.95)).toBe(113);
   });
 });
 

@@ -171,6 +171,24 @@ export function median(values: readonly number[]): number {
     : ((sorted[middle - 1] as number) + (sorted[middle] as number)) / 2;
 }
 
+/**
+ * 最近秩分位：`rank = ceil(p*n)`（1-based），取第 rank 个值。
+ *
+ * 旧实现用 `floor(p*n)` 作为 0-based 下标，在 `p*n` 恰为整数时多取一位：
+ * 例如 n=120、p=0.95 时取第 115 个而不是第 114 个，D95 变成最大值。
+ */
+export function nearestRankPercentile(values: readonly number[], fraction: number): number | null {
+  if (values.length === 0) {
+    return null;
+  }
+  if (!(fraction > 0 && fraction <= 1)) {
+    throw new RangeError('fraction 必须在 (0,1]');
+  }
+  const sorted = [...values].sort((left, right) => left - right);
+  const rank = Math.ceil(fraction * sorted.length);
+  return sorted[Math.min(sorted.length - 1, Math.max(0, rank - 1))] as number;
+}
+
 /** 配对差的中位数 bootstrap 95% 区间（07 §9：至少 10,000 次，分析 seed 固定）。 */
 export function bootstrapMedianCi(
   values: readonly number[],
@@ -488,12 +506,7 @@ export function evaluateStageB(
     }
   }
   baselinePairwiseD.sort((a, b) => a - b);
-  const baselineD95 =
-    baselinePairwiseD.length === 0
-      ? null
-      : (baselinePairwiseD[
-          Math.min(baselinePairwiseD.length - 1, Math.floor(0.95 * baselinePairwiseD.length))
-        ] as number);
+  const baselineD95 = nearestRankPercentile(baselinePairwiseD, 0.95);
   const beyondBandRate =
     baselineD95 === null || diffs.length === 0
       ? 0
@@ -696,12 +709,7 @@ export function evaluateStageA(
     }
   }
   baselinePairwiseD.sort((a, b) => a - b);
-  const baselineD95 =
-    baselinePairwiseD.length === 0
-      ? null
-      : (baselinePairwiseD[
-          Math.min(baselinePairwiseD.length - 1, Math.floor(0.95 * baselinePairwiseD.length))
-        ] as number);
+  const baselineD95 = nearestRankPercentile(baselinePairwiseD, 0.95);
   const beyondBandRate =
     baselineD95 === null || diffs.length === 0
       ? 0

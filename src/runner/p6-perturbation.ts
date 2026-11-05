@@ -16,6 +16,7 @@ import {
   bootstrapMedianCi,
   dScore,
   median,
+  nearestRankPercentile,
   pairedDiff,
   type P6WindowMetrics,
 } from './p6-analysis.js';
@@ -566,15 +567,6 @@ export interface PerturbationBaselineRecord {
   readonly tickShares: readonly (PerturbationTickShare | null)[];
 }
 
-function percentile(values: readonly number[], fraction: number): number | null {
-  if (values.length === 0) {
-    return null;
-  }
-  const sorted = [...values].sort((left, right) => left - right);
-  const index = Math.min(sorted.length - 1, Math.floor(fraction * sorted.length));
-  return sorted[index] as number;
-}
-
 export interface PerturbationNormalFluctuation {
   readonly regimeKey: string;
   readonly baselinePairs: number;
@@ -617,9 +609,9 @@ export function summarizeNormalFluctuation(
       regimeKey,
       baselinePairs: windowTvs.length,
       windowTvMedian: windowTvs.length === 0 ? null : median(windowTvs),
-      windowTvP95: percentile(windowTvs, 0.95),
-      tickTvP95: percentile(tickTvs, 0.95),
-      windowD95: percentile(windowDs, 0.95),
+      windowTvP95: nearestRankPercentile(windowTvs, 0.95),
+      tickTvP95: nearestRankPercentile(tickTvs, 0.95),
+      windowD95: nearestRankPercentile(windowDs, 0.95),
     };
   });
 }
@@ -718,7 +710,7 @@ function summarizeCell(
     },
     windowTvMedian: center,
     windowTvCi95: ci,
-    windowTvMax: percentile(values, 1),
+    windowTvMax: nearestRankPercentile(values, 1),
     windowDMedian: valid.length === 0 ? null : median(valid.map((pair) => pair.windowD)),
     beyondBaselineD95Rate: beyondRate,
     firstEventFlipTickMin: firstEventFlips.length === 0 ? null : Math.min(...firstEventFlips),

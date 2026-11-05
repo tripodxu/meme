@@ -164,6 +164,9 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
   }
 
   const runs: BatchRunRecord[] = [];
+  // 与 mock 批跑同一修复：ledger 持久化集合从已有 completed 起步，summary 的 runs
+  // 仍按 worker 完成顺序累积；resume 时早期任务再次失败不会抹掉已完成记录。
+  const ledgerRuns = new Map<string, BatchRunRecord>(completed);
   const failures: BatchFailure[] = [...ledgerFailures];
   let resumed = 0;
   // 批级停止：致命失败/预算耗尽/取消后不再发起新 run；剩余任务按同因记录。
@@ -179,7 +182,7 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
       schemaVersion: 'batch-ledger-v1',
       manifestHash,
       baseConfigHash,
-      runs: [...runs],
+      runs: [...ledgerRuns.values()],
       failures: [...failures],
     };
     ledgerChain = ledgerChain.then(() =>
@@ -339,6 +342,7 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
       }
 
       runs.push(record);
+      ledgerRuns.set(key, record);
       persistLedger();
       options.onProgress?.({
         cellKey: task.cellKey,
@@ -396,6 +400,11 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
     persistLedger();
     await ledgerChain;
   }
+
+  // 收尾再写一次：确保 ledger 包含全部已完成 run（含 resume 复用的记录），
+  // 即使最后一个任务之后、返回之前被 kill，也不会丢已完成记录。
+  persistLedger();
+  await ledgerChain;
 
   const totalElapsedMs = runs.reduce((sum, run) => sum + run.elapsedMs, 0);
   const budgetUsage =

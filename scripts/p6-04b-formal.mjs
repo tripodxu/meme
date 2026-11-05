@@ -22,6 +22,8 @@ import { asSeed } from '../dist/core/control/ids.js';
 import { hashValue } from '../dist/core/hash/hash.js';
 import { HASH_DOMAINS } from '../dist/core/hash/domains.js';
 import { runSingle, runSingleWithPolicy } from '../dist/runner/run-cell.js';
+import { assertFrozenVersions } from '../dist/runner/preregistration.js';
+import { readNdjsonTolerant } from '../dist/runner/ndjson.js';
 import {
   AttemptBudget,
   JevLivePolicy,
@@ -294,14 +296,15 @@ function runKeyOf(policyVersion, promptStyle, seed) {
 }
 
 function readLedger(path) {
-  if (!existsSync(path)) return new Map();
-  const records = new Map();
-  for (const line of readFileSync(path, 'utf8').split('\n')) {
-    if (line.trim().length === 0) continue;
-    const record = JSON.parse(line);
-    if (record.status === 'ok') records.set(record.runKey, record);
+  const { records, repairedTail } = readNdjsonTolerant(path, { repairTail: true });
+  if (repairedTail) {
+    process.stderr.write(`[ledger] 已截断末尾半行: ${path}\n`);
   }
-  return records;
+  const ledger = new Map();
+  for (const record of records) {
+    if (record.status === 'ok') ledger.set(record.runKey, record);
+  }
+  return ledger;
 }
 
 function appendLedger(path, record) {
@@ -519,6 +522,7 @@ async function run(options) {
   const artifact = loadPrereg(options);
   const design = artifact.design;
   design.experimentId = artifact.experimentId;
+  assertFrozenVersions(design);
   const config = makeConfig(design);
   mkdirSync(options.dir, { recursive: true });
   const ledgerPath = join(options.dir, 'runs.ndjson');
@@ -541,12 +545,13 @@ function analyze(options) {
   const design = artifact.design;
   const ledgerPath = join(options.dir, 'runs.ndjson');
   if (!existsSync(ledgerPath)) throw new Error(`缺少 ledger ${ledgerPath}`);
-  const records = [];
-  for (const line of readFileSync(ledgerPath, 'utf8').split('\n')) {
-    if (line.trim().length === 0) continue;
-    const record = JSON.parse(line);
-    if (record.status === 'ok') records.push(record);
+  const { records: ledgerRecords, repairedTail } = readNdjsonTolerant(ledgerPath, {
+    repairTail: true,
+  });
+  if (repairedTail) {
+    process.stderr.write(`[analyze] 已截断末尾半行: ${ledgerPath}\n`);
   }
+  const records = ledgerRecords.filter((record) => record.status === 'ok');
   const summary = summarizeFormalLive(
     records.map((record) => ({
       runKey: record.runKey,

@@ -213,11 +213,58 @@ function assertRunRecord(value: unknown, index: number): BatchRunRecord {
       `ledger.runs[${index}].report.windows 必须为数组`,
     );
   }
+  if (report['windows'].length === 0) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `ledger.runs[${index}].report.windows 不得为空；完成 run 必须有窗口摘要`,
+    );
+  }
+  for (const [windowIndex, window] of report['windows'].entries()) {
+    if (!isPlainObject(window)) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].report.windows[${windowIndex}] 必须是对象`,
+      );
+    }
+    if (typeof window['label'] !== 'string' || window['label'].length === 0) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].report.windows[${windowIndex}].label 必须为非空字符串`,
+      );
+    }
+    for (const key of ['start', 'end', 'observedTicks', 'missingTicks'] as const) {
+      const value = window[key];
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+        throw new StratifyError(
+          errorCodes.CONFIG_INVALID,
+          `ledger.runs[${index}].report.windows[${windowIndex}].${key} 必须为非负有限数字`,
+        );
+      }
+    }
+    const classShares = window['classShares'];
+    if (
+      !Array.isArray(classShares) ||
+      classShares.some((value) => typeof value !== 'number' || !Number.isFinite(value))
+    ) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].report.windows[${windowIndex}].classShares 必须为有限数字数组`,
+      );
+    }
+  }
   if (!isPlainObject(report['labelsByWindow'])) {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
       `ledger.runs[${index}].report.labelsByWindow 必须是对象`,
     );
+  }
+  for (const [label, value] of Object.entries(report['labelsByWindow'])) {
+    if (!Array.isArray(value) || value.some((entry) => typeof entry !== 'string')) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].report.labelsByWindow.${label} 必须为字符串数组`,
+      );
+    }
   }
   const provenance = value['provenance'];
   if (provenance !== undefined) {
@@ -391,6 +438,9 @@ export async function runBatch(
   }
 
   const runs: BatchRunRecord[] = [];
+  // ledger 的持久化集合从已有 completed 起步：resume 时即使前面的任务再次失败，
+  // 也不会在 persistLedger 时把后续已完成 run 从磁盘上抹掉（summary 的 runs 仍按任务顺序）。
+  const ledgerRuns = new Map<string, BatchRunRecord>(completed);
   const failures: BatchFailure[] = [...ledgerFailures];
   let resumed = 0;
 
@@ -403,7 +453,7 @@ export async function runBatch(
       schemaVersion: LEDGER_SCHEMA_VERSION,
       manifestHash,
       baseConfigHash,
-      runs: [...runs],
+      runs: [...ledgerRuns.values()],
       failures: [...failures],
     };
     await writeLedger(ledgerOptions.host, ledgerOptions.path, ledger);
@@ -486,6 +536,7 @@ export async function runBatch(
     }
 
     runs.push(record);
+    ledgerRuns.set(key, record);
     await persistLedger();
     options.onProgress?.({
       cellKey: task.cellKey,
@@ -497,6 +548,10 @@ export async function runBatch(
       elapsedMs: record.elapsedMs,
     });
   }
+
+  // 收尾再写一次：即使用户 kill 在最后一个任务之后、返回之前，ledger 也包含全部
+  // 已完成 run（resume 时 completed 集合已并入 ledgerRuns）。
+  await persistLedger();
 
   // resumed 记录保留其原始耗时；本指标是「已产出的全部 run 的耗时之和」。
   const totalElapsedMs = runs.reduce((sum, run) => sum + run.elapsedMs, 0);

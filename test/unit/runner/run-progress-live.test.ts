@@ -9,10 +9,27 @@ import type { DecisionRecord } from '../../../src/decision/types.js';
 import { MockPolicy } from '../../../src/decision/policies.js';
 import { memoryCheckpointHost, memoryCheckpointHostSync } from '../../../src/runner/checkpoint.js';
 import { runSingleWithPolicy } from '../../../src/runner/run-cell.js';
-import { loadRunProgress, buildRunProgressPayload } from '../../../src/runner/run-progress.js';
+import {
+  loadRunProgress,
+  buildRunProgressPayload,
+  type RunProgressPayload,
+} from '../../../src/runner/run-progress.js';
 
 const CONFIG = createDemoConfig({ schedule: { totalTicks: 40 } });
 const SEED = asSeed('live-ckpt-seed');
+
+/** 生产检查点总是完整覆盖 0..tickCompleted-1；测试用最小合法行构造。 */
+function completeProgress(tickCompleted: number): RunProgressPayload['progress'] {
+  return {
+    stats: Array.from({ length: tickCompleted }, (_, tick) => ({ tick }) as never),
+    flows: Array.from({ length: tickCompleted }, (_, tick) => ({ tick, matrix: [] })),
+    decisions: Array.from({ length: tickCompleted }, (_, tick) => ({
+      tick,
+      due: 0,
+      fallbacks: 0,
+    })),
+  };
+}
 
 /** 异步策略替身：行为与 MockPolicy 相同的加权选择，但经 Promise 返回（live 形态）。 */
 class AsyncMockPolicy implements DecisionPolicy {
@@ -78,7 +95,7 @@ describe('live run 内进度检查点（runSingleWithPolicy，P6-04 前置）', 
         savedAtSequence: 1,
       },
       foreign.finalState,
-      { stats: [], flows: [], decisions: [] },
+      completeProgress(10),
     );
     await host.writeTemp('p.json', JSON.stringify(payload));
     await host.promote('p.json', 'p.json');
@@ -253,7 +270,7 @@ describe('live run 内进度检查点（runSingleWithPolicy，P6-04 前置）', 
         savedAtSequence: 1,
       },
       state,
-      { stats: [], flows: [], decisions: [] },
+      completeProgress(10),
     );
     host.writeTemp('live.progress.json', JSON.stringify(payload));
     await host.promote('live.progress.json', 'live.progress.json');

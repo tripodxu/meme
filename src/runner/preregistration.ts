@@ -16,6 +16,7 @@ import {
   type RulesVersion,
   type EngineVersion,
 } from '../core/control/versions.js';
+import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { LABEL_THRESHOLDS_VERSION, computeLabelThresholdsHash } from '../core/labels/thresholds.js';
 import type { WindowLabel } from './window-stats.js';
 import { LEGACY_W4_MANIFEST } from './legacy-w4-manifest.js';
@@ -35,6 +36,33 @@ import { LEGACY_W4_MANIFEST } from './legacy-w4-manifest.js';
  */
 export const PREREG_PROMPT_VERSION = 'prompt-none-v1' as const;
 export const PREREG_PROMPT_STYLE = 'neutral' as const;
+
+/**
+ * 运行/续跑前校验预注册记录与当前构建的版本一致。
+ *
+ * 历史 manifest 可能只记录了 `rulesVersion`（早期 P1.5/P6 设计没有 engineVersion），
+ * 因此两个字段都按“存在才校验”处理；新设计应同时写入 rulesVersion 与 engineVersion。
+ * analyze 阶段不调用本函数：历史产物必须能在新代码上离线复算。
+ */
+export function assertFrozenVersions(expected: {
+  readonly rulesVersion?: string;
+  readonly engineVersion?: string;
+}): void {
+  if (expected.rulesVersion !== undefined && expected.rulesVersion !== RULES_VERSION) {
+    throw new StratifyError(
+      errorCodes.CONFIG_UNKNOWN_VERSION,
+      `预注册 rulesVersion=${expected.rulesVersion} 与当前构建 ${RULES_VERSION} 不一致；` +
+        '请在冻结时的代码快照上运行，或重新预注册（不得静默混版本）',
+    );
+  }
+  if (expected.engineVersion !== undefined && expected.engineVersion !== ENGINE_VERSION) {
+    throw new StratifyError(
+      errorCodes.CONFIG_UNKNOWN_VERSION,
+      `预注册 engineVersion=${expected.engineVersion} 与当前构建 ${ENGINE_VERSION} 不一致；` +
+        '请在冻结时的代码快照上运行，或重新预注册（不得静默混版本）',
+    );
+  }
+}
 
 /**
  * cell 的设计类型（07 §6.2 vs §6.3）：
@@ -340,8 +368,11 @@ export function buildCellConfig(
   cell: Pick<PreregCell, 'cellKey' | 'overrides'>,
   populationSize: number,
   totalTicks: number,
+  baseConfig?: RunConfig,
 ): RunConfig {
-  const base = buildBaseConfig(populationSize, totalTicks);
+  // baseConfig 必须是真正的基线：batch/run 传入的实验级配置（不只人口）要参与
+  // 每个 cell 的合并，否则 ledger.baseConfigHash 会描述一个 run 从未使用过的基线。
+  const base = baseConfig ?? buildBaseConfig(populationSize, totalTicks);
   const merged = mergeConfig(base, {
     ...cell.overrides,
     // 人口规模与调度由 manifest 统一决定，cell 不得借覆盖各自改写。

@@ -199,10 +199,8 @@ export function validateBatchManifest(value: unknown, baseConfig?: RunConfig): B
 /** manifest → 任务列表（cells × seeds；配置深合并 + 校验，失败拒绝该任务）。 */
 export function buildBatchTasks(manifest: BatchManifest, baseConfig?: RunConfig): BatchTask[] {
   assertManifestVersions(manifest.rulesVersion, manifest.engineVersion);
-  assertPopulationSize(
-    manifest.populationSize,
-    resolveBatchBaseConfig(baseConfig).population.initialPopulation,
-  );
+  const base = resolveBatchBaseConfig(baseConfig);
+  assertPopulationSize(manifest.populationSize, base.population.initialPopulation);
   const tasks: BatchTask[] = [];
   const seenCellKeys = new Set<string>();
   manifest.cells.forEach((rawCell, index) => {
@@ -211,6 +209,7 @@ export function buildBatchTasks(manifest: BatchManifest, baseConfig?: RunConfig)
       { cellKey: cell.cellKey, overrides: cell.overrides as never },
       manifest.populationSize,
       manifest.totalTicks,
+      base,
     );
     for (const seed of manifest.seeds) {
       tasks.push({

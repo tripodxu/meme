@@ -805,8 +805,7 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     domain: { kind: 'number', min: 0, max: 20 },
     guardOnly: false,
     affectsBehavior: true,
-    wireTest:
-      '改变 θH 后 O_target 的自反馈项 θH×(O_prev−0.5) 改变；θH=0 与 rules-v11 逐位一致。',
+    wireTest: '改变 θH 后 O_target 的自反馈项 θH×(O_prev−0.5) 改变；θH=0 与 rules-v11 逐位一致。',
   },
   {
     name: 'openness.multiplierMin',

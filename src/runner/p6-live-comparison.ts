@@ -18,6 +18,7 @@
 import {
   bootstrapMedianCi,
   dScore,
+  nearestRankPercentile,
   pairedDiff,
   signFlipPermutationP,
   type P6WindowMetrics,
@@ -100,12 +101,7 @@ export function pairLiveRuns(
 
 /** 最近秩分位（与 p6-perturbation 的 baseline D95 口径一致）。 */
 export function percentileNearestRank(values: readonly number[], fraction: number): number | null {
-  if (values.length === 0) return null;
-  if (!(fraction > 0 && fraction <= 1)) {
-    throw new RangeError('fraction 必须在 (0,1]');
-  }
-  const sorted = [...values].sort((left, right) => left - right);
-  return sorted[Math.min(sorted.length - 1, Math.floor(fraction * sorted.length))] as number;
+  return nearestRankPercentile(values, fraction);
 }
 
 function medianOf(values: readonly number[]): number {

@@ -283,7 +283,16 @@ export function applyWealthPerturbation(state: SimState, delta: number): WealthP
     if (!agent.alive) {
       continue;
     }
-    agent.value += delta;
+    const nextValue = agent.value + delta;
+    if (nextValue < 0) {
+      // 状态不变量（serialize）禁止负财富；负向扰动超过个体余额时必须拒绝，
+      // 不能把无效状态带进续跑后才在结算/序列化处炸掉。
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `wealth_absolute 扰动使 agent ${agent.id} 财富为负（${agent.value} + ${delta}）；拒绝越界扰动`,
+      );
+    }
+    agent.value = nextValue;
     affectedAgents += 1;
   }
   const applied = computeAuthoritativeStateHash(treatment) !== computeAuthoritativeStateHash(state);

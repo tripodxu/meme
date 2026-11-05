@@ -84,25 +84,6 @@ export function saveRunProgress(
   host.promote(tempPath, path);
 }
 
-function assertProgressTick(
-  value: unknown,
-  tickCompleted: number,
-  label: string,
-  path: string,
-): asserts value is number {
-  if (
-    typeof value !== 'number' ||
-    !Number.isInteger(value) ||
-    value < 0 ||
-    value >= tickCompleted
-  ) {
-    throw new StratifyError(
-      errorCodes.CONFIG_INVALID,
-      `${label} 的 tick 必须在 [0, ${tickCompleted - 1}] 内: ${path}`,
-    );
-  }
-}
-
 function parseProgress(
   value: unknown,
   tickCompleted: number,
@@ -117,13 +98,26 @@ function parseProgress(
   if (!Array.isArray(stats) || !Array.isArray(flows) || !Array.isArray(decisions)) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, `进度检查点 progress 字段不完整: ${path}`);
   }
-  if (stats.length > tickCompleted) {
-    throw new StratifyError(
-      errorCodes.CONFIG_INVALID,
-      `进度检查点 stats 条数(${stats.length})超过 tickCompleted(${tickCompleted}): ${path}`,
-    );
-  }
-  const seenStats = new Set<number>();
+  // 覆盖校验：三组累计器都必须恰好覆盖 0..tickCompleted-1。只校验形状会让
+  // 截断的检查点（例如 5000 tick 只带 10 行 stats）静默恢复，窗口均值与不中断运行不一致。
+  const assertExactTicks = (label: string, entries: readonly unknown[]): void => {
+    if (entries.length !== tickCompleted) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `进度检查点 ${label} 条数(${entries.length})必须等于 tickCompleted(${tickCompleted}): ${path}`,
+      );
+    }
+    for (let index = 0; index < entries.length; index += 1) {
+      const entry = entries[index];
+      if (!isPlainObject(entry) || entry['tick'] !== index) {
+        throw new StratifyError(
+          errorCodes.CONFIG_INVALID,
+          `进度检查点 ${label}[${index}].tick 必须为 ${index}: ${path}`,
+        );
+      }
+    }
+  };
+  assertExactTicks('stats', stats);
   for (const [index, row] of stats.entries()) {
     if (!isPlainObject(row)) {
       throw new StratifyError(
@@ -131,17 +125,8 @@ function parseProgress(
         `进度检查点 stats[${index}] 必须是对象: ${path}`,
       );
     }
-    const tick = row['tick'];
-    assertProgressTick(tick, tickCompleted, `progress.stats[${index}]`, path);
-    if (seenStats.has(tick)) {
-      throw new StratifyError(
-        errorCodes.CONFIG_INVALID,
-        `进度检查点 stats 含重复 tick ${tick}: ${path}`,
-      );
-    }
-    seenStats.add(tick);
   }
-  const seenFlows = new Set<number>();
+  assertExactTicks('flows', flows);
   for (const [index, entry] of flows.entries()) {
     if (!isPlainObject(entry) || !Array.isArray(entry['matrix'])) {
       throw new StratifyError(
@@ -149,17 +134,8 @@ function parseProgress(
         `进度检查点 flows[${index}] 必须是 {tick,matrix} 对象: ${path}`,
       );
     }
-    const tick = entry['tick'];
-    assertProgressTick(tick, tickCompleted, `progress.flows[${index}]`, path);
-    if (seenFlows.has(tick)) {
-      throw new StratifyError(
-        errorCodes.CONFIG_INVALID,
-        `进度检查点 flows 含重复 tick ${tick}: ${path}`,
-      );
-    }
-    seenFlows.add(tick);
   }
-  const seenDecisions = new Set<number>();
+  assertExactTicks('decisions', decisions);
   for (const [index, entry] of decisions.entries()) {
     if (!isPlainObject(entry)) {
       throw new StratifyError(
@@ -167,21 +143,12 @@ function parseProgress(
         `进度检查点 decisions[${index}] 必须是对象: ${path}`,
       );
     }
-    const tick = entry['tick'];
-    assertProgressTick(tick, tickCompleted, `progress.decisions[${index}]`, path);
     if (typeof entry['due'] !== 'number' || typeof entry['fallbacks'] !== 'number') {
       throw new StratifyError(
         errorCodes.CONFIG_INVALID,
         `进度检查点 decisions[${index}] 的 due/fallbacks 必须是数字: ${path}`,
       );
     }
-    if (seenDecisions.has(tick)) {
-      throw new StratifyError(
-        errorCodes.CONFIG_INVALID,
-        `进度检查点 decisions 含重复 tick ${tick}: ${path}`,
-      );
-    }
-    seenDecisions.add(tick);
   }
   return value as unknown as RunProgressPayload['progress'];
 }

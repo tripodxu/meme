@@ -15,6 +15,7 @@ import {
   loadRunProgress,
   loadRunProgressAsync,
   runProgressExpectation,
+  type RunProgressPayload,
 } from '../../../src/runner/run-progress.js';
 import { runBatch } from '../../../src/runner/batch-cli.js';
 import { validateBatchManifest, type BatchManifest } from '../../../src/runner/batch.js';
@@ -22,6 +23,22 @@ import { ENGINE_VERSION, RULES_VERSION } from '../../../src/core/control/version
 
 const CONFIG = createDemoConfig({ schedule: { totalTicks: 40 } });
 const SEED = asSeed('ckpt-seed');
+
+/** 生产检查点总是完整覆盖 0..tickCompleted-1；测试用最小合法行构造。 */
+function completeProgress(
+  tickCompleted: number,
+  firstDecisionDue = 0,
+): RunProgressPayload['progress'] {
+  return {
+    stats: Array.from({ length: tickCompleted }, (_, tick) => ({ tick }) as never),
+    flows: Array.from({ length: tickCompleted }, (_, tick) => ({ tick, matrix: [] })),
+    decisions: Array.from({ length: tickCompleted }, (_, tick) => ({
+      tick,
+      due: tick === 0 ? firstDecisionDue : 0,
+      fallbacks: 0,
+    })),
+  };
+}
 
 function checkpointOptions(
   host: SyncCheckpointHost,
@@ -173,7 +190,7 @@ describe('run 内进度检查点（P5-03，runSingle）', () => {
         savedAtSequence: 1,
       },
       foreignState,
-      { stats: [], flows: [], decisions: [] },
+      completeProgress(10),
     );
     const host = memoryCheckpointHostSync();
     host.writeTemp('p.json', JSON.stringify(payload));
@@ -198,7 +215,7 @@ describe('run 内进度检查点（P5-03，runSingle）', () => {
       },
       // 快照来自同一 config/seed 的合法状态，只有 cellKey 伪造。
       runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1', maxTicks: 10 }).finalState,
-      { stats: [], flows: [], decisions: [] },
+      completeProgress(10),
     );
     host.writeTemp('run.progress.json', JSON.stringify(payload));
     host.promote('run.progress.json', 'run.progress.json');
@@ -266,11 +283,7 @@ describe('run-progress 模块（P5-03）', () => {
     const payload = buildRunProgressPayload(
       { cellKey: 'baseline', seed: SEED, configHash: '', tickCompleted: 10, savedAtSequence: 3 },
       state,
-      {
-        stats: [],
-        flows: [{ tick: 0, matrix: [[0]] }],
-        decisions: [{ tick: 0, due: 40, fallbacks: 0 }],
-      },
+      completeProgress(10, 40),
     );
     host.writeTemp('p.json', JSON.stringify(payload));
     host.promote('p.json', 'p.json');
@@ -293,7 +306,7 @@ describe('run-progress 模块（P5-03）', () => {
         savedAtSequence: 1,
       },
       state,
-      { stats: [], flows: [], decisions: [] },
+      completeProgress(10),
     );
     host.writeTemp('p.json', JSON.stringify(payload));
     host.promote('p.json', 'p.json');
@@ -320,7 +333,7 @@ describe('run-progress 模块（P5-03）', () => {
         savedAtSequence: 1,
       },
       state,
-      { stats: [], flows: [], decisions: [] },
+      completeProgress(10),
     );
     type Broken = Record<string, unknown>;
     const cases: { readonly name: string; readonly mutate: (value: Broken) => void }[] = [
@@ -439,7 +452,7 @@ describe('run-progress 模块（P5-03）', () => {
         savedAtSequence: 1,
       },
       state,
-      { stats: [], flows: [], decisions: [] },
+      completeProgress(10),
     );
     const syncHost = memoryCheckpointHostSync();
     syncHost.writeTemp('p.json', JSON.stringify(payload));

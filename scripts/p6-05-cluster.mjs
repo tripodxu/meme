@@ -19,7 +19,9 @@ import { dirname, join } from 'node:path';
 import { asSeed } from '../dist/core/control/ids.js';
 import { hashValue } from '../dist/core/hash/hash.js';
 import { HASH_DOMAINS } from '../dist/core/hash/domains.js';
-import { buildCellConfig } from '../dist/runner/preregistration.js';
+import { buildCellConfig, assertFrozenVersions } from '../dist/runner/preregistration.js';
+import { readNdjsonTolerant } from '../dist/runner/ndjson.js';
+import { median } from '../dist/runner/p6-analysis.js';
 import { runSingle } from '../dist/runner/run-cell.js';
 import { summarizeWindow } from '../dist/runner/window-stats.js';
 import {
@@ -404,11 +406,12 @@ function runOne(design, cell, seed, horizon, window) {
 }
 
 function readLedger(path) {
-  if (!existsSync(path)) return new Map();
+  const { records, repairedTail } = readNdjsonTolerant(path, { repairTail: true });
+  if (repairedTail) {
+    process.stderr.write(`[ledger] 已截断末尾半行: ${path}\n`);
+  }
   const map = new Map();
-  for (const line of readFileSync(path, 'utf8').split('\n')) {
-    if (line.trim().length === 0) continue;
-    const record = JSON.parse(line);
+  for (const record of records) {
     if (record.status === 'ok') map.set(record.runKey, record);
   }
   return map;
@@ -434,6 +437,7 @@ function run(options) {
     );
     return;
   }
+  assertFrozenVersions(design);
   mkdirSync(options.dir, { recursive: true });
   const ledgerPath = join(options.dir, 'runs.ndjson');
   const ledger = readLedger(ledgerPath);
@@ -489,11 +493,13 @@ function analyze(options) {
   const design = artifact.design;
   const ledgerPath = join(options.dir, 'runs.ndjson');
   if (!existsSync(ledgerPath)) throw new Error(`缺少 ledger ${ledgerPath}`);
-  const all = readFileSync(ledgerPath, 'utf8')
-    .split('\n')
-    .filter((line) => line.trim().length > 0)
-    .map((line) => JSON.parse(line))
-    .filter((record) => record.status === 'ok');
+  const { records: ledgerRecords, repairedTail } = readNdjsonTolerant(ledgerPath, {
+    repairTail: true,
+  });
+  if (repairedTail) {
+    process.stderr.write(`[analyze] 已截断末尾半行: ${ledgerPath}\n`);
+  }
+  const all = ledgerRecords.filter((record) => record.status === 'ok');
   const baseRows = all.filter((record) => record.horizon === design.horizon);
   const followRows = all.filter((record) => record.horizon === design.followupHorizon);
   const usable = baseRows.filter(
@@ -538,7 +544,7 @@ function analyze(options) {
     aris.push(result.ari);
   }
   aris.sort((left, right) => left - right);
-  const ariMedian = aris[Math.floor(aris.length / 2)];
+  const ariMedian = median(aris);
   const ariMin = aris[0];
   const standardizedCentroids = clusterCentroids(matrix, assignments, design.clustering.k);
   const rawCentroids = clusterCentroids(points, assignments, design.clustering.k);

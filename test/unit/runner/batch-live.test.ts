@@ -12,7 +12,11 @@ import type { DecisionRecord } from '../../../src/decision/types.js';
 import { SharedBatchBudget } from '../../../src/runner/budget.js';
 import { RateLimiter, rateLimitedFetch } from '../../../src/runner/rate-limit.js';
 import { runBatchWithPolicy } from '../../../src/runner/batch-live.js';
-import { validateBatchManifest, type BatchManifest } from '../../../src/runner/batch.js';
+import {
+  validateBatchManifest,
+  type BatchManifest,
+  type BatchTask,
+} from '../../../src/runner/batch.js';
 import { memoryCheckpointHost } from '../../../src/runner/checkpoint.js';
 
 const BASE_POPULATION = DEFAULT_RUN_CONFIG.population.initialPopulation;
@@ -524,5 +528,55 @@ describe('runBatchWithPolicy（P5-02）', () => {
       const controlRecord = control.runs.find((run) => run.seed === seed);
       expect(resumedRecord?.report.finalStateHash).toBe(controlRecord?.report.finalStateHash);
     }
+  });
+
+  it('live 续跑时早期任务再次失败不会抹掉已完成 run', async () => {
+    resetPolicyCounters();
+    const manifest = validateBatchManifest({
+      schemaVersion: 'batch-v1',
+      rulesVersion: RULES_VERSION,
+      engineVersion: ENGINE_VERSION,
+      populationSize: BASE_POPULATION,
+      totalTicks: 20,
+      policy: 'mock-weighted-v1',
+      seeds: ['s1'],
+      cells: [
+        { cellKey: 'baseline', overrides: {} },
+        { cellKey: 'threshold=0.9', overrides: { need: { threshold: 0.9 } } },
+      ],
+    });
+    const host = memoryCheckpointHost();
+    const ledgerPath = 'ledger.json';
+    const factoryFailsBaseline = (task: BatchTask) => {
+      if (task.config.need.threshold === 0.5) {
+        throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'baseline policy fails');
+      }
+      return new FakeLivePolicy();
+    };
+
+    const first = await runBatchWithPolicy({
+      manifest,
+      policyFactory: factoryFailsBaseline,
+      ledger: { host, path: ledgerPath },
+      requireBudget: false,
+    });
+    expect(first.totals).toMatchObject({ due: 2, ok: 1, failed: 1 });
+    expect(
+      (JSON.parse(host.files.get(ledgerPath) as string) as { runs: unknown[] }).runs,
+    ).toHaveLength(1);
+
+    // 关键回归：baseline 仍失败时，ledger 必须保留 threshold 的完成记录。
+    const second = await runBatchWithPolicy({
+      manifest,
+      policyFactory: factoryFailsBaseline,
+      ledger: { host, path: ledgerPath },
+      requireBudget: false,
+    });
+    expect(second.totals).toMatchObject({ due: 2, ok: 1, failed: 1 });
+    const stored = JSON.parse(host.files.get(ledgerPath) as string) as {
+      runs: { cellKey: string }[];
+    };
+    expect(stored.runs).toHaveLength(1);
+    expect(stored.runs[0]?.cellKey).toBe('threshold=0.9');
   });
 });

@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_RUN_CONFIG } from '../../../src/core/config/defaults.js';
+import { createDemoConfig, DEFAULT_RUN_CONFIG } from '../../../src/core/config/defaults.js';
 import { ENGINE_VERSION, RULES_VERSION } from '../../../src/core/control/versions.js';
 import { errorCodes, StratifyError } from '../../../src/core/control/errors.js';
 import {
   computeBatchManifestHash,
+  parseLedger,
   runBatch,
   type BatchLedger,
   type BatchRunRecord,
 } from '../../../src/runner/batch-cli.js';
-import { validateBatchManifest, type BatchManifest } from '../../../src/runner/batch.js';
+import {
+  buildBatchTasks,
+  validateBatchManifest,
+  type BatchManifest,
+} from '../../../src/runner/batch.js';
 import { memoryCheckpointHost } from '../../../src/runner/checkpoint.js';
 import { runSingle, type RunOptions, type RunOutcome } from '../../../src/runner/run-cell.js';
 
@@ -137,9 +142,31 @@ describe('批量执行器与机器可读摘要（P5-01）', () => {
     });
     expect(summary.totals.failed).toBe(1);
   });
+
+  it('baseConfig 作为 cell 的基线参与任务构造', () => {
+    const base = createDemoConfig({ need: { threshold: 0.7 } });
+    const manifest = validateBatchManifest(manifestRecord());
+    const tasks = buildBatchTasks(manifest, base);
+    expect(tasks.find((task) => task.cellKey === 'baseline')?.config.need.threshold).toBe(0.7);
+    expect(tasks.find((task) => task.cellKey === 'threshold=0.9')?.config.need.threshold).toBe(0.9);
+  });
 });
 
 describe('批量 ledger 断点续跑（G5a）', () => {
+  it('ledger 的 report.windows 为空时拒绝复用', async () => {
+    const manifest = smallManifest();
+    const host = memoryCheckpointHost();
+    const ledgerPath = 'ledger.json';
+    await runBatch(manifest, { ledger: { host, path: ledgerPath } });
+    const stored = JSON.parse(host.files.get(ledgerPath) as string) as {
+      runs: { report: { windows: unknown[] } }[];
+    };
+    stored.runs[0]!.report.windows = [];
+    expect(() =>
+      parseLedger(JSON.stringify(stored), computeBatchManifestHash(manifest)),
+    ).toThrowError(/report\.windows/);
+  });
+
   it('kill 后从 ledger 恢复，最终指纹与不中断对照一致', async () => {
     const manifest = smallManifest();
     const manifestHash = computeBatchManifestHash(manifest);
@@ -197,6 +224,41 @@ describe('批量 ledger 断点续跑（G5a）', () => {
     expect(resumed.runs.map(fingerprint)).toEqual(control.runs.map(fingerprint));
     // 复用记录逐字保留（不重算）。
     expect(resumed.runs[0]).toEqual(interrupted.runs[0]);
+  });
+
+  it('续跑时早期任务再次失败不会抹掉已完成 run', async () => {
+    const manifest = validateBatchManifest({ ...manifestRecord(), seeds: ['s1'] });
+    const host = memoryCheckpointHost();
+    const ledgerPath = 'ledger.json';
+    const failBaseline = (
+      config: Parameters<typeof runSingle>[0],
+      seed: Parameters<typeof runSingle>[1],
+      options: RunOptions,
+    ): RunOutcome => {
+      if (config.need.threshold === 0.5) {
+        throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'baseline fails');
+      }
+      return runSingle(config, seed, options);
+    };
+
+    const first = await runBatch(manifest, {
+      ledger: { host, path: ledgerPath },
+      runSingleImpl: failBaseline,
+    });
+    expect(first.totals).toMatchObject({ due: 2, ok: 1, failed: 1 });
+    const afterFirst = JSON.parse(host.files.get(ledgerPath) as string) as BatchLedger;
+    expect(afterFirst.runs).toHaveLength(1);
+    expect(afterFirst.runs[0]?.cellKey).toBe('threshold=0.9');
+
+    // 关键回归：baseline 仍失败时，persistLedger 不得把 threshold 的完成记录从 ledger 抹掉。
+    const second = await runBatch(manifest, {
+      ledger: { host, path: ledgerPath },
+      runSingleImpl: failBaseline,
+    });
+    expect(second.totals).toMatchObject({ due: 2, ok: 1, failed: 1 });
+    const afterSecond = JSON.parse(host.files.get(ledgerPath) as string) as BatchLedger;
+    expect(afterSecond.runs).toHaveLength(1);
+    expect(afterSecond.runs[0]?.cellKey).toBe('threshold=0.9');
   });
 
   it('ledger 缺失时全新执行并原子落盘', async () => {
