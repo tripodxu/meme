@@ -2,7 +2,7 @@
 
 Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用；P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）、**P5-01 批跑 CLI（`batch-cli` + `bin/stratify-batch.mjs`，changes/0031）**、**P5-03 run 内进度检查点（`run-progress`，changes/0032）** 与 **P5-04 微扰配对执行入口（`perturbation`，changes/0033）** 已落地；**P5-02 共享预算/限流/live 批跑执行器（`budget`/`rate-limit`/`batch-live`，changes/0035）** 已落地——**P5a 全部完成**；上传仍未完成。
 
-已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`、`p6-live-comparison`。
+已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`、`p6-live-comparison`、`p6-cluster-summary`。
 
 计划模块：`uploader`（P5b）。
 
@@ -53,6 +53,15 @@ node scripts/p6-perturbation.mjs --analyze
 - `scripts/p6-04b-formal.mjs`：`--freeze` 冻结 10 seed × 4 组设计并写 designHash；
   `--run` 以并发池执行 mock/random/live，ledger 追加式落盘、可断点续跑；
   `--analyze` 输出五个比较与 BH 族。正式批次结果见 changes/0056。
+
+## P6-05 全特征聚类
+
+- `src/runner/p6-cluster-summary.ts`：11 维结构指纹、簇组成/大小/质心、
+  14600 同簇率与 P6-05 验收（k=3、ARI median、silhouette、最小簇、反预设分组）。
+- `scripts/p6-05-cluster.mjs`：`--freeze` 冻结 6 个参数区域 × 30 seed ×
+  10950 tick 的预注册；`--run` 跑 180 个终端 run + 60 个 14600 时序 run；
+  `--analyze` 输出 k=3 聚类、20 次稳定性、14600 同簇率与 k=2/4/5 诊断。
+  本轮未通过（changes/0057）。
 
 ## 批跑 CLI（P5-01/P5-03）
 

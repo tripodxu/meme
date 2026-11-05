@@ -253,6 +253,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-04b 正式 live 对照（2026-11-05）**：`p6-04b-formal-9a8febe2`，10 新 seed × {mock, random, live-neutral, live-survival_hint} = 40 run，**40/40 完成、0 失败、0 剔除**；live 19,799 决策、8 次 `upstream_5xx` 回退（0.04%）、单一模型，input 37.48M / output 2.45M，max 25.9 s（changes/0056）。TV(P) 中位数：neutral vs mock **0.0175**（CI 0.0106–0.0288）、vs random **0.3781**；survival vs mock **0.0248**、vs random **0.3839**；survival vs neutral 0.0311。baseline D95 mock 0.2156 / random 0.1183。五个比较均未同时满足 07 §8（方向一致率 0.50–0.90、BH 最小 p=0.1577），`verdict=no-structural-evidence`；`survival_hint` 的 Mup→0、S→0.354、O→0.143 强信号仅 exploratory。**单 seed 集不构成确认、校准或结构涌现。**
 
+**P6-05 全特征聚类（2026-11-05，未通过）**：`p6-05-9718860c`，6 个参数区域 × 30 新 seed × 10950 tick（40 人），终端 11 维全特征（P0..P4/G/top10/Mup/Mdown/S/O）；240/240 run 完成、0 排除、0 灭绝（changes/0057）。k=3 簇 **[30,118,32]**：A 单独一簇，其余 118 run 跨 B–F，第三簇 32 run 跨 B–F。ARI median **0.491**（min 0.242）、silhouette **0.344**、14600 同簇率 **0.667**，均未过线；`antiPreset=true`。k=2 诊断 [30,150]、silhouette **0.649**，二簇结构稳健；三簇不成立。W6 的 class-share 三类候选在加入 G/top10/Mup/Mdown/S/O 后未复现。verdict=`not-accepted-return-to-rule-review`，**G6 仍未通过**；不得调 k/换指标/事后挑 seed，需回规则评审寻找第三类稳定全特征结构。
+
 ## 10. P7：发布硬化
 
 - 全量 CI、E2E、性能和长时 soak；检查 Worker 请求资源，不以本机结果推断 Worker 限额。

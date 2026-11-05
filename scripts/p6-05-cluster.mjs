@@ -27,7 +27,6 @@ import {
   fitStandardizer,
   seededShuffle,
   silhouetteScore,
-  standardizeWith,
   wardCluster,
 } from '../dist/runner/cluster.js';
 import {
@@ -366,7 +365,7 @@ function analyze(options) {
   }
   const points = usable.map((record) => record.features);
   const scaler = fitStandardizer(points);
-  const matrix = standardizeWith(points, scaler);
+  const matrix = points.map((point) => scaler.standardize(point));
   const assignments = wardCluster(matrix, design.clustering.k);
   const sizes = clusterSizes(assignments, design.clustering.k);
   const composition = clusterComposition(
@@ -402,7 +401,7 @@ function analyze(options) {
     if (base === undefined || record.extinct || record.window?.missingTicks !== 0) continue;
     const position = usable.indexOf(base);
     if (position < 0) continue;
-    const standardized = standardizeWith([record.features], scaler)[0];
+    const standardized = scaler.standardize(record.features);
     baseAssignments.push(assignments[position]);
     followAssignments.push(nearestCentroid(standardized, standardizedCentroids));
   }
