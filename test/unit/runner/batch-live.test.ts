@@ -140,6 +140,24 @@ function resetPolicyCounters(): void {
 }
 
 describe('SharedBatchBudget（P5-02）', () => {
+  it('构造参数校验：调用数与 token 上限必须为正整数', () => {
+    expect(() => new SharedBatchBudget(0, 10)).toThrowError(/maxCalls/);
+    expect(() => new SharedBatchBudget(1.5, 10)).toThrowError(/maxCalls/);
+    expect(() => new SharedBatchBudget(1, 0)).toThrowError(/maxInputTokens/);
+    expect(() => new SharedBatchBudget(1, 1.5)).toThrowError(/maxInputTokens/);
+  });
+
+  it('keepReserved 将预留转为已花费并清空在途；recordUsageUnknown 不改变预算', () => {
+    const budget = new SharedBatchBudget(2, 100);
+    expect(budget.reserve(10)).toBe(true);
+    expect(budget.inFlightTokens).toBe(10);
+    budget.keepReserved(10);
+    expect(budget.inFlightTokens).toBe(0);
+    expect(budget.usage()).toMatchObject({ callsUsed: 1, tokensSpent: 10, tokensReserved: 0 });
+    budget.recordUsageUnknown();
+    expect(budget.usage()).toMatchObject({ tokensSpent: 10, tokensReserved: 0 });
+  });
+
   it('跨 run 共享记账：总调用与总 token 不随 run 数放大', () => {
     const budget = new SharedBatchBudget(5, 1000);
     // 两个「run」各预留一次。

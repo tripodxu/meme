@@ -4,6 +4,7 @@ import { createDemoConfig } from '../../../src/core/config/defaults.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { errorCodes, StratifyError } from '../../../src/core/control/errors.js';
 import {
+  memoryCheckpointHost,
   memoryCheckpointHostSync,
   type SyncCheckpointHost,
 } from '../../../src/runner/checkpoint.js';
@@ -11,6 +12,7 @@ import { runSingle } from '../../../src/runner/run-cell.js';
 import {
   buildRunProgressPayload,
   loadRunProgress,
+  loadRunProgressAsync,
   runProgressExpectation,
 } from '../../../src/runner/run-progress.js';
 import { runBatch } from '../../../src/runner/batch-cli.js';
@@ -270,6 +272,165 @@ describe('run-progress 模块（P5-03）', () => {
     host.promote('bad.json', 'bad.json');
     // tickCompleted 非法属损坏类：按不存在处理（返回 null）。
     expect(loadRunProgress(host, 'bad.json', {})).toBeNull();
+  });
+
+  it('结构损坏的进度检查点统一按不存在处理（逐类覆盖）', () => {
+    const host = memoryCheckpointHostSync();
+    const state = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1', maxTicks: 10 }).finalState;
+    const valid = buildRunProgressPayload(
+      {
+        cellKey: 'baseline',
+        seed: SEED,
+        configHash: '',
+        tickCompleted: 10,
+        savedAtSequence: 1,
+      },
+      state,
+      { stats: [], flows: [], decisions: [] },
+    );
+    type Broken = Record<string, unknown>;
+    const cases: { readonly name: string; readonly mutate: (value: Broken) => void }[] = [
+      {
+        name: 'progress 非对象',
+        mutate: (value) => {
+          value['progress'] = [];
+        },
+      },
+      {
+        name: 'progress 字段不完整',
+        mutate: (value) => {
+          value['progress'] = { stats: [] };
+        },
+      },
+      {
+        name: 'stats 条数超过 tickCompleted',
+        mutate: (value) => {
+          value['progress'] = {
+            stats: Array.from({ length: 11 }, () => ({ tick: 0 })),
+            flows: [],
+            decisions: [],
+          };
+        },
+      },
+      {
+        name: 'stats 元素非对象',
+        mutate: (value) => {
+          value['progress'] = { stats: [1], flows: [], decisions: [] };
+        },
+      },
+      {
+        name: 'stats tick 重复',
+        mutate: (value) => {
+          value['progress'] = { stats: [{ tick: 0 }, { tick: 0 }], flows: [], decisions: [] };
+        },
+      },
+      {
+        name: 'flows 元素缺 matrix',
+        mutate: (value) => {
+          value['progress'] = { stats: [], flows: [{ tick: 0 }], decisions: [] };
+        },
+      },
+      {
+        name: 'flows tick 重复',
+        mutate: (value) => {
+          value['progress'] = {
+            stats: [],
+            flows: [
+              { tick: 0, matrix: [] },
+              { tick: 0, matrix: [] },
+            ],
+            decisions: [],
+          };
+        },
+      },
+      {
+        name: 'decisions 元素非对象',
+        mutate: (value) => {
+          value['progress'] = { stats: [], flows: [], decisions: [1] };
+        },
+      },
+      {
+        name: 'decisions due/fallbacks 非数字',
+        mutate: (value) => {
+          value['progress'] = {
+            stats: [],
+            flows: [],
+            decisions: [{ tick: 0, due: '1', fallbacks: 0 }],
+          };
+        },
+      },
+      {
+        name: 'decisions tick 重复',
+        mutate: (value) => {
+          value['progress'] = {
+            stats: [],
+            flows: [],
+            decisions: [
+              { tick: 0, due: 1, fallbacks: 0 },
+              { tick: 0, due: 1, fallbacks: 0 },
+            ],
+          };
+        },
+      },
+      {
+        name: '未知 schemaVersion',
+        mutate: (value) => {
+          value['schemaVersion'] = 'run-progress-v9';
+        },
+      },
+      {
+        name: 'meta 缺失',
+        mutate: (value) => {
+          delete value['meta'];
+        },
+      },
+    ];
+    for (const { name, mutate } of cases) {
+      const broken = JSON.parse(JSON.stringify(valid)) as Broken;
+      mutate(broken);
+      host.writeTemp('broken.json', JSON.stringify(broken));
+      host.promote('broken.json', 'broken.json');
+      expect(loadRunProgress(host, 'broken.json', {}), name).toBeNull();
+    }
+  });
+
+  it('seed 期望不匹配时抛错（异步加载同口径）', async () => {
+    const state = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1', maxTicks: 10 }).finalState;
+    const payload = buildRunProgressPayload(
+      {
+        cellKey: 'baseline',
+        seed: SEED,
+        configHash: '',
+        tickCompleted: 10,
+        savedAtSequence: 1,
+      },
+      state,
+      { stats: [], flows: [], decisions: [] },
+    );
+    const syncHost = memoryCheckpointHostSync();
+    syncHost.writeTemp('p.json', JSON.stringify(payload));
+    syncHost.promote('p.json', 'p.json');
+    expect(() => loadRunProgress(syncHost, 'p.json', { seed: asSeed('other-seed') })).toThrowError(
+      /seed 不匹配/,
+    );
+
+    const asyncHost = memoryCheckpointHost();
+    await asyncHost.writeTemp('p.json', JSON.stringify(payload));
+    await asyncHost.promote('p.json', 'p.json');
+    await expect(
+      loadRunProgressAsync(asyncHost, 'p.json', { seed: asSeed('other-seed') }),
+    ).rejects.toThrowError(/seed 不匹配/);
+  });
+
+  it('异步加载：未知版本与结构损坏按不存在处理', async () => {
+    const host = memoryCheckpointHost();
+    await host.writeTemp('v9.json', JSON.stringify({ schemaVersion: 'run-progress-v9' }));
+    await host.promote('v9.json', 'v9.json');
+    expect(await loadRunProgressAsync(host, 'v9.json', {})).toBeNull();
+
+    await host.writeTemp('bad.json', '{"schemaVersion":"run-progress-v1","meta":{');
+    await host.promote('bad.json', 'bad.json');
+    expect(await loadRunProgressAsync(host, 'bad.json', {})).toBeNull();
   });
 });
 
