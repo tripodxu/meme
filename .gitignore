@@ -106,3 +106,6 @@ out/*
 !out/p6-perturbation-prereg.json
 !out/p6-perturbation-slim.json
 !out/p6-perturbation-analysis.json
+!out/p6-ablation-prereg.json
+!out/p6-ablation-slim.json
+!out/p6-ablation-analysis.json

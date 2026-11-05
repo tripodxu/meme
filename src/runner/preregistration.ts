@@ -94,6 +94,7 @@ export const WARMUP_DIAGNOSTICS = [
   'attractor stability: same-run w2/w3 feature points fall in the same cluster (limit-cycle system)',
   'Stage A 筛查：warmup=365 后的 [365,729] 单窗口日均值；w1 完整窗口（365–1094）超出 730 tick 视野，观测段覆盖是预注册取舍',
   'P6-02 探索：warmup=365 后的 [365,729] 单窗口日均值；w1 完整窗口超出 730 tick 视野，观测段覆盖是预注册取舍',
+  'P6-04 消融：warmup=365 后的 [365,729] 单窗口日均值；w1 完整窗口超出 730 tick 视野，观测段覆盖是预注册取舍',
 ] as const;
 
 export type WarmupDiagnostic = (typeof WARMUP_DIAGNOSTICS)[number];

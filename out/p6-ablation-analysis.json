@@ -1,0 +1,613 @@
+{
+  "schemaVersion": "p6-ablation-analysis-v1",
+  "isExperimentalEvidence": true,
+  "protocol": "07-ablation-exploratory",
+  "primaryMetric": "TV(P)",
+  "thresholds": {
+    "tv": 0.1
+  },
+  "experimentId": "p6-ablation-c46c2aff",
+  "preregistrationHash": "sha256:c46c2aff831f7298228bf3e7fcef6154b0b9dc9d8f17d02f7a20f9993911110a",
+  "populationSize": 200,
+  "totals": {
+    "due": 180,
+    "ok": 180,
+    "failed": 0,
+    "resumed": 0,
+    "elapsedMs": 609207.9542999999
+  },
+  "baselineD95": 0.06681232286671031,
+  "claim": "P6-04a 五消融：只有消融后结构显著退化（TV(P)≥0.10、CI 不跨 0、100% 超出 baseline D95）才可说该机制在本实验范围内有解释力；ψ=1 另检验 P4 下降方向。仅 exploratory，不构成现实因果、确认或校准（07 §11、AGENTS #9）。Jev/mock 对照另列，未在无轮换密钥时运行。",
+  "cells": [
+    {
+      "cellKey": "beta=0",
+      "changedPaths": [
+        "networkOpportunity.beta"
+      ],
+      "tvMedian": 0.019506416065635843,
+      "tvCi95": [
+        0.015755879425837824,
+        0.02303230777279964
+      ],
+      "beyondBandRate": 0.8,
+      "baselineD95": 0.06681232286671031,
+      "paired": 30,
+      "complete": true,
+      "metrics": {
+        "tv": {
+          "median": 0.019506416065635843,
+          "ci95": [
+            0.015755879425837824,
+            0.02303230777279964
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": false,
+          "threshold": 0.1,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "gini": {
+          "median": -0.059611502845969444,
+          "ci95": [
+            -0.06289940057028581,
+            -0.05524512908001436
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": 0.03,
+          "overThreshold": true,
+          "paired": 30
+        },
+        "mUp": {
+          "median": 0.13815142035651712,
+          "ci95": [
+            0.13247839767640135,
+            0.1518454624887305
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": true,
+          "paired": 30
+        },
+        "mDown": {
+          "median": 0.14121838914620427,
+          "ci95": [
+            0.1346421231156948,
+            0.15013416869714785
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": null,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "segregation": {
+          "median": -0.0494057355528781,
+          "ci95": [
+            -0.05594110013152451,
+            -0.03670025799595125
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9666666666666667,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "openness": {
+          "median": 0.1894939568369795,
+          "ci95": [
+            0.17606982328954146,
+            0.19807695124739827
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": true,
+          "paired": 30
+        }
+      },
+      "pairs": 30,
+      "classShareDeltaMedians": [
+        -0.009245095071140352,
+        0.015110018657724045,
+        -0.005135116655592433,
+        0.00016594187975419328,
+        -7.470893399318806e-8
+      ],
+      "giniDelta": -0.059611502845969444,
+      "mUpDelta": 0.13815142035651712,
+      "mDownDelta": 0.14121838914620427,
+      "segregationDelta": -0.0494057355528781,
+      "opennessDelta": 0.1894939568369795,
+      "prediction": {
+        "metric": "none",
+        "direction": "none",
+        "note": "无网络机会；不预设方向，报告 TV 与分项"
+      },
+      "predictionMetricDelta": null,
+      "predictionAgree": null,
+      "predictionHolds": null,
+      "mechanismExplained": false,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "openness=fixed",
+      "changedPaths": [
+        "openness.updateMode"
+      ],
+      "tvMedian": 0.007972905315158327,
+      "tvCi95": [
+        0.005483948223790121,
+        0.010277242329493279
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.06681232286671031,
+      "paired": 30,
+      "complete": true,
+      "metrics": {
+        "tv": {
+          "median": 0.007972905315158327,
+          "ci95": [
+            0.005483948223790121,
+            0.010277242329493279
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": false,
+          "threshold": 0.1,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "gini": {
+          "median": 0.0049355916394543675,
+          "ci95": [
+            0.0036894530864475528,
+            0.007270765032669935
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.7333333333333333,
+          "directionApplicable": true,
+          "threshold": 0.03,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "mUp": {
+          "median": 0.032031146318389936,
+          "ci95": [
+            0.023138581022586424,
+            0.04915268896539543
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "mDown": {
+          "median": 0.03284434884690168,
+          "ci95": [
+            0.024457265152671936,
+            0.04505862987183379
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9,
+          "directionApplicable": true,
+          "threshold": null,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "segregation": {
+          "median": -0.012092861756330814,
+          "ci95": [
+            -0.017263711266091428,
+            0.003089546297801348
+          ],
+          "ciCrossesZero": true,
+          "directionAgree": 0.6333333333333333,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "openness": {
+          "median": -0.15894138320691015,
+          "ci95": [
+            -0.18726166608960976,
+            -0.14094751972492625
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": true,
+          "paired": 30
+        }
+      },
+      "pairs": 30,
+      "classShareDeltaMedians": [
+        0.0009848943638351981,
+        -0.0023989991345056694,
+        -0.0000019752831809868865,
+        6.148310464004422e-7,
+        -0.0000010910807317052228
+      ],
+      "giniDelta": 0.0049355916394543675,
+      "mUpDelta": 0.032031146318389936,
+      "mDownDelta": 0.03284434884690168,
+      "segregationDelta": -0.012092861756330814,
+      "opennessDelta": -0.15894138320691015,
+      "prediction": {
+        "metric": "none",
+        "direction": "none",
+        "note": "停止制度更新；不预设结构方向，报告 O 与跨层流动"
+      },
+      "predictionMetricDelta": null,
+      "predictionAgree": null,
+      "predictionHolds": null,
+      "mechanismExplained": false,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "eta=0",
+      "changedPaths": [
+        "dynamics.congestionExponent"
+      ],
+      "tvMedian": 0.006294672350933736,
+      "tvCi95": [
+        0.0027432862846530764,
+        0.010329784103578144
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.06681232286671031,
+      "paired": 30,
+      "complete": true,
+      "metrics": {
+        "tv": {
+          "median": 0.006294672350933736,
+          "ci95": [
+            0.0027432862846530764,
+            0.010329784103578144
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": false,
+          "threshold": 0.1,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "gini": {
+          "median": -0.030074638008626836,
+          "ci95": [
+            -0.03489732868909723,
+            -0.027954032319475186
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": 0.03,
+          "overThreshold": true,
+          "paired": 30
+        },
+        "mUp": {
+          "median": 0.044362100863935494,
+          "ci95": [
+            0.03074169567116669,
+            0.0564313623224712
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.8666666666666667,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "mDown": {
+          "median": 0.03993588369998069,
+          "ci95": [
+            0.0335633315413551,
+            0.04303979967722926
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.8666666666666667,
+          "directionApplicable": true,
+          "threshold": null,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "segregation": {
+          "median": -0.01430243768587574,
+          "ci95": [
+            -0.022339231409534862,
+            -0.0012429864002578735
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.7333333333333333,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "openness": {
+          "median": 0.08242207423314507,
+          "ci95": [
+            0.061932121066592516,
+            0.08988933700371154
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9666666666666667,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": true,
+          "paired": 30
+        }
+      },
+      "pairs": 30,
+      "classShareDeltaMedians": [
+        -0.000004089963808684427,
+        -0.00010764765285184441,
+        0.0007152260715901915,
+        2.2524617893353999e-7,
+        0
+      ],
+      "giniDelta": -0.030074638008626836,
+      "mUpDelta": 0.044362100863935494,
+      "mDownDelta": 0.03993588369998069,
+      "segregationDelta": -0.01430243768587574,
+      "opennessDelta": 0.08242207423314507,
+      "prediction": {
+        "metric": "none",
+        "direction": "none",
+        "note": "Congestion=1；不预设方向"
+      },
+      "predictionMetricDelta": null,
+      "predictionAgree": null,
+      "predictionHolds": null,
+      "mechanismExplained": false,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "kappa=0",
+      "changedPaths": [
+        "dynamics.polarizationExponent"
+      ],
+      "tvMedian": 0.010609053434945273,
+      "tvCi95": [
+        0.009223102781253857,
+        0.015688238471501293
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.06681232286671031,
+      "paired": 30,
+      "complete": true,
+      "metrics": {
+        "tv": {
+          "median": 0.010609053434945273,
+          "ci95": [
+            0.009223102781253857,
+            0.015688238471501293
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": false,
+          "threshold": 0.1,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "gini": {
+          "median": -0.023709084965664512,
+          "ci95": [
+            -0.028071009918623213,
+            -0.01935359867486089
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9666666666666667,
+          "directionApplicable": true,
+          "threshold": 0.03,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "mUp": {
+          "median": 0.044550986980452734,
+          "ci95": [
+            0.030400925710759474,
+            0.04926246485741381
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9333333333333333,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "mDown": {
+          "median": 0.038707311430279334,
+          "ci95": [
+            0.03150221131640263,
+            0.05732617142342461
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9,
+          "directionApplicable": true,
+          "threshold": null,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "segregation": {
+          "median": -0.020069544599683756,
+          "ci95": [
+            -0.03394131104056852,
+            -0.0011536129235414014
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.6666666666666666,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "openness": {
+          "median": 0.06301274031912524,
+          "ci95": [
+            0.04656492704557863,
+            0.0807971591978972
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9666666666666667,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": true,
+          "paired": 30
+        }
+      },
+      "pairs": 30,
+      "classShareDeltaMedians": [
+        0.006873522986923508,
+        -0.005923600428524828,
+        -0.002483507225391271,
+        0.0001037537122782772,
+        -1.0863307007918065e-7
+      ],
+      "giniDelta": -0.023709084965664512,
+      "mUpDelta": 0.044550986980452734,
+      "mDownDelta": 0.038707311430279334,
+      "segregationDelta": -0.020069544599683756,
+      "opennessDelta": 0.06301274031912524,
+      "prediction": {
+        "metric": "none",
+        "direction": "none",
+        "note": "Polarization=1；不预设方向"
+      },
+      "predictionMetricDelta": null,
+      "predictionAgree": null,
+      "predictionHolds": null,
+      "mechanismExplained": false,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=1",
+      "changedPaths": [
+        "need.needMultiplier"
+      ],
+      "tvMedian": 0.08237927474386278,
+      "tvCi95": [
+        0.07857420638135784,
+        0.09503620282732891
+      ],
+      "beyondBandRate": 0.36666666666666664,
+      "baselineD95": 0.06681232286671031,
+      "paired": 30,
+      "complete": true,
+      "metrics": {
+        "tv": {
+          "median": 0.08237927474386278,
+          "ci95": [
+            0.07857420638135784,
+            0.09503620282732891
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": false,
+          "threshold": 0.1,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "gini": {
+          "median": 0.012873422753342328,
+          "ci95": [
+            0.008549508753069923,
+            0.01915021026487751
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9,
+          "directionApplicable": true,
+          "threshold": 0.03,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "mUp": {
+          "median": 0.12501345478814602,
+          "ci95": [
+            0.11150300292831794,
+            0.13682504902936382
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": true,
+          "paired": 30
+        },
+        "mDown": {
+          "median": 0.1154872350040011,
+          "ci95": [
+            0.10520767907009604,
+            0.13286055214572634
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 1,
+          "directionApplicable": true,
+          "threshold": null,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "segregation": {
+          "median": -0.017386213880828148,
+          "ci95": [
+            -0.03041813481669168,
+            -0.005674705705371073
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.8,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": false,
+          "paired": 30
+        },
+        "openness": {
+          "median": 0.08015061563927522,
+          "ci95": [
+            0.06673032987020977,
+            0.09764431951873459
+          ],
+          "ciCrossesZero": false,
+          "directionAgree": 0.9666666666666667,
+          "directionApplicable": true,
+          "threshold": 0.05,
+          "overThreshold": true,
+          "paired": 30
+        }
+      },
+      "pairs": 30,
+      "classShareDeltaMedians": [
+        -0.04452519559831472,
+        -0.0386974757837375,
+        0.05835967003079889,
+        0.022135487871238358,
+        0.004549015762220985
+      ],
+      "giniDelta": 0.012873422753342328,
+      "mUpDelta": 0.12501345478814602,
+      "mDownDelta": 0.1154872350040011,
+      "segregationDelta": -0.017386213880828148,
+      "opennessDelta": 0.08015061563927522,
+      "prediction": {
+        "metric": "classShare4",
+        "direction": "decrease",
+        "note": "07 §11：移除阶级持有成本，预期顶层塌缩显著增强（P4 下降）"
+      },
+      "predictionMetricDelta": 0.004549015762220985,
+      "predictionAgree": 0.03333333333333333,
+      "predictionHolds": false,
+      "mechanismExplained": false,
+      "exploratoryOnly": true
+    }
+  ]
+}
