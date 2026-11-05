@@ -100,3 +100,6 @@ out/*
 !out/p6-stageB-analysis-psi-1.json
 !out/p6-stageB-slim-needThreshold-0-9.json
 !out/p6-stageB-analysis-needThreshold-0-9.json
+!out/p6-factorial-prereg.json
+!out/p6-factorial-slim.json
+!out/p6-factorial-analysis.json
