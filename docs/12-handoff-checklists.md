@@ -1,8 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-05，rev 23）
+## 1. 当前交接状态（2026-11-05，rev 30）
 
-> **接手先读**：本节的 rev 11–23 是当前有效口径。更早的 rev 3–10 是历史沿革，
+> **接手先读**：本节的 rev 11–30 是当前有效口径。更早的 rev 3–10 是历史沿革，
 > 其中「G1.5 未通过、P2–P6 搁置」等表述**已被 rev 11 取代**，不要据此判断当前状态。
 > Jev 与 VPS 的实操细节（端点、密钥、命令、踩坑）见
 > [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)。
@@ -23,6 +23,7 @@
 - rev 14（2026-11-05，P5-03 收口）：**run 内进度检查点接入批跑**——`run-progress-v1`（`src/runner/run-progress.ts`）= `checkpoint-v1` 快照 + 部分窗口累计器（07 §5 窗口聚合依赖全程 tick 数据，纯状态快照无法重算前段窗口）；`runSingle` 启动自动恢复 meta 三元组（cellKey/seed/configHash）匹配的检查点（不匹配抛错防跨 run 污染、损坏按不存在重跑）、每 `everyTicks` tick 原子落盘、正常结束移除（护栏停止保留）；恢复 run 的窗口/标签/终态哈希与不中断运行逐字一致（单测）；G5a 磁盘写失败注入已演练。CLI `--checkpoint-ticks N`（缺省关闭）。测试 615 单测 + 4 集成全绿。证据：`changes/0032`、01 §8.1 完成记录。**至此 P6-01 mock 路径的工程前置（P1.5/P5-01/P5-03）全部满足**；G5a 三项故障注入已覆盖 kill（ledger+run 内检查点）与磁盘写失败，「预算耗尽」属 P5-02。
 - rev 15（2026-11-05，P5-04 收口）：**微扰配对执行入口**——`src/runner/perturbation.ts`：param（相对扰动 value×(1+δ)）与 wealth_absolute（存活者 += ΔValue，Value=0 也加）声明扰动；baseline/treatment 从同一预注册检查点快照克隆（07 §7.2 哈希一致由构造保证 + 单测）；「实验只改变声明变量」由叶子路径 diff 强制（`changedPaths` 恰为声明 field，违反即 INVARIANT_VIOLATED；`population.*` 拒绝）；round-trip 吸收标 invalid 不报「无敏感性」（07 §7.4）；产出 `firstDivergenceTick` 与 `perturbation-summary-v1`；同配对重复执行逐字一致。测试 626 单测 + 门禁全绿。证据：`changes/0033`、01 §8.1 完成记录。**边界**：幅度阶梯、≥30 配对种子、事件级首次翻转与结构指纹偏离属 P6-03；固定决策日志重放（07 §7.7）接进微扰入口待 P5-02。
 - rev 17（2026-11-05，P5-02 收口，**P5a 全部完成**）：SharedBatchBudget（批内共享记账，委托 AttemptBudget fail-closed）+ RateLimiter（并发上限+最小间隔，rateLimitedFetch 注入缝）+ runBatchWithPolicy（policyFactory 密钥只进闭包、并发池、共享 ledger 串行化、预算耗尽/致命失败停止批次且剩余任务按同因记录、取消传播）；AttemptBudget 增加只读 usage()。G5a 三项故障注入（kill、磁盘写失败、预算耗尽）全部有实现与测试。测试 649 单测 + 4 集成全绿。证据：changes/0035。**边界**：live run 内进度检查点（异步）须在 P6-04 前补齐；跨进程 budget.sqlite 与 live 批跑 CLI 归 P4/P5b。
+- rev 30（2026-11-05，VPS `2zhou` runner 标准部署）：按 `deploy/README.md` 装好非正式实验环境——`/opt/stratify/current` 为 `d30aa08` 的 `git archive`（root:root 只读，158 MiB）；`stratify-runner` 系统用户 + `/var/lib/stratify/{checkpoints,manifests,exports}`（750）；`/etc/stratify/runner.env`（600 root:stratify-runner，Key 经 stdin 写入、未打印）；systemd unit 与 journald drop-in 已装，`disabled` + oneshot，无 manifest 时 `ConditionPathExists` 正确跳过；磁盘守卫实测 10,275 MB 通过。VPS 上 `pnpm install --frozen-lockfile`/`build`/`typecheck`/741 单测全绿；mock 基线 `mockVsRandom` TV 0.3074 与本地一致；live 冒烟 6/6、0 回退、usage 6772/660、p50 1001 ms、`finalStateHash=sha256:c3129c4d…` 与本地逐字相同；`systemd-run --property=EnvironmentFile=…` 验证 runner 用户拿到 `JEV_API_KEY` 与网关端点。**正式 live/mock 对照仍未运行**；provider 侧旧 Key 吊销仍未独立核验。
 - rev 29（2026-11-05，P6-04b 1-seed live pilot）：40 人 × 730 tick × interval 30；993/993 成功、0 回退、993 exact，wall 18.6 min，p50 1048 ms、max 12.8 s；usage 1.87M/123K；liveVsMock TV 0.0152/D 0.0186、liveVsRandom TV 0.3226/D 0.1619（mockVsRandom 0.3074/0.1582）。harness 通过，live 描述性接近 mock、远离 random；1 seed 不构成正式对照或结构证据（changes/0055）。
 - rev 28（2026-11-05，P6-04b 重测信度通过）：Key 轮换后，同一 state（tick 365、a-0010、9 个合法行动）连续 live 20 次；20/20 有效、0 回退、20 exact；top-1 **0.70**（accumulate 6 / ascend 14，临界）、ICC(2,1) **0.9886**、平均 TV **0.0565**；响应模型 `jev-1.13-free`；usage input 30520 / output 2546；verdict=`reliable`。仅支持进入正式 live/mock 对照，不构成结构证据（changes/0054）。
 - rev 27（2026-11-05，Jev Key 轮换验证）：用户报告新 Key 已写入；`check:secrets` 418 文件通过；live 冒烟 6 人/1 tick 6/6、8 人/30 tick 24/24，0 回退/0 缺失 usage，响应模型 `jev-1.13-free`；P6-04b live 链路可用，下一步 20 次重测信度；provider 侧旧 Key 吊销状态未独立核验（changes/0053）。

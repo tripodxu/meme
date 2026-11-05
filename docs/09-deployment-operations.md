@@ -145,6 +145,8 @@ JEV_CONCURRENCY=4
 
 真实 Key 若由 VPS 直连 TypeSafe，使用单独 env 权限 600，不写 manifest/日志。若经 Worker，则按代理协议使用用户 Key；两种路径在同一正式对照实验中不可混用而不记录。
 
+**当前落地状态（2026-11-05）**：`2zhou` 已按本节与 `deploy/README.md` 完成非正式实验部署（只读代码、专用用户、600 env、unit/journald、磁盘守卫），live 冒烟与跨机器哈希已复核；操作细节与 runner 身份运行命令见 [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md) §4.6。正式实验仍未启动。
+
 ## 7. Runner 启动、恢复与完成
 
 启动前：检查 commit/config hash、manifest、磁盘、预算、上游小额探针、API auth 和剩余配额。

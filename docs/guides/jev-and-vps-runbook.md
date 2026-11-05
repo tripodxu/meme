@@ -202,6 +202,38 @@ rm -f /tmp/meme-smoke.tgz
 
 磁盘只有 11 GiB，`out/` 全量产物（约 10 MiB 已入库版）以外的调试文件不要留在上面。
 
+### 4.6 当前部署状态（2026-11-05）
+
+按 `deploy/README.md` 完成 runner 标准部署（尚未跑正式实验）：
+
+| 项        | 现状                                                                       |
+| --------- | -------------------------------------------------------------------------- |
+| 代码      | `/opt/stratify/current` = `d30aa08` 的 `git archive`，root:root 只读，158M |
+| 运行用户  | `stratify-runner`（系统用户，`/var/lib/stratify`）                         |
+| 数据目录  | `/var/lib/stratify/{checkpoints,manifests,exports}`，750                   |
+| 环境文件  | `/etc/stratify/runner.env`，600 root:stratify-runner（Key 经 stdin 写入）  |
+| systemd   | unit + journald drop-in 已装；`disabled` + oneshot，无 manifest 时条件跳过 |
+| 磁盘守卫  | 实测 10,275 MB ≥ 2048 MB，通过                                             |
+| 构建/测试 | VPS 上 install/build/typecheck/741 单测全绿                                |
+| live 冒烟 | 6/6、0 回退、usage 6772/660、p50 1001 ms、哈希与本地逐字相同               |
+
+以 runner 身份跑一次脚本（密钥由 systemd 从 600 文件注入，不经 shell/`ps`）：
+
+```bash
+ssh 2zhou 'sudo install -d -o stratify-runner -g stratify-runner -m 750 \
+  /var/lib/stratify/exports/p6-04b'
+ssh 2zhou 'sudo systemd-run --wait --pipe --quiet --uid=stratify-runner \
+  --property=EnvironmentFile=/etc/stratify/runner.env \
+  --property=WorkingDirectory=/opt/stratify/current \
+  /usr/local/bin/node scripts/p6-04b-live-pilot.mjs \
+  --seed p6-04b-live-seed-001 \
+  --out /var/lib/stratify/exports/p6-04b/pilot.json \
+  --raw-out /var/lib/stratify/exports/p6-04b/pilot-decisions.ndjson.gz'
+```
+
+注意：`/opt/stratify/current` 为 root 只读，更新代码需整目录替换后重新 `chown/chmod` 并重跑构建；
+正式多 seed 对照仍需先按 07 §11 冻结预注册（seeds/promptStyle/预算），再逐 seed 调用。
+
 ## 5. 故障速查
 
 | 现象                                           | 根因                                      | 处理                                                |
