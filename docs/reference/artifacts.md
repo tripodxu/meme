@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 58 个文件、合计约 14.1 MiB（最大 `out/p15-full.json` 3.70 MiB），**未达阈值，
+   当前入库 60 个文件、合计约 14.1 MiB（最大 `out/p15-full.json` 3.70 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -105,7 +105,8 @@
 | `out/p6-04b-live-pilot-decisions.ndjson.gz`          | 175 KiB   | `bb82be3c…`          | P6-04b pilot 的 993 条 live 决策原始记录（gzip NDJSON，含 rawResponse；仅合成状态，不含 Key）                                                                                                                                                         | 审计证据（changes/0055；本地/仓库均不含密钥）                                                                               |
 | `out/p6-04b-formal-prereg.json`                      | 3.6 KiB   | `97905cba…`          | P6-04b 正式对照预注册：10 个新 seed × {mock, random, live-neutral, live-survival_hint}；TV(P) 0.10、ΔG 方向 0.90、baseline D95 严格带、BH q=0.05；designHash `9a8febe2…`                                                                              | 预注册冻结（changes/0056）                                                                                                  |
 | `out/p6-05-cluster-prereg.json`                      | 3.8 KiB   | `c54ac89f…`          | P6-05 预注册：6 个参数区域 × 30 新 seed × 10950 tick（40 人）；终端 11 维全特征、k=3、Ward-LW、20 次稳定性、60 个 14600 同簇检验                                                                                                                      | 预注册冻结（changes/0057）                                                                                                  |
-| `out/p6-05-cluster-analysis.json`                    | 4.1 KiB   | `25bb616b…`          | P6-05 分析：240/240 完成、0 排除；k=3 簇 [30,118,32]；ARI median 0.491、silhouette 0.344、同簇率 0.667，未过线；二簇稳健、三簇不成立                                                                                                                  | 失败证据（changes/0057；G6 仍未通过）                                                                                       |
+| `out/p6-05b-scan-prereg.json`                        | 5.1 KiB   | `35e162ba…`          | P6-05b 预注册：θS∈{4,8,12} × H∈{0,180} 六 cell，固定 share=0.5/w=15；30 新 seed × 10950 tick（40 人）+ 60 个 14600；全特征 k=3                                                                                                                        | 预注册冻结（changes/0058）                                                                                                  |
+| `out/p6-05b-scan-analysis.json`                      | 4.3 KiB   | `0f86d36f…`          | P6-05b 分析：240/240、0 排除；k=3 簇 [136,17,27]、三簇均混全部 cell；ARI median 0.291、silhouette 0.297、同簇率 0.550，未过线；H1/H2 均不成立                                                                                                         | 失败证据（changes/0058；停止调参，转 rules-v12 ADR）                                                                        |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 
