@@ -37,6 +37,7 @@ class FakeLivePolicy implements DecisionPolicy {
   static active = 0;
   static maxActive = 0;
   static calls = 0;
+  static readonly requestedModels: string[] = [];
 
   constructor(
     private readonly budget?: SharedBatchBudget,
@@ -44,6 +45,7 @@ class FakeLivePolicy implements DecisionPolicy {
   ) {}
 
   async decide(input: DecisionInput, signal: AbortSignal): Promise<DecisionRecord> {
+    FakeLivePolicy.requestedModels.push(input.requestedModel);
     // 取消语义与真实 client 一致：aborted 时返回 cancelled 回退记录（不抛错），
     // 由 runSingleWithPolicy 的循环头置 cancelled 并停止。
     if (signal.aborted) {
@@ -134,6 +136,7 @@ function resetPolicyCounters(): void {
   FakeLivePolicy.active = 0;
   FakeLivePolicy.maxActive = 0;
   FakeLivePolicy.calls = 0;
+  FakeLivePolicy.requestedModels.length = 0;
 }
 
 describe('SharedBatchBudget（P5-02）', () => {
@@ -242,6 +245,66 @@ describe('RateLimiter（P5-02）', () => {
 });
 
 describe('runBatchWithPolicy（P5-02）', () => {
+  it('requireBudget=true 且缺预算时拒绝启动', async () => {
+    await expect(
+      runBatchWithPolicy({
+        manifest: liveManifest(),
+        policyFactory: () => new FakeLivePolicy(),
+        requireBudget: true,
+      }),
+    ).rejects.toThrowError(/requireBudget=true 时必须提供批内共享预算/);
+  });
+
+  it('runCheckpoint 校验并透传到每个 run（护栏停止后保留检查点）', async () => {
+    resetPolicyCounters();
+    const budget = new SharedBatchBudget(1000, 1_000_000);
+    const host = memoryCheckpointHost();
+    const summary = await runBatchWithPolicy({
+      manifest: liveManifest(),
+      policyFactory: () => new FakeLivePolicy(budget),
+      budget,
+      maxTicksPerRun: 5,
+      runCheckpoint: { host, dir: 'ckpt', everyTicks: 2 },
+    });
+    expect(summary.totals).toMatchObject({ due: 2, ok: 2, failed: 0 });
+    // maxTicks 护栏停止不是正常结束：检查点必须保留，供下一段恢复。
+    expect([...host.files.keys()].filter((key) => key.startsWith('ckpt/'))).toEqual([
+      'ckpt/run-0.progress.json',
+      'ckpt/run-1.progress.json',
+    ]);
+
+    await expect(
+      runBatchWithPolicy({
+        manifest: liveManifest(),
+        policyFactory: () => new FakeLivePolicy(),
+        budget,
+        runCheckpoint: { host, dir: 'ckpt', everyTicks: 0 },
+      }),
+    ).rejects.toThrowError(/everyTicks/);
+    await expect(
+      runBatchWithPolicy({
+        manifest: liveManifest(),
+        policyFactory: () => new FakeLivePolicy(),
+        budget,
+        runCheckpoint: { host, dir: '', everyTicks: 2 },
+      }),
+    ).rejects.toThrowError(/runCheckpoint\.dir/);
+  });
+
+  it('requestedModel 未指定时不冒充 mock', async () => {
+    resetPolicyCounters();
+    const budget = new SharedBatchBudget(1000, 1_000_000);
+    const summary = await runBatchWithPolicy({
+      manifest: liveManifest(),
+      policyFactory: () => new FakeLivePolicy(budget),
+      budget,
+    });
+    expect(summary.runs).toHaveLength(2);
+    // live 路径的 model 元数据由 manifest/调用方提供；缺省不得回填成 mock。
+    expect(FakeLivePolicy.requestedModels.length).toBeGreaterThan(0);
+    expect(FakeLivePolicy.requestedModels.every((model) => model === 'unknown')).toBe(true);
+  });
+
   it('并发批跑全成功：并发峰值不超上限，摘要含共享预算用量', async () => {
     resetPolicyCounters();
     const budget = new SharedBatchBudget(1000, 1_000_000);

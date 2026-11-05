@@ -299,6 +299,39 @@ describe('批量 ledger 断点续跑（G5a）', () => {
     ).rejects.toThrowError(/manifestHash 与本次 manifest 不一致/);
   });
 
+  it('baseConfigHash 不一致的 ledger 拒绝恢复；legacy ledger 无该字段仍可接受', async () => {
+    const manifest = smallManifest();
+    const manifestHash = computeBatchManifestHash(manifest);
+    const host = memoryCheckpointHost();
+    host.files.set(
+      'ledger.json',
+      JSON.stringify({
+        schemaVersion: 'batch-ledger-v1',
+        manifestHash,
+        baseConfigHash: 'sha256:different-base-config',
+        runs: [],
+      }),
+    );
+    await expect(
+      runBatch(manifest, { ledger: { host, path: 'ledger.json' } }),
+    ).rejects.toThrowError(/baseConfigHash 与本次 baseConfig 不一致/);
+
+    // legacy ledger（无 baseConfigHash）按旧口径接受，不因缺字段拒绝。
+    host.files.set(
+      'legacy.json',
+      JSON.stringify({
+        schemaVersion: 'batch-ledger-v1',
+        manifestHash,
+        runs: [],
+        failures: [],
+      }),
+    );
+    const summary = await runBatch(manifest, { ledger: { host, path: 'legacy.json' } });
+    expect(summary.totals).toMatchObject({ due: 4, ok: 4, failed: 0 });
+    const stored = JSON.parse(host.files.get('legacy.json') as string) as BatchLedger;
+    expect(stored.baseConfigHash).toMatch(/^sha256:[0-9a-f]{64}$/);
+  });
+
   it('未知 ledger 版本与畸形记录拒绝', async () => {
     const manifest = smallManifest();
     const manifestHash = computeBatchManifestHash(manifest);

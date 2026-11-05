@@ -2,7 +2,7 @@
 
 - 性质：**非契约执行计划**；判定口径以 `rule.md`、`docs/07-experiment-calibration.md` 与冻结预注册为准。
 - 关联：[逐提交审查](../reviews/2026-11-05-zcodes114-commit-audit.md)、[changes/0042](../changes/0042-p6-stage-b-protocol-correction.md)、严格重算产物 `out/p6-stageA-analysis-strict.json`。
-- 当前状态（2026-11-05 执行后）：Stage A 严格候选 3 个；Stage B 六单元全部 60/60 跑完并判读，**needThreshold=0.9 确认（TV(P)=0.1553）**，其余 5 个未确认/exploratory；P6-01 现有 1 个确认效应；G6 仍未通过。阶段 0–4 已完成；阶段 2 的 runner 遗留项与阶段 5 仍待执行。
+- 当前状态（2026-11-05 执行后）：Stage A 严格候选 3 个；Stage B 六单元全部 60/60 跑完并判读，**needThreshold=0.9 确认（TV(P)=0.1553）**，其余 5 个未确认/exploratory；P6-01 现有 1 个确认效应；G6 仍未通过。阶段 0–4 已完成；阶段 2 的 runner 遗留项已完成（changes/0044，685 项测试全绿）；阶段 5 仍待启动。
 
 ## 1. 背景与当前判定
 
@@ -36,11 +36,12 @@
 ### 主要缺口
 
 - TV 方向口径已裁决（每对主导阶级 + 同号 ≥90%，淘汰 needThreshold=0.3）；
-- `baseConfig` 未进 ledger 哈希；
-- live 检查点未接入 `runBatchWithPolicy`；live 预算可选、`requestedModel` 默认 `mock`；
-- 检查点 `meta.tickCompleted` 与快照 tick 未交叉校验；
-- `warmupTicks` 类型仍被放宽；
-- 全量 679 项测试已通过；integration/e2e 未跑。
+- `baseConfig` 已进 ledger 哈希（旧 ledger 兼容；不一致拒绝）；
+- live 检查点已接入 `runBatchWithPolicy`；live 预算可选改为 `requireBudget` 强制；`requestedModel` 不再默认 `mock`；
+- 检查点 `meta.tickCompleted` 与快照 tick 已交叉校验；
+- `warmupTicks` 已恢复 `365 | 1825`；
+- 全量 685 项测试已通过；integration/e2e 未跑；
+- 阶段 2 修复已记录于 [changes/0044](../changes/0044-runner-checkpoint-ledger-hardening.md)。
 
 ## 3. 分阶段计划
 
@@ -66,7 +67,7 @@
 
 **验收**：唯一口径；三种定义的候选集对比表；`needThreshold=0.9@200` 在主导阶级定义下是否仍通过有明确结论。
 
-### 阶段 2：P5 runner 正确性修复（部分完成）
+### 阶段 2：P5 runner 正确性修复（已完成）
 
 | 修复                                                                                                       | 验收                                   |
 | ---------------------------------------------------------------------------------------------------------- | -------------------------------------- |

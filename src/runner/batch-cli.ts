@@ -1,10 +1,11 @@
 import { performance } from 'node:perf_hooks';
 
 import type { RunConfig } from '../core/config/types.js';
+import { computeConfigHash } from '../core/config/hash.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { HASH_DOMAINS } from '../core/hash/domains.js';
 import { hashValue } from '../core/hash/hash.js';
-import { buildBatchTasks, type BatchManifest } from './batch.js';
+import { buildBatchTasks, resolveBatchBaseConfig, type BatchManifest } from './batch.js';
 import type { CheckpointHost, SyncCheckpointHost } from './checkpoint.js';
 import {
   runSingle,
@@ -125,6 +126,11 @@ export interface BatchRunOptions {
 export interface BatchLedger {
   readonly schemaVersion: 'batch-ledger-v1';
   readonly manifestHash: string;
+  /**
+   * baseConfig 哈希（P6-01 后的新 ledger 写入）。
+   * 旧版 ledger 无此字段时按 legacy 接受；有字段时必须与本次 baseConfig 一致。
+   */
+  readonly baseConfigHash?: string;
   readonly runs: readonly BatchRunRecord[];
   /** 跨 resume 累积的技术失败事件（07 §3）；旧版无此字段时按 [] 处理。 */
   readonly failures: readonly BatchFailure[];
@@ -188,7 +194,11 @@ function assertFailure(value: unknown, index: number): BatchFailure {
   return { ...(value as unknown as Omit<BatchFailure, 'attempt'>), attempt };
 }
 
-export function parseLedger(text: string, manifestHash: string): BatchLedger {
+export function parseLedger(
+  text: string,
+  manifestHash: string,
+  expectedBaseConfigHash?: string,
+): BatchLedger {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
@@ -207,6 +217,16 @@ export function parseLedger(text: string, manifestHash: string): BatchLedger {
       `ledger.manifestHash 与本次 manifest 不一致（${String(parsed['manifestHash'])} ≠ ${manifestHash}）；换实验请换输出目录`,
     );
   }
+  if (
+    expectedBaseConfigHash !== undefined &&
+    parsed['baseConfigHash'] !== undefined &&
+    parsed['baseConfigHash'] !== expectedBaseConfigHash
+  ) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `ledger.baseConfigHash 与本次 baseConfig 不一致（${String(parsed['baseConfigHash'])} ≠ ${expectedBaseConfigHash}）；换 baseConfig 请换输出目录`,
+    );
+  }
   if (!Array.isArray(parsed['runs'])) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'ledger.runs 必须为数组');
   }
@@ -217,6 +237,9 @@ export function parseLedger(text: string, manifestHash: string): BatchLedger {
   return {
     schemaVersion: LEDGER_SCHEMA_VERSION,
     manifestHash,
+    ...(typeof parsed['baseConfigHash'] === 'string'
+      ? { baseConfigHash: parsed['baseConfigHash'] }
+      : {}),
     runs: parsed['runs'].map(assertRunRecord),
     failures: rawFailures.map(assertFailure),
   };
@@ -251,7 +274,9 @@ export async function runBatch(
   options: BatchRunOptions = {},
 ): Promise<BatchSummary> {
   const manifestHash = computeBatchManifestHash(manifest);
-  const tasks = buildBatchTasks(manifest, options.baseConfig);
+  const baseConfig = resolveBatchBaseConfig(options.baseConfig);
+  const baseConfigHash = computeConfigHash(baseConfig);
+  const tasks = buildBatchTasks(manifest, baseConfig);
   const runCheckpoints = options.runCheckpoints;
   if (runCheckpoints !== undefined) {
     if (runCheckpoints.dir.length === 0) {
@@ -271,7 +296,7 @@ export async function runBatch(
   if (ledgerOptions !== undefined) {
     const host = ledgerOptions.host;
     if (await host.exists(ledgerOptions.path)) {
-      const ledger = parseLedger(await host.read(ledgerOptions.path), manifestHash);
+      const ledger = parseLedger(await host.read(ledgerOptions.path), manifestHash, baseConfigHash);
       for (const record of ledger.runs) {
         completed.set(taskKey(record.cellKey, record.seed), record);
       }
@@ -297,6 +322,7 @@ export async function runBatch(
     const ledger: BatchLedger = {
       schemaVersion: LEDGER_SCHEMA_VERSION,
       manifestHash,
+      baseConfigHash,
       runs: [...runs],
       failures: [...failures],
     };

@@ -228,7 +228,7 @@ describe('preregistrationHash 预像（07 §3）', () => {
       { ...input, populationSize: 41 },
       { ...input, totalTicks: 3651 },
       { ...input, seeds: [...input.seeds].reverse() },
-      { ...input, warmupTicks: 1826 },
+      { ...input, warmupTicks: 365 },
       { ...input, windows: [...input.windows].reverse() },
       { ...input, labelThresholdsHash: 'sha256:deadbeef' },
       { ...input, clustering: { ...input.clustering, featureWindows: ['w3'] as const } },

@@ -1,12 +1,19 @@
 import { randomBytes } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 
+import { computeConfigHash } from '../core/config/hash.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { asLocalRunId } from '../core/control/ids.js';
 import type { RunConfig } from '../core/config/types.js';
 import type { DecisionPolicy } from '../decision/policy.js';
 import type { JevBudget } from '../decision/jev-client.js';
-import { buildBatchTasks, type BatchManifest, type BatchTask } from './batch.js';
+import {
+  buildBatchTasks,
+  resolveBatchBaseConfig,
+  type BatchManifest,
+  type BatchTask,
+} from './batch.js';
+import type { CheckpointHost } from './checkpoint.js';
 import {
   computeBatchManifestHash,
   parseLedger,
@@ -88,6 +95,14 @@ export interface BatchWithPolicyOptions {
   readonly budget?: JevBudget;
   readonly requestedModel?: string;
   readonly promptStyle?: 'neutral' | 'survival_hint';
+  /** live 必须显式置 true；缺预算时拒绝启动。 */
+  readonly requireBudget?: boolean;
+  /** P6-04 前置：live run 内进度检查点（异步宿主）。 */
+  readonly runCheckpoint?: {
+    readonly host: CheckpointHost;
+    readonly dir: string;
+    readonly everyTicks: number;
+  };
   /** P6-01：实验级 base config（人口规模校验基准）；缺省 DEFAULT_RUN_CONFIG。 */
   readonly baseConfig?: RunConfig;
 }
@@ -98,10 +113,30 @@ const STOP_CAUSE_BUDGET_EXHAUSTED = errorCodes.JEV_BUDGET_EXHAUSTED;
 export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promise<BatchSummary> {
   const { manifest } = options;
   const manifestHash = computeBatchManifestHash(manifest);
-  const tasks = buildBatchTasks(manifest, options.baseConfig);
+  const baseConfig = resolveBatchBaseConfig(options.baseConfig);
+  const baseConfigHash = computeConfigHash(baseConfig);
+  const tasks = buildBatchTasks(manifest, baseConfig);
   const concurrency = options.concurrency ?? 1;
   if (!Number.isInteger(concurrency) || concurrency < 1) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'concurrency 必须为 >=1 的整数');
+  }
+  const runCheckpoints = options.runCheckpoint;
+  if (runCheckpoints !== undefined) {
+    if (runCheckpoints.dir.length === 0) {
+      throw new StratifyError(errorCodes.CONFIG_INVALID, 'runCheckpoint.dir 必须为非空目录');
+    }
+    if (!Number.isInteger(runCheckpoints.everyTicks) || runCheckpoints.everyTicks < 1) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        'runCheckpoint.everyTicks 必须为 >=1 的整数',
+      );
+    }
+  }
+  if (options.requireBudget === true && options.budget === undefined) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      'requireBudget=true 时必须提供批内共享预算（04 §7）',
+    );
   }
 
   const completed = new Map<string, BatchRunRecord>();
@@ -109,7 +144,11 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
   const ledgerOptions = options.ledger;
   if (ledgerOptions !== undefined) {
     if (await ledgerOptions.host.exists(ledgerOptions.path)) {
-      const ledger = parseLedger(await ledgerOptions.host.read(ledgerOptions.path), manifestHash);
+      const ledger = parseLedger(
+        await ledgerOptions.host.read(ledgerOptions.path),
+        manifestHash,
+        baseConfigHash,
+      );
       for (const record of ledger.runs) {
         completed.set(taskKey(record.cellKey, record.seed), record);
       }
@@ -138,6 +177,7 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
     const ledger: BatchLedger = {
       schemaVersion: 'batch-ledger-v1',
       manifestHash,
+      baseConfigHash,
       runs: [...runs],
       failures: [...failures],
     };
@@ -202,10 +242,20 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
         const outcome = await runSingleWithPolicy(task.config, task.seed, {
           policy: options.policyFactory(task, index, runSignal),
           runId: asLocalRunId(newLocalRunId()),
-          requestedModel: options.requestedModel ?? 'mock',
+          requestedModel: options.requestedModel ?? 'unknown',
           promptStyle: options.promptStyle ?? 'neutral',
           ...(options.maxTicksPerRun !== undefined ? { maxTicks: options.maxTicksPerRun } : {}),
           signal: runSignal,
+          ...(runCheckpoints !== undefined
+            ? {
+                runCheckpoint: {
+                  host: runCheckpoints.host,
+                  path: `${runCheckpoints.dir}/run-${index}.progress.json`,
+                  everyTicks: runCheckpoints.everyTicks,
+                  cellKey: task.cellKey,
+                },
+              }
+            : {}),
         });
         const elapsedMs = performance.now() - startedAt;
         if (outcome.report.cancelled) {

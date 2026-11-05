@@ -108,9 +108,12 @@ export interface PreregManifest {
   readonly pairing: 'same-seed-derived-initial-population-and-addressed-random';
   /**
    * burn-in tick 数；P1.5 各轮冻结为 1825。P6-01 Stage A（730 tick 筛查）预注册为 365，
-   * 与该视野的筛选窗口一并冻结（changes/0037）——类型放宽为 number，既有构造不变。
+   * 与该视野的筛选窗口一并冻结（changes/0037）。
+   *
+   * 恢复为受限联合类型：warmup 是实验协议的一部分，任意数值不得混入预注册；
+   * 新增档位必须先走参数注册表与 changes 记录。
    */
-  readonly warmupTicks: number;
+  readonly warmupTicks: 365 | 1825;
   readonly warmupDiagnostic: string;
   readonly windows: readonly {
     readonly label: string;

@@ -102,6 +102,54 @@ describe('run 内进度检查点（P5-03，runSingle）', () => {
     expect(host.files.has('run.progress.json')).toBe(false);
   });
 
+  it('tickCompleted 与快照 tick 不一致时按损坏处理', () => {
+    const host = memoryCheckpointHostSync();
+    const path = 'run.progress.json';
+    runSingle(CONFIG, SEED, {
+      policy: 'mock-weighted-v1',
+      maxTicks: 25,
+      runCheckpoint: checkpointOptions(host, path),
+    });
+    const payload = JSON.parse(host.files.get(path) as string) as {
+      meta: { tickCompleted: number };
+    };
+    payload.meta.tickCompleted = 21;
+    host.files.set(path, JSON.stringify(payload));
+
+    const control = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1' });
+    const resumed = runSingle(CONFIG, SEED, {
+      policy: 'mock-weighted-v1',
+      runCheckpoint: checkpointOptions(host, path),
+    });
+    expect(JSON.stringify(resumed.report)).toBe(JSON.stringify(control.report));
+  });
+
+  it('stats 的 tick 超出 tickCompleted 时按损坏处理', () => {
+    const host = memoryCheckpointHostSync();
+    const path = 'run.progress.json';
+    runSingle(CONFIG, SEED, {
+      policy: 'mock-weighted-v1',
+      maxTicks: 25,
+      runCheckpoint: checkpointOptions(host, path),
+    });
+    const payload = JSON.parse(host.files.get(path) as string) as {
+      progress: { stats: { tick: number }[] };
+    };
+    const first = payload.progress.stats[0];
+    if (first === undefined) {
+      throw new Error('checkpoint stats 不应为空');
+    }
+    first.tick = 999;
+    host.files.set(path, JSON.stringify(payload));
+
+    const control = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1' });
+    const resumed = runSingle(CONFIG, SEED, {
+      policy: 'mock-weighted-v1',
+      runCheckpoint: checkpointOptions(host, path),
+    });
+    expect(JSON.stringify(resumed.report)).toBe(JSON.stringify(control.report));
+  });
+
   it('meta 与期望不匹配时抛错（防跨 run 污染）', () => {
     const host = memoryCheckpointHostSync();
     const payload = buildRunProgressPayload(
