@@ -209,6 +209,7 @@ function analyze() {
       tvMedian: evaluation.primary?.median ?? null,
       tvCi95: evaluation.primary?.ci95 ?? null,
       beyondBandRate: evaluation.beyondBandRate,
+      baselineD95: evaluation.baselineD95,
       pairedSeeds: evaluation.completeness.pairedSeeds,
       complete: evaluation.criteria.complete,
       exploratoryOnly: true,
@@ -225,16 +226,19 @@ function analyze() {
     preregistrationHash: frozen.preregistrationHash,
     populationSize: P6_FACTORIAL_POPULATION,
     totals: slimData.totals,
+    // baseline 跨种子两两 D 95 分位：稳定区参照（各 cell 共用同一 baseline，值应相同）。
+    baselineD95: cells[0]?.baselineD95 ?? null,
     claim:
       'P6-02 多参数探索：描述联合条件与稳定区的 TV(P) 差异；interaction 格点不得单轴归因，结果不构成确认或校准。',
     cells,
-    // 结构变化较大的联合区域：TV 中位数最高的格点（仅用于下一轮细化取样，不是确认）。
+    // 结构变化较大的联合区域：TV 中位数最高的 interaction 格点（仅用于下一轮细化取样，不是确认）。
     criticalCandidates: [...cells]
-      .filter((cell) => cell.complete && cell.tvMedian !== null)
+      .filter((cell) => cell.design === 'interaction' && cell.complete && cell.tvMedian !== null)
       .sort((a, b) => (b.tvMedian ?? 0) - (a.tvMedian ?? 0))
       .slice(0, 8)
       .map((cell) => ({ cellKey: cell.cellKey, tvMedian: cell.tvMedian, design: cell.design })),
-    stableRegion: cells
+    // 最接近 baseline 的单轴格点；只作描述，稳定区本身仍以 baselineD95 为准。
+    leastChangedSingleCells: cells
       .filter((cell) => cell.design === 'single')
       .sort((a, b) => (a.tvMedian ?? 0) - (b.tvMedian ?? 0))
       .slice(0, 5)
