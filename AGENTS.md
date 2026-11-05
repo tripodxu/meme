@@ -1,6 +1,6 @@
 # Stratify 执行约定
 
-开始施工前阅读 `docs/README.md`，按任务类型加载对应契约。P1.5 W4 确认轮已通过 G1.5（2026-11-04），P2 已收口（7/7），P5a 五项全完成，P6-01 Stage B 六单元已全部跑完并按 07 严格口径判读（1 个确认：needThreshold=0.9；5 个未确认/exploratory）；P6-02 多参数 factorial 已完成（960/960、0 失败；top 联合条件 TV 0.2484，仅 exploratory，不构成确认；changes/0046）；P6-03 微扰克隆与正常波动区间已完成（600 对全部有效，无结构证据；changes/0050）；P6-04a 五个必跑消融已完成（180/180、0 失败；五消融 TV 均 <0.10，未达 mechanismExplained；仅 exploratory；changes/0051）；P6-04b Jev/mock 因旧 Key 未轮换未运行；`rules-v11` 尚未通过 `docs/07` 的统计验收，不得声称已校准或结构已涌现。
+开始施工前阅读 `docs/README.md`，按任务类型加载对应契约。P1.5 W4 确认轮已通过 G1.5（2026-11-04），P2 已收口（7/7），P5a 五项全完成，P6-01 Stage B 六单元已全部跑完并按 07 严格口径判读（1 个确认：needThreshold=0.9；5 个未确认/exploratory）；P6-02 多参数 factorial 已完成（960/960、0 失败；top 联合条件 TV 0.2484，仅 exploratory，不构成确认；changes/0046）；P6-03 微扰克隆与正常波动区间已完成（600 对全部有效，无结构证据；changes/0050）；P6-04a 五个必跑消融已完成（180/180、0 失败；五消融 TV 均 <0.10，未达 mechanismExplained；仅 exploratory；changes/0051）；P6-04b 重测信度已通过（20 次，top-1 0.70、ICC(2,1) 0.9886、平均 TV 0.0565），正式 live/mock 对照未运行；`rules-v11` 尚未通过 `docs/07` 的统计验收，不得声称已校准或结构已涌现。
 
 ## 强制约束
 

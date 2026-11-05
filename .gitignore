@@ -109,3 +109,4 @@ out/*
 !out/p6-ablation-prereg.json
 !out/p6-ablation-slim.json
 !out/p6-ablation-analysis.json
+!out/p6-04b-reliability.json

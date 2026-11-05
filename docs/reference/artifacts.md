@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   当前入库 51 个文件、合计约 13.9 MiB（最大 `out/p15-full.json` 3.70 MiB），**未达阈值，
+   当前入库 52 个文件、合计约 13.9 MiB（最大 `out/p15-full.json` 3.70 MiB），**未达阈值，
    故不做 LFS/R2 迁移**：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -100,6 +100,7 @@
 | `out/p6-ablation-prereg.json`                        | 6.6 KiB   | `7dce5ccf…`          | P6-04a 预注册：experimentId p6-ablation-c46c2aff，prereg `sha256:c46c2aff…`，baseline + 5 消融 × 30 新种子，200 人 × 730 tick，budget 200/240/512 MiB                                                                                                 | 有效证据（changes/0051；冻结口径即 src/runner/p6-ablation.ts）                                                              |
 | `out/p6-ablation-slim.json`                          | 858 KiB   | `56f86ac7…`          | P6-04a 探索产物（紧凑 JSON）：180/180 run、0 失败/灭绝/回退；6 cell × 30 配对；w1 观测段 365/365；仅 exploratory                                                                                                                                      | 有效证据（changes/0051；分析见 analysis）                                                                                   |
 | `out/p6-ablation-analysis.json`                      | 17.2 KiB  | `9ea0dc17…`          | P6-04a 分析：baselineD95 0.0668；TV 中位数 0.0195/0.0080/0.0063/0.0106/0.0824，均未达 mechanismExplained；β=0 ΔG -0.0596/ΔMup +0.1382；ψ=1 P4 预测不成立                                                                                              | 有效证据（changes/0051；探索性，不构成现实因果）                                                                            |
+| `out/p6-04b-reliability.json`                        | 14.1 KiB  | `519d7da0…`          | P6-04b 前置重测信度：同一 state（tick 365、a-0010、9 个合法行动）连续 live 20 次；20/20 有效、0 回退；top-1 0.70、ICC(2,1) 0.9886、平均 TV 0.0565；响应模型 jev-1.13-free；verdict=reliable（临界）                                                   | 有效证据（changes/0054；仅前置验证，不构成结构证据）                                                                        |
 
 schema v2（`p15-grid-v2`）起产物分两个区块：`manifest` 为参与 `computePreregistrationHash` 的完整预注册设计（26 字段，含 `baseConfigHash`、`artifactProfile`、`cells[].fullConfigHash`、`exclusionRules`），`execution` 记录本次实际执行参数（`stage`/`totalTicks`/`seeds`/`runCount`/`warmupTicks`），`budgets` 记录预算护栏的实际值与是否越界。三者分离，才能让预检产物携带完整预注册哈希同时如实标注「只跑了 400 tick」。任何人可离线复算校验：
 

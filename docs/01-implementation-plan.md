@@ -247,6 +247,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-04a 进度记录（2026-11-05）**：五个必跑消融完成（`p6-ablation-c46c2aff`，prereg `sha256:c46c2aff…`）：baseline + `β=0` / O 固定 / `η=0` / `κ=0` / `ψ=1` × 30 新种子 × 200 人 × 730 tick，180/180 完成、0 失败/灭绝/回退，wall 10.2 min（changes/0051）。D-04 消融预算按 6 cell 重冻结为 200 run / 240 min / 512 MiB。baseline D95=0.0668；TV(P) 中位数：beta=0 0.0195（超 D95 0.800）、openness=fixed 0.0080、eta=0 0.0063、kappa=0 0.0106、psi=1 0.0824（0.367）；**五个消融均未达到 `mechanismExplained`（TV<0.10）**。β=0 的 ΔG -0.0596、ΔMup +0.1382 仅为次要指标信号；ψ=1 的 P4 下降预测不成立（P4 +0.0045、同号率 3.3%），实际是 P0/P1 下降、P2/P3 上升。**仅 exploratory；不构成现实因果、确认或校准；P6-04b Jev/mock 因旧 Key 未轮换未运行；G6 仍未通过。**
 
+**P6-04b 前置进展（2026-11-05）**：Key 轮换后完成 20 次同 state 重测信度：20/20 有效、0 回退；top-1 **0.70**（临界）、ICC(2,1) **0.9886**、平均 TV **0.0565**，verdict=`reliable`（changes/0054）。仅支持进入正式 live/mock 对照，不构成结构证据；正式 live/mock 对照未运行。
+
 ## 10. P7：发布硬化
 
 - 全量 CI、E2E、性能和长时 soak；检查 Worker 请求资源，不以本机结果推断 Worker 限额。
