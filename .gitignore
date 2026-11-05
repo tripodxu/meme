@@ -87,3 +87,6 @@ out/*
 !out/p6-stageB-prereg-env0-compressed.json
 !out/p6-stageB-slim-env0-compressed.json
 !out/p6-stageB-analysis-env0-compressed.json
+!out/p6-stageB-prereg-crossDays-half.json
+!out/p6-stageB-slim-crossDays-half.json
+!out/p6-stageB-analysis-crossDays-half.json
