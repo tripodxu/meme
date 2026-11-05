@@ -114,3 +114,5 @@ out/*
 !out/p6-04b-live-pilot-decisions.ndjson.gz
 !out/p6-04b-formal-prereg.json
 !out/p6-04b-formal-analysis.json
+!out/p6-05-cluster-prereg.json
+!out/p6-05-cluster-analysis.json
