@@ -38,6 +38,9 @@ function windowOf(overrides: Partial<P6WindowMetrics> = {}): P6WindowMetrics {
     segregation: 0.1,
     openness: 0.5,
     fallbackRate: 0,
+    tickCount: 730,
+    observedTicks: 730,
+    missingTicks: 0,
     ...overrides,
   };
 }
@@ -125,6 +128,32 @@ describe('P6 Stage B 判读（07 §8/§9）', () => {
     expect(result.beyondBandRate).toBe(1);
     expect(result.completeness.ok).toBe(true);
     expect(result.confirmed).toBe(true);
+  });
+
+  it('w2b 未观测满（missingTicks>0）时完整性失败，不得确认', () => {
+    const { runs, totals } = buildRuns({
+      candidateW2b: {
+        classShares: [0.62, 0.28, 0.08, 0.015, 0.005],
+        gini: 0.45,
+        mUp: 0.55,
+        openness: 0.55,
+        tickCount: 730,
+        observedTicks: 630,
+        missingTicks: 100,
+      },
+    });
+    const result = evaluateStageB({
+      cellKey: 'cell',
+      targetCellKey: 'cell',
+      prereg: PREREG,
+      runs,
+      totals,
+    });
+
+    expect(result.primary?.median).toBeCloseTo(0.12, 10);
+    expect(result.completeness.incompleteWindow).toBe(30);
+    expect(result.completeness.ok).toBe(false);
+    expect(result.confirmed).toBe(false);
   });
 
   it('w3 相邻窗口的效应不参与确认（07 §8 第 4 条）', () => {
@@ -277,6 +306,30 @@ describe('P6 Stage A 严格筛查（07 主指标，w1）', () => {
     expect(result.primary?.overThreshold).toBe(true);
     expect(result.primary?.directionApplicable).toBe(false);
     expect(result.screenedIn).toBe(true);
+  });
+
+  it('w1 观测段未跑满时完整性失败，不得入选', () => {
+    const { runs, totals } = buildStageARuns({
+      candidateW1: {
+        classShares: [0.62, 0.28, 0.08, 0.015, 0.005],
+        gini: 0.45,
+        tickCount: 365,
+        observedTicks: 0,
+        missingTicks: 365,
+      },
+    });
+    const result = evaluateStageA({
+      populationSize: 40,
+      cellKey: 'cell',
+      targetCellKey: 'cell',
+      prereg: PREREG,
+      runs,
+      totals,
+    });
+
+    expect(result.completeness.incompleteWindow).toBe(30);
+    expect(result.completeness.ok).toBe(false);
+    expect(result.screenedIn).toBe(false);
   });
 
   it('缺配对 seed 时完整性失败，不得入选', () => {

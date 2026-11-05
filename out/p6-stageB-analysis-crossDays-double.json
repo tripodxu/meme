@@ -16,6 +16,7 @@
     "extinct": 0,
     "fallback": 0,
     "missingWindow": 0,
+    "incompleteWindow": 0,
     "nonFinite": 0,
     "totalsOk": true
   },
@@ -218,7 +219,7 @@
   "preregistrationHash": "sha256:011657cf19ab2f2748897a7c65931d6752c7c611ecdf1eea6b7e9869361c1f49",
   "computedPreregistrationHash": "sha256:011657cf19ab2f2748897a7c65931d6752c7c611ecdf1eea6b7e9869361c1f49",
   "preregistrationHashConsistent": true,
-  "sourceArtifact": "out/p6-stageB-summary-crossDays-double.json",
+  "sourceArtifact": "out/p6-stageB-slim-crossDays-double.json",
   "runs": {
     "due": 60,
     "ok": 60,

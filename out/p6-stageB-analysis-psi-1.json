@@ -16,6 +16,7 @@
     "extinct": 0,
     "fallback": 0,
     "missingWindow": 0,
+    "incompleteWindow": 0,
     "nonFinite": 0,
     "totalsOk": true
   },
@@ -218,7 +219,7 @@
   "preregistrationHash": "sha256:bcde3589089d10592d82ee5aab8119953de8a952c936bdcc60b1f884b6b6d48a",
   "computedPreregistrationHash": "sha256:bcde3589089d10592d82ee5aab8119953de8a952c936bdcc60b1f884b6b6d48a",
   "preregistrationHashConsistent": true,
-  "sourceArtifact": "out/p6-stageB-summary-psi-1.json",
+  "sourceArtifact": "out/p6-stageB-slim-psi-1.json",
   "runs": {
     "due": 60,
     "ok": 60,

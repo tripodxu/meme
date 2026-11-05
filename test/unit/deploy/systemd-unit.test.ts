@@ -56,6 +56,7 @@ describe('stratify-runner.service 静态契约（P5-06 / docs/09 §6）', () => 
 
   it('磁盘守卫作为 ExecStartPre（磁盘到阈值停止新批次）', () => {
     const execStartPre = unitValue('ExecStartPre');
+    expect(execStartPre).toContain('/bin/bash');
     expect(execStartPre).toContain('check-disk-space.sh /var/lib/stratify 2048');
   });
 

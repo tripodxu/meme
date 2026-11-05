@@ -40,6 +40,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -168,6 +169,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -296,6 +298,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -424,6 +427,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -552,6 +556,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -680,6 +685,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -808,6 +814,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -936,6 +943,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1064,6 +1072,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1192,6 +1201,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1320,6 +1330,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1448,6 +1459,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1576,6 +1588,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1737,6 +1750,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1865,6 +1879,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -1993,6 +2008,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -2121,6 +2137,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -2249,6 +2266,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -2377,6 +2395,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -2505,6 +2524,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -2633,6 +2653,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -2761,6 +2782,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -2889,6 +2911,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -3017,6 +3040,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -3145,6 +3169,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },
@@ -3273,6 +3298,7 @@
             "extinct": 0,
             "fallback": 0,
             "missingWindow": 0,
+            "incompleteWindow": 0,
             "nonFinite": 0,
             "totalsOk": true
           },

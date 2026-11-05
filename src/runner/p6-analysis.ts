@@ -70,6 +70,8 @@ export interface P6Completeness {
   readonly extinct: number;
   readonly fallback: number;
   readonly missingWindow: number;
+  /** 窗口存在但未观测满（`observedTicks < tickCount`）：部分窗口不得当作完整证据。 */
+  readonly incompleteWindow: number;
   readonly nonFinite: number;
   readonly totalsOk: boolean;
 }
@@ -258,6 +260,26 @@ function windowIsFinite(window: P6WindowMetrics): boolean {
   return window.segregation === null || Number.isFinite(window.segregation);
 }
 
+/**
+ * 窗口观测完整性：`observedTicks` 必须覆盖 `tickCount`。
+ *
+ * 缺少这两个字段的分析输入按不完整处理——宁可拒绝判定，也不让截断窗口
+ * 以“零填均值”通过确认门禁。Stage A 的 w1 是预注册的部分观测
+ * （`tickCount=365`、`missingTicks=365`），但观测段本身必须跑满。
+ */
+function windowObservedFully(window: P6WindowMetrics): boolean {
+  return (
+    window.tickCount !== undefined &&
+    window.observedTicks !== undefined &&
+    window.observedTicks >= window.tickCount
+  );
+}
+
+/** Stage B 的 w2b 是完整确认窗口：除观测满外，不得有缺失日。 */
+function windowCompleteForConfirmation(window: P6WindowMetrics): boolean {
+  return windowObservedFully(window) && (window.missingTicks ?? 0) === 0;
+}
+
 function metricValues(diffs: readonly P6PairedDiff[], key: MetricKey): number[] {
   return diffs
     .map((diff) => diff[key])
@@ -376,6 +398,13 @@ export function evaluateStageB(
       !windowIsFinite(entry.baseline.w2b) ||
       !windowIsFinite(entry.candidate.w2b),
   ).length;
+  const incompleteWindow = selected.filter(
+    (entry) =>
+      entry.baseline.w2b !== undefined &&
+      entry.candidate.w2b !== undefined &&
+      (!windowCompleteForConfirmation(entry.baseline.w2b) ||
+        !windowCompleteForConfirmation(entry.candidate.w2b)),
+  ).length;
   const totalsOk =
     input.totals === undefined
       ? true
@@ -392,6 +421,7 @@ export function evaluateStageB(
       extinct === 0 &&
       fallback === 0 &&
       missingWindow === 0 &&
+      incompleteWindow === 0 &&
       nonFinite === 0 &&
       totalsOk,
     expectedRuns,
@@ -403,6 +433,7 @@ export function evaluateStageB(
     extinct,
     fallback,
     missingWindow,
+    incompleteWindow,
     nonFinite,
     totalsOk,
   };
@@ -457,7 +488,12 @@ export function evaluateStageB(
   const beyondBandMinRate = options.beyondBandMinRate ?? 1;
   const criteria: P6Criteria = {
     complete: completeness.ok,
-    artifactFree: extinct === 0 && fallback === 0 && missingWindow === 0 && nonFinite === 0,
+    artifactFree:
+      extinct === 0 &&
+      fallback === 0 &&
+      missingWindow === 0 &&
+      incompleteWindow === 0 &&
+      nonFinite === 0,
     primaryPresent: primary !== null,
     primaryOverThreshold: primary?.overThreshold ?? false,
     primaryCiNotCrossingZero: primary !== null && !primary.ciCrossesZero,
@@ -584,6 +620,12 @@ export function evaluateStageA(
       !windowIsFinite(entry.baseline.w1) ||
       !windowIsFinite(entry.candidate.w1),
   ).length;
+  const incompleteWindow = selected.filter(
+    (entry) =>
+      entry.baseline.w1 !== undefined &&
+      entry.candidate.w1 !== undefined &&
+      (!windowObservedFully(entry.baseline.w1) || !windowObservedFully(entry.candidate.w1)),
+  ).length;
   const totalsOk =
     input.totals === undefined
       ? true
@@ -600,6 +642,7 @@ export function evaluateStageA(
       extinct === 0 &&
       fallback === 0 &&
       missingWindow === 0 &&
+      incompleteWindow === 0 &&
       nonFinite === 0 &&
       totalsOk,
     expectedRuns,
@@ -611,6 +654,7 @@ export function evaluateStageA(
     extinct,
     fallback,
     missingWindow,
+    incompleteWindow,
     nonFinite,
     totalsOk,
   };
@@ -652,7 +696,12 @@ export function evaluateStageA(
   const primary = metrics[primaryKey] ?? null;
   const criteria = {
     complete: completeness.ok,
-    artifactFree: extinct === 0 && fallback === 0 && missingWindow === 0 && nonFinite === 0,
+    artifactFree:
+      extinct === 0 &&
+      fallback === 0 &&
+      missingWindow === 0 &&
+      incompleteWindow === 0 &&
+      nonFinite === 0,
     primaryPresent: primary !== null,
     primaryOverThreshold: primary?.overThreshold ?? false,
     primaryCiNotCrossingZero: primary !== null && !primary.ciCrossesZero,

@@ -26,7 +26,8 @@ chmod 750 /var/lib/stratify/{checkpoints,manifests,exports}
 # 2) 环境文件（权限 600，仅 token/URL/预算；键名见 docs/09 §6 环境清单）
 install -m 600 -o root -g stratify-runner /path/to/runner.env /etc/stratify/runner.env
 
-# 3) unit 与 journald
+# 3) unit 与 journald（脚本经 /bin/bash 调用；同时保留可执行位供手工运行）
+chmod +x deploy/check-disk-space.sh
 install -m 644 deploy/stratify-runner.service /etc/systemd/system/stratify-runner.service
 install -m 644 deploy/journald-stratify.conf /etc/systemd/journald.conf.d/stratify.conf
 systemctl daemon-reload && systemctl restart systemd-journald

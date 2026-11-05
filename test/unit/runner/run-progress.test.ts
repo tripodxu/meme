@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createDemoConfig } from '../../../src/core/config/defaults.js';
+import { computeConfigHash } from '../../../src/core/config/hash.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { errorCodes, StratifyError } from '../../../src/core/control/errors.js';
 import {
@@ -150,6 +151,39 @@ describe('run 内进度检查点（P5-03，runSingle）', () => {
       runCheckpoint: checkpointOptions(host, path),
     });
     expect(JSON.stringify(resumed.report)).toBe(JSON.stringify(control.report));
+  });
+
+  it('快照内 config 与 meta 期望不一致时抛错（防伪造/损坏）', () => {
+    // meta 的 configHash 伪造成 CONFIG，但快照来自另一个 config：
+    // meta 三元组校验会通过，第二道快照校验必须拒绝。
+    const other = createDemoConfig({
+      schedule: { totalTicks: 40 },
+      need: { threshold: 0.7 },
+    });
+    const foreignState = runSingle(other, SEED, {
+      policy: 'mock-weighted-v1',
+      maxTicks: 10,
+    }).finalState;
+    const payload = buildRunProgressPayload(
+      {
+        cellKey: 'baseline',
+        seed: SEED,
+        configHash: computeConfigHash(CONFIG),
+        tickCompleted: 10,
+        savedAtSequence: 1,
+      },
+      foreignState,
+      { stats: [], flows: [], decisions: [] },
+    );
+    const host = memoryCheckpointHostSync();
+    host.writeTemp('p.json', JSON.stringify(payload));
+    host.promote('p.json', 'p.json');
+    expect(() =>
+      runSingle(CONFIG, SEED, {
+        policy: 'mock-weighted-v1',
+        runCheckpoint: checkpointOptions(host, 'p.json'),
+      }),
+    ).toThrowError(/快照 config/);
   });
 
   it('meta 与期望不匹配时抛错（防跨 run 污染）', () => {

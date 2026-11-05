@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createDemoConfig } from '../../../src/core/config/defaults.js';
+import { computeConfigHash } from '../../../src/core/config/hash.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { errorCodes, StratifyError } from '../../../src/core/control/errors.js';
 import type { DecisionInput, DecisionPolicy } from '../../../src/decision/policy.js';
@@ -8,7 +9,7 @@ import type { DecisionRecord } from '../../../src/decision/types.js';
 import { MockPolicy } from '../../../src/decision/policies.js';
 import { memoryCheckpointHost, memoryCheckpointHostSync } from '../../../src/runner/checkpoint.js';
 import { runSingleWithPolicy } from '../../../src/runner/run-cell.js';
-import { loadRunProgress } from '../../../src/runner/run-progress.js';
+import { loadRunProgress, buildRunProgressPayload } from '../../../src/runner/run-progress.js';
 
 const CONFIG = createDemoConfig({ schedule: { totalTicks: 40 } });
 const SEED = asSeed('live-ckpt-seed');
@@ -54,6 +55,45 @@ function makeCancelledRecord(input: DecisionInput, policyVersion: string): Decis
 }
 
 describe('live run 内进度检查点（runSingleWithPolicy，P6-04 前置）', () => {
+  it('快照内 config 与 meta 期望不一致时拒绝续跑', async () => {
+    const other = createDemoConfig({
+      schedule: { totalTicks: 40 },
+      need: { threshold: 0.7 },
+    });
+    const foreign = await runSingleWithPolicy(other, SEED, {
+      policy: new AsyncMockPolicy(),
+      runId: 'local-ckpt-foreign000000000000',
+      requestedModel: 'mock',
+      promptStyle: 'neutral',
+      maxTicks: 10,
+    });
+    const host = memoryCheckpointHost();
+    const payload = buildRunProgressPayload(
+      {
+        cellKey: 'baseline',
+        seed: SEED,
+        // meta 伪造成 CONFIG，但快照来自 other；第二道校验必须拒绝。
+        configHash: computeConfigHash(CONFIG),
+        tickCompleted: 10,
+        savedAtSequence: 1,
+      },
+      foreign.finalState,
+      { stats: [], flows: [], decisions: [] },
+    );
+    await host.writeTemp('p.json', JSON.stringify(payload));
+    await host.promote('p.json', 'p.json');
+
+    await expect(
+      runSingleWithPolicy(CONFIG, SEED, {
+        policy: new AsyncMockPolicy(),
+        runId: 'local-ckpt-resume0000000000000',
+        requestedModel: 'mock',
+        promptStyle: 'neutral',
+        runCheckpoint: { host, path: 'p.json', everyTicks: 5, cellKey: 'baseline' },
+      }),
+    ).rejects.toThrowError(/快照 config/);
+  });
+
   it('kill 后恢复：报告、决策日志与不中断对照逐字一致', async () => {
     const control = await runSingleWithPolicy(CONFIG, SEED, {
       policy: new AsyncMockPolicy(),

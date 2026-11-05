@@ -16,6 +16,7 @@
     "extinct": 0,
     "fallback": 0,
     "missingWindow": 0,
+    "incompleteWindow": 0,
     "nonFinite": 0,
     "totalsOk": true
   },
@@ -218,7 +219,7 @@
   "preregistrationHash": "sha256:dbb0b30a5c40bdc687d983a5e0a4048ac567e5857d905561602dfcc924abe7e2",
   "computedPreregistrationHash": "sha256:dbb0b30a5c40bdc687d983a5e0a4048ac567e5857d905561602dfcc924abe7e2",
   "preregistrationHashConsistent": true,
-  "sourceArtifact": "out/p6-stageB-summary-needThreshold-0-9.json",
+  "sourceArtifact": "out/p6-stageB-slim-needThreshold-0-9.json",
   "runs": {
     "due": 60,
     "ok": 60,

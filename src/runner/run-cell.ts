@@ -125,6 +125,32 @@ export function deriveExtinct(endReason: string | null, aliveAtEnd: number): boo
 }
 
 /**
+ * 检查点快照的第二道校验：`loadRunProgress` 已校验 meta 三元组，
+ * 但快照自身携带的 config/params/seed 也必须与本次 run 一致。
+ * 否则损坏或伪造的检查点可以保留匹配的 meta、却以不同规则续跑。
+ */
+function assertCheckpointSnapshot(state: SimState, config: RunConfig, seed: Seed): void {
+  if (computeConfigHash(state.config) !== computeConfigHash(config)) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      '检查点快照 config 与本次 config 不一致；不得续跑',
+    );
+  }
+  if (computeParamsHash(state.config) !== computeParamsHash(config)) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      '检查点快照 paramsHash 与本次 config 不一致；不得续跑',
+    );
+  }
+  if (state.seed !== seed) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `检查点快照 seed 不匹配: ${state.seed} ≠ ${seed}`,
+    );
+  }
+}
+
+/**
  * 运行单个 (config, seed) 到结束（scheduled/extinct 或 maxTicks 护栏），
  * 收集全分辨率 stats、每 tick 转移矩阵与决策计数，并产出窗口聚合与标签。
  *
@@ -175,6 +201,7 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     });
     if (loaded !== null) {
       state = loaded.state;
+      assertCheckpointSnapshot(state, config, validatedSeed);
       savedAtSequence = loaded.meta.savedAtSequence;
       resumedStats = loaded.progress.stats;
       resumedFlowTicks = loaded.progress.flows.map((entry) => entry.tick);
@@ -425,6 +452,7 @@ export async function runSingleWithPolicy(
     });
     if (loaded !== null) {
       state = loaded.state;
+      assertCheckpointSnapshot(state, config, validatedSeed);
       savedAtSequence = loaded.meta.savedAtSequence;
       for (const row of loaded.progress.stats) {
         stats.push(row);

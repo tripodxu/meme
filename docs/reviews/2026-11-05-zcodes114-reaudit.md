@@ -3,6 +3,7 @@
 - 范围：`main..zcodes11.4`，merge-base `95aa936`，共 **37 个提交**，HEAD `3cea946`。
 - 方法：逐提交 `git show`/累计 diff 审查；核对测试、产物哈希、当前门禁；对关键门禁做反例复现。
 - 结论先行：**分支主体可用，P6-01 的 1 个确认（needThreshold=0.9）在现有产物下成立**；没有发现需要撤回该确认的现有数据问题。但存在 1 个可导致“假确认”的门禁缺口、若干证据链/运维缺口，以及 2 个历史提交的结论已被 changes/0042 取代、不得再引用。
+- **修复状态（2026-11-05）**：三个 High 项已修复并重算分析（changes/0047）；Medium/Low 项仍待处理。
 
 ## 1. 当前门禁与证据复核
 
@@ -20,7 +21,7 @@
 
 ## 2. 分级发现
 
-### High：Stage B/A 完整性门禁忽略 `missingTicks`，可产生假确认
+### High：Stage B/A 完整性门禁忽略 `missingTicks`，可产生假确认（已修，changes/0047）
 
 `src/runner/p6-analysis.ts:369-378`（Stage B）与 `:577-586`（Stage A）只把“窗口对象不存在”计为 `missingWindow`，没有检查 `WindowSummary.missingTicks/observedTicks`。`windowIsFinite` 也不检查缺失日。
 
@@ -30,7 +31,7 @@
 
 修复建议：Stage B 要求 `missingTicks === 0` 且 `observedTicks === 730`（w2b/w3）；Stage A 的 w1 是有意部分观测（[365,729]），至少要求 `observedTicks === 365` 并把 `missingTicks` 写入判定产物。补一个 `missingTicks>0 → confirmed=false` 的回归测试。
 
-### High：部署脚本不可执行，systemd 批次会直接失败
+### High：部署脚本不可执行，systemd 批次会直接失败（已修，changes/0047）
 
 `deploy/check-disk-space.sh` 在 git 中是 `100644`（`git ls-files -s`），但 unit 的 `ExecStartPre` 直接执行它（`deploy/stratify-runner.service`）。安装后没有 `chmod +x` 步骤，systemd 会以 “Permission denied” 拒绝启动。P5-06 的静态测试只检查 unit 文本，未检查文件模式。
 
@@ -126,7 +127,7 @@
 | `de14057` 覆盖率补齐                               | 通过：95.37/84.05                                                         |
 | `3cea946` 分析标注                                 | 通过：critical 仅 interaction、stable 参照 baselineD95                    |
 
-## 4. 补充发现：检查点恢复未校验快照内 config
+## 4. 补充发现：检查点恢复未校验快照内 config（已修，changes/0047）
 
 `runSingle`（`src/runner/run-cell.ts:166-185`）与 `runSingleWithPolicy`（`:407-440`）只校验 `meta.configHash`（来自检查点 meta），随后直接 `state = loaded.state`。没有验证 `computeConfigHash(state.config) === computeConfigHash(config)`，也没有验证 `state.paramsHash`。
 

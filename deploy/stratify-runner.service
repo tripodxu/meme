@@ -30,7 +30,8 @@ Group=stratify-runner
 EnvironmentFile=/etc/stratify/runner.env
 WorkingDirectory=/opt/stratify/current
 # 磁盘到阈值时停止新批次（docs/09 §6）：启动前守卫，可用空间不足即拒绝启动。
-ExecStartPre=/opt/stratify/current/deploy/check-disk-space.sh /var/lib/stratify 2048
+# 经 /bin/bash 调用，避免发布目录因权限位丢失（如 zip/文件系统）导致无法执行。
+ExecStartPre=/bin/bash /opt/stratify/current/deploy/check-disk-space.sh /var/lib/stratify 2048
 ExecStart=/usr/bin/env node bin/stratify-batch.mjs /var/lib/stratify/manifests/current.json --out /var/lib/stratify/exports/current --resume --checkpoint-ticks 500
 # 退出码 0 = 批跑完成（含历史失败已被重试成功）；1 = 仍有任务未完成；2 = 用法/配置错误。
 # 1 与 2 都触发 Restart=on-failure；重启后 --resume 从 ledger/检查点续跑。
