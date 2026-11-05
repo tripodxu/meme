@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "p6-search-validation-prereg-v1",
+  "experimentId": "p6-search-val-ef550c09",
+  "createdAt": "2026-11-05T22:33:18.640Z",
+  "hashDomain": "stratify-preregistration-v1",
+  "hashPreimage": "JCS(design)",
+  "designHash": "sha256:ef550c095d05b0304ec567c9e6196f96bc720fb7eed879f801b8601935f456cf",
+  "design": {
+    "schemaVersion": "p6-search-validation-prereg-v1",
+    "hypothesis": "P6 搜索验证（探索）：对粗筛 top 候选使用全新 validation seed，在 10950 tick 的全特征空间做 k=3 聚类；通过只说明参数区域值得独立确认，不是校准或结构涌现。",
+    "sourceExperimentId": "p6-search-90893363",
+    "sourceDesignHash": "sha256:90893363a7a72b769dd23479eef946280a40fe87c6bbc78de60350407d0d3ee8",
+    "rulesVersion": "rules-v11",
+    "policy": "mock-weighted-v1",
+    "population": 40,
+    "horizon": 10950,
+    "window": {
+      "start": 10585,
+      "end": 10949,
+      "days": 365
+    },
+    "followupHorizon": 14600,
+    "followupWindow": {
+      "start": 14235,
+      "end": 14599,
+      "days": 365
+    },
+    "followupSeedsPerCandidate": 10,
+    "seeds": [
+      "p6-search-val-seed-001",
+      "p6-search-val-seed-002",
+      "p6-search-val-seed-003",
+      "p6-search-val-seed-004",
+      "p6-search-val-seed-005",
+      "p6-search-val-seed-006",
+      "p6-search-val-seed-007",
+      "p6-search-val-seed-008",
+      "p6-search-val-seed-009",
+      "p6-search-val-seed-010",
+      "p6-search-val-seed-011",
+      "p6-search-val-seed-012",
+      "p6-search-val-seed-013",
+      "p6-search-val-seed-014",
+      "p6-search-val-seed-015",
+      "p6-search-val-seed-016",
+      "p6-search-val-seed-017",
+      "p6-search-val-seed-018",
+      "p6-search-val-seed-019",
+      "p6-search-val-seed-020",
+      "p6-search-val-seed-021",
+      "p6-search-val-seed-022",
+      "p6-search-val-seed-023",
+      "p6-search-val-seed-024",
+      "p6-search-val-seed-025",
+      "p6-search-val-seed-026",
+      "p6-search-val-seed-027",
+      "p6-search-val-seed-028",
+      "p6-search-val-seed-029",
+      "p6-search-val-seed-030"
+    ],
+    "candidates": [
+      {
+        "candidateId": "c0607",
+        "params": {
+          "ascent.displacementShare": 0.8591005781665444,
+          "ascent.scarcityWeight": 7.0138636557385325,
+          "ascent.occupancyMemoryDays": 365,
+          "openness.segregationWeight": 6.2039398406632245,
+          "openness.mobilityWeight": 6.789423209382221,
+          "openness.ascentCostWeight": 1.129512174287811,
+          "openness.timeConstantDays": 103.78775733523071,
+          "networkOpportunity.beta": 0.274595203390345,
+          "network.rewireProb": 0.030435943300835787,
+          "dynamics.congestionExponent": 0.3826487759128213,
+          "dynamics.polarizationExponent": 0.8359738236293197,
+          "need.threshold": 0.6087748057325371
+        }
+      },
+      {
+        "candidateId": "c0473",
+        "params": {
+          "ascent.displacementShare": 0.8880704179406167,
+          "ascent.scarcityWeight": 0.059911832213401794,
+          "ascent.occupancyMemoryDays": 180,
+          "openness.segregationWeight": 6.320694042835385,
+          "openness.mobilityWeight": 2.0107745903078467,
+          "openness.ascentCostWeight": 3.3586109990719706,
+          "openness.timeConstantDays": 75.26503910310566,
+          "networkOpportunity.beta": 0.44377651140093805,
+          "network.rewireProb": 0.14770070384955034,
+          "dynamics.congestionExponent": 0.540935539919883,
+          "dynamics.polarizationExponent": 0.8577254990115761,
+          "need.threshold": 0.6609928713180124
+        }
+      },
+      {
+        "candidateId": "c0211",
+        "params": {
+          "ascent.displacementShare": 0.7705135673284531,
+          "ascent.scarcityWeight": 0.8428795589134097,
+          "ascent.occupancyMemoryDays": 0,
+          "openness.segregationWeight": 6.4224339770153165,
+          "openness.mobilityWeight": 7.443686524173245,
+          "openness.ascentCostWeight": 2.9418042795732617,
+          "openness.timeConstantDays": 175.08135051000863,
+          "networkOpportunity.beta": 0.7361274273600429,
+          "network.rewireProb": 0.11220288619864732,
+          "dynamics.congestionExponent": 0.29244265127927066,
+          "dynamics.polarizationExponent": 1.1755184641107916,
+          "need.threshold": 0.8743707087822259
+        }
+      },
+      {
+        "candidateId": "c0305",
+        "params": {
+          "ascent.displacementShare": 0.7902004448696971,
+          "ascent.scarcityWeight": 1.5003177244216204,
+          "ascent.occupancyMemoryDays": 90,
+          "openness.segregationWeight": 11.269220007117838,
+          "openness.mobilityWeight": 7.622933437116444,
+          "openness.ascentCostWeight": 2.8715402593370527,
+          "openness.timeConstantDays": 84.36754954280332,
+          "networkOpportunity.beta": 0.9101065518800169,
+          "network.rewireProb": 0.14691844267304985,
+          "dynamics.congestionExponent": 0.4272391742095351,
+          "dynamics.polarizationExponent": 0.6796307399868965,
+          "need.threshold": 0.887569010257721
+        }
+      },
+      {
+        "candidateId": "c0437",
+        "params": {
+          "ascent.displacementShare": 0.6257919939234853,
+          "ascent.scarcityWeight": 1.8068177159875631,
+          "ascent.occupancyMemoryDays": 180,
+          "openness.segregationWeight": 8.156341342721134,
+          "openness.mobilityWeight": 7.587761112721637,
+          "openness.ascentCostWeight": 3.3985328025883064,
+          "openness.timeConstantDays": 88.11913199722767,
+          "networkOpportunity.beta": 0.46902044378221036,
+          "network.rewireProb": 0.1309622017177753,
+          "dynamics.congestionExponent": 0.2809965254738927,
+          "dynamics.polarizationExponent": 0.675307548418641,
+          "need.threshold": 0.6327060788986273
+        }
+      },
+      {
+        "candidateId": "c0600",
+        "params": {
+          "ascent.displacementShare": 0.8994608735665679,
+          "ascent.scarcityWeight": 1.2031793547794223,
+          "ascent.occupancyMemoryDays": 0,
+          "openness.segregationWeight": 7.725303268991411,
+          "openness.mobilityWeight": 1.6068811502773315,
+          "openness.ascentCostWeight": 3.3160790908150375,
+          "openness.timeConstantDays": 92.52022896660492,
+          "networkOpportunity.beta": 0.29530024020932616,
+          "network.rewireProb": 0.13831516440026462,
+          "dynamics.congestionExponent": 0.46448646401986476,
+          "dynamics.polarizationExponent": 1.0560026440769432,
+          "need.threshold": 0.7065151569666341
+        }
+      }
+    ],
+    "features": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "G",
+      "top10",
+      "Mup",
+      "Mdown",
+      "S",
+      "O"
+    ],
+    "clustering": {
+      "algorithm": "ward-lw-v1",
+      "distance": "euclidean",
+      "standardization": "z-score(pooled)",
+      "k": 3,
+      "stabilityShuffles": 20,
+      "stabilitySeed": 20261105,
+      "ariMedianMin": 0.7,
+      "silhouetteMin": 0.35,
+      "minClusterRuns": 5
+    },
+    "temporal": {
+      "minSameClusterRate": 0.8
+    },
+    "antiPreset": {
+      "minCandidatesInAnyCluster": 2
+    },
+    "exclusion": {
+      "excludeExtinct": true,
+      "maxExtinctRate": 0.1
+    }
+  }
+}

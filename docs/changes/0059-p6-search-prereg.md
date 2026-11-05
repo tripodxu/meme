@@ -42,8 +42,22 @@
 
 ## 3. 结果
 
-待运行（VPS `2zhou`，4 个 `p6-search-i` 单元）。完成后追加粗筛 top、
-验证判读与产物哈希。
+**粗筛（2026-11-05 14:32–22:31 UTC）**：9,600/9,600 完成，0 失败；4 个 shard
+各 2,400。top 候选 `c0607`（score 1.352、silhouette 0.352、ARI median 1.000、
+ARI min 0.037、簇大小 [6,3,3]）；随后 `c0473`、`c0211`、`c0305`、`c0437`、
+`c0600`。核心分析见 `out/p6-search-analysis.json`。
+
+**验证（2026-11-05 22:34–23:07 UTC）**：`p6-search-val-ef550c09`，
+6 候选 × 30 个全新 validation seed × 10,950 tick（前 10 续跑 14,600），
+240/240 完成、0 排除、0 灭绝；180 个 base run 全部可用、60 个 followup。
+k=3 簇大小 **[74, 97, 9]**，`silhouette 0.241`、`ARI median 0.157`（min 0.006）、
+14600 同簇率 **0.683**；三个门槛均未过，`antiPreset=true`。
+verdict=`no-stable-region-found`。产物：`out/p6-search-validation-prereg.json`、
+`out/p6-search-validation-analysis.json`。
+
+**结论**：在 rules-v11、mock、40 人视野内，**没有找到稳定三簇的参数区域**；
+不启动 confirm 轮，不支持“搜索找到了三类结构”的说法。该结果与 P6-05/P6-05b
+一致，支持 ADR 0004 转 rules-v12；本轮只作 exploratory，不构成确认或校准。
 
 ## 4. 复现
 
