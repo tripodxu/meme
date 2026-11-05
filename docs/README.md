@@ -6,7 +6,8 @@
 > - **闸门**：W4 已通过 G1.5（≥2 类）；W5 在 3650 tick 未通过；W6 在 10950 tick 终态给出 class-share 三类候选（仅 `mock`、仅单特征，非 P6-05 正式验收）。
 > - **工程**：P0/P1 完成、P2 收口 7/7（真实冒烟经自建网关跑通）、P5a 五项全完成（批跑 CLI/检查点/微扰/共享预算/systemd）。
 > - **P6-01**：Stage A 840 run 完成；Stage B 六单元已全部跑完并按 07 严格口径判读：**1 个确认（needThreshold=0.9）**，5 个未确认/exploratory（env0 expanded/compressed、crossDays half/double、psi=1）；G6 仍未通过。
-> - **未开工**：P3 前端、P4 Worker/D1/R2、P5b 上传、P6-02～P6-05、P7 发布。
+> - **P6-02**：多参数 factorial 预注册已冻结（`p6-factorial-eaf53b7b`，32 cell × 30 新种子，200 人 × 730 tick），执行中；探索性，尚无结果，不得引用数字。
+> - **未开工**：P3 前端、P4 Worker/D1/R2、P5b 上传、P6-03～P6-05、P7 发布。
 
 Stratify 是一个可交互、可回放、可批量实验的社会仿真系统。Jev 负责从合法行动中做结构化选择，确定性 TypeScript 引擎负责全部数值结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 
