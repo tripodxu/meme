@@ -4,7 +4,9 @@ import { findSecretPatterns } from '../../../scripts/check-secrets.mjs';
 
 describe('密钥扫描（11 §2）', () => {
   it('识别 jv- 长串 Key 并给出行号，不回显内容', () => {
-    const text = ['const a = 1;', 'const key = "jv-abcdefghijklmnopqrstuvwx";'].join('\n');
+    // 运行时拼接：源码里不出现连续的 jv- 长串，避免 check:secrets 误报本测试自身。
+    const syntheticKey = ['jv-', 'abcdefghijklmnopqrstuvwx'].join('');
+    const text = ['const a = 1;', `const key = "${syntheticKey}";`].join('\n');
     const hits = findSecretPatterns(text);
     expect(hits).toHaveLength(1);
     expect(hits[0]?.pattern).toBe('jev-key-literal');
