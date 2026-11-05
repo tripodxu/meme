@@ -197,6 +197,12 @@ describe('summarizeFormalLive', () => {
     expect(neutralVsMock?.passes.primaryThreshold).toBe(true);
     expect(neutralVsMock?.passes.direction).toBe(true);
     expect(neutralVsMock?.meetsStructuralCriteria).toBe(true);
+    const promptComparison = summary.comparisons.find(
+      (entry) => entry.name === 'live(survival_hint) vs live(neutral)',
+    );
+    expect(promptComparison?.baselineD95).toBeNull();
+    expect(promptComparison?.passes.baselineBand).toBe(false);
+    expect(promptComparison?.meetsStructuralCriteria).toBe(false);
     expect(summary.verdict).toBe('descriptive-structural-candidate');
     expect(summary.confirmationStatus).toBe('not-confirmatory-single-seed-set');
   });

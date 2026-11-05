@@ -389,12 +389,14 @@ export function summarizeFormalLive(
   });
 
   const comparisons = specs.map((spec) => {
+    // live-vs-live 的提示处理没有同策略 baseline 波动带；留 null，
+    // 避免借用 mock 的 D95 把提示差异误判为“超出基线波动”。
     const referenceD95 =
-      spec.baselinePolicy === 'mock-weighted-v1'
-        ? baselineD95.mock
-        : spec.baselinePolicy === 'random-uniform-v1'
-          ? baselineD95.random
-          : baselineD95.mock;
+      spec.baselinePolicy === 'jev_live'
+        ? null
+        : spec.baselinePolicy === 'mock-weighted-v1'
+          ? baselineD95.mock
+          : baselineD95.random;
     return comparePair(
       pairSeeds(spec.candidate, spec.baseline),
       spec,
