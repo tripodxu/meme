@@ -239,7 +239,7 @@ P6 不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P
 
 P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02，不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P5b 和 P3-06/P3-07 可在 G6 通过后并行，避免云与 UI 先于科学前提投入。
 
-**P6-01 进度记录（2026-11-05，实验进度暂停于文档收口）**：Stage A 预注册冻结后执行 840 run 全成功，12 个 (cell, 人口) 对入选（changes/0037/0038）；D-04 预算按实测冻结 v1 并在 Stage B 开跑后按 §4 重冻结为 v2（480 min，changes/0036/0039）。Stage B 6 个确认单元中 3 个已判读：`env0=expanded`、`env0=compressed` 按 07 §8 全条件确认通过（镜像效应），`crossDays=half` 未确认（效应随人口规模消失，诚实负结果）；`crossDays=double` ledger 仅 30/60 待 `--resume` 续跑，`psi=1` / `needThreshold=0.9` 未开跑。详见 changes/0040/0041 与 `docs/research/2026-11-05-p6-01-stage-b-*.md`。**Stage B 是效应确认层，不是 P6-05 验收，也不是校准；G6 仍未通过。**
+**P6-01 进度记录（2026-11-05，严格口径收口）**：Stage A 预注册冻结后执行 840 run 全成功（changes/0037/0038）。按 07 主指标 `TV(P) ≥ 0.10` 严格重算，旧「任意指标」筛选的 12 个入选对中 11 个不达标；严格候选仅 3 个（`needThreshold=0.3@40` 边界、`needThreshold=0.9@40`、`needThreshold=0.9@200`），TV 方向按「每对主导阶级 + 同号 ≥90%」裁决淘汰 `needThreshold=0.3`（changes/0043）。D-04 预算按实测重冻结为 v2（480 min，changes/0039）。Stage B 六单元全部 60/60 跑完并按 07 严格判读：仅 `needThreshold=0.9` **确认**（TV(P)=0.1553，CI [0.1494,0.1587]）；`env0=expanded/compressed`、`crossDays=half/double`、`psi=1` 均**未确认/exploratory**，旧 changes/0040/0041 的 env0「确认」已由 changes/0042 撤回。详见 changes/0042/0043 与 `docs/research/2026-11-05-p6-01-stage-b-*.md`。**P6-01 现有 1 个确认效应；Stage B 是效应确认层，不是 P6-05 验收，也不是校准；G6 仍未通过（P6-05 的 ≥3 类结构未满足）。**
 
 ## 10. P7：发布硬化
 

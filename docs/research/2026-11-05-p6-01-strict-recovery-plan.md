@@ -40,8 +40,8 @@
 - live 检查点已接入 `runBatchWithPolicy`；live 预算可选改为 `requireBudget` 强制；`requestedModel` 不再默认 `mock`；
 - 检查点 `meta.tickCompleted` 与快照 tick 已交叉校验；
 - `warmupTicks` 已恢复 `365 | 1825`；
-- 全量 685 项测试已通过；integration/e2e 未跑；
-- 阶段 2 修复已记录于 [changes/0044](../changes/0044-runner-checkpoint-ledger-hardening.md)。
+- 全量 685 项单测、integration 4 项通过；e2e 目录当前无套件（`--passWithNoTests`）；
+- 阶段 2 修复已记录于 [changes/0044](../changes/0044-runner-checkpoint-ledger-hardening.md)（提交 `6e9fc0a`）。
 
 ## 3. 分阶段计划
 
