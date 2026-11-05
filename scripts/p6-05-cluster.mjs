@@ -94,6 +94,17 @@ const CELLS_05B = [0, 180].flatMap((memory) =>
     },
   })),
 );
+const SEEDS_05C = Array.from(
+  { length: DEFAULTS.seedCount },
+  (_, index) => `p6-05c-seed-${String(index + 1).padStart(3, '0')}`,
+);
+const CELLS_05C = [0, 6, 10, 14].map((selfReinforcement) => ({
+  cellKey: `thetaH${selfReinforcement}`,
+  overrides: {
+    ascent: { displacementShare: 0.5, scarcityWeight: 15 },
+    openness: { selfReinforcement },
+  },
+}));
 
 function parseArgs(argv) {
   const options = { ...DEFAULTS, mode: null, design: 'p6-05' };
@@ -138,13 +149,18 @@ function parseArgs(argv) {
     }
   }
   if (options.mode === null) throw new Error('必须指定 --freeze、--run 或 --analyze');
-  if (options.design !== 'p6-05' && options.design !== 'p6-05b') {
-    throw new Error('--design 只能为 p6-05 或 p6-05b');
+  if (options.design !== 'p6-05' && options.design !== 'p6-05b' && options.design !== 'p6-05c') {
+    throw new Error('--design 只能为 p6-05、p6-05b 或 p6-05c');
   }
   if (options.design === 'p6-05b') {
     if (!preregSet) options.prereg = 'out/p6-05b-scan-prereg.json';
     if (!dirSet) options.dir = 'out/p6-05b-scan';
     if (!outSet) options.analysisOut = 'out/p6-05b-scan-analysis.json';
+  }
+  if (options.design === 'p6-05c') {
+    if (!preregSet) options.prereg = 'out/p6-05c-prereg.json';
+    if (!dirSet) options.dir = 'out/p6-05c';
+    if (!outSet) options.analysisOut = 'out/p6-05c-analysis.json';
   }
   return options;
 }
@@ -236,15 +252,68 @@ function buildDesign05b() {
   };
 }
 
+function buildDesign05c() {
+  return {
+    schemaVersion: 'p6-05c-prereg-v1',
+    hypothesis:
+      'P6-05c（ADR 0004 / rules-v12）：在开放度目标加入自反馈项 θH×(O_prev−0.5) 后，' +
+      '检验 θH 是否能产生稳定第三簇。固定 share=0.5、w=15，θH∈{0,6,10,14} 四 cell，' +
+      '30 个全新 seed × 10950 tick（40 人）+ 每 cell 前 10 seed × 14600；' +
+      '全特征 k=3、沿用 P6-05 的 ARI/silhouette/同簇率/反预设验收。' +
+      'θH=0 是 rules-v12 下的 v11 等价对照；若 θH>0 仍无稳定第三簇，A 方案判失败，' +
+      '按 ADR 0004 转方案 B。结果仅 mock 候选，不是校准或结构涌现声明。',
+    rulesVersion: 'rules-v12',
+    policy: 'mock-weighted-v1',
+    population: DEFAULTS.population,
+    horizon: DEFAULTS.horizon,
+    terminalWindow: { start: 10585, end: 10949, days: 365 },
+    followupHorizon: DEFAULTS.followupHorizon,
+    followupWindow: { start: 14235, end: 14599, days: 365 },
+    followupSeedsPerCell: DEFAULTS.followupSeedsPerCell,
+    seeds: SEEDS_05C,
+    cells: CELLS_05C,
+    fixed: { displacementShare: 0.5, scarcityWeight: 15 },
+    axis: { selfReinforcement: [0, 6, 10, 14] },
+    features: ['P0', 'P1', 'P2', 'P3', 'P4', 'G', 'top10', 'Mup', 'Mdown', 'S', 'O'],
+    clustering: {
+      algorithm: 'ward-lw-v1',
+      distance: 'euclidean',
+      standardization: 'z-score(pooled)',
+      k: 3,
+      stabilityShuffles: 20,
+      stabilitySeed: 20261105,
+      ariMedianMin: 0.7,
+      silhouetteMin: 0.35,
+      minClusterRuns: 5,
+    },
+    temporal: { minSameClusterRate: 0.8 },
+    antiPreset: { minCellsInAnyCluster: 2 },
+    exclusion: { excludeExtinct: true, maxExtinctRate: 0.1 },
+    budgets: { runs: 160, wallMinutes: 90 },
+    prediction:
+      'θH=0 应保持 P6-05b 的二簇/弱三簇；θH∈{6,10,14} 若产生两个 O 稳定区间，' +
+      '应出现 14600 同簇率 >=0.80 的第三簇（高 S/低 O 或低 S/高 O）。' +
+      '若四个 cell 都无稳定第三簇，A 方案失败，转方案 B。',
+    confirmationStatus: 'P6-05c candidate only; not calibration',
+  };
+}
+
 function freeze(options) {
-  const design = options.design === 'p6-05b' ? buildDesign05b() : buildDesign();
+  const design =
+    options.design === 'p6-05c'
+      ? buildDesign05c()
+      : options.design === 'p6-05b'
+        ? buildDesign05b()
+        : buildDesign();
   const designHash = hashValue(HASH_DOMAINS.preregistration, design);
   if (existsSync(options.prereg) && !options.force) {
     throw new Error(`${options.prereg} 已存在；预注册不得覆盖（确需重冻结用 --force）`);
   }
   const artifact = {
     schemaVersion: design.schemaVersion,
-    experimentId: `${options.design === 'p6-05b' ? 'p6-05b' : 'p6-05'}-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
+    experimentId: `${
+      options.design === 'p6-05c' ? 'p6-05c' : options.design === 'p6-05b' ? 'p6-05b' : 'p6-05'
+    }-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
     createdAt: new Date().toISOString(),
     hashDomain: HASH_DOMAINS.preregistration,
     hashPreimage: 'JCS(design)',

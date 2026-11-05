@@ -6,6 +6,7 @@ import {
   CONFIG_SCHEMA_VERSION_V3,
   CONFIG_SCHEMA_VERSION_V4,
   CONFIG_SCHEMA_VERSION_V5,
+  CONFIG_SCHEMA_VERSION_V6,
   RULES_VERSION,
 } from '../control/versions.js';
 import { errorCodes, type ErrorCode } from '../control/errors.js';
@@ -407,7 +408,18 @@ function migrateConfigInput(input: unknown): unknown {
     if (ascent['occupancyMemoryDays'] === undefined) {
       ascent['occupancyMemoryDays'] = 0;
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, ascent };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V6, ascent };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V6) {
+    const rawOpenness = record['openness'];
+    const openness =
+      typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
+        ? { ...(rawOpenness as Record<string, unknown>) }
+        : {};
+    if (openness['selfReinforcement'] === undefined) {
+      openness['selfReinforcement'] = 0;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, openness };
   }
   return record;
 }
@@ -962,6 +974,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'segregationWeight',
       'segregationReference',
       'ascentCostWeight',
+      'selfReinforcement',
       'multiplierMin',
       'multiplierMax',
     ])
@@ -1021,6 +1034,12 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       openness['ascentCostWeight'],
       '$.openness.ascentCostWeight',
       'openness.ascentCostWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['selfReinforcement'],
+      '$.openness.selfReinforcement',
+      'openness.selfReinforcement',
     );
     const min = checkRegisteredNumber(
       collector,

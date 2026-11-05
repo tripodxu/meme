@@ -163,6 +163,8 @@ export interface OpennessConfig {
   readonly segregationWeight: number;
   readonly segregationReference: number;
   readonly ascentCostWeight: number;
+  /** rules-v12：O 目标的自反馈/迟滞权重 θH；0 与 rules-v11 逐位一致。 */
+  readonly selfReinforcement: number;
   readonly multiplierMin: number;
   readonly multiplierMax: number;
 }

@@ -104,6 +104,7 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     segregationWeight: 4,
     segregationReference: 0.3,
     ascentCostWeight: 2,
+    selfReinforcement: 0,
     multiplierMin: 0.5,
     multiplierMax: 2.5,
   },

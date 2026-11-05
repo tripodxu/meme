@@ -1,7 +1,5 @@
 {
   "schemaVersion": "stratify-params-v1",
-  "description": "参数注册表契约快照；任何变更必须人工审查并同步 03 与 golden 测试。",
-  "source": "scripts/generate-param-snapshot.mjs（读取 src/core/params.ts 的构建产物）",
   "definitions": [
     {
       "name": "population.initialPopulation",
@@ -63,7 +61,10 @@
       "formulaRef": "03 §4.2 初始年龄 / rule.md 20",
       "domain": {
         "kind": "enum",
-        "values": ["uniform", "newborn"]
+        "values": [
+          "uniform",
+          "newborn"
+        ]
       },
       "guardOnly": false,
       "affectsBehavior": true
@@ -319,7 +320,10 @@
       "formulaRef": "03 §6 阶段 C / rule.md 37（rules-v6，D-06 选项 A′）",
       "domain": {
         "kind": "enum",
-        "values": ["own", "class"]
+        "values": [
+          "own",
+          "class"
+        ]
       },
       "guardOnly": false,
       "affectsBehavior": true
@@ -818,7 +822,10 @@
       "formulaRef": "03 §3 开放度 / P1-10 消融开关",
       "domain": {
         "kind": "enum",
-        "values": ["dynamic", "fixed"]
+        "values": [
+          "dynamic",
+          "fixed"
+        ]
       },
       "guardOnly": false,
       "affectsBehavior": true
@@ -919,6 +926,18 @@
       "affectsBehavior": true
     },
     {
+      "name": "openness.selfReinforcement",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v12）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 20
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "openness.multiplierMin",
       "unit": "ratio",
       "formulaRef": "03 §3 跨越动态乘子 / rule.md 44",
@@ -971,7 +990,11 @@
       "formulaRef": "04 §2.1 默认 mock 与 random 策略",
       "domain": {
         "kind": "enum",
-        "values": ["mock-weighted-v1", "random-uniform-v1", "jev_live"]
+        "values": [
+          "mock-weighted-v1",
+          "random-uniform-v1",
+          "jev_live"
+        ]
       },
       "guardOnly": false,
       "affectsBehavior": true

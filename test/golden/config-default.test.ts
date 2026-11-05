@@ -28,10 +28,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v11.json');
-const golden = readJson('../fixtures/config/default-rules-v11.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v12.json');
+const golden = readJson('../fixtures/config/default-rules-v12.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v11 default config', () => {
+describe('golden: rules-v12 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -47,7 +47,7 @@ describe('golden: rules-v11 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v11.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v12.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
@@ -62,6 +62,8 @@ describe('golden: rules-v11 default config', () => {
     expect(DEFAULT_RUN_CONFIG.ascent.scarcityWeight).toBe(0);
     // v11 默认 0 = 无占用压力记忆，逐位退回 v10。
     expect(DEFAULT_RUN_CONFIG.ascent.occupancyMemoryDays).toBe(0);
+    // v12 默认 0 = 无开放度自反馈，逐位退回 v11。
+    expect(DEFAULT_RUN_CONFIG.openness.selfReinforcement).toBe(0);
   });
 
   it('matches the pinned configHash', () => {

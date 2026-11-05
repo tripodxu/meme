@@ -799,6 +799,16 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest: '改变 λO 后 O 对跨越成本乘子的敏感度改变；上限 100 仅作溢出护栏。',
   },
   {
+    name: 'openness.selfReinforcement',
+    unit: 'dimensionless',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v12）',
+    domain: { kind: 'number', min: 0, max: 20 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      '改变 θH 后 O_target 的自反馈项 θH×(O_prev−0.5) 改变；θH=0 与 rules-v11 逐位一致。',
+  },
+  {
     name: 'openness.multiplierMin',
     unit: 'ratio',
     formulaRef: '03 §3 跨越动态乘子 / rule.md 44',

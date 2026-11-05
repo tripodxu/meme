@@ -85,7 +85,9 @@ export function maybeUpdateOpenness(
       config.openness.mobilityWeight * (input.mUp - config.openness.mobilityReference) -
       config.openness.giniWeight * (input.gini - config.dynamics.giniReference) -
       config.openness.segregationWeight *
-        (input.segregation - config.openness.segregationReference),
+        (input.segregation - config.openness.segregationReference) +
+      // rules-v12：O 目标的自反馈/迟滞；θH=0 时与 v11 逐位一致。
+      config.openness.selfReinforcement * (input.openness - 0.5),
   );
   const updated =
     input.openness +

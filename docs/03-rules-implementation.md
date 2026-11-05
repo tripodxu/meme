@@ -91,7 +91,7 @@
 | 网络机会     | `β=0.6`，乘子截断 `[opportunityMin,opportunityMax]=[0.70,1.50]`                                                                                                                  |
 | 动态 E       | `ρE=0.03`、`η=0.35`、`κ=0.8`、`Gref=0.25`                                                                                                                                        |
 | 拥挤/分化    | Congestion 截断 `[congestionMin,congestionMax]=[0.20,1.20]`，Polarization 截断 `[polarizationMin,polarizationMax]=[0.85,1.18]`                                                   |
-| 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=3`（v4 由 8 下调）、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`λO=2`                                                                              |
+| 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=3`（v4 由 8 下调）、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`θH=0`（v12）、`λO=2`                                                               |
 | 跨越动态乘子 | 截断 `[0.50,2.50]`                                                                                                                                                               |
 | 流动率       | 参与率窗口 `metrics.mobilityWindowDays=365`；`Mup/Mdown` 不使用 EMA、不按日频截断                                                                                                |
 | 转移矩阵     | `metrics.flowWindowDays=365`；窗口内累计阶级转移计数与行暴露量                                                                                                                   |
@@ -127,7 +127,7 @@
 | 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                                                                                                                                    |
 | 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏；待议 D-02）                                                                                                                                           |
 | 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；`envExponent` 在 `[0,4]`（v4 新增；0 为 v3 语义消融值）；`holdingCushionDays` 在 `[0,365]` 整数（v5 新增；0 为 v4 语义消融值）；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算 |
-| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`；`openness.updateMode` 为 `dynamic` 或 `fixed`                                                                                                             |
+| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`，θH 在 `[0,20]`（v12）；`openness.updateMode` 为 `dynamic` 或 `fixed`                                                                                      |
 | 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支（配置面去留见待议 D-01）                                                                                                             |
 | 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                                                                                                                      |
 | 竞争      | 三个 power 指数在 `[0,4]`；lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1）                                                                                         |
@@ -437,9 +437,11 @@ E[next,c]=(1-ρE)×E[t,c]+ρE×Eraw
 仅在决策周期更新 O，`Δt=tick-lastOpennessUpdateTick`，更新后写回 `lastOpennessUpdateTick=tick`；tick 0 的 `Δt=0`，首次更新不改变 O：
 
 ```text
-Otarget=sigmoid(θ0+θM×(Mup-Mref)-θG×(G-Gref)-θS×(S-Sref))
+Otarget=sigmoid(θ0+θM×(Mup-Mref)-θG×(G-Gref)-θS×(S-Sref)+θH×(O_prev-0.5))
 O=O+(Otarget-O)×(1-exp(-Δt/τO))
 ```
+
+`θH` 是 rules-v12 的 `openness.selfReinforcement`（默认 0、域 [0,20]）；`O_prev` 为本 tick 更新前的 O，不使用同期更新值。`θH=0` 与 rules-v11 逐位一致；`θH>0` 允许两个稳定不动点，但是否形成第三类结构必须由 P6-05c 检验（ADR 0004、changes/0060）。
 
 `openness.updateMode=fixed` 时跳过上述 O 更新，O 始终保持 `openness.initial`；该开关必须作为可哈希配置项实现（P1-10），不得用极大 `τO` 近似。同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
 
