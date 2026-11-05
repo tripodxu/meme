@@ -241,7 +241,7 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-01 进度记录（2026-11-05，严格口径收口）**：Stage A 预注册冻结后执行 840 run 全成功（changes/0037/0038）。按 07 主指标 `TV(P) ≥ 0.10` 严格重算，旧「任意指标」筛选的 12 个入选对中 11 个不达标；严格候选仅 3 个（`needThreshold=0.3@40` 边界、`needThreshold=0.9@40`、`needThreshold=0.9@200`），TV 方向按「每对主导阶级 + 同号 ≥90%」裁决淘汰 `needThreshold=0.3`（changes/0043）。D-04 预算按实测重冻结为 v2（480 min，changes/0039）。Stage B 六单元全部 60/60 跑完并按 07 严格判读：仅 `needThreshold=0.9` **确认**（TV(P)=0.1553，CI [0.1494,0.1587]）；`env0=expanded/compressed`、`crossDays=half/double`、`psi=1` 均**未确认/exploratory**，旧 changes/0040/0041 的 env0「确认」已由 changes/0042 撤回。详见 changes/0042/0043 与 `docs/research/2026-11-05-p6-01-stage-b-*.md`。**P6-01 现有 1 个确认效应；Stage B 是效应确认层，不是 P6-05 验收，也不是校准；G6 仍未通过（P6-05 的 ≥3 类结构未满足）。**
 
-**P6-02 进度记录（2026-11-05）**：多参数 factorial 预注册已冻结（`p6-factorial-eaf53b7b`，prereg `sha256:eaf53b7b…`）：五主导轴 2^5 全因子 32 cell（baseline + 5 single + 26 interaction）× 30 个新种子 × 200 人 × 730 tick，主指标 TV(P)，预算 1000 run / 180 min / 256 MiB（changes/0045）。执行中；结果与 analysis 产物入库前不得引用任何数字。探索性实验不构成确认或校准（AGENTS #9、07 §9）。
+**P6-02 进度记录（2026-11-05）**：多参数 factorial 已完成（`p6-factorial-eaf53b7b`，prereg `sha256:eaf53b7b…`）：五主导轴 2^5 全因子 32 cell × 30 新种子 × 200 人 × 730 tick，960/960 完成、0 失败/灭绝，wall 52.9 min（changes/0045/0046）。31 个非 baseline cell 全部 30 配对；baselineD95=0.0928；top 联合条件 `threshold=0.9+psi=flat+env0=expanded+crossDays=half` TV(P)=0.2484（CI [0.2376,0.2555]），不含 threshold 的格点最高 0.0988；`crossDays=half`/`decay=steeper` 单轴被吸收（0.0058/0.0064）。**仅 exploratory，不作单轴归因、不构成确认或校准（AGENTS #9、07 §6.3/§9）；下一轮细化需新 experimentId 与新种子。**
 
 ## 10. P7：发布硬化
 

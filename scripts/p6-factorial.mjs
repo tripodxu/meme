@@ -167,7 +167,8 @@ function slim() {
     totals: summary.totals,
     runs,
   };
-  writeFileSync(slimPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+  // 入库产物按紧凑 JSON 写：960 run 的 pretty JSON 会超过 artifacts §1 的 5 MiB 上限。
+  writeFileSync(slimPath, JSON.stringify(payload), 'utf8');
   const sizeKiB = Buffer.byteLength(JSON.stringify(payload)) / 1024;
   log(`slim ${slimPath} ${sizeKiB.toFixed(0)} KiB runs=${runs.length}`);
   process.stdout.write(
@@ -210,7 +211,7 @@ function analyze() {
       tvCi95: evaluation.primary?.ci95 ?? null,
       beyondBandRate: evaluation.beyondBandRate,
       baselineD95: evaluation.baselineD95,
-      pairedSeeds: evaluation.completeness.pairedSeeds,
+      paired: evaluation.completeness.paired,
       complete: evaluation.criteria.complete,
       exploratoryOnly: true,
     };
