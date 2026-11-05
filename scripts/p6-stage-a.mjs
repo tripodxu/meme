@@ -246,6 +246,9 @@ function median(values) {
 }
 
 function analyze() {
+  log(
+    '警告：--analyze 使用历史“任意指标”口径（p6-stageA-analysis-v1），不得用于候选或判定；严格判读请用 --analyze-strict',
+  );
   const runs40 = JSON.parse(readFileSync(`${outDir}/p6-stageA-summary-40.json`, 'utf8'));
   const runs200 = JSON.parse(readFileSync(`${outDir}/p6-stageA-summary-200.json`, 'utf8'));
 
@@ -394,6 +397,8 @@ function analyze() {
 
   const result = {
     schemaVersion: 'p6-stageA-analysis-v1',
+    deprecated: true,
+    protocol: 'legacy-any-metric',
     isExperimentalEvidence: true,
     stageClaim: 'Stage A 筛选（方向/效应量）；不构成结构结论或校准（AGENTS #9）',
     thresholds: THRESHOLDS,

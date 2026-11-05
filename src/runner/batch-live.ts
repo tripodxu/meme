@@ -33,9 +33,8 @@ import { runSingleWithPolicy } from './run-cell.js';
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 /**
- * 离线 runId（`local-<ULID>`，core/ids 校验口径）。尾部熵用 `Math.random`：
- * 这是**标识符**，不是仿真随机流（AGENTS #3 约束的是结算用随机性）；
- * 与 `scripts/smoke-live.mjs` 的生成口径一致。
+ * 离线 runId（`local-<ULID>`，core/ids 校验口径）。标识符熵用 `node:crypto`：
+ * 这不是仿真随机流（AGENTS #3 约束的是结算用随机性）；与 smoke-live 口径一致。
  */
 function newLocalRunId(): string {
   let time = Date.now();

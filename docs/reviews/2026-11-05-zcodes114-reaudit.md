@@ -81,6 +81,8 @@
 
 ### Low
 
+> 修复状态（2026-11-05）：以下 Low 项已修（changes/0049）。
+
 - `src/runner/preregistration.ts:114` 把 `warmupDiagnostic` 从两值联合类型放宽为 `string`，失去预注册诊断文本的编译期约束。
 - `src/runner/batch-live.ts:36` 注释仍写 runId 尾部用 `Math.random`，实际用 `randomBytes`（标识符熵，允许）。
 - `scripts/p6-stage-a.mjs --analyze` 的旧“任意指标”判读仍可运行并写 `p6-stageA-analysis.json`；文档已标历史口径，但无运行时警告，仍有误用风险。

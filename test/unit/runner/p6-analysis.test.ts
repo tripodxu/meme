@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   bootstrapMedianCi,
+  detectProtocolConflict,
   evaluateStageA,
   evaluateStageB,
   metricKeyForPrimary,
@@ -82,6 +83,15 @@ function buildRuns(
 }
 
 describe('P6 Stage B 判读（07 §8/§9）', () => {
+  it('protocolConflict 只认登记标记，不做任意文本猜测', () => {
+    expect(detectProtocolConflict(undefined)).toBe(false);
+    expect(detectProtocolConflict('主指标 TV(P) 达到门槛。')).toBe(false);
+    expect(detectProtocolConflict('主指标 TV(P) 达到门槛，或其他预注册指标超门槛时也算。')).toBe(
+      true,
+    );
+    expect(detectProtocolConflict('primary metric or other preregistered metric')).toBe(true);
+  });
+
   it('按预注册主指标判定：主指标未达门槛时，次要指标超门槛也不能确认', () => {
     const { runs, totals } = buildRuns({
       candidateW2b: {

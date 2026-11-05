@@ -40,5 +40,12 @@ P6-01 当前：**1 个确认效应（needThreshold=0.9）**；G6 仍未通过（
 - 复现：`node scripts/p6-stage-b.mjs --freeze "needThreshold=0.9" && node
 scripts/p6-stage-b.mjs --run "needThreshold=0.9" && node scripts/p6-stage-b.mjs
 --slim "needThreshold=0.9" && node scripts/p6-stage-b.mjs --analyze "needThreshold=0.9"`
-- 产物：`out/p6-stageB-slim-needThreshold-0-9.json`（1.64 MiB，sha256 `828e5df1…`）、
+- 产物：`out/p6-stageB-slim-needThreshold-0-9.json`（1.64 MiB，sha256 `c50e4c60…`）、
   `out/p6-stageB-analysis-needThreshold-0-9.json`（6.0 KiB）、prereg（4.4 KiB）。
+
+## 5. 多重比较说明
+
+六个 Stage B 单元共用同一组 `p6-stageB` 确认种子，未对六个单元做跨单元 BH 校正；
+每个单元是独立 experimentId 的确认轮。`needThreshold=0.9` 的符号翻转置换 p≈3e-5，
+即使按 q=0.05 对六单元做 BH 也不会改变其确认；其余五单元未达主指标门槛，
+不因未校正而改判。本说明不构成“已完成 BH”或校准声明（07 §9）。

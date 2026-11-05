@@ -126,6 +126,21 @@ const THRESHOLD_KEYS: Readonly<Record<MetricKey, string | null>> = {
   openness: 'openness',
 };
 
+/**
+ * 预注册文本中与 07 主指标口径冲突的显式标记。
+ *
+ * 冻结 manifest 不能改字面值（会改哈希），因此只能集中登记已知措辞；
+ * 新实验应避免写“或其他指标”，或在登记表里新增标记。
+ */
+const PROTOCOL_CONFLICT_MARKERS = ['或其他预注册指标', 'or other preregistered metric'] as const;
+
+export function detectProtocolConflict(hypothesis: string | undefined): boolean {
+  if (hypothesis === undefined) {
+    return false;
+  }
+  return PROTOCOL_CONFLICT_MARKERS.some((marker) => hypothesis.includes(marker));
+}
+
 export function metricKeyForPrimary(primaryMetric: string): MetricKey {
   const key = PRIMARY_METRIC_KEYS[primaryMetric];
   if (key === undefined) {
@@ -511,8 +526,7 @@ export function evaluateStageB(
     criteria.primaryDirectionOk &&
     criteria.beyondBaselineBand;
 
-  const protocolConflict =
-    input.prereg.hypothesis !== undefined && input.prereg.hypothesis.includes('或其他预注册指标');
+  const protocolConflict = detectProtocolConflict(input.prereg.hypothesis);
 
   const claim = confirmed
     ? `Stage B 确认：主指标 ${input.prereg.primaryMetric} 在 w2b 达到预注册门槛，且区间、方向、波动带与完整性条件全部满足（07 §8）。`
