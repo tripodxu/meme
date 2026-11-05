@@ -100,15 +100,37 @@ export function diffLeafPaths(baseline: unknown, treatment: unknown, prefix = ''
   return [prefix || '(root)'];
 }
 
+type FieldPathToken = string | number;
+
+/** 把 `a.b[0].c` 解析为属性名与数组下标 token（P5-04 数组字段支持）。 */
+function tokenizeFieldPath(field: string): FieldPathToken[] {
+  const tokens: FieldPathToken[] = [];
+  for (const part of field.split('.')) {
+    const match = /^([^[\]]*)((?:\[\d+\])*)$/.exec(part);
+    if (match === null || (match[1] === '' && match[2] === '')) {
+      throw new StratifyError(errorCodes.CONFIG_INVALID, `param 扰动 field 路径非法: ${field}`);
+    }
+    const segment = match[1];
+    if (segment !== undefined && segment !== '') {
+      tokens.push(segment);
+    }
+    const indices = match[2] ?? '';
+    for (const index of indices.matchAll(/\[(\d+)\]/g)) {
+      tokens.push(Number(index[1]));
+    }
+  }
+  return tokens;
+}
+
 function resolveNumericField(config: RunConfig, field: string): number {
-  const segments = field.split('.');
-  if (segments.length < 2) {
+  const tokens = tokenizeFieldPath(field);
+  if (tokens.length < 2 || typeof tokens[0] !== 'string') {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
       `param 扰动 field 必须为「顶层键.子路径」形式: ${field}`,
     );
   }
-  const topKey = segments[0] as string;
+  const topKey = tokens[0];
   if (!RUN_CONFIG_TOP_LEVEL_KEYS.has(topKey)) {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
@@ -122,11 +144,21 @@ function resolveNumericField(config: RunConfig, field: string): number {
     );
   }
   let cursor: unknown = config;
-  for (const segment of segments) {
+  for (const token of tokens) {
     if (cursor === null || typeof cursor !== 'object') {
       throw new StratifyError(errorCodes.CONFIG_INVALID, `param 扰动 field 路径不存在: ${field}`);
     }
-    cursor = (cursor as Record<string, unknown>)[segment];
+    if (typeof token === 'number') {
+      if (!Array.isArray(cursor)) {
+        throw new StratifyError(
+          errorCodes.CONFIG_INVALID,
+          `param 扰动 field 路径不是数组: ${field}`,
+        );
+      }
+      cursor = cursor[token];
+    } else {
+      cursor = (cursor as Record<string, unknown>)[token];
+    }
   }
   if (typeof cursor !== 'number' || !Number.isFinite(cursor)) {
     throw new StratifyError(
@@ -137,23 +169,33 @@ function resolveNumericField(config: RunConfig, field: string): number {
   return cursor;
 }
 
-/** 叶子值替换：按 diffLeafPaths 的同一路径约定写回纯对象树。 */
+/** 叶子值替换：按 tokenizeFieldPath 的同一路径约定写回纯对象树。 */
 function setLeafPath(target: Record<string, unknown>, path: string, value: number): void {
-  const segments = path.split('.');
+  const tokens = tokenizeFieldPath(path);
   let cursor: unknown = target;
-  for (let index = 0; index < segments.length - 1; index += 1) {
-    const segment = segments[index] as string;
-    const match = /^\[(\d+)\]$/.exec(segment);
-    if (match !== null) {
-      cursor = (cursor as unknown[])[Number(match[1])];
-      continue;
+  for (let index = 0; index < tokens.length - 1; index += 1) {
+    const token = tokens[index] as FieldPathToken;
+    if (cursor === null || typeof cursor !== 'object') {
+      throw new StratifyError(errorCodes.CONFIG_INVALID, `param 扰动 field 路径不存在: ${path}`);
     }
-    cursor = (cursor as Record<string, unknown>)[segment];
+    if (typeof token === 'number') {
+      if (!Array.isArray(cursor)) {
+        throw new StratifyError(
+          errorCodes.CONFIG_INVALID,
+          `param 扰动 field 路径不是数组: ${path}`,
+        );
+      }
+      cursor = cursor[token];
+    } else {
+      cursor = (cursor as Record<string, unknown>)[token];
+    }
   }
-  const last = segments[segments.length - 1] as string;
-  const lastMatch = /^\[(\d+)\]$/.exec(last);
-  if (lastMatch !== null) {
-    (cursor as unknown[])[Number(lastMatch[1])] = value;
+  const last = tokens[tokens.length - 1] as FieldPathToken;
+  if (typeof last === 'number') {
+    if (!Array.isArray(cursor)) {
+      throw new StratifyError(errorCodes.CONFIG_INVALID, `param 扰动 field 路径不是数组: ${path}`);
+    }
+    cursor[last] = value;
     return;
   }
   (cursor as Record<string, unknown>)[last] = value;
@@ -221,7 +263,7 @@ export function applyWealthPerturbation(state: SimState, delta: number): WealthP
   return { treatment, applied, affectedAgents };
 }
 
-function firstDivergenceTick(
+export function firstDivergenceTick(
   baselineStats: readonly TickStats[],
   treatmentStats: readonly TickStats[],
 ): number | null {
@@ -232,6 +274,10 @@ function firstDivergenceTick(
     if (baselineRow !== treatmentRow) {
       return baselineStats[index]?.tick ?? null;
     }
+  }
+  // 一侧提前结束（如 treatment 灭绝）也是偏离：返回第一条多出来的 stats 行的 tick。
+  if (baselineStats.length !== treatmentStats.length) {
+    return baselineStats[limit]?.tick ?? treatmentStats[limit]?.tick ?? null;
   }
   return null;
 }
@@ -268,6 +314,12 @@ export function runPerturbationPair(
       `checkpointTick 必须为 [1, totalTicks-1] 内的整数，收到 ${checkpointTick}`,
     );
   }
+  if (options.maxTicks !== undefined && options.maxTicks <= checkpointTick) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `maxTicks 必须大于 checkpointTick（否则续跑段为空）: maxTicks=${options.maxTicks}, checkpointTick=${checkpointTick}`,
+    );
+  }
   const runOptions: RunOptions = {
     policy: options.policy,
     ...(options.maxTicks !== undefined ? { maxTicks: options.maxTicks } : {}),
@@ -280,10 +332,21 @@ export function runPerturbationPair(
   const checkpointState = checkpointOutcome.finalState;
   const checkpointStateHash = computeAuthoritativeStateHash(checkpointState);
   const snapshot = captureSnapshot(checkpointState);
+  // 快照 round-trip 必须无损；否则两侧克隆起点不同，配对失效。
+  const restoreCheckpoint = (): SimState => {
+    const restored = restoreSnapshot(snapshot);
+    if (computeAuthoritativeStateHash(restored) !== checkpointStateHash) {
+      throw new StratifyError(
+        errorCodes.INVARIANT_VIOLATED,
+        '检查点快照 round-trip 哈希不一致；不得继续微扰配对',
+      );
+    }
+    return restored;
+  };
 
   const baselineOutcome = runSingle(config, validatedSeed, {
     ...runOptions,
-    initialState: restoreSnapshot(snapshot),
+    initialState: restoreCheckpoint(),
   });
 
   // treatment 侧准备：只施加声明扰动；未生效（07 §7.4）则标记 invalid 并跳过 treatment。
@@ -304,7 +367,7 @@ export function runPerturbationPair(
         };
       }
       const treatmentConfig = result.treatment;
-      const restored = restoreSnapshot(snapshot);
+      const restored = restoreCheckpoint();
       const state: SimState = {
         ...restored,
         config: treatmentConfig,
@@ -313,7 +376,7 @@ export function runPerturbationPair(
       };
       return { state, config: treatmentConfig };
     }
-    const result = applyWealthPerturbation(restoreSnapshot(snapshot), options.declared.delta);
+    const result = applyWealthPerturbation(restoreCheckpoint(), options.declared.delta);
     if (!result.applied) {
       return {
         invalid: true,

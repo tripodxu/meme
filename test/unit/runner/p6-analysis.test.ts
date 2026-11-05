@@ -148,7 +148,7 @@ describe('P6 Stage B 判读（07 §8/§9）', () => {
 
   it('缺少配对 seed 时完整性失败，不得确认', () => {
     const { runs, totals } = buildRuns({
-      omitCandidateSeed: SEEDS[0],
+      omitCandidateSeed: SEEDS[0] as string,
       candidateW2b: {
         classShares: [0.62, 0.28, 0.08, 0.015, 0.005],
         gini: 0.45,

@@ -10,9 +10,11 @@ import {
   applyParamPerturbation,
   applyWealthPerturbation,
   diffLeafPaths,
+  firstDivergenceTick,
   runPerturbationBatch,
   runPerturbationPair,
 } from '../../../src/runner/perturbation.js';
+import type { TickStats } from '../../../src/core/macros/tick-metrics.js';
 import { runSingle } from '../../../src/runner/run-cell.js';
 
 const CONFIG = createDemoConfig({ schedule: { totalTicks: 40 } });
@@ -34,6 +36,22 @@ describe('微扰声明与审计（P5-04）', () => {
     expect(result.applied).toBe(true);
     expect(result.treatmentValue).toBeCloseTo(result.baselineValue * (1 + 1e-6), 15);
     expect(computeConfigHash(result.treatment)).not.toBe(computeConfigHash(CONFIG));
+  });
+
+  it('param 扰动支持数组下标字段（P5-04 修复）', () => {
+    const result = applyParamPerturbation(CONFIG, 'ascent.crossDays[0]', 1e-6);
+    expect(result.changedPaths).toEqual(['ascent.crossDays[0]']);
+    expect(result.applied).toBe(true);
+    expect(result.treatment.ascent.crossDays[0]).toBeCloseTo(result.baselineValue * (1 + 1e-6), 15);
+  });
+
+  it('数组下标越界或路径非法拒绝', () => {
+    expect(() => applyParamPerturbation(CONFIG, 'ascent.crossDays[99]', 1e-6)).toThrowError(
+      /路径不存在|不是数组|有限数字/,
+    );
+    expect(() => applyParamPerturbation(CONFIG, 'ascent.crossDays[]', 1e-6)).toThrowError(
+      /路径非法/,
+    );
   });
 
   it('delta 为 0 或非有限数拒绝', () => {
@@ -73,6 +91,16 @@ describe('微扰声明与审计（P5-04）', () => {
   });
 });
 
+describe('首次偏离（P5-04 修复）', () => {
+  const row = (tick: number): TickStats => ({ tick }) as unknown as TickStats;
+
+  it('一侧提前结束时返回多出行的 tick，而不是 null', () => {
+    expect(firstDivergenceTick([row(0), row(1)], [row(0)])).toBe(1);
+    expect(firstDivergenceTick([row(0)], [row(0), row(1)])).toBe(1);
+    expect(firstDivergenceTick([row(0)], [row(0)])).toBeNull();
+  });
+});
+
 describe('微扰配对执行（P5-04，07 §7）', () => {
   it('param 扰动：两侧同检查点克隆，报告逐项产出且首偏离 tick 合理', () => {
     const pair = runPerturbationPair(CONFIG, SEED, {
@@ -108,6 +136,17 @@ describe('微扰配对执行（P5-04，07 §7）', () => {
     });
     expect(JSON.stringify(second)).toBe(JSON.stringify(first));
     expect(second.firstDivergenceTick).not.toBeNull();
+  });
+
+  it('maxTicks 不大于 checkpointTick 时拒绝', () => {
+    expect(() =>
+      runPerturbationPair(CONFIG, SEED, {
+        policy: POLICY,
+        checkpointTick: CHECKPOINT_TICK,
+        maxTicks: CHECKPOINT_TICK,
+        declared: { kind: 'param', field: 'need.threshold', delta: 1e-3 },
+      }),
+    ).toThrowError(/maxTicks/);
   });
 
   it('checkpointTick 越界拒绝', () => {
