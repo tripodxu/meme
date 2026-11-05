@@ -112,3 +112,5 @@ out/*
 !out/p6-04b-reliability.json
 !out/p6-04b-live-pilot.json
 !out/p6-04b-live-pilot-decisions.ndjson.gz
+!out/p6-04b-formal-prereg.json
+!out/p6-04b-formal-analysis.json

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "p6-04b-live-prereg-v1",
+  "experimentId": "p6-04b-formal-9a8febe2",
+  "createdAt": "2026-11-05T11:05:17.868Z",
+  "hashDomain": "stratify-preregistration-v1",
+  "hashPreimage": "JCS(design)",
+  "designHash": "sha256:9a8febe2d7374aef638ee89c20a8cd7a154f065dae1846fad7d1726414977dec",
+  "design": {
+    "schemaVersion": "p6-04b-live-prereg-v1",
+    "hypothesis": "正式 P6-04b live 对照（07 §11）：固定 rules-v11、40 人、730 tick、decision.interval=30，用 10 个新配对 seed 比较 mock-weighted-v1、random-uniform-v1 与 jev_live，并对 jev_live 预注册 neutral / survival_hint 两种提示。主指标 TV(P) 达到 0.10、bootstrap 95% 区间不跨 0、ΔG 方向一致率 >=0.90、候选-基线 D 100% 超出 baseline D95 才称 descriptive-structural-candidate；单个 10-seed 集合不满足 07 §8 第 4 条独立确认，因此不构成确认、校准或现实因果。",
+    "experimentType": "jev_behavior",
+    "rulesVersion": "rules-v11",
+    "population": 40,
+    "ticks": 730,
+    "decisionInterval": 30,
+    "decisionPoints": 25,
+    "nominalDueDecisionsPerRun": 1000,
+    "warmupTicks": 365,
+    "window": {
+      "label": "w1",
+      "start": 365,
+      "end": 729,
+      "tickCount": 365
+    },
+    "seeds": [
+      "p6-04b-formal-seed-001",
+      "p6-04b-formal-seed-002",
+      "p6-04b-formal-seed-003",
+      "p6-04b-formal-seed-004",
+      "p6-04b-formal-seed-005",
+      "p6-04b-formal-seed-006",
+      "p6-04b-formal-seed-007",
+      "p6-04b-formal-seed-008",
+      "p6-04b-formal-seed-009",
+      "p6-04b-formal-seed-010"
+    ],
+    "pairing": "same-seed-derived-initial-population-and-addressed-random",
+    "policies": [
+      {
+        "policyVersion": "mock-weighted-v1",
+        "promptStyle": null,
+        "runs": 10
+      },
+      {
+        "policyVersion": "random-uniform-v1",
+        "promptStyle": null,
+        "runs": 10
+      },
+      {
+        "policyVersion": "jev_live",
+        "promptStyle": "neutral",
+        "runs": 10
+      },
+      {
+        "policyVersion": "jev_live",
+        "promptStyle": "survival_hint",
+        "runs": 10
+      }
+    ],
+    "requestedModel": "jev-1.13.0",
+    "promptVersion": "prompt-v3",
+    "endpoint": "https://jev.logicc.top/v1/systemone",
+    "primaryMetric": "TV(P)",
+    "primaryThreshold": 0.1,
+    "directionMetric": "deltaG",
+    "directionMinRate": 0.9,
+    "baselineBandRate": 1,
+    "baselineD95Method": "pairwise-D-nearest-rank-0.95",
+    "analysis": {
+      "bootstrapIterations": 10000,
+      "permutationIterations": 100000,
+      "analysisSeed": 20261105,
+      "bhQ": 0.05,
+      "family": [
+        "live(neutral) vs mock",
+        "live(neutral) vs random",
+        "live(survival_hint) vs mock",
+        "live(survival_hint) vs random",
+        "live(survival_hint) vs live(neutral)"
+      ],
+      "tvPermutationTest": "not-applicable: TV(P) 非负，符号翻转零分布不以 0 为中心"
+    },
+    "exclusionRules": {
+      "excludeExtinctRuns": true,
+      "excludeUnavailableWindows": true,
+      "excludeNetworkEmptyFromSegregation": true,
+      "maxTechnicalRetries": 1,
+      "maxFallbackRate": 0.2,
+      "excludeModelDrift": true,
+      "excludeMissingUsage": true,
+      "excludeCancelled": true
+    },
+    "budgets": {
+      "maxCalls": 25000,
+      "maxInputTokens": 45000000,
+      "maxWallMinutes": 240,
+      "concurrency": 4
+    },
+    "reliabilityGate": {
+      "source": "changes/0054",
+      "top1Agreement": 0.7,
+      "icc21": 0.9886,
+      "meanTv": 0.0565,
+      "verdict": "reliable"
+    },
+    "confirmationStatus": "single-seed-set-descriptive"
+  }
+}
