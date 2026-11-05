@@ -90,3 +90,6 @@ out/*
 !out/p6-stageB-prereg-crossDays-half.json
 !out/p6-stageB-slim-crossDays-half.json
 !out/p6-stageB-analysis-crossDays-half.json
+!out/p6-stageB-prereg-crossDays-double.json
+!out/p6-stageB-prereg-psi-1.json
+!out/p6-stageB-prereg-needThreshold-0-9.json

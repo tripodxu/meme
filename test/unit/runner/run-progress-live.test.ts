@@ -18,7 +18,7 @@ class AsyncMockPolicy implements DecisionPolicy {
   readonly policyVersion = 'async-mock-v1';
   private readonly inner = new MockPolicy();
 
-  async decide(input: DecisionInput, signal: AbortSignal): Promise<DecisionRecord> {
+  async decide(input: DecisionInput): Promise<DecisionRecord> {
     await Promise.resolve();
     return this.inner.decide(input) as DecisionRecord;
   }
@@ -127,7 +127,7 @@ describe('live run 内进度检查点（runSingleWithPolicy，P6-04 前置）', 
           });
           return makeCancelledRecord(input, this.policyVersion);
         }
-        return new AsyncMockPolicy().decide(input, signal);
+        return new AsyncMockPolicy().decide(input);
       }
     }
     const summaryPromise = runSingleWithPolicy(CONFIG, SEED, {

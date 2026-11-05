@@ -1,8 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-05，rev 20）
+## 1. 当前交接状态（2026-11-05，rev 21）
 
-> **接手先读**：本节的 rev 11–20 是当前有效口径。更早的 rev 3–10 是历史沿革，
+> **接手先读**：本节的 rev 11–21 是当前有效口径。更早的 rev 3–10 是历史沿革，
 > 其中「G1.5 未通过、P2–P6 搁置」等表述**已被 rev 11 取代**，不要据此判断当前状态。
 > Jev 与 VPS 的实操细节（端点、密钥、命令、踩坑）见
 > [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)。
@@ -23,12 +23,13 @@
 - rev 14（2026-11-05，P5-03 收口）：**run 内进度检查点接入批跑**——`run-progress-v1`（`src/runner/run-progress.ts`）= `checkpoint-v1` 快照 + 部分窗口累计器（07 §5 窗口聚合依赖全程 tick 数据，纯状态快照无法重算前段窗口）；`runSingle` 启动自动恢复 meta 三元组（cellKey/seed/configHash）匹配的检查点（不匹配抛错防跨 run 污染、损坏按不存在重跑）、每 `everyTicks` tick 原子落盘、正常结束移除（护栏停止保留）；恢复 run 的窗口/标签/终态哈希与不中断运行逐字一致（单测）；G5a 磁盘写失败注入已演练。CLI `--checkpoint-ticks N`（缺省关闭）。测试 615 单测 + 4 集成全绿。证据：`changes/0032`、01 §8.1 完成记录。**至此 P6-01 mock 路径的工程前置（P1.5/P5-01/P5-03）全部满足**；G5a 三项故障注入已覆盖 kill（ledger+run 内检查点）与磁盘写失败，「预算耗尽」属 P5-02。
 - rev 15（2026-11-05，P5-04 收口）：**微扰配对执行入口**——`src/runner/perturbation.ts`：param（相对扰动 value×(1+δ)）与 wealth_absolute（存活者 += ΔValue，Value=0 也加）声明扰动；baseline/treatment 从同一预注册检查点快照克隆（07 §7.2 哈希一致由构造保证 + 单测）；「实验只改变声明变量」由叶子路径 diff 强制（`changedPaths` 恰为声明 field，违反即 INVARIANT_VIOLATED；`population.*` 拒绝）；round-trip 吸收标 invalid 不报「无敏感性」（07 §7.4）；产出 `firstDivergenceTick` 与 `perturbation-summary-v1`；同配对重复执行逐字一致。测试 626 单测 + 门禁全绿。证据：`changes/0033`、01 §8.1 完成记录。**边界**：幅度阶梯、≥30 配对种子、事件级首次翻转与结构指纹偏离属 P6-03；固定决策日志重放（07 §7.7）接进微扰入口待 P5-02。
 - rev 17（2026-11-05，P5-02 收口，**P5a 全部完成**）：SharedBatchBudget（批内共享记账，委托 AttemptBudget fail-closed）+ RateLimiter（并发上限+最小间隔，rateLimitedFetch 注入缝）+ runBatchWithPolicy（policyFactory 密钥只进闭包、并发池、共享 ledger 串行化、预算耗尽/致命失败停止批次且剩余任务按同因记录、取消传播）；AttemptBudget 增加只读 usage()。G5a 三项故障注入（kill、磁盘写失败、预算耗尽）全部有实现与测试。测试 649 单测 + 4 集成全绿。证据：changes/0035。**边界**：live run 内进度检查点（异步）须在 P6-04 前补齐；跨进程 budget.sqlite 与 live 批跑 CLI 归 P4/P5b。
+- rev 21（2026-11-05，文档与证据链收口）：**实验进度暂停于 P6-01 Stage B**。6 个确认单元已判读 3 个——`env0=expanded` / `env0=compressed` 确认通过（changes/0040/0041）、`crossDays=half` 未确认（效应随人口规模消失，诚实负结果）；`crossDays=double` ledger 仅 30/60（全为 baseline，待 `--resume` 续跑），`psi=1` / `needThreshold=0.9` 未开跑。补登 changes/0041；`crossDays-half` 预注册标识在 0039 冻结表为 `c1206246`、实际产物为 `83a1d58a`，差异登记为待裁决（按产物为准，未改判读、未重跑）；6 个 v2 manifest 全部入库并登记 sha256；research 索引、状态栏、01 §9/§12、AGENTS.md 同步；修复 `pnpm format`（3 份 Markdown）与 `pnpm lint`（unused `signal`）。证据：changes/0041、`docs/reference/artifacts.md`。**G6 仍未通过，默认参数未校准。**
 - rev 20（2026-11-05，P6-01 Stage B 首个确认）：**env0=expanded 确认通过**（07 §8 全条件：w2b ΔG +0.0339 CI 不跨 0、方向 1.00、100% 超波动带、0 伪影；wall 111.6 min）；D-04 v2 重冻结（Stage B 480 min，实测触发）；live run 内检查点实现（P6-04 前置就绪）。其余 5 候选已按 v2 冻结待跑。证据：changes/0039/0040、research/2026-11-05-p6-01-stage-b-env0-expanded.md。
 - rev 19（2026-11-05，P6-01 Stage A 执行）：预注册冻结（changes/0037，experimentId p6-stageA-40-b9cd2fd9 / p6-stageA-200-366198c5）后执行 840 run 全成功（0 失败/灭绝，wall 2.8+20.5 min）；判读：env0 最强轴（expanded d>band 0.57/0.97）、crossDays 双向与 ψ=1 跨人口一致入选、needThreshold=0.9 仅 200 人口、decay 本视野未达门槛；12 个 (cell,人口) 对入选 → Stage B 候选 6 cell。证据：changes/0038、research/2026-11-05-p6-01-stage-a-result.md、out/p6-stageA-*（artifacts §2 已登记）。**Stage A 仅筛选，不构成结构结论（AGENTS #9）**。
 - rev 18（2026-11-05，D-04 冻结）：P6 预算按 VPS `2zhou` 实测冻结 v1（Stage A 1200 run/180 min/256 MB、Stage B 60/240/512、微扰 240/120/256、消融 120/240/512；换预算=新 experimentId）；基准记录 `docs/benchmarks/2026-11-05-p5a-engine.md`（开发机+VPS 双环境，VPS 1000 人×3650tick=120s）；批跑人口实验级化（`--population`，200 人×730tick 实机验证）。证据：`changes/0036`、`docs/research/2026-11-05-d04-p6-budget-freeze.md`。**至此 P6-01 的全部前置（工程 P5a + 预算 D-04）满足**。
 - rev 16（2026-11-05，P5-06 收口）：`deploy/` 三工件——stratify-runner.service（oneshot、ConditionPathExists、专用用户、Restart=on-failure+StartLimit、ExecStart 固定 manifest+--resume+checkpoint-ticks 500、ProtectSystem=strict）、check-disk-space.sh（磁盘守卫 2048MB）、journald drop-in（200M/1G/14d）；11 项静态契约测试；docs/09 §6 加 deploy/ 指引，docs/01 §2 目录树补 deploy/。证据：changes/0034。**边界**：VPS systemctl 实装演练归发布前；常驻调度/budget.sqlite 归 P5-02。
-- 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、Runner 剩余项（live run 内进度检查点须在 P6-04 前补齐）、上传对接（P5b，0/2）、校准与科学验收（P6，0/5——工程与预算前置已满足，`out/` 下无 p6/calib 产物）、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。
-- 下一唯一入口：**P6-01 Stage B 其余 5 候选逐个执行**（env0=compressed、crossDays=half/double、psi=1、needThreshold=0.9——manifest 已按 v2 冻结， 约 112 min/个，断点续跑可用）；全部确认后 P6-01 收口 → P6-02。P3/P4/P5b 按 01 §9 可在 G6 后并行，不要先于科学前提投入。外部凭据方面：Jev 走自建网关已可用（**但旧 Key 已泄露须先轮换**），Cloudflare 账号仍缺。
+- 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、上传对接（P5b，0/2）、P6-02～P6-05 与 G6 校准验收、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。P5a 五项与 live run 内进度检查点已完成（changes/0031–0035、0040 前置）。
+- 下一唯一入口：**P6-01 Stage B 剩余 3 单元**——`crossDays=double` 用现有 ledger 的 `--resume` 续跑（30/60，仅 baseline），随后 `psi=1`、`needThreshold=0.9`（manifest 已按 D-04 v2 冻结，约 112 min/单元）；全部确认后 P6-01 收口 → P6-02。P3/P4/P5b 按 01 §9 在 G6 后并行，不要先于科学前提投入。另需裁决 `crossDays-half` 预注册标识差异（changes/0041 §2）。外部凭据方面：Jev 走自建网关已可用（**但旧 Key 已泄露须先轮换**），Cloudflare 账号仍缺。
 - 不得提前声称：三类结构已出现（目前只有 class-share 单特征候选）、Jev 行为有效、性能已达标、生产可发布、网关免费即生产免费。
 
 ## 2. 新接手者开工清单
