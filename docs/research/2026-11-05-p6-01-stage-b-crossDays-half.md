@@ -1,5 +1,10 @@
 # P6-01 Stage B 结果：crossDays=half 未确认（2026-11-05）
 
+> **重算补记（2026-11-05，changes/0042）**：按 07 主指标 TV(P) 门槛 0.10 重算，TV 中位数
+> 0.0043、bootstrap 95% 区间 [0.0038, 0.0052]，未达门槛；0% 超出 baseline 波动带。
+> 判定维持 **未确认**。原正文「ΔMup CI 跨 0」按 bootstrap 重算应为 [0.0039, 0.0072]
+> （不跨 0，但效应量远低于 0.05 门槛），判定不受影响。
+
 - experimentId：`p6-stageB-crossDays-half-83a1d58a`（prereg `sha256:83a1d58a…`，D-04 v2；
   与 changes/0039 §2 冻结表的 `c1206246` 不一致，按入库产物为准，差异登记为待裁决，见 changes/0041 §2）
 - 规模：baseline + crossDays=half × 30 独立确认种子 × 1000 人 × 3650 tick

@@ -26,6 +26,7 @@ import {
 import { validateBatchManifest } from '../dist/runner/batch.js';
 import { runBatch } from '../dist/runner/batch-cli.js';
 import { nodeCheckpointHost } from '../dist/runner/checkpoint-fs.js';
+import { evaluateStageB } from '../dist/runner/p6-analysis.js';
 
 const args = process.argv.slice(2);
 const outDir = 'out';
@@ -144,216 +145,74 @@ async function run(cellKey) {
   );
 }
 
-// ---------- 判读（07 §8 全条件；离线、只读、确定性） ----------
+// ---------- 判读（07 §8/§9；离线、只读、确定性） ----------
 
-const THRESHOLDS = { gini: 0.03, tv: 0.1, mUp: 0.05, segregation: 0.05, openness: 0.05 };
-
-function windowMetrics(report, label) {
-  const window = report.windows.find((entry) => entry.label === label);
-  if (window === undefined) {
-    throw new Error(`缺窗口 ${label}`);
+function loadAnalysisRuns(cellKey) {
+  const slimPath = `${outDir}/p6-stageB-slim-${sanitize(cellKey)}.json`;
+  const summaryPath = `${outDir}/p6-stageB-summary-${sanitize(cellKey)}.json`;
+  if (existsSync(slimPath)) {
+    const slim = JSON.parse(readFileSync(slimPath, 'utf8'));
+    return {
+      runs: slim.runs.map((run) => ({
+        cellKey: run.cellKey,
+        seed: run.seed,
+        extinct: run.extinct,
+        w2b: run.w2b,
+        w3: run.w3,
+      })),
+      totals: slim.totals,
+      source: slimPath,
+    };
   }
-  return {
-    classShares: window.classShares,
-    gini: window.gini,
-    mUp: window.mUp,
-    mDown: window.mDown,
-    segregation: window.networkEmpty ? null : window.segregation,
-    openness: window.openness,
-  };
-}
-
-function tvP(a, b) {
-  let sum = 0;
-  for (let index = 0; index < a.length; index += 1) {
-    sum += Math.abs((a[index] ?? 0) - (b[index] ?? 0));
+  if (existsSync(summaryPath)) {
+    const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
+    const windowOf = (report, label) => {
+      const window = report.windows.find((entry) => entry.label === label);
+      if (window === undefined) {
+        return undefined;
+      }
+      return { ...window, segregation: window.networkEmpty ? null : window.segregation };
+    };
+    return {
+      runs: summary.runs.map((run) => ({
+        cellKey: run.cellKey,
+        seed: run.seed,
+        extinct: run.report.extinct,
+        w2b: windowOf(run.report, 'w2b'),
+        w3: windowOf(run.report, 'w3'),
+      })),
+      totals: summary.totals,
+      source: summaryPath,
+    };
   }
-  return 0.5 * sum;
-}
-
-function pairedDiff(ma, mb) {
-  return {
-    tv: tvP(ma.classShares, mb.classShares),
-    gini: ma.gini - mb.gini,
-    mUp: ma.mUp - mb.mUp,
-    mDown: ma.mDown - mb.mDown,
-    segregation:
-      ma.segregation === null || mb.segregation === null ? null : ma.segregation - mb.segregation,
-    openness: ma.openness - mb.openness,
-  };
-}
-
-function dScore(ma, mb) {
-  const diff = pairedDiff(ma, mb);
-  const abs = (value) => (value === null ? 0 : Math.abs(value));
-  return (
-    0.3 * abs(diff.gini) +
-    0.25 * diff.tv +
-    0.2 * abs(diff.mUp) +
-    0.15 * abs(diff.segregation) +
-    0.1 * abs(diff.openness)
-  );
-}
-
-function median(values) {
-  const sorted = [...values].sort((x, y) => x - y);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
-}
-
-/** 95% 区间：配对差的 [2.5%, 97.5%] 经验分位（30 个配对，非参数区间）。 */
-function ci95(values) {
-  const sorted = [...values].sort((x, y) => x - y);
-  const loIndex = Math.floor(0.025 * (sorted.length - 1));
-  const hiIndex = Math.ceil(0.975 * (sorted.length - 1));
-  return [sorted[loIndex], sorted[hiIndex]];
+  throw new Error(`缺少 ${slimPath} 或 ${summaryPath}；先 --run ${cellKey}`);
 }
 
 function analyze(cellKey) {
-  const summary = JSON.parse(
-    readFileSync(`${outDir}/p6-stageB-summary-${sanitize(cellKey)}.json`, 'utf8'),
-  );
-  const usable = summary.runs.filter((run) => !run.report.extinct);
-  const extinctCount = summary.runs.length - usable.length;
-  const byKey = new Map(usable.map((run) => [`${run.cellKey}\u0000${run.seed}`, run]));
-  const baselineRuns = usable.filter((run) => run.cellKey === 'baseline');
-  const candidateRuns = usable.filter((run) => run.cellKey === cellKey);
-
-  // baseline 跨种子波动带（同 manifest、同种子集、07 §8.3）。
-  const baselinePairwiseD = [];
-  for (let i = 0; i < baselineRuns.length; i += 1) {
-    for (let j = i + 1; j < baselineRuns.length; j += 1) {
-      baselinePairwiseD.push(
-        dScore(
-          windowMetrics(baselineRuns[i].report, 'w2b'),
-          windowMetrics(baselineRuns[j].report, 'w2b'),
-        ),
-      );
-    }
+  const preregPath = `${outDir}/p6-stageB-prereg-${sanitize(cellKey)}.json`;
+  if (!existsSync(preregPath)) {
+    log(`缺少预注册产物 ${preregPath}；先 --freeze ${cellKey}`);
+    process.exit(2);
   }
-  baselinePairwiseD.sort((x, y) => x - y);
-  const baselineD95 =
-    baselinePairwiseD.length > 0
-      ? baselinePairwiseD[
-          Math.min(baselinePairwiseD.length - 1, Math.floor(0.95 * baselinePairwiseD.length))
-        ]
-      : null;
-
-  const windows = ['w2b', 'w3'];
-  const perWindow = windows.map((label) => {
-    const diffs = { tv: [], gini: [], mUp: [], mDown: [], segregation: [], openness: [] };
-    let paired = 0;
-    for (const seed of P6_STAGE_B_SEEDS) {
-      const candidateRun = byKey.get(`${cellKey}\u0000${seed}`);
-      const baselineRun = byKey.get(`baseline\u0000${seed}`);
-      if (candidateRun === undefined || baselineRun === undefined) {
-        continue;
-      }
-      const diff = pairedDiff(
-        windowMetrics(candidateRun.report, label),
-        windowMetrics(baselineRun.report, label),
-      );
-      paired += 1;
-      diffs.tv.push(diff.tv);
-      diffs.gini.push(diff.gini);
-      diffs.mUp.push(diff.mUp);
-      diffs.mDown.push(diff.mDown);
-      if (diff.segregation !== null) {
-        diffs.segregation.push(diff.segregation);
-      }
-      diffs.openness.push(diff.openness);
-    }
-    const stats = {};
-    for (const [key, values] of Object.entries(diffs)) {
-      if (values.length === 0) {
-        continue;
-      }
-      const med = median(values);
-      const [lo, hi] = ci95(values);
-      const sign = Math.sign(med);
-      stats[key] = {
-        median: med,
-        ci95: [lo, hi],
-        ci95CrossesZero: lo <= 0 && hi >= 0,
-        directionAgree: values.filter((value) => Math.sign(value) === sign).length / values.length,
-        threshold: THRESHOLDS[key === 'tv' ? 'tv' : key],
-        overThreshold: Math.abs(med) >= THRESHOLDS[key === 'tv' ? 'tv' : key],
-      };
-    }
-    return { window: label, paired, stats };
-  });
-
-  // 主窗口判定：w2b 为主；w3 为相邻独立窗口复核（07 §8.4：相邻窗口不构成独立复现，
-  // 独立复现 = 与 Stage A 的种子分离 + 后续如需再拆种子集）。
-  const w2b = perWindow[0];
-  const primary = w2b.stats.tv;
-  const anyThreshold = perWindow.some((entry) =>
-    Object.values(entry.stats).some((stat) => stat.overThreshold),
-  );
-  const directionOk =
-    primary !== undefined &&
-    Object.values(w2b.stats)
-      .filter((stat) => stat.overThreshold)
-      .every((stat) => stat.directionAgree >= 0.9);
-  const ciOk = perWindow.some((entry) =>
-    Object.values(entry.stats).some((stat) => stat.overThreshold && !stat.ci95CrossesZero),
-  );
-  const withinBand =
-    baselineD95 === null
-      ? null
-      : candidateRuns.length > 0 && baselineRuns.length > 0
-        ? (() => {
-            let over = 0;
-            let total = 0;
-            for (const seed of P6_STAGE_B_SEEDS) {
-              const candidateRun = byKey.get(`${cellKey}\u0000${seed}`);
-              const baselineRun = byKey.get(`baseline\u0000${seed}`);
-              if (candidateRun === undefined || baselineRun === undefined) {
-                continue;
-              }
-              total += 1;
-              if (
-                dScore(
-                  windowMetrics(candidateRun.report, 'w2b'),
-                  windowMetrics(baselineRun.report, 'w2b'),
-                ) > baselineD95
-              ) {
-                over += 1;
-              }
-            }
-            return total > 0 ? over / total : null;
-          })()
-        : null;
-  const fallbackRuns = usable.filter((run) => {
-    const w1 = run.report.windows.find((entry) => entry.label === 'w2b');
-    return w1 !== undefined && w1.fallbackRate !== null && w1.fallbackRate > 0;
-  });
-  const artifactFree = extinctCount === 0 && fallbackRuns.length === 0;
-  const confirmed =
-    artifactFree && anyThreshold && directionOk && (ciOk ?? false) && (withinBand ?? 0) >= 0.5;
-
-  const result = {
-    schemaVersion: 'p6-stageB-analysis-v1',
+  const frozen = JSON.parse(readFileSync(preregPath, 'utf8'));
+  const data = loadAnalysisRuns(cellKey);
+  const evaluation = evaluateStageB({
     cellKey,
-    preregistrationHash: computeP6StageBHash(cellKey),
+    targetCellKey: cellKey,
+    prereg: frozen.manifest,
+    runs: data.runs,
+    totals: data.totals,
+  });
+  const computedHash = computeP6StageBHash(cellKey);
+  const result = {
+    ...evaluation,
     experimentId: experimentId(cellKey),
-    runs: summary.totals,
-    extinctCount,
-    baselineD95,
-    windows: perWindow,
-    criteria: {
-      anyThreshold,
-      directionOk,
-      ci95NotCrossingZero: ciOk ?? false,
-      beyondBaselineBand: withinBand,
-      artifactFree,
-    },
-    confirmed,
-    claim: confirmed
-      ? 'Stage B 确认：Stage A 效应在 1000 人 × 3650 tick 复现（07 §8 全条件）。'
-      : 'Stage A 效应未在 Stage B 全条件确认——按预注册口径记录，不得声称结构显著改变。',
+    preregistrationHash: frozen.preregistrationHash,
+    computedPreregistrationHash: computedHash,
+    preregistrationHashConsistent: frozen.preregistrationHash === computedHash,
+    sourceArtifact: data.source,
+    runs: data.totals,
     isExperimentalEvidence: true,
-    stageClaim: '确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）',
   };
   writeFileSync(
     `${outDir}/p6-stageB-analysis-${sanitize(cellKey)}.json`,
