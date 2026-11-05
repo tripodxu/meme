@@ -77,9 +77,29 @@ const SEEDS = Array.from(
   { length: DEFAULTS.seedCount },
   (_, index) => `p6-05-seed-${String(index + 1).padStart(3, '0')}`,
 );
+const SEEDS_05B = Array.from(
+  { length: DEFAULTS.seedCount },
+  (_, index) => `p6-05b-seed-${String(index + 1).padStart(3, '0')}`,
+);
+const CELLS_05B = [0, 180].flatMap((memory) =>
+  [4, 8, 12].map((segregationWeight) => ({
+    cellKey: `thetaS${segregationWeight}-H${memory}`,
+    overrides: {
+      ascent: {
+        displacementShare: 0.5,
+        scarcityWeight: 15,
+        occupancyMemoryDays: memory,
+      },
+      openness: { segregationWeight },
+    },
+  })),
+);
 
 function parseArgs(argv) {
-  const options = { ...DEFAULTS, mode: null };
+  const options = { ...DEFAULTS, mode: null, design: 'p6-05' };
+  let preregSet = false;
+  let dirSet = false;
+  let outSet = false;
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     const next = () => {
@@ -91,16 +111,23 @@ function parseArgs(argv) {
     if (flag === '--freeze') options.mode = 'freeze';
     else if (flag === '--run') options.mode = 'run';
     else if (flag === '--analyze') options.mode = 'analyze';
-    else if (flag === '--prereg') options.prereg = next();
-    else if (flag === '--dir') options.dir = next();
-    else if (flag === '--out') options.analysisOut = next();
-    else if (flag === '--force') options.force = true;
+    else if (flag === '--design') options.design = next();
+    else if (flag === '--prereg') {
+      options.prereg = next();
+      preregSet = true;
+    } else if (flag === '--dir') {
+      options.dir = next();
+      dirSet = true;
+    } else if (flag === '--out') {
+      options.analysisOut = next();
+      outSet = true;
+    } else if (flag === '--force') options.force = true;
     else if (flag === '--dry-run') options.dryRun = true;
     else if (flag === '--help' || flag === '-h') {
       console.log(
         [
           '用法：',
-          '  node scripts/p6-05-cluster.mjs --freeze [--force]',
+          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b] [--force]',
           '  node scripts/p6-05-cluster.mjs --run [--prereg ...] [--dir ...]',
           '  node scripts/p6-05-cluster.mjs --analyze [--out ...]',
         ].join('\n'),
@@ -111,6 +138,14 @@ function parseArgs(argv) {
     }
   }
   if (options.mode === null) throw new Error('必须指定 --freeze、--run 或 --analyze');
+  if (options.design !== 'p6-05' && options.design !== 'p6-05b') {
+    throw new Error('--design 只能为 p6-05 或 p6-05b');
+  }
+  if (options.design === 'p6-05b') {
+    if (!preregSet) options.prereg = 'out/p6-05b-scan-prereg.json';
+    if (!dirSet) options.dir = 'out/p6-05b-scan';
+    if (!outSet) options.analysisOut = 'out/p6-05b-scan-analysis.json';
+  }
   return options;
 }
 
@@ -154,15 +189,62 @@ function buildDesign() {
   };
 }
 
+function buildDesign05b() {
+  return {
+    schemaVersion: 'p6-05b-scan-prereg-v1',
+    hypothesis:
+      'P6-05b：P6-05 的三簇失败被诊断为非 A 体制内沿 S/O 的相位漂移（changes/0057、' +
+      'docs/reviews/2026-11-05-p6-05-rule-review.md）。本轮检验两个机制假设：' +
+      'H1 开放度–网络迟滞（提高 openness.segregationWeight θS，使 O 出现两个稳定区间）与 ' +
+      'H2 占用记忆锁定（ascent.occupancyMemoryDays H>0 提供迟滞）。' +
+      '固定 displacementShare=0.5、scarcityWeight=15，θS∈{4,8,12} × H∈{0,180} 共 6 cell，' +
+      '30 个全新 seed × 10950 tick（40 人），终端 11 维全特征、k=3、同一稳定性/时序判据。' +
+      '若 6 个 cell 均无稳定第三簇，则停止调参、转 rules-v12 ADR；' +
+      '即使通过也只是 mock 候选，不是校准或结构涌现声明。',
+    rulesVersion: 'rules-v11',
+    policy: 'mock-weighted-v1',
+    population: DEFAULTS.population,
+    horizon: DEFAULTS.horizon,
+    terminalWindow: { start: 10585, end: 10949, days: 365 },
+    followupHorizon: DEFAULTS.followupHorizon,
+    followupWindow: { start: 14235, end: 14599, days: 365 },
+    followupSeedsPerCell: DEFAULTS.followupSeedsPerCell,
+    seeds: SEEDS_05B,
+    cells: CELLS_05B,
+    fixed: { displacementShare: 0.5, scarcityWeight: 15 },
+    axes: { segregationWeight: [4, 8, 12], occupancyMemoryDays: [0, 180] },
+    features: ['P0', 'P1', 'P2', 'P3', 'P4', 'G', 'top10', 'Mup', 'Mdown', 'S', 'O'],
+    clustering: {
+      algorithm: 'ward-lw-v1',
+      distance: 'euclidean',
+      standardization: 'z-score(pooled)',
+      k: 3,
+      stabilityShuffles: 20,
+      stabilitySeed: 20261105,
+      ariMedianMin: 0.7,
+      silhouetteMin: 0.35,
+      minClusterRuns: 5,
+    },
+    temporal: { minSameClusterRate: 0.8 },
+    antiPreset: { minCellsInAnyCluster: 2 },
+    exclusion: { excludeExtinct: true, maxExtinctRate: 0.1 },
+    budgets: { runs: 240, wallMinutes: 120 },
+    prediction:
+      'H1：θS 越高，非 A 区域的 S/O 双峰越清晰，第三簇 14600 同簇率 >=0.80；' +
+      'H2：H=180 的同簇率显著高于 H=0。若两者都不成立，停止参数扫描。',
+    confirmationStatus: 'P6-05b scan only; not calibration',
+  };
+}
+
 function freeze(options) {
-  const design = buildDesign();
+  const design = options.design === 'p6-05b' ? buildDesign05b() : buildDesign();
   const designHash = hashValue(HASH_DOMAINS.preregistration, design);
   if (existsSync(options.prereg) && !options.force) {
     throw new Error(`${options.prereg} 已存在；预注册不得覆盖（确需重冻结用 --force）`);
   }
   const artifact = {
-    schemaVersion: PREREG_SCHEMA,
-    experimentId: `p6-05-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
+    schemaVersion: design.schemaVersion,
+    experimentId: `${options.design === 'p6-05b' ? 'p6-05b' : 'p6-05'}-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
     createdAt: new Date().toISOString(),
     hashDomain: HASH_DOMAINS.preregistration,
     hashPreimage: 'JCS(design)',

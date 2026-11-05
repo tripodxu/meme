@@ -116,3 +116,5 @@ out/*
 !out/p6-04b-formal-analysis.json
 !out/p6-05-cluster-prereg.json
 !out/p6-05-cluster-analysis.json
+!out/p6-05b-scan-prereg.json
+!out/p6-05b-scan-analysis.json
