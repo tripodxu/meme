@@ -27,21 +27,21 @@ export interface RateLimitRelease {
 
 const defaultNowMs = (): number => Date.now();
 
-const defaultSleep = (ms: number, signal?: AbortSignal): Promise<void> =>
+export const defaultSleep = (ms: number, signal?: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(new StratifyError(errorCodes.INVARIANT_VIOLATED, 'rate limiter sleep 被取消'));
       return;
     }
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(new StratifyError(errorCodes.INVARIANT_VIOLATED, 'rate limiter sleep 被取消'));
-      },
-      { once: true },
-    );
+    const onAbort = (): void => {
+      clearTimeout(timer);
+      reject(new StratifyError(errorCodes.INVARIANT_VIOLATED, 'rate limiter sleep 被取消'));
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 
 export class RateLimiter {
