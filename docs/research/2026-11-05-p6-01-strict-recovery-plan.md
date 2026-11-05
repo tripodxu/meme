@@ -2,7 +2,7 @@
 
 - 性质：**非契约执行计划**；判定口径以 `rule.md`、`docs/07-experiment-calibration.md` 与冻结预注册为准。
 - 关联：[逐提交审查](../reviews/2026-11-05-zcodes114-commit-audit.md)、[changes/0042](../changes/0042-p6-stage-b-protocol-correction.md)、严格重算产物 `out/p6-stageA-analysis-strict.json`。
-- 当前状态：**P6-01 Stage B 0 个确认；G6 未通过；Stage A 严格重算得到 3 个 TV 合格候选。**
+- 当前状态（2026-11-05 执行后）：Stage A 严格候选 3 个；Stage B 六单元全部 60/60 跑完并判读，**needThreshold=0.9 确认（TV(P)=0.1553）**，其余 5 个未确认/exploratory；P6-01 现有 1 个确认效应；G6 仍未通过。阶段 0–4 已完成；阶段 2 的 runner 遗留项与阶段 5 仍待执行。
 
 ## 1. 背景与当前判定
 
@@ -29,23 +29,22 @@
 ### 有效资产
 
 - Stage A 840 run 全成功；`out/p6-stageA-slim-40.json`、`-200.json` 已入库，可离线重算。
-- 三个 Stage B 单元已有 60/60 数据：env0=expanded、env0=compressed、crossDays=half；按 07 均未确认。
-- 严格重算代码 `src/runner/p6-analysis.ts#evaluateStageA` 与 `scripts/p6-stage-a.mjs --analyze-strict` 已写出；产物已生成（**尚未提交、尚无单测**）。
+- 六个 Stage B 单元均已有 60/60 数据：env0=expanded/compressed、crossDays=half/double、psi=1、needThreshold=0.9；needThreshold=0.9 已确认，其余未确认/exploratory。
+- 严格重算代码 `src/runner/p6-analysis.ts#evaluateStageA` 与 `scripts/p6-stage-a.mjs --analyze-strict` 已提交（`7637afe`）；p6-analysis 11 项测试通过，产物与 changes/0043 已入库。
 - 工程修复已提交：P5-04 数组字段/首次偏离/maxTicks/快照哈希断言（`ee9548b`）；RateLimiter 监听器清理（`46f96f2`）。
 
 ### 主要缺口
 
-- Stage A 严格分析的测试、文档索引、artifacts 登记；
-- TV 方向口径未裁决；
+- TV 方向口径已裁决（每对主导阶级 + 同号 ≥90%，淘汰 needThreshold=0.3）；
 - `baseConfig` 未进 ledger 哈希；
 - live 检查点未接入 `runBatchWithPolicy`；live 预算可选、`requestedModel` 默认 `mock`；
 - 检查点 `meta.tickCompleted` 与快照 tick 未交叉校验；
 - `warmupTicks` 类型仍被放宽；
-- 全量 668 项测试未在最后提交后重跑；integration/e2e 未跑。
+- 全量 679 项测试已通过；integration/e2e 未跑。
 
 ## 3. 分阶段计划
 
-### 阶段 0：冻结现状（约 1 天）
+### 阶段 0：冻结现状（已完成）
 
 1. 给 `evaluateStageA` 补单测（TV 达标/不达标、完整性失败、方向 N/A、w1 窗口）；
 2. 提交 `--analyze-strict`、严格分析产物与 `changes/0043`；
@@ -55,7 +54,7 @@
 
 **验收**：严格分析可复现；旧 `p6-stageA-analysis.json` 明确标为历史口径；门禁全绿。
 
-### 阶段 1：TV 方向口径裁决（约 2–3 天）
+### 阶段 1：TV 方向口径裁决（已完成）
 
 用现有 Stage A 数据同时计算三种定义下的候选集：
 
@@ -67,7 +66,7 @@
 
 **验收**：唯一口径；三种定义的候选集对比表；`needThreshold=0.9@200` 在主导阶级定义下是否仍通过有明确结论。
 
-### 阶段 2：P5 runner 正确性修复（约 1 周）
+### 阶段 2：P5 runner 正确性修复（部分完成）
 
 | 修复                                                                                                       | 验收                                   |
 | ---------------------------------------------------------------------------------------------------------- | -------------------------------------- |
@@ -89,7 +88,7 @@
 
 **验收**：60/60、0 失败/灭绝/回退；analysis 产物入库并登记 sha256。
 
-### 阶段 4：P6-01 判定（约 2–3 天）
+### 阶段 4：P6-01 判定（已完成：1 个确认）
 
 - 若 `needThreshold=0.9` 在 1000×3650 达到 TV≥0.10 且全部条件满足 → 记 **1 个确认效应**；其余五个标 exploratory；
 - 若未达到 → P6-01 **0 确认**，按 07 记录负结果；
