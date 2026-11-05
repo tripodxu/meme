@@ -7,7 +7,8 @@
 > - **工程**：P0/P1 完成、P2 收口 7/7（真实冒烟经自建网关跑通）、P5a 五项全完成（批跑 CLI/检查点/微扰/共享预算/systemd）。
 > - **P6-01**：Stage A 840 run 完成；Stage B 六单元已全部跑完并按 07 严格口径判读：**1 个确认（needThreshold=0.9）**，5 个未确认/exploratory（env0 expanded/compressed、crossDays half/double、psi=1）；G6 仍未通过。
 > - **P6-02**：多参数 factorial 已完成（`p6-factorial-eaf53b7b`，32 cell × 30 新种子 × 200 人 × 730 tick，960/960、0 失败）；top 联合条件 `threshold=0.9+psi=flat+env0=expanded+crossDays=half` TV(P)=0.2484（CI [0.2376,0.2555]），不含 threshold 的格点最高 0.0988。**仅 exploratory，不构成确认或校准**（changes/0046）。
-> - **未开工**：P3 前端、P4 Worker/D1/R2、P5b 上传、P6-03～P6-05、P7 发布。
+> - **P6-03**：微扰克隆与正常波动区间已完成（`p6-perturbation-6bd61532`，2 体制 × 10 扰动 cell × 30 新种子，600 对全部有效）；**无结构证据**：最大 TV 0.00727、最大 D 0.0299，均低于 0.10 与 baseline D95；唯一 30/30 翻转事件的 `needMultiplier[1]×1e-2` 仍为 trajectory-only，其余 absorbed。**仅 exploratory，不构成确认或校准**（changes/0050）。
+> - **未开工**：P3 前端、P4 Worker/D1/R2、P5b 上传、P6-04～P6-05、P7 发布。
 
 Stratify 是一个可交互、可回放、可批量实验的社会仿真系统。Jev 负责从合法行动中做结构化选择，确定性 TypeScript 引擎负责全部数值结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 

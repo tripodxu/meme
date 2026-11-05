@@ -1,0 +1,604 @@
+{
+  "schemaVersion": "p6-perturbation-analysis-v1",
+  "protocol": "07-perturbation-exploratory",
+  "primaryMetric": "TV(P)",
+  "tvThreshold": 0.1,
+  "seeds": 30,
+  "normalFluctuation": [
+    {
+      "regimeKey": "stable",
+      "baselinePairs": 435,
+      "windowTvMedian": 0.022481422789705847,
+      "windowTvP95": 0.04768262432114027,
+      "tickTvP95": 0.04955156360958419,
+      "windowD95": 0.08549616809044476
+    },
+    {
+      "regimeKey": "critical",
+      "baselinePairs": 435,
+      "windowTvMedian": 0.017037445794210036,
+      "windowTvP95": 0.04228780850380854,
+      "tickTvP95": 0.042757417102966856,
+      "windowD95": 0.07661802670310772
+    }
+  ],
+  "regimes": [
+    {
+      "regimeKey": "stable",
+      "design": "baseline",
+      "cells": [
+        {
+          "cellKey": "control=0",
+          "kind": "control",
+          "field": null,
+          "delta": 0,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 30,
+            "absorbed": 0,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "wealth_absolute=1e-6",
+          "kind": "wealth_absolute",
+          "field": null,
+          "delta": 0.000001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 1.2057738696391593e-10,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "wealth_absolute=1e-4",
+          "kind": "wealth_absolute",
+          "field": null,
+          "delta": 0.0001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 1.2057732090564599e-8,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "wealth_absolute=1e-2",
+          "kind": "wealth_absolute",
+          "field": null,
+          "delta": 0.01,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 29,
+            "trajectoryOnly": 1,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0.0020039195707485372,
+          "windowDMedian": 0.000001209720706801809,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": 450,
+          "firstEventFlipTickMedian": 450,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.threshold×1e-6",
+          "kind": "param_relative",
+          "field": "need.threshold",
+          "delta": 0.000001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.threshold×1e-4",
+          "kind": "param_relative",
+          "field": "need.threshold",
+          "delta": 0.0001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.threshold×1e-2",
+          "kind": "param_relative",
+          "field": "need.threshold",
+          "delta": 0.01,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.needMultiplier[1]×1e-6",
+          "kind": "param_relative",
+          "field": "need.needMultiplier[1]",
+          "delta": 0.000001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.needMultiplier[1]×1e-4",
+          "kind": "param_relative",
+          "field": "need.needMultiplier[1]",
+          "delta": 0.0001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 28,
+            "trajectoryOnly": 2,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0.002398475214749764,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": 530,
+          "firstEventFlipTickMedian": 540,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.needMultiplier[1]×1e-2",
+          "kind": "param_relative",
+          "field": "need.needMultiplier[1]",
+          "delta": 0.01,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 0,
+            "trajectoryOnly": 30,
+            "structural": 0
+          },
+          "windowTvMedian": 0.0008654416032349106,
+          "windowTvCi95": [
+            0.0003574920382185395,
+            0.0016443874598563693
+          ],
+          "windowTvMax": 0.007269933459087481,
+          "windowDMedian": 0.003949812383994223,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": 370,
+          "firstEventFlipTickMedian": 450,
+          "eventFlipTicksMedian": 28,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        }
+      ]
+    },
+    {
+      "regimeKey": "critical",
+      "design": "interaction",
+      "cells": [
+        {
+          "cellKey": "control=0",
+          "kind": "control",
+          "field": null,
+          "delta": 0,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 30,
+            "absorbed": 0,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "wealth_absolute=1e-6",
+          "kind": "wealth_absolute",
+          "field": null,
+          "delta": 0.000001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 1.1612619893464071e-10,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "wealth_absolute=1e-4",
+          "kind": "wealth_absolute",
+          "field": null,
+          "delta": 0.0001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 1.1612616523937192e-8,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "wealth_absolute=1e-2",
+          "kind": "wealth_absolute",
+          "field": null,
+          "delta": 0.01,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0.0000011612551097009427,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.threshold×1e-6",
+          "kind": "param_relative",
+          "field": "need.threshold",
+          "delta": 0.000001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.threshold×1e-4",
+          "kind": "param_relative",
+          "field": "need.threshold",
+          "delta": 0.0001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.threshold×1e-2",
+          "kind": "param_relative",
+          "field": "need.threshold",
+          "delta": 0.01,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.needMultiplier[1]×1e-6",
+          "kind": "param_relative",
+          "field": "need.needMultiplier[1]",
+          "delta": 0.000001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 30,
+            "trajectoryOnly": 0,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": null,
+          "firstEventFlipTickMedian": null,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.needMultiplier[1]×1e-4",
+          "kind": "param_relative",
+          "field": "need.needMultiplier[1]",
+          "delta": 0.0001,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 28,
+            "trajectoryOnly": 2,
+            "structural": 0
+          },
+          "windowTvMedian": 0,
+          "windowTvCi95": [
+            0,
+            0
+          ],
+          "windowTvMax": 0.0018619707619114845,
+          "windowDMedian": 0,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": 540,
+          "firstEventFlipTickMedian": 550,
+          "eventFlipTicksMedian": 0,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        },
+        {
+          "cellKey": "param:need.needMultiplier[1]×1e-2",
+          "kind": "param_relative",
+          "field": "need.needMultiplier[1]",
+          "delta": 0.01,
+          "pairs": 30,
+          "validPairs": 30,
+          "invalidPairs": 0,
+          "classified": {
+            "identical": 0,
+            "absorbed": 0,
+            "trajectoryOnly": 30,
+            "structural": 0
+          },
+          "windowTvMedian": 0.0016200848238478154,
+          "windowTvCi95": [
+            0.00036820266840599655,
+            0.0021738347199333533
+          ],
+          "windowTvMax": 0.0055474834445738965,
+          "windowDMedian": 0.008714125574964371,
+          "beyondBaselineD95Rate": 0,
+          "firstEventFlipTickMin": 370,
+          "firstEventFlipTickMedian": 430,
+          "eventFlipTicksMedian": 28,
+          "firstStructuralDeviationTickMedian": null,
+          "structuralEvidence": false
+        }
+      ]
+    }
+  ],
+  "claim": "P6-03 微扰探索：只区分轨迹不同与结构不同，并给出 baseline 正常波动区间；不构成确认、校准或 P6-05 三类结构验收（AGENTS #9、07 §7/§8）。",
+  "experimentId": "p6-perturbation-6bd61532",
+  "preregistrationHash": "sha256:6bd61532a7f475a3b16600cd5ef3513abd012779ce74da01244a5fc149484bca",
+  "populationSize": 200,
+  "checkpointTick": 365
+}

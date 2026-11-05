@@ -103,3 +103,6 @@ out/*
 !out/p6-factorial-prereg.json
 !out/p6-factorial-slim.json
 !out/p6-factorial-analysis.json
+!out/p6-perturbation-prereg.json
+!out/p6-perturbation-slim.json
+!out/p6-perturbation-analysis.json

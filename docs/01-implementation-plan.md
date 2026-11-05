@@ -243,6 +243,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-02 进度记录（2026-11-05）**：多参数 factorial 已完成（`p6-factorial-eaf53b7b`，prereg `sha256:eaf53b7b…`）：五主导轴 2^5 全因子 32 cell × 30 新种子 × 200 人 × 730 tick，960/960 完成、0 失败/灭绝，wall 52.9 min（changes/0045/0046）。31 个非 baseline cell 全部 30 配对；baselineD95=0.0928；top 联合条件 `threshold=0.9+psi=flat+env0=expanded+crossDays=half` TV(P)=0.2484（CI [0.2376,0.2555]），不含 threshold 的格点最高 0.0988；`crossDays=half`/`decay=steeper` 单轴被吸收（0.0058/0.0064）。**仅 exploratory，不作单轴归因、不构成确认或校准（AGENTS #9、07 §6.3/§9）；下一轮细化需新 experimentId 与新种子。**
 
+**P6-03 进度记录（2026-11-05）**：微扰克隆与正常波动区间完成（`p6-perturbation-6bd61532`，prereg `sha256:6bd61532…`）：stable（默认）与 critical（P6-02 top 联合条件）两体制 × 10 个扰动 cell（control、wealth 绝对 1e-6/1e-4/1e-2、`need.threshold` 与 `need.needMultiplier[1]` 相对 1e-6/1e-4/1e-2）× 30 新种子 × 200 人 × 730 tick，检查点 365；60 任务/720 run 全部完成，600 对全部有效（0 invalid/0 extinct/0 fallback），wall 16.6 min；control 两体制 30/30 逐位一致（changes/0050）。baseline 正常波动区间：stable 窗口 TV p95 0.0477、D95 0.0855；critical 0.0423、0.0766。**无任何 cell 达到结构证据**：最大窗口 TV 0.00727、最大 D 0.0299，均低于 0.10 与各自 D95；唯一 30/30 均翻转事件的 `need.needMultiplier[1]×1e-2` 也只有 TV 0.000865/0.00162 → `trajectory-only`，其余 cell 零事件翻转 → `absorbed`（07 §7.5，只能判「被离散阈值吸收」，不能判「负反馈稳定」）。**仅 exploratory；不构成确认、校准或 P6-05 三类结构验收；G6 仍未通过。**
+
 ## 10. P7：发布硬化
 
 - 全量 CI、E2E、性能和长时 soak；检查 Worker 请求资源，不以本机结果推断 Worker 限额。

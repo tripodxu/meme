@@ -2,7 +2,7 @@
 
 Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用；P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）、**P5-01 批跑 CLI（`batch-cli` + `bin/stratify-batch.mjs`，changes/0031）**、**P5-03 run 内进度检查点（`run-progress`，changes/0032）** 与 **P5-04 微扰配对执行入口（`perturbation`，changes/0033）** 已落地；**P5-02 共享预算/限流/live 批跑执行器（`budget`/`rate-limit`/`batch-live`，changes/0035）** 已落地——**P5a 全部完成**；上传仍未完成。
 
-已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`。
+已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`。
 
 计划模块：`uploader`（P5b）。
 
@@ -17,6 +17,24 @@ const summary = runPerturbationBatch(config, tasks, { policy, checkpointTick });
 - baseline/treatment 从同一检查点快照克隆（07 §7.2），叶子路径 diff 强制「只改声明变量」；
 - round-trip 后哈希不变 → `invalid=true`（07 §7.4），不报「无敏感性」；
 - 产出 `perturbation-summary-v1`（任务回显 + 逐对 `firstDivergenceTick`/两侧报告）。
+
+## P6-03 微扰实验（`p6-perturbation` + `scripts/p6-perturbation.mjs`）
+
+```bash
+pnpm build
+node scripts/p6-perturbation.mjs --freeze
+node scripts/p6-perturbation.mjs --run
+node scripts/p6-perturbation.mjs --slim
+node scripts/p6-perturbation.mjs --analyze
+```
+
+- 预注册两个体制（`stable` 默认 / `critical` P6-02 最大联合条件）、10 个扰动 cell
+  （control、财富绝对三档、`need.threshold` 与 `need.needMultiplier[1]` 相对各三档）、
+  30 个新种子、200 人 × 730 tick、检查点 365；全部进 `preregistrationHash`；
+- 每个 (regime, seed) 只跑一次检查点与 baseline，treatment 从同一快照克隆；
+- 事件签名 = 死亡数 + 阶级转移矩阵；分类为 `identical` / `absorbed`（730 天内零事件翻转）/
+  `trajectory-only` / `structural`（窗口 TV≥0.10 且超出 baseline 跨种子 D95）；
+- 只作 exploratory，不构成确认、校准或 P6-05 三类结构验收。
 
 ## 批跑 CLI（P5-01/P5-03）
 
