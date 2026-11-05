@@ -251,6 +251,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-04b 1-seed pilot（2026-11-05）**：40 人 × 730 tick × `decision.interval=30`；993/993 成功、0 回退、993 exact，wall 18.6 min，p50 1048 ms；`liveVsMock` TV 0.0152/D 0.0186、`liveVsRandom` TV 0.3226/D 0.1619（`mockVsRandom` 0.3074/0.1582）。harness 通过；1 个 seed 仅为描述性 pilot，不构成正式对照或结构证据（changes/0055）。
 
+**P6-04b 正式 live 对照（2026-11-05）**：`p6-04b-formal-9a8febe2`，10 新 seed × {mock, random, live-neutral, live-survival_hint} = 40 run，**40/40 完成、0 失败、0 剔除**；live 19,799 决策、8 次 `upstream_5xx` 回退（0.04%）、单一模型，input 37.48M / output 2.45M，max 25.9 s（changes/0056）。TV(P) 中位数：neutral vs mock **0.0175**（CI 0.0106–0.0288）、vs random **0.3781**；survival vs mock **0.0248**、vs random **0.3839**；survival vs neutral 0.0311。baseline D95 mock 0.2156 / random 0.1183。五个比较均未同时满足 07 §8（方向一致率 0.50–0.90、BH 最小 p=0.1577），`verdict=no-structural-evidence`；`survival_hint` 的 Mup→0、S→0.354、O→0.143 强信号仅 exploratory。**单 seed 集不构成确认、校准或结构涌现。**
+
 ## 10. P7：发布硬化
 
 - 全量 CI、E2E、性能和长时 soak；检查 Worker 请求资源，不以本机结果推断 Worker 限额。

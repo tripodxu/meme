@@ -2,7 +2,7 @@
 
 Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用；P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）、**P5-01 批跑 CLI（`batch-cli` + `bin/stratify-batch.mjs`，changes/0031）**、**P5-03 run 内进度检查点（`run-progress`，changes/0032）** 与 **P5-04 微扰配对执行入口（`perturbation`，changes/0033）** 已落地；**P5-02 共享预算/限流/live 批跑执行器（`budget`/`rate-limit`/`batch-live`，changes/0035）** 已落地——**P5a 全部完成**；上传仍未完成。
 
-已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`。
+已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`、`p6-live-comparison`。
 
 计划模块：`uploader`（P5b）。
 
@@ -44,6 +44,15 @@ node scripts/p6-perturbation.mjs --analyze
   输出选项分布、ICC、TV、usage/延迟；不推进模拟。
 - `scripts/p6-04b-live-pilot.mjs`：1 seed × 40 人 × 730 tick × `decision.interval=30`，
   同配置跑 mock/random/live 并输出描述性 TV/D；**pilot 不是正式对照**。
+
+## 正式 live 对照（P6-04b）
+
+- `src/runner/p6-live-comparison.ts`：配对 TV(P)/D、bootstrap 中位数区间、
+  有符号 ΔG 的方向一致率与符号翻转检验、baseline 两两 D95、BH 校正，以及
+  回退率/模型漂移/灭绝/窗口不完整等质量闸门；纯函数，不读文件、不发请求。
+- `scripts/p6-04b-formal.mjs`：`--freeze` 冻结 10 seed × 4 组设计并写 designHash；
+  `--run` 以并发池执行 mock/random/live，ledger 追加式落盘、可断点续跑；
+  `--analyze` 输出五个比较与 BH 族。正式批次结果见 changes/0056。
 
 ## 批跑 CLI（P5-01/P5-03）
 
