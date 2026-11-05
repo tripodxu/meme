@@ -11,6 +11,7 @@ import {
   P6_FACTORIAL_TICKS,
   P6_FACTORIAL_WARMUP,
 } from '../../../src/runner/p6-factorial.js';
+import { computePreregistrationHash } from '../../../src/runner/preregistration.js';
 
 describe('P6-02 多参数 factorial 预注册（07 §6.3）', () => {
   it('2^5 全因子：baseline + 5 single + 26 interaction，无重复配置', () => {
@@ -71,5 +72,10 @@ describe('P6-02 多参数 factorial 预注册（07 §6.3）', () => {
     const first = computeP6FactorialHash();
     expect(computeP6FactorialHash()).toBe(first);
     expect(first).toMatch(/^sha256:[0-9a-f]{64}$/);
+    const modified = {
+      ...buildP6FactorialManifest(),
+      budgets: { ...P6_FACTORIAL_BUDGET, maxRuns: P6_FACTORIAL_BUDGET.maxRuns + 1 },
+    };
+    expect(computePreregistrationHash(modified)).not.toBe(first);
   });
 });
