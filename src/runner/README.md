@@ -2,7 +2,7 @@
 
 Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用；P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）、**P5-01 批跑 CLI（`batch-cli` + `bin/stratify-batch.mjs`，changes/0031）**、**P5-03 run 内进度检查点（`run-progress`，changes/0032）** 与 **P5-04 微扰配对执行入口（`perturbation`，changes/0033）** 已落地；**P5-02 共享预算/限流/live 批跑执行器（`budget`/`rate-limit`/`batch-live`，changes/0035）** 已落地——**P5a 全部完成**；上传仍未完成。
 
-已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`。
+已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`。
 
 计划模块：`uploader`（P5b）。
 
@@ -35,6 +35,15 @@ node scripts/p6-perturbation.mjs --analyze
 - 事件签名 = 死亡数 + 阶级转移矩阵；分类为 `identical` / `absorbed`（730 天内零事件翻转）/
   `trajectory-only` / `structural`（窗口 TV≥0.10 且超出 baseline 跨种子 D95）；
 - 只作 exploratory，不构成确认、校准或 P6-05 三类结构验收。
+
+## Jev 重测信度与 live pilot（P6-04b 前置）
+
+- `src/runner/reliability.ts`：ICC(2,1)（行=选项、列=重复）、重复间平均 TV、
+  top-1 一致率与 `reliable/model_unstable/exploratory` verdict（07 §11）。
+- `scripts/jev-reliability.mjs`：固定一个 mock state，连续调用 live 20 次，
+  输出选项分布、ICC、TV、usage/延迟；不推进模拟。
+- `scripts/p6-04b-live-pilot.mjs`：1 seed × 40 人 × 730 tick × `decision.interval=30`，
+  同配置跑 mock/random/live 并输出描述性 TV/D；**pilot 不是正式对照**。
 
 ## 批跑 CLI（P5-01/P5-03）
 

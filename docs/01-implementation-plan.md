@@ -249,6 +249,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-04b 前置进展（2026-11-05）**：Key 轮换后完成 20 次同 state 重测信度：20/20 有效、0 回退；top-1 **0.70**（临界）、ICC(2,1) **0.9886**、平均 TV **0.0565**，verdict=`reliable`（changes/0054）。仅支持进入正式 live/mock 对照，不构成结构证据；正式 live/mock 对照未运行。
 
+**P6-04b 1-seed pilot（2026-11-05）**：40 人 × 730 tick × `decision.interval=30`；993/993 成功、0 回退、993 exact，wall 18.6 min，p50 1048 ms；`liveVsMock` TV 0.0152/D 0.0186、`liveVsRandom` TV 0.3226/D 0.1619（`mockVsRandom` 0.3074/0.1582）。harness 通过；1 个 seed 仅为描述性 pilot，不构成正式对照或结构证据（changes/0055）。
+
 ## 10. P7：发布硬化
 
 - 全量 CI、E2E、性能和长时 soak；检查 Worker 请求资源，不以本机结果推断 Worker 限额。

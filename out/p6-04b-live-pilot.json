@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "p6-04b-live-pilot-v1",
+  "isExperimentalEvidence": false,
+  "pilot": true,
+  "purpose": "1-seed harness/fallback/runtime pilot；不是正式 live/mock 对照，无区间/显著性，不构成结构证据。",
+  "seed": "p6-04b-live-seed-001",
+  "population": 40,
+  "ticks": 730,
+  "decisionInterval": 30,
+  "decisionPoints": 25,
+  "dueDecisions": 1000,
+  "promptStyle": "neutral",
+  "requestedModel": "jev-1.13.0",
+  "endpoint": "https://jev.logicc.top/v1/systemone",
+  "elapsedMs": 1113900,
+  "mock": {
+    "finalStateHash": "sha256:242cde785431c42b3edfe023af558ecddf0c9ebcb53f397bef79b5d2e6301b1c",
+    "aliveAtEnd": 39,
+    "extinct": false,
+    "endTick": 729,
+    "endReason": null,
+    "window": {
+      "classShares": [
+        0.5582683526519167,
+        0.2894766420793831,
+        0.13475588338602146,
+        0.017499121882683478,
+        0
+      ],
+      "gini": 0.4485184970415621,
+      "mUp": 0.5008956796628043,
+      "mDown": 0.4887232174218465,
+      "segregation": 0.06416253360904453,
+      "openness": 0.6225100105303027,
+      "fallbackRate": 0,
+      "tickCount": 365,
+      "observedTicks": 365,
+      "missingTicks": 365,
+      "labels": []
+    }
+  },
+  "random": {
+    "finalStateHash": "sha256:328fdc501d9b889ca27bf141cc69127f9273cb4ee623ac125ca270b583286bb8",
+    "aliveAtEnd": 39,
+    "extinct": false,
+    "endTick": 729,
+    "endReason": null,
+    "window": {
+      "classShares": [
+        0.8657112750263375,
+        0.11160871092377919,
+        0.022680014049877073,
+        0,
+        0
+      ],
+      "gini": 0.4621701275983199,
+      "mUp": 0.20077449947313067,
+      "mDown": 0.3696803652968047,
+      "segregation": 0.04447846473618926,
+      "openness": 0.4800900307830857,
+      "fallbackRate": 0,
+      "tickCount": 365,
+      "observedTicks": 365,
+      "missingTicks": 365,
+      "labels": []
+    }
+  },
+  "live": {
+    "finalStateHash": "sha256:33d8af55708ebb77b0c9cb358222bf9e3dffda213ffff4cda4c23708584591bc",
+    "aliveAtEnd": 39,
+    "extinct": false,
+    "endTick": 729,
+    "endReason": null,
+    "window": {
+      "classShares": [
+        0.5431085353003173,
+        0.3045943097997884,
+        0.13479100807868039,
+        0.017506146821215263,
+        0
+      ],
+      "gini": 0.4803137890621125,
+      "mUp": 0.49890762205830597,
+      "mDown": 0.5098647699332624,
+      "segregation": 0.04254209878540235,
+      "openness": 0.6384972121650953,
+      "fallbackRate": 0,
+      "tickCount": 365,
+      "observedTicks": 365,
+      "missingTicks": 365,
+      "labels": []
+    }
+  },
+  "liveError": null,
+  "decisions": {
+    "due": 993,
+    "fallbacks": 0,
+    "fallbackReasons": {},
+    "responseModels": [
+      "jev-1.13-free"
+    ],
+    "probabilitySources": {
+      "exact": 993,
+      "derived": 0,
+      "none": 0
+    },
+    "usage": {
+      "inputTokens": 1873726,
+      "outputTokens": 123156,
+      "missingRecords": 0
+    },
+    "latencyMs": {
+      "min": 932,
+      "p50": 1048,
+      "max": 12795,
+      "samples": 993
+    }
+  },
+  "rawResponsesPath": "out/p6-04b-live-pilot-decisions.ndjson.gz",
+  "comparisons": {
+    "liveVsMock": {
+      "tv": 0.015159817351597665,
+      "gini": 0.03179529202055037,
+      "mUp": -0.0019880576044983833,
+      "mDown": 0.021141552511415862,
+      "segregation": -0.021620434823642183,
+      "openness": 0.015987201634792503,
+      "d": 0.01856793885198978
+    },
+    "liveVsRandom": {
+      "tv": 0.32260273972602393,
+      "gini": 0.018143661463792593,
+      "mUp": 0.2981331225851753,
+      "mDown": 0.14018440463645765,
+      "segregation": -0.00193636595078691,
+      "openness": 0.15840718138200954,
+      "d": 0.1618515809184978
+    },
+    "mockVsRandom": {
+      "tv": 0.3074429223744263,
+      "gini": 0.013651630556757777,
+      "mUp": -0.3001211801896737,
+      "mDown": -0.11904285212504179,
+      "segregation": -0.019684068872855273,
+      "openness": -0.14241997974721704,
+      "d": 0.15817506410421864
+    }
+  }
+}
