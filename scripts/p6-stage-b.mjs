@@ -251,6 +251,8 @@ function slimOne(cellKey) {
       endTick: run.report.endTick,
       w2b: windowOf(run.report, 'w2b'),
       w3: windowOf(run.report, 'w3'),
+      w2bLabels: run.report.labelsByWindow.w2b ?? [],
+      w3Labels: run.report.labelsByWindow.w3 ?? [],
     };
   });
   const payload = {

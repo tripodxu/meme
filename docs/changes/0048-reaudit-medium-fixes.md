@@ -40,7 +40,7 @@
 
 ## 7. Stage B slim 与 summary 的 segregation 归一
 
-`slimOne` 与 summary 路径共用 `windowOf`：`networkEmpty` 时 `segregation=null`。重生成六个 slim 与 analysis；**判定不变**（仅 `needThreshold=0.9` 确认），analysis 哈希不变，`env0=expanded/compressed` 的 slim 哈希更新。
+`slimOne` 与 summary 路径共用 `windowOf`：`networkEmpty` 时 `segregation=null`。重生成六个 slim 与 analysis；slim 保留 `w2bLabels`/`w3Labels`；**判定不变**（仅 `needThreshold=0.9` 确认），analysis 哈希不变，六个 slim 哈希按重生成更新。
 
 ## 8. 验证
 
