@@ -37,43 +37,43 @@
 
 修复：`chmod +x` 入库（`100755`），并在 `deploy/README.md` 安装步骤加 `install -m 755`；测试增加模式断言。
 
-### Medium-High：live 批跑的 ledger/summary 不绑定模型与策略版本
+### Medium-High：live 批跑的 ledger/summary 不绑定模型与策略版本（已修，changes/0048）
 
 `BatchRunRecord` 只有 `cellKey/seed/configHash/paramsHash/report/elapsedMs`（`src/runner/batch-cli.ts:35-42`）；`runBatchWithPolicy` 的 summary 仍写 `manifest.policy`（`mock-weighted-v1`），不记录 `requestedModel`、`promptStyle` 或实际 policyVersion。live 断点续跑会复用旧 run，即使调用方换了模型；summary 仍标 mock。P6-04 的 Jev/mock 对照会因此丢失关键 provenance。
 
 修复：ledger 增加 `requestedModel/promptStyle/policyVersion`（可选字段用于兼容），恢复时与本次调用比对；summary 增加 live 元数据；测试覆盖“换模型拒绝恢复”。
 
-### Medium：`requireBudget` 是 opt-in，live 缺省仍可无预算运行
+### Medium：`requireBudget` 是 opt-in，live 缺省仍可无预算运行（已修，changes/0048）
 
 `src/runner/batch-live.ts:135-140` 只有 `requireBudget === true` 才拒绝缺预算。注释称“live 必须提供”，但 API 默认允许无预算。调用方漏传即可绕过 04 §7。
 
 修复：默认 `true`（或要求 policyFactory 声明 live 时强制），并让 CLI 显式传预算；测试改为“缺预算默认拒绝”。
 
-### Medium：ledger 的 run 记录只做浅校验
+### Medium：ledger 的 run 记录只做浅校验（已修，changes/0048）
 
 `assertRunRecord`（`src/runner/batch-cli.ts:150-172`）只要求 `report` 是对象；不校验 `windows/finalStateHash/extinct/endTick`，也不把 `configHash/paramsHash` 与当前 task 的配置重算结果比对。损坏或被手工修改的 ledger 可注入任意报告并被当作已完成 run 复用。
 
 修复：补 report 必需字段校验；恢复时对每个 run 重算 `computeConfigHash(task.config)`/`computeParamsHash` 并比对。
 
-### Medium：CLI 在 `process.stdout.write` 后立即 `process.exit`，管道输出可能被截断
+### Medium：CLI 在 `process.stdout.write` 后立即 `process.exit`，管道输出可能被截断（已修，changes/0048）
 
 `bin/stratify-batch.mjs:215-230` 先写几 MB 的 summary JSON 到 stdout，再 `process.exit(...)`。在管道/重定向下 Node 的 stdout 写入是异步的，立即退出可能截断尾部 JSON，破坏“stdout 纯 JSON”契约。
 
 修复：改为 `process.exitCode = ...` 并自然返回，或用 `process.stdout.write(text, () => process.exit(code))`。
 
-### Medium：分析脚本在预注册哈希不一致时仍输出判定
+### Medium：分析脚本在预注册哈希不一致时仍输出判定（已修，changes/0048）
 
 `scripts/p6-stage-a.mjs` 的 `analyzeStrict` 与 `scripts/p6-stage-b.mjs` 的 `analyze` 都只是把 `preregistrationHashConsistent` 写进产物，仍继续输出 `confirmed/screenedIn`。如果 manifest 与产物来自不同设计，读到的“确认”没有证据链意义。
 
 修复：不一致时 `process.exit(2)`，不写判定产物（或写 `refused` 记录）。
 
-### Medium：微扰 `param` 字段校验只禁止 `population.*`
+### Medium：微扰 `param` 字段校验只禁止 `population.*`（已修，changes/0048）
 
 `src/runner/perturbation.ts` 的 `resolveNumericField` 只拒绝 `population.*`，仍接受 `schedule.totalTicks`、`schedule.statsStride`、`schedule.snapshotStride`、`decision.topK` 等。它们改变视野/采样/决策数，不是模型参数；作为“param 微扰”会产生不可比的对照。
 
 修复：白名单允许的模型参数命名空间（need/opportunity/ascent/lifespan/network/…），显式拒绝 schedule/decision/population。
 
-### Low/Medium：Stage B slim 与 summary 两条分析路径对 segregation 的处理不一致
+### Low/Medium：Stage B slim 与 summary 两条分析路径对 segregation 的处理不一致（已修，changes/0048）
 
 `scripts/p6-stage-b.mjs:170-176` 在 summary 路径把 `networkEmpty` 的 `segregation` 置 null；`slimOne`（`:233-247`）直接原样保存。因此同一 run 用 slim 或 summary 分析，次要指标 S 的结果可能不同。TV 主指标不受影响，但违背“产物可互换”的证据一致性。
 

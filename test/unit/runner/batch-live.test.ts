@@ -263,14 +263,13 @@ describe('RateLimiter（P5-02）', () => {
 });
 
 describe('runBatchWithPolicy（P5-02）', () => {
-  it('requireBudget=true 且缺预算时拒绝启动', async () => {
+  it('默认缺预算时拒绝启动；仅显式 requireBudget=false 可关闭', async () => {
     await expect(
       runBatchWithPolicy({
         manifest: liveManifest(),
         policyFactory: () => new FakeLivePolicy(),
-        requireBudget: true,
       }),
-    ).rejects.toThrowError(/requireBudget=true 时必须提供批内共享预算/);
+    ).rejects.toThrowError(/默认必须提供批内共享预算/);
   });
 
   it('runCheckpoint 校验并透传到每个 run（护栏停止后保留检查点）', async () => {
@@ -370,6 +369,7 @@ describe('runBatchWithPolicy（P5-02）', () => {
       manifest: liveManifest(),
       policyFactory: () => new AuthFailPolicy(),
       concurrency: 1,
+      requireBudget: false,
     });
     expect(summary.totals.ok).toBe(0);
     expect(summary.failures.every((failure) => failure.code === errorCodes.JEV_AUTH_FAILED)).toBe(
@@ -408,6 +408,7 @@ describe('runBatchWithPolicy（P5-02）', () => {
       concurrency: 1,
       signal: controller.signal,
       ledger: { host, path: 'ledger.json' },
+      requireBudget: false,
     });
     // 第一个 run 已进入挂起决策后再取消（微任务探测，确定性强于固定毫秒）。
     await new Promise((resolve) => setTimeout(resolve, 10));
@@ -416,6 +417,73 @@ describe('runBatchWithPolicy（P5-02）', () => {
     expect(summary.totals.ok).toBeLessThan(summary.totals.due);
     expect(summary.failures.some((failure) => failure.code === 'cancelled')).toBe(true);
     expect(summary.totals.ok + summary.totals.failed).toBe(summary.totals.due);
+  });
+
+  it('ledger 续跑时模型/policyVersion 不一致拒绝复用', async () => {
+    resetPolicyCounters();
+    const host = memoryCheckpointHost();
+    const manifest = liveManifest();
+    const budget = new SharedBatchBudget(1000, 1_000_000);
+    const first = await runBatchWithPolicy({
+      manifest,
+      policyFactory: () => new FakeLivePolicy(budget),
+      budget,
+      requestedModel: 'model-a',
+      policyVersion: 'fake-live-v1',
+      ledger: { host, path: 'live-ledger.json' },
+    });
+    expect(first.totals.ok).toBe(2);
+
+    await expect(
+      runBatchWithPolicy({
+        manifest,
+        policyFactory: () => new FakeLivePolicy(budget),
+        budget,
+        requestedModel: 'model-b',
+        policyVersion: 'fake-live-v1',
+        ledger: { host, path: 'live-ledger.json' },
+      }),
+    ).rejects.toThrowError(/模型\/prompt 与本次调用不一致/);
+
+    await expect(
+      runBatchWithPolicy({
+        manifest,
+        policyFactory: () => new FakeLivePolicy(budget),
+        budget,
+        requestedModel: 'model-a',
+        policyVersion: 'other-v1',
+        ledger: { host, path: 'live-ledger.json' },
+      }),
+    ).rejects.toThrowError(/policyVersion 与本次调用不一致/);
+  });
+
+  it('legacy live ledger 缺少 provenance 时拒绝续跑', async () => {
+    resetPolicyCounters();
+    const host = memoryCheckpointHost();
+    const manifest = liveManifest();
+    const budget = new SharedBatchBudget(1000, 1_000_000);
+    await runBatchWithPolicy({
+      manifest,
+      policyFactory: () => new FakeLivePolicy(budget),
+      budget,
+      ledger: { host, path: 'legacy-ledger.json' },
+    });
+    const ledger = JSON.parse(host.files.get('legacy-ledger.json') as string) as {
+      runs: Record<string, unknown>[];
+    };
+    for (const run of ledger.runs) {
+      delete run['provenance'];
+    }
+    host.files.set('legacy-ledger.json', JSON.stringify(ledger));
+
+    await expect(
+      runBatchWithPolicy({
+        manifest,
+        policyFactory: () => new FakeLivePolicy(budget),
+        budget,
+        ledger: { host, path: 'legacy-ledger.json' },
+      }),
+    ).rejects.toThrowError(/缺少 provenance/);
   });
 
   it('ledger resume：kill 后只重跑未完成任务', async () => {
@@ -433,12 +501,14 @@ describe('runBatchWithPolicy（P5-02）', () => {
       manifest,
       policyFactory: () => new FailAlwaysPolicy(),
       ledger: { host, path: 'ledger.json' },
+      requireBudget: false,
     });
     expect(first.totals.ok).toBe(0);
     const second = await runBatchWithPolicy({
       manifest,
       policyFactory: () => new FakeLivePolicy(),
       ledger: { host, path: 'ledger.json' },
+      requireBudget: false,
     });
     expect(second.totals).toMatchObject({ due: 2, ok: 2, failed: 0 });
     // 历史失败保留（07 §3）。
@@ -447,6 +517,7 @@ describe('runBatchWithPolicy（P5-02）', () => {
     const control = await runBatchWithPolicy({
       manifest,
       policyFactory: () => new FakeLivePolicy(),
+      requireBudget: false,
     });
     for (const seed of ['s1', 's2']) {
       const resumedRecord = second.runs.find((run) => run.seed === seed);

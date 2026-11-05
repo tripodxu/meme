@@ -32,6 +32,12 @@ import {
  * - 单写者假设：同一输出目录不得并发运行两个批跑进程（并发/共享预算属 P5-02）。
  */
 
+export interface BatchProvenance {
+  readonly requestedModel: string;
+  readonly promptStyle: 'neutral' | 'survival_hint';
+  readonly policyVersion: string;
+}
+
 export interface BatchRunRecord {
   readonly cellKey: string;
   readonly seed: string;
@@ -39,6 +45,8 @@ export interface BatchRunRecord {
   readonly paramsHash: string;
   readonly report: RunWindowReport;
   readonly elapsedMs: number;
+  /** live 批跑的实际策略/模型来源；mock 批跑记录为 mock。旧 ledger 无此字段。 */
+  readonly provenance?: BatchProvenance;
 }
 
 export interface BatchFailure {
@@ -67,6 +75,12 @@ export interface BatchSummary {
     readonly resumed: number;
     /** 已执行 run 的耗时之和（resumed run 计 0）；不是整批 wall time。 */
     readonly elapsedMs: number;
+  };
+  /** live 批跑的实际模型/策略来源；mock 批跑缺省无此字段。 */
+  readonly liveProvenance?: {
+    readonly requestedModel: string;
+    readonly promptStyle: 'neutral' | 'survival_hint';
+    readonly policyVersions: readonly string[];
   };
   /**
    * P5-02：live 批跑（`runBatchWithPolicy`）且提供共享预算时的用量快照；
@@ -159,8 +173,74 @@ function assertRunRecord(value: unknown, index: number): BatchRunRecord {
       );
     }
   }
-  if (!isPlainObject(value['report'])) {
+  const report = value['report'];
+  if (!isPlainObject(report)) {
     throw new StratifyError(errorCodes.CONFIG_INVALID, `ledger.runs[${index}].report 必须是对象`);
+  }
+  // 深校验摘要消费的字段：只有结构合法、哈希存在的 report 才能作为已完成 run 复用。
+  if (typeof report['finalStateHash'] !== 'string' || report['finalStateHash'].length === 0) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `ledger.runs[${index}].report.finalStateHash 必须为非空字符串`,
+    );
+  }
+  for (const key of ['extinct', 'cancelled'] as const) {
+    if (typeof report[key] !== 'boolean') {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].report.${key} 必须为布尔值`,
+      );
+    }
+  }
+  for (const key of ['endTick', 'aliveAtEnd'] as const) {
+    const field = report[key];
+    if (typeof field !== 'number' || !Number.isFinite(field) || field < 0) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].report.${key} 必须为非负有限数字`,
+      );
+    }
+  }
+  if (report['endReason'] !== null && typeof report['endReason'] !== 'string') {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `ledger.runs[${index}].report.endReason 必须为字符串或 null`,
+    );
+  }
+  if (!Array.isArray(report['windows'])) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `ledger.runs[${index}].report.windows 必须为数组`,
+    );
+  }
+  if (!isPlainObject(report['labelsByWindow'])) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `ledger.runs[${index}].report.labelsByWindow 必须是对象`,
+    );
+  }
+  const provenance = value['provenance'];
+  if (provenance !== undefined) {
+    if (!isPlainObject(provenance)) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].provenance 必须是对象`,
+      );
+    }
+    for (const key of ['requestedModel', 'policyVersion'] as const) {
+      if (typeof provenance[key] !== 'string' || provenance[key].length === 0) {
+        throw new StratifyError(
+          errorCodes.CONFIG_INVALID,
+          `ledger.runs[${index}].provenance.${key} 必须为非空字符串`,
+        );
+      }
+    }
+    if (provenance['promptStyle'] !== 'neutral' && provenance['promptStyle'] !== 'survival_hint') {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `ledger.runs[${index}].provenance.promptStyle 非法`,
+      );
+    }
   }
   if (typeof value['elapsedMs'] !== 'number' || !Number.isFinite(value['elapsedMs'])) {
     throw new StratifyError(
@@ -333,6 +413,12 @@ export async function runBatch(
     const key = taskKey(task.cellKey, task.seed);
     const reuse = completed.get(key);
     if (reuse !== undefined) {
+      if (reuse.configHash !== task.configHash || reuse.paramsHash !== task.paramsHash) {
+        throw new StratifyError(
+          errorCodes.CONFIG_INVALID,
+          `ledger run ${task.cellKey}/${task.seed} 的 configHash/paramsHash 与当前任务不一致；不得复用`,
+        );
+      }
       runs.push(reuse);
       resumed += 1;
       options.onProgress?.({
@@ -374,6 +460,11 @@ export async function runBatch(
         paramsHash: outcome.paramsHash,
         report: outcome.report,
         elapsedMs,
+        provenance: {
+          requestedModel: 'mock',
+          promptStyle: 'neutral',
+          policyVersion: manifest.policy,
+        },
       };
     } catch (error) {
       const code = error instanceof StratifyError ? error.code : errorCodes.INVARIANT_VIOLATED;

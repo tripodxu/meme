@@ -102,6 +102,27 @@ export function diffLeafPaths(baseline: unknown, treatment: unknown, prefix = ''
 
 type FieldPathToken = string | number;
 
+/**
+ * 允许 param 微扰的模型参数段。
+ *
+ * `population`/`schedule`/`decision`/`metrics` 等不是检查点之后的模型参数：
+ * 改它们会改变初始化、视野、决策节奏或测量口径，使 baseline/treatment 不可比。
+ * `attributes` 仅影响初始化，检查点之后无效，也不允许。
+ */
+const PARAM_PERTURBATION_TOP_LEVEL_KEYS: ReadonlySet<string> = new Set([
+  'need',
+  'opportunity',
+  'ascent',
+  'lifespan',
+  'network',
+  'networkOpportunity',
+  'competition',
+  'effort',
+  'descent',
+  'dynamics',
+  'openness',
+]);
+
 /** 把 `a.b[0].c` 解析为属性名与数组下标 token（P5-04 数组字段支持）。 */
 function tokenizeFieldPath(field: string): FieldPathToken[] {
   const tokens: FieldPathToken[] = [];
@@ -141,6 +162,12 @@ function resolveNumericField(config: RunConfig, field: string): number {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
       `param 扰动不得指向 population.*（该段只有初始化语义，对检查点之后的续跑无效果）: ${field}`,
+    );
+  }
+  if (!PARAM_PERTURBATION_TOP_LEVEL_KEYS.has(topKey)) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      `param 扰动不得指向 ${topKey}.*（只允许模型参数段: ${[...PARAM_PERTURBATION_TOP_LEVEL_KEYS].join(', ')}）: ${field}`,
     );
   }
   let cursor: unknown = config;

@@ -91,11 +91,13 @@ export interface BatchWithPolicyOptions {
   /** 断点续跑 ledger（与 mock 批跑同一格式）。 */
   readonly ledger?: BatchLedgerOptions;
   readonly maxTicksPerRun?: number;
-  /** 批内共享预算（live 必须提供；不提供则不做批级预算拦截）。 */
+  /** 批内共享预算（live 默认必须提供；仅 `requireBudget=false` 可显式关闭）。 */
   readonly budget?: JevBudget;
   readonly requestedModel?: string;
+  /** 预期策略版本；提供时续跑 ledger 的 provenance 必须一致。 */
+  readonly policyVersion?: string;
   readonly promptStyle?: 'neutral' | 'survival_hint';
-  /** live 必须显式置 true；缺预算时拒绝启动。 */
+  /** 默认 true：缺预算拒绝启动；仅显式 false 可关闭。 */
   readonly requireBudget?: boolean;
   /** P6-04 前置：live run 内进度检查点（异步宿主）。 */
   readonly runCheckpoint?: {
@@ -132,10 +134,10 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
       );
     }
   }
-  if (options.requireBudget === true && options.budget === undefined) {
+  if (options.requireBudget !== false && options.budget === undefined) {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
-      'requireBudget=true 时必须提供批内共享预算（04 §7）',
+      'live 批跑默认必须提供批内共享预算；如确需关闭请显式 requireBudget=false（04 §7）',
     );
   }
 
@@ -221,6 +223,38 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
       const key = taskKey(task.cellKey, task.seed);
       const reuse = completed.get(key);
       if (reuse !== undefined) {
+        if (reuse.configHash !== task.configHash || reuse.paramsHash !== task.paramsHash) {
+          throw new StratifyError(
+            errorCodes.CONFIG_INVALID,
+            `ledger run ${task.cellKey}/${task.seed} 的 configHash/paramsHash 与当前任务不一致；不得复用`,
+          );
+        }
+        if (reuse.provenance === undefined) {
+          throw new StratifyError(
+            errorCodes.CONFIG_INVALID,
+            `ledger run ${task.cellKey}/${task.seed} 缺少 provenance，不能用于 live 续跑；请换输出目录重跑`,
+          );
+        }
+        const expectedModel = options.requestedModel ?? 'unknown';
+        const expectedPrompt = options.promptStyle ?? 'neutral';
+        if (
+          reuse.provenance.requestedModel !== expectedModel ||
+          reuse.provenance.promptStyle !== expectedPrompt
+        ) {
+          throw new StratifyError(
+            errorCodes.CONFIG_INVALID,
+            `ledger run 的模型/prompt 与本次调用不一致（${reuse.provenance.requestedModel}/${reuse.provenance.promptStyle} ≠ ${expectedModel}/${expectedPrompt}）；不得复用`,
+          );
+        }
+        if (
+          options.policyVersion !== undefined &&
+          reuse.provenance.policyVersion !== options.policyVersion
+        ) {
+          throw new StratifyError(
+            errorCodes.CONFIG_INVALID,
+            `ledger run 的 policyVersion 与本次调用不一致（${reuse.provenance.policyVersion} ≠ ${options.policyVersion}）；不得复用`,
+          );
+        }
         runs.push(reuse);
         resumed += 1;
         options.onProgress?.({
@@ -239,8 +273,9 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
       try {
         const startedAt = performance.now();
         const runSignal = options.signal ?? new AbortController().signal;
+        const policy = options.policyFactory(task, index, runSignal);
         const outcome = await runSingleWithPolicy(task.config, task.seed, {
-          policy: options.policyFactory(task, index, runSignal),
+          policy,
           runId: asLocalRunId(newLocalRunId()),
           requestedModel: options.requestedModel ?? 'unknown',
           promptStyle: options.promptStyle ?? 'neutral',
@@ -279,6 +314,11 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
           paramsHash: outcome.paramsHash,
           report: outcome.report,
           elapsedMs,
+          provenance: {
+            requestedModel: options.requestedModel ?? 'unknown',
+            promptStyle: options.promptStyle ?? 'neutral',
+            policyVersion: policy.policyVersion,
+          },
         };
       } catch (error) {
         const code = error instanceof StratifyError ? error.code : errorCodes.INVARIANT_VIOLATED;
@@ -361,6 +401,13 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
   const totalElapsedMs = runs.reduce((sum, run) => sum + run.elapsedMs, 0);
   const budgetUsage =
     options.budget instanceof SharedBatchBudget ? { ...options.budget.usage() } : undefined;
+  const policyVersions = [
+    ...new Set(
+      runs
+        .map((run) => run.provenance?.policyVersion)
+        .filter((version): version is string => typeof version === 'string'),
+    ),
+  ];
   const summary: BatchSummary = {
     schemaVersion: 'batch-summary-v1',
     manifestHash,
@@ -377,6 +424,11 @@ export async function runBatchWithPolicy(options: BatchWithPolicyOptions): Promi
       failed: tasks.length - runs.length,
       resumed,
       elapsedMs: totalElapsedMs,
+    },
+    liveProvenance: {
+      requestedModel: options.requestedModel ?? 'unknown',
+      promptStyle: options.promptStyle ?? 'neutral',
+      policyVersions,
     },
     ...(budgetUsage !== undefined ? { budgetUsage } : {}),
   };

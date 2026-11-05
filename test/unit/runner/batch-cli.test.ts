@@ -332,6 +332,44 @@ describe('批量 ledger 断点续跑（G5a）', () => {
     expect(stored.baseConfigHash).toMatch(/^sha256:[0-9a-f]{64}$/);
   });
 
+  it('ledger run 的 configHash/paramsHash 与当前任务不一致时拒绝复用', async () => {
+    const manifest = smallManifest();
+    const host = memoryCheckpointHost();
+    await runBatch(manifest, { ledger: { host, path: 'ledger.json' } });
+    const ledger = JSON.parse(host.files.get('ledger.json') as string) as {
+      runs: Record<string, unknown>[];
+    };
+    const first = ledger.runs[0];
+    if (first === undefined) {
+      throw new Error('ledger 应至少有一个 run');
+    }
+    first['configHash'] = 'sha256:tampered';
+    host.files.set('ledger.json', JSON.stringify(ledger));
+
+    await expect(
+      runBatch(manifest, { ledger: { host, path: 'ledger.json' } }),
+    ).rejects.toThrowError(/configHash\/paramsHash 与当前任务不一致/);
+  });
+
+  it('ledger report 缺少 finalStateHash 时拒绝加载', async () => {
+    const manifest = smallManifest();
+    const host = memoryCheckpointHost();
+    await runBatch(manifest, { ledger: { host, path: 'ledger.json' } });
+    const ledger = JSON.parse(host.files.get('ledger.json') as string) as {
+      runs: { report: Record<string, unknown> }[];
+    };
+    const first = ledger.runs[0];
+    if (first === undefined) {
+      throw new Error('ledger 应至少有一个 run');
+    }
+    delete first.report['finalStateHash'];
+    host.files.set('ledger.json', JSON.stringify(ledger));
+
+    await expect(
+      runBatch(manifest, { ledger: { host, path: 'ledger.json' } }),
+    ).rejects.toThrowError(/finalStateHash/);
+  });
+
   it('未知 ledger 版本与畸形记录拒绝', async () => {
     const manifest = smallManifest();
     const manifestHash = computeBatchManifestHash(manifest);

@@ -30,6 +30,18 @@ describe('微扰声明与审计（P5-04）', () => {
     expect(diffLeafPaths({ a: 1 }, { a: 1, b: 2 })).toEqual(['b']);
   });
 
+  it('param 扰动拒绝 schedule/decision/population 等非模型段', () => {
+    expect(() => applyParamPerturbation(CONFIG, 'schedule.totalTicks', 1e-6)).toThrowError(
+      /不得指向 schedule/,
+    );
+    expect(() => applyParamPerturbation(CONFIG, 'decision.interval', 1e-6)).toThrowError(
+      /不得指向 decision/,
+    );
+    expect(() => applyParamPerturbation(CONFIG, 'population.initialPopulation', 1e-6)).toThrowError(
+      /population/,
+    );
+  });
+
   it('param 扰动只改变声明字段且 configHash 变化', () => {
     const result = applyParamPerturbation(CONFIG, 'need.threshold', 1e-6);
     expect(result.changedPaths).toEqual(['need.threshold']);

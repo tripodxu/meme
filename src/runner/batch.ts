@@ -3,7 +3,7 @@ import { DEFAULT_RUN_CONFIG } from '../core/config/defaults.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { asSeed, type Seed } from '../core/control/ids.js';
 import { ENGINE_VERSION, RULES_VERSION } from '../core/control/versions.js';
-import { computeConfigHash } from '../core/config/hash.js';
+import { computeConfigHash, computeParamsHash } from '../core/config/hash.js';
 import { buildCellConfig, PREREG_SEEDS } from './preregistration.js';
 
 /**
@@ -37,6 +37,7 @@ export interface BatchTask {
   readonly seed: Seed;
   readonly config: RunConfig;
   readonly configHash: string;
+  readonly paramsHash: string;
 }
 
 export const RUN_CONFIG_TOP_LEVEL_KEYS: ReadonlySet<string> = new Set(
@@ -217,6 +218,7 @@ export function buildBatchTasks(manifest: BatchManifest, baseConfig?: RunConfig)
         seed: asSeed(seed),
         config,
         configHash: computeConfigHash(config),
+        paramsHash: computeParamsHash(config),
       });
     }
   });

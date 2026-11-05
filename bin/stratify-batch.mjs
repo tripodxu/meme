@@ -222,8 +222,9 @@ try {
     `完成 ${summary.totals.ok}/${summary.totals.due}（resumed ${summary.totals.resumed}，failed ${summary.totals.failed}）；报告 ${summaryPath}`,
   );
   // 退出码按「本次调用后仍未完成的任务数」：历史失败已被重试成功时不阻断（07 §3 保留记录）。
-  process.exit(summary.totals.due - summary.totals.ok > 0 ? 1 : 0);
+  // 用 exitCode 而非 process.exit：stdout 在管道/重定向下是异步写，立即退出可能截断 JSON。
+  process.exitCode = summary.totals.due - summary.totals.ok > 0 ? 1 : 0;
 } catch (error) {
   log(`批跑中止：${error instanceof Error ? error.message : String(error)}`);
-  process.exit(2);
+  process.exitCode = 2;
 }

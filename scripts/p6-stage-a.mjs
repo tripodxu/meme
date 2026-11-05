@@ -423,6 +423,13 @@ function analyzeStrict() {
       process.exit(2);
     }
     const frozen = JSON.parse(readFileSync(preregPath, 'utf8'));
+    const computedHash = computeP6StageAHash(populationSize);
+    if (frozen.preregistrationHash !== computedHash) {
+      log(
+        `预注册哈希不一致：${frozen.preregistrationHash} ≠ ${computedHash}；拒绝分析（换实验请新建 experimentId）`,
+      );
+      process.exit(2);
+    }
     const slim = JSON.parse(readFileSync(slimPath, 'utf8'));
     const runs = slim.runs.map((run) => ({
       cellKey: run.cellKey,
@@ -448,7 +455,7 @@ function analyzeStrict() {
       populationSize,
       preregistrationHash: frozen.preregistrationHash,
       computedPreregistrationHash: computedHash,
-      preregistrationHashConsistent: frozen.preregistrationHash === computedHash,
+      preregistrationHashConsistent: true,
       runs: slim.totals,
       cells,
       screenedIn: cells

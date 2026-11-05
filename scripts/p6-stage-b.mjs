@@ -75,6 +75,15 @@ function sanitize(cellKey) {
   return cellKey.replace(/[^a-zA-Z0-9]/g, '-');
 }
 
+/** 统一窗口口径：networkEmpty 时 segregation 必须为 null，slim 与 summary 路径共用。 */
+function windowOf(report, label) {
+  const window = report.windows.find((entry) => entry.label === label);
+  if (window === undefined) {
+    return undefined;
+  }
+  return { ...window, segregation: window.networkEmpty ? null : window.segregation };
+}
+
 async function run(cellKey) {
   const hash = computeP6StageBHash(cellKey);
   const preregPath = `${outDir}/p6-stageB-prereg-${sanitize(cellKey)}.json`;
@@ -167,13 +176,6 @@ function loadAnalysisRuns(cellKey) {
   }
   if (existsSync(summaryPath)) {
     const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
-    const windowOf = (report, label) => {
-      const window = report.windows.find((entry) => entry.label === label);
-      if (window === undefined) {
-        return undefined;
-      }
-      return { ...window, segregation: window.networkEmpty ? null : window.segregation };
-    };
     return {
       runs: summary.runs.map((run) => ({
         cellKey: run.cellKey,
@@ -196,6 +198,13 @@ function analyze(cellKey) {
     process.exit(2);
   }
   const frozen = JSON.parse(readFileSync(preregPath, 'utf8'));
+  const computedHash = computeP6StageBHash(cellKey);
+  if (frozen.preregistrationHash !== computedHash) {
+    log(
+      `预注册哈希不一致：${frozen.preregistrationHash} ≠ ${computedHash}；拒绝分析（换实验请新建 experimentId）`,
+    );
+    process.exit(2);
+  }
   const data = loadAnalysisRuns(cellKey);
   const evaluation = evaluateStageB({
     cellKey,
@@ -204,13 +213,12 @@ function analyze(cellKey) {
     runs: data.runs,
     totals: data.totals,
   });
-  const computedHash = computeP6StageBHash(cellKey);
   const result = {
     ...evaluation,
     experimentId: experimentId(cellKey),
     preregistrationHash: frozen.preregistrationHash,
     computedPreregistrationHash: computedHash,
-    preregistrationHashConsistent: frozen.preregistrationHash === computedHash,
+    preregistrationHashConsistent: true,
     sourceArtifact: data.source,
     runs: data.totals,
     isExperimentalEvidence: true,
@@ -231,7 +239,6 @@ function slimOne(cellKey) {
     readFileSync(`${outDir}/p6-stageB-prereg-${sanitize(cellKey)}.json`, 'utf8'),
   );
   const runs = summary.runs.map((run) => {
-    const windowOf = (label) => run.report.windows.find((window) => window.label === label);
     return {
       cellKey: run.cellKey,
       seed: run.seed,
@@ -242,8 +249,8 @@ function slimOne(cellKey) {
       extinct: run.report.extinct,
       endReason: run.report.endReason,
       endTick: run.report.endTick,
-      w2b: windowOf('w2b'),
-      w3: windowOf('w3'),
+      w2b: windowOf(run.report, 'w2b'),
+      w3: windowOf(run.report, 'w3'),
     };
   });
   const payload = {
