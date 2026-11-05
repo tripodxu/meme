@@ -20,7 +20,6 @@ import {
   isP6StageBCandidate,
   P6_STAGE_B_BUDGET,
   P6_STAGE_B_POPULATION,
-  P6_STAGE_B_SEEDS,
   P6_STAGE_B_TICKS,
 } from '../dist/runner/p6-stage-b.js';
 import { validateBatchManifest } from '../dist/runner/batch.js';
@@ -42,7 +41,9 @@ function cellArg() {
       ? args.indexOf('--freeze')
       : args.indexOf('--run') >= 0
         ? args.indexOf('--run')
-        : args.indexOf('--analyze');
+        : args.indexOf('--analyze') >= 0
+          ? args.indexOf('--analyze')
+          : args.indexOf('--slim');
   const cellKey = args[index + 1];
   if (cellKey === undefined || !isP6StageBCandidate(cellKey)) {
     log(`需要合法候选 cellKey（收到：${cellKey}）`);
@@ -222,15 +223,55 @@ function analyze(cellKey) {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
+function slimOne(cellKey) {
+  const summary = JSON.parse(
+    readFileSync(`${outDir}/p6-stageB-summary-${sanitize(cellKey)}.json`, 'utf8'),
+  );
+  const prereg = JSON.parse(
+    readFileSync(`${outDir}/p6-stageB-prereg-${sanitize(cellKey)}.json`, 'utf8'),
+  );
+  const runs = summary.runs.map((run) => {
+    const windowOf = (label) => run.report.windows.find((window) => window.label === label);
+    return {
+      cellKey: run.cellKey,
+      seed: run.seed,
+      configHash: run.configHash,
+      paramsHash: run.paramsHash,
+      finalStateHash: run.report.finalStateHash,
+      aliveAtEnd: run.report.aliveAtEnd,
+      extinct: run.report.extinct,
+      endReason: run.report.endReason,
+      endTick: run.report.endTick,
+      w2b: windowOf('w2b'),
+      w3: windowOf('w3'),
+    };
+  });
+  const payload = {
+    schemaVersion: 'p6-stageB-slim-v1',
+    cellKey,
+    preregistrationHash: prereg.preregistrationHash,
+    batchManifestHash: summary.manifestHash,
+    totals: summary.totals,
+    runs,
+  };
+  const path = `${outDir}/p6-stageB-slim-${sanitize(cellKey)}.json`;
+  writeFileSync(path, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+  const sizeMiB = Buffer.byteLength(JSON.stringify(payload)) / 1024 / 1024;
+  log(`slim ${path} ${sizeMiB.toFixed(2)} MiB runs=${runs.length}`);
+  return payload;
+}
+
 const mode = args.includes('--freeze')
   ? 'freeze'
   : args.includes('--run')
     ? 'run'
     : args.includes('--analyze')
       ? 'analyze'
-      : null;
+      : args.includes('--slim')
+        ? 'slim'
+        : null;
 if (mode === null) {
-  log('用法：--freeze <cellKey> | --run <cellKey> | --analyze <cellKey>');
+  log('用法：--freeze <cellKey> | --run <cellKey> | --analyze <cellKey> | --slim <cellKey>');
   process.exit(2);
 }
 const cellKey = cellArg();
@@ -238,6 +279,8 @@ if (mode === 'freeze') {
   freeze(cellKey);
 } else if (mode === 'run') {
   await run(cellKey);
+} else if (mode === 'slim') {
+  slimOne(cellKey);
 } else {
   analyze(cellKey);
 }

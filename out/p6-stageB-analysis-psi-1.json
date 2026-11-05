@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "p6-stageB-analysis-v2",
+  "cellKey": "psi=1",
+  "targetCellKey": "psi=1",
+  "primaryMetric": "TV(P)",
+  "primaryMetricKey": "tv",
+  "protocolConflict": true,
+  "completeness": {
+    "ok": true,
+    "expectedRuns": 60,
+    "actualRuns": 60,
+    "expectedPairs": 30,
+    "paired": 30,
+    "baselineRuns": 30,
+    "candidateRuns": 30,
+    "extinct": 0,
+    "fallback": 0,
+    "missingWindow": 0,
+    "nonFinite": 0,
+    "totalsOk": true
+  },
+  "baselineD95": 0.019930456262808052,
+  "beyondBandRate": 1,
+  "metrics": {
+    "tv": {
+      "median": 0.0881175663661183,
+      "ci95": [
+        0.08367635524799563,
+        0.08911798481525289
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00007999920000799993
+    },
+    "gini": {
+      "median": 0.0014938094923062084,
+      "ci95": [
+        -0.00016871011905916777,
+        0.005902617466738369
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.6333333333333333,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.24788752112478876
+    },
+    "mUp": {
+      "median": 0.012804226387508999,
+      "ci95": [
+        0.01101154202288046,
+        0.014008269692056152
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00007999920000799993
+    },
+    "mDown": {
+      "median": 0.013185624936862428,
+      "ci95": [
+        0.011299287446802253,
+        0.014368673533194543
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00007999920000799993
+    },
+    "segregation": {
+      "median": 0.0014776647055798967,
+      "ci95": [
+        -0.001177176466954994,
+        0.006752785583895651
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.6333333333333333,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.25541744582554177
+    },
+    "openness": {
+      "median": 0.0021900980262096192,
+      "ci95": [
+        -0.0007577390726761779,
+        0.003869456837999219
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.6333333333333333,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.22760772392276077
+    }
+  },
+  "adjacentWindow": {
+    "tv": {
+      "median": 0.08739202450612524,
+      "ci95": [
+        0.08237020548876028,
+        0.09110637601253668
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "gini": {
+      "median": -0.001258532409128571,
+      "ci95": [
+        -0.004569532749211042,
+        0.0032919621382017372
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.5333333333333333,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mUp": {
+      "median": 0.011790426331215798,
+      "ci95": [
+        0.009817587853686194,
+        0.013749228196347663
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mDown": {
+      "median": 0.012204724489203567,
+      "ci95": [
+        0.008895888567630572,
+        0.013682714164138077
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "segregation": {
+      "median": -0.002133132637951644,
+      "ci95": [
+        -0.004503310671712862,
+        0.0010253756477525897
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.5666666666666667,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "openness": {
+      "median": 0.004156246209550296,
+      "ci95": [
+        0.002384908793163887,
+        0.006340271244489271
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.7333333333333333,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    }
+  },
+  "primary": {
+    "median": 0.0881175663661183,
+    "ci95": [
+      0.08367635524799563,
+      0.08911798481525289
+    ],
+    "ciCrossesZero": false,
+    "directionAgree": 1,
+    "directionApplicable": false,
+    "threshold": 0.1,
+    "overThreshold": false,
+    "paired": 30,
+    "permutationP": 0.00007999920000799993
+  },
+  "criteria": {
+    "complete": true,
+    "artifactFree": true,
+    "primaryPresent": true,
+    "primaryOverThreshold": false,
+    "primaryCiNotCrossingZero": true,
+    "primaryDirectionOk": true,
+    "beyondBaselineBand": true,
+    "beyondBandMinRate": 1
+  },
+  "confirmed": false,
+  "claim": "Stage B 未确认：主指标 TV(P) 未达预注册门槛，或区间/方向/波动带/完整性条件不满足（07 §8）。",
+  "stageClaim": "确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）。w3 仅作相邻窗口描述，不参与确认。",
+  "experimentId": "p6-stageB-psi-1-bcde3589",
+  "preregistrationHash": "sha256:bcde3589089d10592d82ee5aab8119953de8a952c936bdcc60b1f884b6b6d48a",
+  "computedPreregistrationHash": "sha256:bcde3589089d10592d82ee5aab8119953de8a952c936bdcc60b1f884b6b6d48a",
+  "preregistrationHashConsistent": true,
+  "sourceArtifact": "out/p6-stageB-summary-psi-1.json",
+  "runs": {
+    "due": 60,
+    "ok": 60,
+    "failed": 0,
+    "resumed": 0,
+    "elapsedMs": 9688821.267999997
+  },
+  "isExperimentalEvidence": true
+}

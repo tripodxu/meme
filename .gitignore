@@ -81,6 +81,7 @@ out/*
 !out/p6-stageA-slim-40.json
 !out/p6-stageA-slim-200.json
 !out/p6-stageA-analysis.json
+!out/p6-stageA-analysis-strict.json
 !out/p6-stageB-prereg-env0-expanded.json
 !out/p6-stageB-slim-env0-expanded.json
 !out/p6-stageB-analysis-env0-expanded.json
@@ -93,3 +94,9 @@ out/*
 !out/p6-stageB-prereg-crossDays-double.json
 !out/p6-stageB-prereg-psi-1.json
 !out/p6-stageB-prereg-needThreshold-0-9.json
+!out/p6-stageB-slim-crossDays-double.json
+!out/p6-stageB-analysis-crossDays-double.json
+!out/p6-stageB-slim-psi-1.json
+!out/p6-stageB-analysis-psi-1.json
+!out/p6-stageB-slim-needThreshold-0-9.json
+!out/p6-stageB-analysis-needThreshold-0-9.json

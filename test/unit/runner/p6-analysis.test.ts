@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   bootstrapMedianCi,
+  evaluateStageA,
   evaluateStageB,
   metricKeyForPrimary,
   signFlipPermutationP,
@@ -212,5 +213,88 @@ describe('P6 Stage B 判读（07 §8/§9）', () => {
     expect(metricKeyForPrimary('S')).toBe('segregation');
     expect(metricKeyForPrimary('O')).toBe('openness');
     expect(() => metricKeyForPrimary('D')).toThrow(/未知的 primaryMetric/);
+  });
+});
+
+describe('P6 Stage A 严格筛查（07 主指标，w1）', () => {
+  function buildStageARuns(
+    options: {
+      readonly candidateW1?: Partial<P6WindowMetrics>;
+      readonly omitCandidateSeed?: string;
+    } = {},
+  ): {
+    runs: P6AnalysisRun[];
+    totals: { due: number; ok: number; failed: number; resumed: number };
+  } {
+    const runs: P6AnalysisRun[] = [];
+    for (const seed of SEEDS) {
+      runs.push({ cellKey: 'baseline', seed, extinct: false, w1: windowOf() });
+      if (seed !== options.omitCandidateSeed) {
+        runs.push({
+          cellKey: 'cell',
+          seed,
+          extinct: false,
+          w1: windowOf(options.candidateW1),
+        });
+      }
+    }
+    return { runs, totals: { due: 60, ok: 60, failed: 0, resumed: 0 } };
+  }
+
+  it('TV 未达门槛时，Gini 超门槛也不能入选', () => {
+    const { runs, totals } = buildStageARuns({
+      candidateW1: { classShares: [0.55, 0.29, 0.11, 0.04, 0.01], gini: 0.45 },
+    });
+    const result = evaluateStageA({
+      populationSize: 40,
+      cellKey: 'cell',
+      targetCellKey: 'cell',
+      prereg: PREREG,
+      runs,
+      totals,
+    });
+
+    expect(result.primary?.median).toBeCloseTo(0.05, 10);
+    expect(result.primary?.overThreshold).toBe(false);
+    expect(result.metrics.gini?.overThreshold).toBe(true);
+    expect(result.screenedIn).toBe(false);
+  });
+
+  it('TV 达门槛且完整时入选；TV 方向标为不适用', () => {
+    const { runs, totals } = buildStageARuns({
+      candidateW1: { classShares: [0.62, 0.28, 0.08, 0.015, 0.005], gini: 0.45 },
+    });
+    const result = evaluateStageA({
+      populationSize: 40,
+      cellKey: 'cell',
+      targetCellKey: 'cell',
+      prereg: PREREG,
+      runs,
+      totals,
+    });
+
+    expect(result.primary?.median).toBeCloseTo(0.12, 10);
+    expect(result.primary?.overThreshold).toBe(true);
+    expect(result.primary?.directionApplicable).toBe(false);
+    expect(result.screenedIn).toBe(true);
+  });
+
+  it('缺配对 seed 时完整性失败，不得入选', () => {
+    const { runs, totals } = buildStageARuns({
+      omitCandidateSeed: SEEDS[0] as string,
+      candidateW1: { classShares: [0.62, 0.28, 0.08, 0.015, 0.005], gini: 0.45 },
+    });
+    const result = evaluateStageA({
+      populationSize: 40,
+      cellKey: 'cell',
+      targetCellKey: 'cell',
+      prereg: PREREG,
+      runs,
+      totals,
+    });
+
+    expect(result.completeness.paired).toBe(29);
+    expect(result.completeness.ok).toBe(false);
+    expect(result.screenedIn).toBe(false);
   });
 });

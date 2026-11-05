@@ -32,6 +32,7 @@ export interface P6AnalysisRun {
   readonly cellKey: string;
   readonly seed: string;
   readonly extinct: boolean;
+  readonly w1?: P6WindowMetrics;
   readonly w2b?: P6WindowMetrics;
   readonly w3?: P6WindowMetrics;
 }
@@ -41,6 +42,8 @@ export interface P6Prereg {
   readonly seeds: readonly string[];
   readonly differenceThresholds: Readonly<Record<string, number>>;
   readonly hypothesis?: string;
+  /** manifest 的 cell 清单（Stage A 一批含多个 cell）；缺省按 baseline+target=2 处理。 */
+  readonly cells?: readonly { readonly cellKey: string }[];
 }
 
 export interface P6MetricResult {
@@ -48,6 +51,8 @@ export interface P6MetricResult {
   readonly ci95: readonly [number, number];
   readonly ciCrossesZero: boolean;
   readonly directionAgree: number;
+  /** TV(P) 是非负距离，方向一致率不适用；其余有符号指标为 true。 */
+  readonly directionApplicable: boolean;
   readonly threshold: number | null;
   readonly overThreshold: boolean;
   readonly paired: number;
@@ -284,6 +289,7 @@ function evaluateMetrics(
       ci95: ci,
       ciCrossesZero: ci[0] <= 0 && ci[1] >= 0,
       directionAgree,
+      directionApplicable: key !== 'tv',
       threshold,
       overThreshold: threshold !== null && Math.abs(center) >= threshold,
       paired: values.length,
@@ -338,8 +344,12 @@ export function evaluateStageB(
 ): P6Evaluation {
   const primaryKey = metricKeyForPrimary(input.prereg.primaryMetric);
   const expectedRuns = input.prereg.seeds.length * 2;
-  const baseline = input.runs.filter((run) => run.cellKey === 'baseline');
-  const candidate = input.runs.filter((run) => run.cellKey === input.targetCellKey);
+  const expectedBatchRuns = input.prereg.seeds.length * (input.prereg.cells?.length ?? 2);
+  const scoped = input.runs.filter(
+    (run) => run.cellKey === 'baseline' || run.cellKey === input.targetCellKey,
+  );
+  const baseline = scoped.filter((run) => run.cellKey === 'baseline');
+  const candidate = scoped.filter((run) => run.cellKey === input.targetCellKey);
   const baselineBySeed = new Map(baseline.map((run) => [run.seed, run]));
   const candidateBySeed = new Map(candidate.map((run) => [run.seed, run]));
   const pairedSeeds = input.prereg.seeds.filter(
@@ -352,8 +362,8 @@ export function evaluateStageB(
     candidate: candidateBySeed.get(seed) as P6AnalysisRun,
   }));
 
-  const extinct = input.runs.filter((run) => run.extinct).length;
-  const fallback = input.runs.filter(
+  const extinct = scoped.filter((run) => run.extinct).length;
+  const fallback = scoped.filter(
     (run) => (run.w2b?.fallbackRate ?? 0) > 0 || (run.w3?.fallbackRate ?? 0) > 0,
   ).length;
   const missingWindow = selected.filter(
@@ -369,13 +379,13 @@ export function evaluateStageB(
   const totalsOk =
     input.totals === undefined
       ? true
-      : input.totals.due === expectedRuns &&
-        input.totals.ok === expectedRuns &&
+      : input.totals.due === expectedBatchRuns &&
+        input.totals.ok === expectedBatchRuns &&
         input.totals.failed === 0;
 
   const completeness: P6Completeness = {
     ok:
-      input.runs.length === expectedRuns &&
+      input.runs.length === expectedBatchRuns &&
       baseline.length === input.prereg.seeds.length &&
       candidate.length === input.prereg.seeds.length &&
       pairedSeeds.length === input.prereg.seeds.length &&
@@ -385,7 +395,7 @@ export function evaluateStageB(
       nonFinite === 0 &&
       totalsOk,
     expectedRuns,
-    actualRuns: input.runs.length,
+    actualRuns: scoped.length,
     expectedPairs: input.prereg.seeds.length,
     paired: pairedSeeds.length,
     baselineRuns: baseline.length,
@@ -451,7 +461,8 @@ export function evaluateStageB(
     primaryPresent: primary !== null,
     primaryOverThreshold: primary?.overThreshold ?? false,
     primaryCiNotCrossingZero: primary !== null && !primary.ciCrossesZero,
-    primaryDirectionOk: primary !== null && primary.directionAgree >= 0.9,
+    primaryDirectionOk:
+      primary !== null && (!primary.directionApplicable || primary.directionAgree >= 0.9),
     beyondBaselineBand: beyondBandRate >= beyondBandMinRate,
     beyondBandMinRate,
   };
@@ -489,5 +500,190 @@ export function evaluateStageB(
     claim,
     stageClaim:
       '确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）。w3 仅作相邻窗口描述，不参与确认。',
+  };
+}
+
+export interface P6StageAEvaluation {
+  readonly schemaVersion: 'p6-stageA-analysis-strict-v1';
+  readonly populationSize: number;
+  readonly cellKey: string;
+  readonly targetCellKey: string;
+  readonly primaryMetric: string;
+  readonly primaryMetricKey: MetricKey;
+  readonly protocol: '07-strict';
+  readonly completeness: P6Completeness;
+  readonly baselineD95: number | null;
+  readonly beyondBandRate: number;
+  readonly metrics: Partial<Record<MetricKey, P6MetricResult>>;
+  readonly primary: P6MetricResult | null;
+  readonly criteria: {
+    readonly complete: boolean;
+    readonly artifactFree: boolean;
+    readonly primaryPresent: boolean;
+    readonly primaryOverThreshold: boolean;
+    readonly primaryCiNotCrossingZero: boolean;
+    readonly primaryDirectionOk: boolean;
+  };
+  readonly screenedIn: boolean;
+  readonly claim: string;
+}
+
+/**
+ * Stage A 严格筛查（changes/0043）：07 主指标口径，窗口固定 w1。
+ *
+ * 与旧 `scripts/p6-stage-a.mjs --analyze` 的区别：
+ * - 只认 `primaryMetric` 与 `differenceThresholds`，不再对 5 个指标做「或」；
+ * - 方向一致率只对超门槛的主指标评估；TV(P) 标为方向不适用（非负距离）；
+ * - 完整性（30 对、0 失败/灭绝/缺窗口/非有限值）是筛查前置条件；
+ * - 波动带只报告，不参与 Stage A 入选（Stage A 预注册判据是门槛 + 方向）。
+ */
+export function evaluateStageA(
+  input: {
+    readonly populationSize: number;
+    readonly cellKey: string;
+    readonly targetCellKey: string;
+    readonly prereg: P6Prereg;
+    readonly runs: readonly P6AnalysisRun[];
+    readonly totals?: {
+      readonly due: number;
+      readonly ok: number;
+      readonly failed: number;
+      readonly resumed: number;
+    };
+  },
+  options: P6EvaluationOptions = {},
+): P6StageAEvaluation {
+  const primaryKey = metricKeyForPrimary(input.prereg.primaryMetric);
+  const expectedRuns = input.prereg.seeds.length * 2;
+  const expectedBatchRuns = input.prereg.seeds.length * (input.prereg.cells?.length ?? 2);
+  const scoped = input.runs.filter(
+    (run) => run.cellKey === 'baseline' || run.cellKey === input.targetCellKey,
+  );
+  const baseline = scoped.filter((run) => run.cellKey === 'baseline');
+  const candidate = scoped.filter((run) => run.cellKey === input.targetCellKey);
+  const baselineBySeed = new Map(baseline.map((run) => [run.seed, run]));
+  const candidateBySeed = new Map(candidate.map((run) => [run.seed, run]));
+  const pairedSeeds = input.prereg.seeds.filter(
+    (seed) => baselineBySeed.has(seed) && candidateBySeed.has(seed),
+  );
+  const selected = pairedSeeds.map((seed) => ({
+    seed,
+    baseline: baselineBySeed.get(seed) as P6AnalysisRun,
+    candidate: candidateBySeed.get(seed) as P6AnalysisRun,
+  }));
+
+  const extinct = scoped.filter((run) => run.extinct).length;
+  const fallback = scoped.filter((run) => (run.w1?.fallbackRate ?? 0) > 0).length;
+  const missingWindow = selected.filter(
+    (entry) => entry.baseline.w1 === undefined || entry.candidate.w1 === undefined,
+  ).length;
+  const nonFinite = selected.filter(
+    (entry) =>
+      entry.baseline.w1 === undefined ||
+      entry.candidate.w1 === undefined ||
+      !windowIsFinite(entry.baseline.w1) ||
+      !windowIsFinite(entry.candidate.w1),
+  ).length;
+  const totalsOk =
+    input.totals === undefined
+      ? true
+      : input.totals.due === expectedBatchRuns &&
+        input.totals.ok === expectedBatchRuns &&
+        input.totals.failed === 0;
+
+  const completeness: P6Completeness = {
+    ok:
+      input.runs.length === expectedBatchRuns &&
+      baseline.length === input.prereg.seeds.length &&
+      candidate.length === input.prereg.seeds.length &&
+      pairedSeeds.length === input.prereg.seeds.length &&
+      extinct === 0 &&
+      fallback === 0 &&
+      missingWindow === 0 &&
+      nonFinite === 0 &&
+      totalsOk,
+    expectedRuns,
+    actualRuns: scoped.length,
+    expectedPairs: input.prereg.seeds.length,
+    paired: pairedSeeds.length,
+    baselineRuns: baseline.length,
+    candidateRuns: candidate.length,
+    extinct,
+    fallback,
+    missingWindow,
+    nonFinite,
+    totalsOk,
+  };
+
+  const usable = selected.filter(
+    (entry) => entry.baseline.w1 !== undefined && entry.candidate.w1 !== undefined,
+  );
+  const diffs = usable.map((entry) =>
+    pairedDiff(entry.candidate.w1 as P6WindowMetrics, entry.baseline.w1 as P6WindowMetrics),
+  );
+  const metrics = evaluateMetrics(diffs, input.prereg, {
+    permutation: false,
+    iterations: 0,
+    seed: options.bootstrapSeed ?? 20261105,
+  });
+
+  const baselinePairwiseD: number[] = [];
+  for (let left = 0; left < baseline.length; left += 1) {
+    for (let right = left + 1; right < baseline.length; right += 1) {
+      const leftRun = baseline[left] as P6AnalysisRun;
+      const rightRun = baseline[right] as P6AnalysisRun;
+      if (leftRun.w1 !== undefined && rightRun.w1 !== undefined) {
+        baselinePairwiseD.push(dScore(pairedDiff(leftRun.w1, rightRun.w1)));
+      }
+    }
+  }
+  baselinePairwiseD.sort((a, b) => a - b);
+  const baselineD95 =
+    baselinePairwiseD.length === 0
+      ? null
+      : (baselinePairwiseD[
+          Math.min(baselinePairwiseD.length - 1, Math.floor(0.95 * baselinePairwiseD.length))
+        ] as number);
+  const beyondBandRate =
+    baselineD95 === null || diffs.length === 0
+      ? 0
+      : diffs.filter((diff) => dScore(diff) > baselineD95).length / diffs.length;
+
+  const primary = metrics[primaryKey] ?? null;
+  const criteria = {
+    complete: completeness.ok,
+    artifactFree: extinct === 0 && fallback === 0 && missingWindow === 0 && nonFinite === 0,
+    primaryPresent: primary !== null,
+    primaryOverThreshold: primary?.overThreshold ?? false,
+    primaryCiNotCrossingZero: primary !== null && !primary.ciCrossesZero,
+    primaryDirectionOk:
+      primary !== null && (!primary.directionApplicable || primary.directionAgree >= 0.9),
+  };
+  const screenedIn =
+    criteria.complete &&
+    criteria.artifactFree &&
+    criteria.primaryPresent &&
+    criteria.primaryOverThreshold &&
+    criteria.primaryCiNotCrossingZero &&
+    criteria.primaryDirectionOk;
+
+  return {
+    schemaVersion: 'p6-stageA-analysis-strict-v1',
+    populationSize: input.populationSize,
+    cellKey: input.cellKey,
+    targetCellKey: input.targetCellKey,
+    primaryMetric: input.prereg.primaryMetric,
+    primaryMetricKey: primaryKey,
+    protocol: '07-strict',
+    completeness,
+    baselineD95,
+    beyondBandRate,
+    metrics,
+    primary,
+    criteria,
+    screenedIn,
+    claim: screenedIn
+      ? `Stage A 筛选入选（07 主指标 ${input.prereg.primaryMetric} 达门槛）：进入 Stage B 候选。`
+      : `Stage A 未入选：主指标 ${input.prereg.primaryMetric} 未达门槛或完整性/区间条件不满足。`,
   };
 }

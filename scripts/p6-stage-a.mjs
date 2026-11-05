@@ -26,6 +26,7 @@ import { buildBaseConfig } from '../dist/runner/preregistration.js';
 import { validateBatchManifest } from '../dist/runner/batch.js';
 import { runBatch } from '../dist/runner/batch-cli.js';
 import { nodeCheckpointHost } from '../dist/runner/checkpoint-fs.js';
+import { evaluateStageA } from '../dist/runner/p6-analysis.js';
 
 const args = process.argv.slice(2);
 const outDir = 'out';
@@ -411,17 +412,88 @@ function analyze() {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
+// ---------- 严格口径重算（07 主指标 TV(P)；changes/0043） ----------
+
+function analyzeStrict() {
+  const populations = [40, 200].map((populationSize) => {
+    const preregPath = `${outDir}/p6-stageA-prereg-${populationSize}.json`;
+    const slimPath = `${outDir}/p6-stageA-slim-${populationSize}.json`;
+    if (!existsSync(preregPath) || !existsSync(slimPath)) {
+      log(`缺少 ${preregPath} 或 ${slimPath}；无法严格重算`);
+      process.exit(2);
+    }
+    const frozen = JSON.parse(readFileSync(preregPath, 'utf8'));
+    const slim = JSON.parse(readFileSync(slimPath, 'utf8'));
+    const runs = slim.runs.map((run) => ({
+      cellKey: run.cellKey,
+      seed: run.seed,
+      extinct: run.extinct,
+      w1: run.w1,
+    }));
+    const cellKeys = [...new Set(runs.map((run) => run.cellKey))].filter(
+      (key) => key !== P6_STAGE_A_BASELINE_KEY,
+    );
+    const cells = cellKeys.map((cellKey) =>
+      evaluateStageA({
+        populationSize,
+        cellKey,
+        targetCellKey: cellKey,
+        prereg: frozen.manifest,
+        runs,
+        totals: slim.totals,
+      }),
+    );
+    const computedHash = computeP6StageAHash(populationSize);
+    return {
+      populationSize,
+      preregistrationHash: frozen.preregistrationHash,
+      computedPreregistrationHash: computedHash,
+      preregistrationHashConsistent: frozen.preregistrationHash === computedHash,
+      runs: slim.totals,
+      cells,
+      screenedIn: cells
+        .filter((cell) => cell.screenedIn)
+        .map((cell) => ({
+          cellKey: cell.cellKey,
+          primaryMedian: cell.primary?.median ?? null,
+          primaryCi95: cell.primary?.ci95 ?? null,
+        })),
+    };
+  });
+
+  const result = {
+    schemaVersion: 'p6-stageA-analysis-strict-v1',
+    isExperimentalEvidence: true,
+    protocol: '07-strict',
+    primaryMetric: 'TV(P)',
+    thresholds: { tv: 0.1 },
+    note: '按 07 §8 主指标 TV(P) 重算；旧 p6-stageA-analysis.json 的任意指标筛选保留为历史记录，不再用于候选。',
+    populations,
+    screenedIn: populations.flatMap((population) =>
+      population.screenedIn.map((cell) => ({ populationSize: population.populationSize, ...cell })),
+    ),
+  };
+  writeFileSync(
+    `${outDir}/p6-stageA-analysis-strict.json`,
+    `${JSON.stringify(result, null, 2)}\n`,
+    'utf8',
+  );
+  process.stdout.write(`${JSON.stringify(result)}\n`);
+}
+
 const mode = args.includes('--freeze')
   ? 'freeze'
   : args.includes('--run')
     ? 'run'
-    : args.includes('--analyze')
-      ? 'analyze'
-      : args.includes('--slim')
-        ? 'slim'
-        : null;
+    : args.includes('--analyze-strict')
+      ? 'analyze-strict'
+      : args.includes('--analyze')
+        ? 'analyze'
+        : args.includes('--slim')
+          ? 'slim'
+          : null;
 if (mode === null) {
-  log('用法：--freeze | --run <40|200|both> | --analyze');
+  log('用法：--freeze | --run <40|200|both> | --analyze | --analyze-strict');
   process.exit(2);
 }
 
@@ -442,6 +514,8 @@ if (mode === 'freeze') {
   }
 } else if (mode === 'slim') {
   slim();
+} else if (mode === 'analyze-strict') {
+  analyzeStrict();
 } else {
   analyze();
 }

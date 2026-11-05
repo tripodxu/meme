@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "p6-stageB-analysis-v2",
+  "cellKey": "crossDays=double",
+  "targetCellKey": "crossDays=double",
+  "primaryMetric": "TV(P)",
+  "primaryMetricKey": "tv",
+  "protocolConflict": true,
+  "completeness": {
+    "ok": true,
+    "expectedRuns": 60,
+    "actualRuns": 60,
+    "expectedPairs": 30,
+    "paired": 30,
+    "baselineRuns": 30,
+    "candidateRuns": 30,
+    "extinct": 0,
+    "fallback": 0,
+    "missingWindow": 0,
+    "nonFinite": 0,
+    "totalsOk": true
+  },
+  "baselineD95": 0.019930456262808052,
+  "beyondBandRate": 0.16666666666666666,
+  "metrics": {
+    "tv": {
+      "median": 0.0056792793223257535,
+      "ci95": [
+        0.004043833898884682,
+        0.006862781219402307
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00006999930000699993
+    },
+    "gini": {
+      "median": 0.023363311456447933,
+      "ci95": [
+        0.017575616583004855,
+        0.029143506591867513
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "mUp": {
+      "median": -0.01773306240205036,
+      "ci95": [
+        -0.019205640438282823,
+        -0.015469477735625514
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "mDown": {
+      "median": -0.019101265200044737,
+      "ci95": [
+        -0.021070824285787326,
+        -0.0168797164435861
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "segregation": {
+      "median": 0.011315413950296395,
+      "ci95": [
+        0.00912982701306964,
+        0.014641062744450992
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.9666666666666667,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00004999950000499995
+    },
+    "openness": {
+      "median": -0.021507979082386386,
+      "ci95": [
+        -0.025063126222118703,
+        -0.018177995017107262
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00002999970000299997
+    }
+  },
+  "adjacentWindow": {
+    "tv": {
+      "median": 0.006811332683075464,
+      "ci95": [
+        0.005335876179683654,
+        0.00953111991955766
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "gini": {
+      "median": 0.021772714944074345,
+      "ci95": [
+        0.015465166510639894,
+        0.027335061663038507
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.9666666666666667,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mUp": {
+      "median": -0.018671298171488937,
+      "ci95": [
+        -0.019921957133415324,
+        -0.01765748775539433
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mDown": {
+      "median": -0.019780386840109077,
+      "ci95": [
+        -0.021230490589014273,
+        -0.017179038639173416
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "segregation": {
+      "median": 0.006754227550090157,
+      "ci95": [
+        0.002974390873911789,
+        0.011561018325340516
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.7666666666666667,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "openness": {
+      "median": -0.017451028663111046,
+      "ci95": [
+        -0.02091998446871962,
+        -0.013476370024802342
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.9666666666666667,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    }
+  },
+  "primary": {
+    "median": 0.0056792793223257535,
+    "ci95": [
+      0.004043833898884682,
+      0.006862781219402307
+    ],
+    "ciCrossesZero": false,
+    "directionAgree": 1,
+    "directionApplicable": false,
+    "threshold": 0.1,
+    "overThreshold": false,
+    "paired": 30,
+    "permutationP": 0.00006999930000699993
+  },
+  "criteria": {
+    "complete": true,
+    "artifactFree": true,
+    "primaryPresent": true,
+    "primaryOverThreshold": false,
+    "primaryCiNotCrossingZero": true,
+    "primaryDirectionOk": true,
+    "beyondBaselineBand": false,
+    "beyondBandMinRate": 1
+  },
+  "confirmed": false,
+  "claim": "Stage B 未确认：主指标 TV(P) 未达预注册门槛，或区间/方向/波动带/完整性条件不满足（07 §8）。",
+  "stageClaim": "确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）。w3 仅作相邻窗口描述，不参与确认。",
+  "experimentId": "p6-stageB-crossDays-double-011657cf",
+  "preregistrationHash": "sha256:011657cf19ab2f2748897a7c65931d6752c7c611ecdf1eea6b7e9869361c1f49",
+  "computedPreregistrationHash": "sha256:011657cf19ab2f2748897a7c65931d6752c7c611ecdf1eea6b7e9869361c1f49",
+  "preregistrationHashConsistent": true,
+  "sourceArtifact": "out/p6-stageB-summary-crossDays-double.json",
+  "runs": {
+    "due": 60,
+    "ok": 60,
+    "failed": 0,
+    "resumed": 30,
+    "elapsedMs": 7766404.721600001
+  },
+  "isExperimentalEvidence": true
+}
