@@ -50,6 +50,25 @@ mock 与 live 冒烟，且 `finalStateHash` 与本地逐字相同。
 - 日志脱敏已实现：决策记录只落 `requestedModel`、真实 `model`、`usage`、`fallbackReason`，
   不落 Authorization 头。
 
+#### 2.3.1 轮换步骤（旧 Key 泄露时）
+
+> 本机 `.env` 的 Key 创建于泄露披露之前，按**已泄露**处理；轮换完成前不得再发起 live 调用。
+
+1. **吊销旧 Key**：在密钥页把上一轮 `jv-…` 置为 revoked，确认状态；不要只新建不吊销。
+2. **新建 Key**：新 Key 通常只显示一次；不要粘贴到对话、issue、commit、命令行参数或日志。
+3. **本机更新**：编辑仓库根 `.env`（`chmod 600`），只替换 `JEV_API_KEY=` 一行；
+   `git check-ignore -v .env` 必须命中 `.gitignore` 第 19 行。
+4. **VPS 更新**：`/etc/stratify/runner.env` 用 `install -m 600` 创建/覆盖，或经 `ssh` stdin
+   传入（§4.3）；不得出现在 `ps`、shell history 或 systemd unit 文件。
+5. **仓库与历史扫描**：`pnpm check:secrets` 必须通过；
+   `git log --all -G 'jv-[A-Za-z0-9]{20,}'` 应无命中。
+6. **无请求校验**：`node --env-file=.env scripts/smoke-live.mjs --dry-run`，确认
+   `apiKeyPresent=true` 且端点仍是 `https://jev.logicc.top/v1/systemone`。
+7. **最小 live 冒烟**：6 人 / 1 tick（§4.3）；确认 0 个 401、0 回退；再跑 8 人 / 30 tick 基线。
+8. **留痕**：在仓库外的安全运维记录写下轮换日期、新 Key 的不可逆指纹（如 sha256 前 8 位）、
+   旧 Key 吊销确认；检查旧 Key 在泄露期间的费用与调用。
+9. **禁止**：把新 Key 写入 manifest/artifact/日志/issue/对话；轮换后不得继续使用旧 Key。
+
 ### 2.4 模型名与计费
 
 - 网关会把请求模型名归一化：请求 `jev-1.13.0`，响应 `model` 为 **`jev-1.13-free`**。

@@ -31,6 +31,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: 文档链接
         run: pnpm check:docs
+      - name: 密钥扫描
+        run: pnpm check:secrets
       - name: 格式
         run: pnpm format
       - name: Lint
