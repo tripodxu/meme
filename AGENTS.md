@@ -1,6 +1,6 @@
 # Stratify 执行约定
 
-开始施工前阅读 `docs/README.md`，按任务类型加载对应契约。P1.5 W4 确认轮已通过 G1.5（2026-11-04），P2 已收口（7/7），P5a 五项全完成，P6-01 Stage B 六单元已全部跑完并按 07 严格口径判读（1 个确认：needThreshold=0.9；5 个未确认/exploratory）；`rules-v11` 尚未通过 `docs/07` 的统计验收，不得声称已校准或结构已涌现。
+开始施工前阅读 `docs/README.md`，按任务类型加载对应契约。P1.5 W4 确认轮已通过 G1.5（2026-11-04），P2 已收口（7/7），P5a 五项全完成，P6-01 Stage B 六单元已全部跑完并按 07 严格口径判读（1 个确认：needThreshold=0.9；5 个未确认/exploratory）；P6-02 多参数 factorial 预注册已冻结（`p6-factorial-eaf53b7b`，32 cell × 30 新种子，changes/0045），执行中，尚无结果；`rules-v11` 尚未通过 `docs/07` 的统计验收，不得声称已校准或结构已涌现。
 
 ## 强制约束
 
