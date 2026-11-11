@@ -27,7 +27,10 @@
     "test:coverage:runner": "vitest run --config vitest.coverage-runner.config.ts --coverage",
     "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
     "test:e2e": "vitest run --config vitest.e2e.config.ts --passWithNoTests",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "dev:web": "vite --port 5180 --strictPort",
+    "build:web": "vite build",
+    "preview:web": "vite preview --port 4173"
   },
   "devDependencies": {
     "@types/node": "22.20.5",
@@ -39,7 +42,8 @@
     "prettier": "3.9.10",
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.1",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "vite": "8.3.5"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0"

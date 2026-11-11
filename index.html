@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="obsidian">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Stratify · 精密计算社会学观测站</title>
+    <meta
+      name="description"
+      content="Stratify 交互式社会结构仿真观测站：本地运行、逐 tick 检查、回放与导出。规则目标未通过 G6 统计验收。"
+    />
+    <link rel="stylesheet" href="/src/ui/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/ui/styles/layout.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-viewport">跳到主工作区</a>
+    <div id="app" class="app-shell" aria-busy="false">
+      <div class="boot-placeholder" role="status">正在装载确定性核心…</div>
+    </div>
+    <noscript>
+      <p class="noscript">Stratify 需要 JavaScript 才能在浏览器内运行确定性仿真。</p>
+    </noscript>
+    <script type="module" src="/src/ui/main.ts"></script>
+  </body>
+</html>
