@@ -41,6 +41,12 @@ export interface RunCreateInput {
   readonly identity: RunIdentity;
   readonly experiment: { experimentId: string; cellKey: string; seed: string } | null;
   readonly artifactProfile: 'full' | 'metrics-only';
+  /**
+   * ADR 0001：hash 只在同一 runtimeVersion 内承诺一致。与服务器配置的
+   * RUNTIME_VERSION 不同时，initialPopulationHash 不能在服务器复算校验，
+   * 标记为 non-authoritative；正式对照必须按 runtimeVersion 分组。
+   */
+  readonly runtimeAuthority: 'authoritative' | 'non-authoritative';
 }
 
 export interface ValidationOutcome<T> {
@@ -53,6 +59,7 @@ export type ValidationFailure = { readonly ok: false; readonly issues: readonly 
 export function validateRunCreate(
   body: unknown,
   source: 'browser' | 'runner',
+  options: { readonly authoritativeRuntime: string | null },
 ): ValidationOutcome<RunCreateInput> | ValidationFailure {
   const issues: Issue[] = [];
   if (!isRecord(body)) return { ok: false, issues: [{ path: '$', reason: '必须是对象' }] };
@@ -127,14 +134,21 @@ export function validateRunCreate(
   }
   if (issues.length > 0) return { ok: false, issues };
 
+  let runtimeAuthority: RunCreateInput['runtimeAuthority'] = 'non-authoritative';
   try {
     const population = deriveInitialPopulation(config, asSeed(seed as string));
-    const initialHash = computeInitialPopulationHash(asSeed(seed as string), population);
-    if (identity['initialPopulationHash'] !== initialHash) {
-      issues.push({
-        path: '$.identity.initialPopulationHash',
-        reason: '(config, seed) 重算结果不一致，禁止自报 roster',
-      });
+    const authoritative =
+      options.authoritativeRuntime !== null &&
+      identity['runtimeVersion'] === options.authoritativeRuntime;
+    if (authoritative) {
+      runtimeAuthority = 'authoritative';
+      const initialHash = computeInitialPopulationHash(asSeed(seed as string), population);
+      if (identity['initialPopulationHash'] !== initialHash) {
+        issues.push({
+          path: '$.identity.initialPopulationHash',
+          reason: '(config, seed) 重算结果不一致，禁止自报 roster',
+        });
+      }
     }
   } catch (error) {
     issues.push({
@@ -184,6 +198,7 @@ export function validateRunCreate(
       identity: identity as unknown as RunIdentity,
       experiment: parsedExperiment,
       artifactProfile: artifactProfile as 'full' | 'metrics-only',
+      runtimeAuthority,
     },
   };
 }

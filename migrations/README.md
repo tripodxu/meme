@@ -1,7 +1,8 @@
 # migrations
 
 D1 追加式迁移目录。`0001_init.sql` 建立 run 元数据、采样 tick、最终个体、实验、
-artifact 清单与固定窗口限流表。
+artifact 清单与固定窗口限流表；`0002_runtime_authority.sql` 按 ADR 0001 增加
+`runs.runtime_authority`（同运行时才有权威 hash）。
 
 ## 约定
 

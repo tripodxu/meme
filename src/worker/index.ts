@@ -199,7 +199,9 @@ app.post('/api/runs', async (c) => {
   }
   const body = await readJson(c, 2 * 1024 * 1024);
   if (body instanceof Response) return body;
-  const parsed = validateRunCreate(body, source);
+  const parsed = validateRunCreate(body, source, {
+    authoritativeRuntime: c.env.RUNTIME_VERSION ?? null,
+  });
   if (!parsed.ok) return fail(c, 422, 'validation_failed', 'run 创建参数非法', parsed.issues);
 
   const experiment = parsed.value.experiment;
@@ -235,8 +237,8 @@ app.post('/api/runs', async (c) => {
          engine_version, decision_schema_version, policy_version, prompt_version,
          requested_model, seed, runtime_version, config_hash, params_hash,
          initial_population_hash, code_sha, write_token_hash, write_token_prefix,
-         artifact_profile)
-       VALUES (?, ?, ?, ?, 'running', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         artifact_profile, runtime_authority)
+       VALUES (?, ?, ?, ?, 'running', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
       runId,
       createdAt,
@@ -258,6 +260,7 @@ app.post('/api/runs', async (c) => {
       writeTokenHash,
       writeToken.slice(0, 8),
       parsed.value.artifactProfile,
+      parsed.value.runtimeAuthority,
     ),
   ];
   if (experiment !== null) {

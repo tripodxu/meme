@@ -201,6 +201,7 @@ export interface RunRow {
   readonly write_token_hash: string;
   readonly write_token_prefix: string;
   readonly artifact_profile: 'full' | 'metrics-only';
+  readonly runtime_authority: 'authoritative' | 'non-authoritative';
   readonly verification_status: 'pending' | 'uploaded' | 'verified' | 'rejected';
   readonly verification_report_hash: string | null;
   readonly response_models_json: string;
@@ -235,6 +236,7 @@ export function publicRun(row: RunRow): Record<string, unknown> {
     initialPopulationHash: row.initial_population_hash,
     codeSha: row.code_sha,
     artifactProfile: row.artifact_profile,
+    runtimeAuthority: row.runtime_authority,
     verificationStatus: row.verification_status,
     responseModels: JSON.parse(row.response_models_json) as unknown,
     finalTick: row.final_tick,

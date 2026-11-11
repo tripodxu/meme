@@ -13,6 +13,7 @@
   "vars": {
     "ENVIRONMENT": "local",
     "VERSION": "dev",
+    "RUNTIME_VERSION": "workerd-local",
     "JEV_UPSTREAM_URL": "https://api.jev.sh/v1/choice",
     "JEV_ALLOWED_MODELS": "jev-small,jev-medium,jev-large",
   },
@@ -32,6 +33,7 @@
       "vars": {
         "ENVIRONMENT": "preview",
         "VERSION": "preview",
+        "RUNTIME_VERSION": "workerd-preview",
         "JEV_UPSTREAM_URL": "https://api.jev.sh/v1/choice",
         "JEV_ALLOWED_MODELS": "jev-small,jev-medium,jev-large",
       },
@@ -50,6 +52,7 @@
       "vars": {
         "ENVIRONMENT": "production",
         "VERSION": "production",
+        "RUNTIME_VERSION": "workerd-production",
         "JEV_UPSTREAM_URL": "https://api.jev.sh/v1/choice",
         "JEV_ALLOWED_MODELS": "jev-small,jev-medium,jev-large",
       },

@@ -184,6 +184,28 @@ describe('P4 Worker API', () => {
     expect(JSON.stringify(await response.json())).toContain('configHash');
   });
 
+  it('跨 runtimeVersion 不复算 initialPopulationHash，并标记 non-authoritative', async () => {
+    const env = createTestEnv();
+    const body = makeRunBody();
+    const identity = body['identity'] as Record<string, unknown>;
+    identity['runtimeVersion'] = 'node-v22.21.0';
+    identity['initialPopulationHash'] = SHA_ZERO;
+    const response = await app.request(
+      `${BASE}/api/runs`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+      env,
+    );
+    expect(response.status).toBe(201);
+    const created = (await response.json()) as { runId: string };
+    const detail = await app.request(`${BASE}/api/runs/${created.runId}`, {}, env);
+    const detailBody = (await detail.json()) as { runtimeAuthority: string };
+    expect(detailBody.runtimeAuthority).toBe('non-authoritative');
+  });
+
   it('tick 批次幂等且冲突时拒绝', async () => {
     const env = createTestEnv();
     const run = await createRun(env, { artifactProfile: 'metrics-only' });

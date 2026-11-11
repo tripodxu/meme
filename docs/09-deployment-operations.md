@@ -49,11 +49,13 @@ MVP 不配置公共 TYPESAFE_API_KEY；访客使用自己的 X-Api-Key。密钥�
 ### 2.3 P4 代码落地范围（2026-11-11，changes/0071）
 
 仓库已提供 `wrangler.jsonc`（Static Assets `dist-web`、`/api/*` 走 Worker、D1/R2 binding、
-local/preview/production 三套环境）与 `migrations/0001_init.sql`；远程 D1 ID 仍为占位符，
-必须在创建资源后替换。脚本 `dev:worker`、`deploy:worker`、`db:migrate:local/preview/prod`
-已登记，但 **preview/production 尚未实际部署或冒烟**；`wrangler deploy --dry-run` 只验证
-打包与绑定识别。P4-07 的 workerd + 本地 D1/R2 集成、preview 部署和恢复验证仍未执行，
-在完成前不得把本节命令视为已验证可用的发布流程。
+local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_runtime_authority.sql`；
+远程 D1 ID 仍为占位符，必须在创建资源后替换；`RUNTIME_VERSION` 必须改为该环境实际运行时。
+脚本 `dev:worker`、`deploy:worker`、`db:migrate:local/preview/prod` 已登记，但
+**preview/production 尚未实际部署或冒烟**。本地 `wrangler dev --local` 已跑通
+health → 创建 run → artifact 上传/304 → tick/agent → stats → complete 全链路
+（changes/0073）；`wrangler deploy --dry-run` 只验证打包与绑定识别。P4-07 的
+preview 部署与恢复验证仍未执行，在完成前不得把本节命令视为已验证可用的发布流程。
 
 ## 3. 数据库与 R2 初始化
 

@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 46）
+## 1. 当前交接状态（2026-11-11，rev 47）
+
+- rev 47（2026-11-11，**运行时权威边界 + workerd 冒烟**）：Node 上传器与 workerd 服务器对同一 `(config,seed)` 的 `ge` 相差 1 ulp（`Math.exp/log/cos`），服务器原口径错误地跨运行时复算 `initialPopulationHash`。按 ADR 0001 修正：新增 `RUNTIME_VERSION` 环境变量与 `migrations/0002_runtime_authority.sql`；同运行时复算并要求相等（`authoritative`），不同运行时只验证 config/seed 并标记 `non-authoritative`，正式对照按 runtimeVersion 分组。**P4-07 本地 workerd+D1+R2 集成冒烟通过**：health、创建、artifact 分块、3 tick + 1 agent、artifact 200/304、stats、complete 全链路；preview 远程部署冒烟仍未执行。验证：Worker 15 项 + 上传器 7 项测试通过。不改规则/schema，不构成校准或结构证据（changes/0073）。
 
 - rev 46（2026-11-11，**P5b 上传器落地**）：`src/runner/uploader.ts` 实现 `run-upload-bundle-v1` → P4 Worker 的创建/分块 artifact/tick/agent/complete 全流程；本地 gzip + 压缩/未压缩 SHA-256，服务器复算不符即终止；409 终止，429/5xx/网络错误指数退避；创建 run 网络失败标记 `create_ambiguous` 不自动重试。`upload-ledger-v1` 逐块原子确认，重跑只补传未确认块；bundle/baseUrl 变化拒绝复用。`scripts/upload-run.mjs` + `pnpm upload`，`RUNNER_TOKEN` 只从环境变量读取。测试 10 项（7 上传器 + 3 加载器）。**边界**：`pnpm batch` 尚未自动导出 bundle；preview/workerd 集成冒烟未执行；上传成功只表示技术完整。不改规则/schema，不构成校准或结构证据（changes/0072）。
 

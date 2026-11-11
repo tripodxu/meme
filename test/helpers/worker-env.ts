@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,13 +24,15 @@ import type {
   R2ObjectBody,
 } from '../../src/worker/types.js';
 
-const migrationPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'migrations',
-  '0001_init.sql',
-);
+const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'migrations');
+
+function migrationSql(): string {
+  return readdirSync(migrationsDir)
+    .filter((name) => name.endsWith('.sql'))
+    .sort()
+    .map((name) => readFileSync(join(migrationsDir, name), 'utf8'))
+    .join('\n');
+}
 
 type Row = Record<string, unknown>;
 
@@ -78,7 +80,7 @@ function normalize(value: unknown): unknown {
 /** 用本机 node:sqlite 近似 Cloudflare D1，跑真实 migrations/0001_init.sql。 */
 export function createTestD1(): D1Database & { readonly raw: DatabaseSync } {
   const db = new DatabaseSync(':memory:');
-  db.exec(readFileSync(migrationPath, 'utf8'));
+  db.exec(migrationSql());
   return {
     raw: db,
     prepare(query: string): D1PreparedStatement {
@@ -177,6 +179,7 @@ export function createTestEnv(overrides: Partial<Env> = {}): Env {
     RUNNER_TOKEN: TEST_RUNNER_TOKEN,
     ENVIRONMENT: 'test',
     VERSION: 'test',
+    RUNTIME_VERSION: 'test-runtime',
     JEV_UPSTREAM_URL: 'https://jev.test/v1/choice',
     JEV_ALLOWED_MODELS: 'jev-small,jev-medium',
     ...overrides,
