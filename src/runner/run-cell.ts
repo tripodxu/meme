@@ -10,7 +10,7 @@ import { computeActionSetHash, enumerateLegalActions } from '../core/legal-actio
 import type { TickEvent } from '../core/events.js';
 import { POLICY_VERSION_MOCK } from '../decision/mock.js';
 import { POLICY_VERSION_RANDOM } from '../decision/random.js';
-import { MockPolicy, RandomPolicy } from '../decision/policies.js';
+import { MockPolicy, MockPolicyV2, RandomPolicy } from '../decision/policies.js';
 import type { DecisionInput, DecisionPolicy } from '../decision/policy.js';
 import {
   buildDecisionState,
@@ -64,7 +64,7 @@ export interface RunCheckpointOptions {
 
 export interface RunOptions {
   /** 决策策略；P1.5 只用 mock/random；live/replay 通过 `policyImpl` 注入。 */
-  readonly policy: 'mock-weighted-v1' | 'random-uniform-v1';
+  readonly policy: 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
   /** 预算护栏：单 run 最大 tick 数（超过视为异常终止）。 */
   readonly maxTicks?: number;
   /**
@@ -227,9 +227,13 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
   const checkpointConfigHash = runCheckpoint !== undefined ? computeConfigHash(config) : null;
   const maxTicks = options.maxTicks ?? config.schedule.totalTicks;
   // P2-01：同步路径只接受同步策略；缺省按 policy 字符串选择内置实现。
-  const policy =
+  const policy: DecisionPolicy =
     options.policyImpl ??
-    (options.policy === 'mock-weighted-v1' ? new MockPolicy() : new RandomPolicy());
+    (options.policy === 'mock-weighted-v1'
+      ? new MockPolicy()
+      : options.policy === 'mock-weighted-v2'
+        ? new MockPolicyV2()
+        : new RandomPolicy());
   const decisionRecords: DecisionRecord[] = [];
   let endReason: string | null = null;
   // 初值 = 已完成 tick（P5-03 恢复路径可能无需再跑任何 tick，endTick 仍是检查点位置）。

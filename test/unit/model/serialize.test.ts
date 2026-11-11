@@ -21,7 +21,7 @@ describe('权威状态序列化（P1-02）', () => {
     expect(computeAuthoritativeStateHash(decoded)).toBe(computeAuthoritativeStateHash(state));
   });
 
-  it('v3 状态按 O 推断制度并升级为 v4', () => {
+  it('v3 状态按 O 推断制度并升级为 v5', () => {
     const state = createSimulation(DEFAULT_RUN_CONFIG, SEED);
     const encoded = JSON.parse(JSON.stringify(encodeSimState(state))) as {
       schemaVersion: string;
@@ -32,10 +32,30 @@ describe('权威状态序列化（P1-02）', () => {
     encoded.society['openness'] = 0.7;
     const decoded = decodeSimState(encoded);
     expect(decoded.society.institutionalRegime).toBe('open');
-    expect(encodeSimState(decoded).schemaVersion).toBe('stratify-state-v4');
+    expect(encodeSimState(decoded).schemaVersion).toBe('stratify-state-v5');
+    // v3 无行为特质：迁移默认 0.5。
+    expect(decoded.society.agents.every((agent) => agent.riskTolerance === 0.5)).toBe(true);
+    expect(decoded.society.agents.every((agent) => agent.crossClassOpenness === 0.5)).toBe(true);
 
     encoded.society['openness'] = 0.3;
     expect(decodeSimState(encoded).society.institutionalRegime).toBe('closed');
+  });
+
+  it('v4 状态缺行为特质时按 0.5 迁移到 v5', () => {
+    const state = createSimulation(DEFAULT_RUN_CONFIG, SEED);
+    const encoded = JSON.parse(JSON.stringify(encodeSimState(state))) as {
+      schemaVersion: string;
+      society: { agents: Record<string, unknown>[] };
+    };
+    encoded.schemaVersion = 'stratify-state-v4';
+    for (const agent of encoded.society.agents) {
+      delete agent['riskTolerance'];
+      delete agent['crossClassOpenness'];
+    }
+    const decoded = decodeSimState(encoded);
+    expect(encodeSimState(decoded).schemaVersion).toBe('stratify-state-v5');
+    expect(decoded.society.agents.every((agent) => agent.riskTolerance === 0.5)).toBe(true);
+    expect(decoded.society.agents.every((agent) => agent.crossClassOpenness === 0.5)).toBe(true);
   });
 
   it('v4 状态缺 institutionalRegime 时拒绝', () => {

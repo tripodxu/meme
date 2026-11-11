@@ -5,7 +5,7 @@ import { CONFIG_SCHEMA_VERSION } from '../control/versions.js';
 export type InitialAgeMode = 'uniform' | 'newborn';
 
 /** 决策策略标识。真实 live 策略在 P2 接入，P0 只冻结标识。 */
-export type PolicyId = 'mock-weighted-v1' | 'random-uniform-v1' | 'jev_live';
+export type PolicyId = 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1' | 'jev_live';
 
 /** 截断对数正态先验；`median` 为 ln 均值对应的中位数。 */
 export interface TruncatedLognormalSpec {
@@ -210,6 +210,25 @@ export interface MetricsConfig {
  * 冻结后的运行配置。`seed` 不是 RunConfig 字段，也不进入 `configHash`；
  * 它与 config 一起作为 `createSimulation(config, seed)` 的独立入参。
  */
+/**
+ * rules-v15 / D2：个体行为异质性（ADR 0007）。
+ *
+ * 每个个体在初始化时由 `(config, seed)` 派生两个不可变行为特质：
+ * `riskTolerance` 与 `crossClassOpenness`，均以 0.5 为均值、按 sigma 扩张到 [0,1]。
+ * 特质只进入 `mock-weighted-v2` 的竞争权重；sigma=0 时特质恒为 0.5，
+ * 权重与 `mock-weighted-v1` 逐位一致。结算规则不读取这些特质。
+ */
+export interface BehaviorConfig {
+  /** 风险特质离散度；0 = 所有个体 riskTolerance=0.5（无行为异质性）。 */
+  readonly riskTraitSigma: number;
+  /** 跨层意愿特质离散度；0 = 所有个体 crossClassOpenness=0.5。 */
+  readonly crossClassTraitSigma: number;
+  /** 风险特质对竞争权重的敏感度 θrisk；0 = 不读取风险特质。 */
+  readonly riskCompeteSensitivity: number;
+  /** 跨层意愿对跨层竞争权重的敏感度 θcross；0 = 不读取跨层特质。 */
+  readonly crossClassCompeteSensitivity: number;
+}
+
 export interface RunConfig {
   readonly schemaVersion: typeof CONFIG_SCHEMA_VERSION;
   readonly rulesVersion: RulesVersion;
@@ -217,6 +236,8 @@ export interface RunConfig {
   readonly opportunity: OpportunityConfig;
   readonly lifespan: LifespanConfig;
   readonly attributes: AttributesConfig;
+  /** rules-v15 / D2：个体行为异质性配置；默认全 0，与 rules-v13 逐位一致。 */
+  readonly behavior: BehaviorConfig;
   readonly effort: EffortConfig;
   readonly need: NeedConfig;
   readonly descent: DescentConfig;

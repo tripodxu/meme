@@ -273,6 +273,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 - 用预览环境做小额真实 Jev 冒烟，再渐进发布；生产 budgets 默认保守。
 - 发布后核对错误率、Jev 回退率、D1/R2 增长、Runner 失败率和成本。
 
+**D2 与 P6-07（2026-11-11，探索，ADR 0007）**：P6-06 未通过后，规则负责人选择 D2。新增不可变行为特质 `riskTolerance`/`crossClassOpenness` 与 `mock-weighted-v2`（只改写 `compete` 权重），`rules-v15`/`engine-v0.12.0`/config v9/state v5；默认 `behavior.*=0` 与 v13/v14 逐位一致（changes/0067）。P6-07 固定 P6-05 B 区域，A 全零对照、B 特质安慰剂、C–F 逐步打开风险/跨层敏感性，6 cell × 30 新 seed × 40 人 × 10950 tick（前 10 续跑 14600），`mock-weighted-v2`。该轮**仅 exploratory**，`verdict.passes=null`，不是 G6 确认；D1 目标与 07 §8.2 不变，G6 仍未通过。 P6-07 `p6-07-eea8f47d` 已完成：240/240、0 排除、0 灭绝；A/B 安慰剂 30/30 逐位一致；C–F 相对 A 的 TV(P)≤0.026、|ΔO|≤0.053、|ΔS|≤0.087，均 <0.10；k=2 [130,50]、ARI 0.178、silhouette 0.175、同簇率 0.650，k=3 [101,50,29] 仍跨全部 cell；`verdict.passes=null`。行为异质性在本轮未产生可复现的参数区域分离或稳定第三簇；G6 仍未通过（changes/0068）。
+
 **最终发布闸门**：G0–G6 均有可复现证据；P7 不设独立编号闸门，其验收即本节各项。若某非关键项豁免，必须记录负责人、理由、到期日和回滚条件。
 
 ## 11. 标准验证命令

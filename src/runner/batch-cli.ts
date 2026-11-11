@@ -63,7 +63,7 @@ export interface BatchSummary {
   readonly manifestHash: string;
   readonly rulesVersion: string;
   readonly engineVersion: string;
-  readonly policy: 'mock-weighted-v1' | 'random-uniform-v1';
+  readonly policy: 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
   readonly populationSize: number;
   readonly totalTicks: number;
   readonly runs: readonly BatchRunRecord[];

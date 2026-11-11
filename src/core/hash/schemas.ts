@@ -79,6 +79,16 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
           { name: 'value', type: 'number', description: '初始 Value=population.initialValue。' },
           { name: 'ge', type: 'number', description: '天赋样本。' },
           { name: 'hard', type: 'number', description: '努力样本。' },
+          {
+            name: 'riskTolerance',
+            type: 'number',
+            description: 'rules-v15 行为特质 ∈ [0,1]；默认 0.5。',
+          },
+          {
+            name: 'crossClassOpenness',
+            type: 'number',
+            description: 'rules-v15 行为特质 ∈ [0,1]；默认 0.5。',
+          },
           { name: 'initialLife', type: 'number', description: '初始寿命样本。' },
           { name: 'remainingLife', type: 'number', description: '初始年龄模式应用后的余命。' },
           { name: 'classAge', type: 'number', description: '初始 0。' },
@@ -106,7 +116,7 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
   {
     domain: HASH_DOMAINS.authoritativeState,
     fields: [
-      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v4。' },
+      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v5。' },
       { name: 'config', type: 'object', ordering: 'none', description: '完整冻结 RunConfig。' },
       { name: 'seed', type: 'string', description: 'run seed。' },
       {
@@ -122,6 +132,16 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
             ordering: 'agentIdAscending',
             description: '全部个体（含死亡者），字段同 initialPopulation 另加网络与死亡审计。',
             fields: [
+              {
+                name: 'riskTolerance',
+                type: 'number',
+                description: 'rules-v15 行为特质 ∈ [0,1]。',
+              },
+              {
+                name: 'crossClassOpenness',
+                type: 'number',
+                description: 'rules-v15 行为特质 ∈ [0,1]。',
+              },
               {
                 name: 'ties',
                 type: 'array',

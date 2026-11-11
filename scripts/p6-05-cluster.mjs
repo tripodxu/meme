@@ -150,6 +150,59 @@ const CELLS_05E = [200, 1000].map((populationSize) => ({
   },
 }));
 
+const SEEDS_07 = Array.from(
+  { length: DEFAULTS.seedCount },
+  (_, index) => `p6-07-seed-${String(index + 1).padStart(3, '0')}`,
+);
+// P6-07（D2 探索）：固定 P6-05 的 B 区域（share=0.5、w=15、continuous），
+// 只改变行为异质性。A 为全零对照；B 只有特质方差无行为效应（安慰剂）；
+// C/D/E/F 逐步打开风险与跨层敏感性。
+const BEHAVIOR_BASE = {
+  riskTraitSigma: 0,
+  crossClassTraitSigma: 0,
+  riskCompeteSensitivity: 0,
+  crossClassCompeteSensitivity: 0,
+};
+const CELLS_07 = [
+  { cellKey: 'A-control', behavior: {} },
+  { cellKey: 'B-risk-traits-only', behavior: { riskTraitSigma: 0.3 } },
+  {
+    cellKey: 'C-risk-behavior',
+    behavior: { riskTraitSigma: 0.3, riskCompeteSensitivity: 2 },
+  },
+  {
+    cellKey: 'D-cross-behavior',
+    behavior: { crossClassTraitSigma: 0.3, crossClassCompeteSensitivity: 2 },
+  },
+  {
+    cellKey: 'E-both-moderate',
+    behavior: {
+      riskTraitSigma: 0.3,
+      crossClassTraitSigma: 0.3,
+      riskCompeteSensitivity: 2,
+      crossClassCompeteSensitivity: 2,
+    },
+  },
+  {
+    cellKey: 'F-both-strong',
+    behavior: {
+      riskTraitSigma: 0.5,
+      crossClassTraitSigma: 0.5,
+      riskCompeteSensitivity: 4,
+      crossClassCompeteSensitivity: 4,
+    },
+  },
+].map((cell) => ({
+  cellKey: cell.cellKey,
+  overrides: {
+    ascent: { displacementShare: 0.5, scarcityWeight: 15 },
+    openness: { regimeMode: 'continuous', regimeBias: 0 },
+    behavior: { ...BEHAVIOR_BASE, ...cell.behavior },
+    // 策略必须进 cell 配置：否则 configHash 描述的是 v1，而 run 实际用 v2 决策。
+    decision: { policy: 'mock-weighted-v2' },
+  },
+}));
+
 const SEEDS_06 = Array.from(
   { length: DEFAULTS.seedCount },
   (_, index) => `p6-06-seed-${String(index + 1).padStart(3, '0')}`,
@@ -196,7 +249,7 @@ function parseArgs(argv) {
       console.log(
         [
           '用法：',
-          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b|p6-05c|p6-05d|p6-05e|p6-06] [--force]',
+          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b|p6-05c|p6-05d|p6-05e|p6-06|p6-07] [--force]',
           '  node scripts/p6-05-cluster.mjs --run [--prereg ...] [--dir ...] [--cell <cellKey>] [--shard i/n]',
           '  node scripts/p6-05-cluster.mjs --analyze [--out ...]',
         ].join('\n'),
@@ -213,9 +266,10 @@ function parseArgs(argv) {
     options.design !== 'p6-05c' &&
     options.design !== 'p6-05d' &&
     options.design !== 'p6-05e' &&
-    options.design !== 'p6-06'
+    options.design !== 'p6-06' &&
+    options.design !== 'p6-07'
   ) {
-    throw new Error('--design 只能为 p6-05、p6-05b、p6-05c、p6-05d、p6-05e 或 p6-06');
+    throw new Error('--design 只能为 p6-05、p6-05b、p6-05c、p6-05d、p6-05e、p6-06 或 p6-07');
   }
   if (options.design === 'p6-05b') {
     if (!preregSet) options.prereg = 'out/p6-05b-scan-prereg.json';
@@ -241,6 +295,11 @@ function parseArgs(argv) {
     if (!preregSet) options.prereg = 'out/p6-06-prereg.json';
     if (!dirSet) options.dir = 'out/p6-06';
     if (!outSet) options.analysisOut = 'out/p6-06-analysis.json';
+  }
+  if (options.design === 'p6-07') {
+    if (!preregSet) options.prereg = 'out/p6-07-prereg.json';
+    if (!dirSet) options.dir = 'out/p6-07';
+    if (!outSet) options.analysisOut = 'out/p6-07-analysis.json';
   }
   return options;
 }
@@ -517,6 +576,54 @@ function buildDesign06() {
   };
 }
 
+function buildDesign07() {
+  return {
+    schemaVersion: 'p6-07-prereg-v1',
+    hypothesis:
+      'P6-07（D2 / ADR 0007，探索）：在固定 P6-05 B 参数区域与 mock-weighted-v2 下，' +
+      '逐步加入个体风险特质与跨层意愿特质（sigma 0.3/0.5）并打开对应的竞争敏感性（2/4），' +
+      '检验行为异质性是否扩大参数区域间的结构差异，或产生可复现的第三簇。' +
+      'A 为全零对照，B 只改变特质方差但不读取特质（安慰剂）。' +
+      '本轮是机制探索，不是 G6 确认：D1 目标（2 体制 + 连续统）与 docs/07 §8.2 的验收不变，' +
+      '任何 k=2/k=3 结果都不得追认为 G6 通过或参数校准。',
+    rulesVersion: 'rules-v15',
+    policy: 'mock-weighted-v2',
+    population: DEFAULTS.population,
+    horizon: DEFAULTS.horizon,
+    terminalWindow: { start: 10585, end: 10949, days: 365 },
+    followupHorizon: DEFAULTS.followupHorizon,
+    followupWindow: { start: 14235, end: 14599, days: 365 },
+    followupSeedsPerCell: DEFAULTS.followupSeedsPerCell,
+    seeds: SEEDS_07,
+    cells: CELLS_07,
+    features: ['P0', 'P1', 'P2', 'P3', 'P4', 'G', 'top10', 'Mup', 'Mdown', 'S', 'O'],
+    clustering: {
+      algorithm: 'ward-lw-v1',
+      distance: 'euclidean',
+      standardization: 'z-score(pooled)',
+      k: 2,
+      stabilityShuffles: 20,
+      stabilitySeed: 20261111,
+      ariMedianMin: 0.7,
+      silhouetteMin: 0.35,
+      minClusterRuns: 5,
+    },
+    temporal: { minSameClusterRate: 0.8 },
+    antiPreset: { minCellsInAnyCluster: 2 },
+    exclusion: { excludeExtinct: true, maxExtinctRate: 0.1 },
+    regimeDifference: { minOrderParameterDifference: 0.1 },
+    noStableThirdCluster: { minAri: 0.7, minTemporalRate: 0.8 },
+    budgets: { runs: 240, wallMinutes: 120 },
+    exploratory: true,
+    prediction:
+      '若行为异质性有效：C–F 的终态 O/S/P 应相对 A 出现方向性偏移，且 cell 间距离随敏感性增强；' +
+      '若第三簇由此机制产生：k=3 应在 C–F 上形成稳定划分。若 A/B 轨迹一致，说明安慰剂检查通过；' +
+      '若 C–F 与 A 无差异，则行为异质性在本规则族中不足以改变结构。',
+    confirmationStatus:
+      'P6-07 D2 exploratory; not G6 confirmation, calibration, or emergence claim',
+  };
+}
+
 function validateDesignCells(design) {
   for (const cell of design.cells) {
     for (const horizon of [design.horizon, design.followupHorizon]) {
@@ -533,17 +640,19 @@ function validateDesignCells(design) {
 
 function freeze(options) {
   const design =
-    options.design === 'p6-06'
-      ? buildDesign06()
-      : options.design === 'p6-05e'
-        ? buildDesign05e()
-        : options.design === 'p6-05d'
-          ? buildDesign05d()
-          : options.design === 'p6-05c'
-            ? buildDesign05c()
-            : options.design === 'p6-05b'
-              ? buildDesign05b()
-              : buildDesign();
+    options.design === 'p6-07'
+      ? buildDesign07()
+      : options.design === 'p6-06'
+        ? buildDesign06()
+        : options.design === 'p6-05e'
+          ? buildDesign05e()
+          : options.design === 'p6-05d'
+            ? buildDesign05d()
+            : options.design === 'p6-05c'
+              ? buildDesign05c()
+              : options.design === 'p6-05b'
+                ? buildDesign05b()
+                : buildDesign();
   validateDesignCells(design);
   const designHash = hashValue(HASH_DOMAINS.preregistration, design);
   if (existsSync(options.prereg) && !options.force) {
@@ -878,6 +987,7 @@ function analyze(options) {
     };
   }
 
+  const exploratory = design.exploratory === true;
   const verdict = isTwoRegime
     ? evaluateP6TwoRegimeVerdict({
         ariMedian,
@@ -963,14 +1073,16 @@ function analyze(options) {
     },
     extinctRate,
     verdict: {
-      passes: verdict.passes,
+      passes: exploratory ? null : verdict.passes,
       antiPreset: verdict.antiPreset,
       reasons: verdict.reasons,
-      status: verdict.passes
-        ? isTwoRegime
-          ? 'two-regime-candidate'
-          : 'three-cluster-candidate'
-        : 'not-accepted-return-to-rule-review',
+      status: exploratory
+        ? 'exploratory-not-g6-confirmation'
+        : verdict.passes
+          ? isTwoRegime
+            ? 'two-regime-candidate'
+            : 'three-cluster-candidate'
+          : 'not-accepted-return-to-rule-review',
     },
     notes: [
       `P6-05 只判定 mock 策略在 ${(design.populations ?? [design.population]).join('/')} 人 × 10950 tick 的终端全特征聚类（${design.rulesVersion}）；不是校准、现实因果或结构涌现声明。`,

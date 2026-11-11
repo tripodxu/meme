@@ -267,6 +267,54 @@
       "affectsBehavior": true
     },
     {
+      "name": "behavior.riskTraitSigma",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 行为异质性 / rule.md（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "behavior.crossClassTraitSigma",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 行为异质性 / rule.md（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "behavior.riskCompeteSensitivity",
+      "unit": "dimensionless",
+      "formulaRef": "04 §2.1 mock-weighted-v2（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 10
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "behavior.crossClassCompeteSensitivity",
+      "unit": "dimensionless",
+      "formulaRef": "04 §2.1 mock-weighted-v2（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 10
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "effort.shape",
       "unit": "exponent",
       "formulaRef": "03 §3 努力函数 / rule.md 3、36",
@@ -1054,7 +1102,7 @@
       "formulaRef": "04 §2.1 默认 mock 与 random 策略",
       "domain": {
         "kind": "enum",
-        "values": ["mock-weighted-v1", "random-uniform-v1", "jev_live"]
+        "values": ["mock-weighted-v1", "mock-weighted-v2", "random-uniform-v1", "jev_live"]
       },
       "guardOnly": false,
       "affectsBehavior": true

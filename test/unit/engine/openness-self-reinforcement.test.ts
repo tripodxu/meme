@@ -6,6 +6,7 @@ import { validateRunConfig } from '../../../src/core/config/validate.js';
 import { maybeUpdateOpenness } from '../../../src/core/feedback/slow-variables.js';
 import { stableSigmoid } from '../../../src/core/engine/settlement.js';
 import { getParamDefinition } from '../../../src/core/params.js';
+import { CONFIG_SCHEMA_VERSION } from '../../../src/core/control/versions.js';
 import type { RunConfig } from '../../../src/core/config/types.js';
 
 function withOpenness(overrides: Partial<RunConfig['openness']>): RunConfig {
@@ -84,7 +85,8 @@ describe('rules-v12 openness.selfReinforcement', () => {
     expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
     if (result.ok) {
       expect(result.config.openness.selfReinforcement).toBe(0);
-      expect(result.config.schemaVersion).toBe('stratify-config-v8');
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.behavior).toEqual(DEFAULT_RUN_CONFIG.behavior);
       expect(result.config.openness.regimeMode).toBe('continuous');
     }
   });

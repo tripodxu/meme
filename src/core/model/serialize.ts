@@ -4,7 +4,11 @@ import { validateRunConfig } from '../config/validate.js';
 import { canonicalize } from '../hash/jcs.js';
 import { errorCodes, StratifyError } from '../control/errors.js';
 import { asAgentId, asSeed, type AgentId } from '../control/ids.js';
-import { STATE_SCHEMA_VERSION, STATE_SCHEMA_VERSION_V3 } from '../control/versions.js';
+import {
+  STATE_SCHEMA_VERSION,
+  STATE_SCHEMA_VERSION_V3,
+  STATE_SCHEMA_VERSION_V4,
+} from '../control/versions.js';
 import { DEATH_REASONS, type AgentState, type DeathReason } from './agent.js';
 import { compareAgentId, type FlowWindowEntry, type SocietyState } from './society.js';
 import type { SimState } from './state.js';
@@ -17,6 +21,8 @@ export type SerializedAgent = {
   value: number;
   ge: number;
   hard: number;
+  riskTolerance: number;
+  crossClassOpenness: number;
   initialLife: number;
   remainingLife: number;
   classAge: number;
@@ -94,6 +100,8 @@ function encodeAgent(agent: AgentState): SerializedAgent {
     value: agent.value,
     ge: agent.ge,
     hard: agent.hard,
+    riskTolerance: agent.riskTolerance,
+    crossClassOpenness: agent.crossClassOpenness,
     initialLife: agent.initialLife,
     remainingLife: agent.remainingLife,
     classAge: agent.classAge,
@@ -112,6 +120,7 @@ function decodeAgent(
   path: string,
   classCount: number,
   maxDegree: number,
+  legacyTraits: boolean,
 ): AgentState {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     fail(path, 'agent 必须是对象');
@@ -146,6 +155,24 @@ function decodeAgent(
   const hard = assertFiniteNumber(record['hard'], `${agentPath}.hard`);
   if (ge <= 0 || hard <= 0) {
     fail(`${agentPath}.ge`, 'ge/hard 必须为正数');
+  }
+  // rules-v15：v3/v4 状态没有行为特质，按 0.5 迁移；v5 必须显式携带。
+  const rawRisk = record['riskTolerance'];
+  const rawCross = record['crossClassOpenness'];
+  let riskTolerance: number;
+  let crossClassOpenness: number;
+  if (rawRisk === undefined && rawCross === undefined && legacyTraits) {
+    riskTolerance = 0.5;
+    crossClassOpenness = 0.5;
+  } else {
+    riskTolerance = assertFiniteNumber(rawRisk, `${agentPath}.riskTolerance`);
+    crossClassOpenness = assertFiniteNumber(rawCross, `${agentPath}.crossClassOpenness`);
+    if (riskTolerance < 0 || riskTolerance > 1) {
+      fail(`${agentPath}.riskTolerance`, 'riskTolerance 必须位于 [0,1]');
+    }
+    if (crossClassOpenness < 0 || crossClassOpenness > 1) {
+      fail(`${agentPath}.crossClassOpenness`, 'crossClassOpenness 必须位于 [0,1]');
+    }
   }
   const initialLife = assertFiniteNumber(record['initialLife'], `${agentPath}.initialLife`);
   const remainingLife = assertFiniteNumber(record['remainingLife'], `${agentPath}.remainingLife`);
@@ -214,6 +241,8 @@ function decodeAgent(
     value,
     ge,
     hard,
+    riskTolerance,
+    crossClassOpenness,
     initialLife,
     remainingLife,
     classAge,
@@ -301,7 +330,8 @@ export function decodeSimState(value: unknown): SimState {
   const record = value as Record<string, unknown>;
   if (
     record['schemaVersion'] !== STATE_SCHEMA_VERSION &&
-    record['schemaVersion'] !== STATE_SCHEMA_VERSION_V3
+    record['schemaVersion'] !== STATE_SCHEMA_VERSION_V3 &&
+    record['schemaVersion'] !== STATE_SCHEMA_VERSION_V4
   ) {
     throw new StratifyError(
       errorCodes.CONFIG_UNKNOWN_VERSION,
@@ -324,8 +354,17 @@ export function decodeSimState(value: unknown): SimState {
   if (!Array.isArray(societyRecord['agents'])) {
     fail('$.society.agents', '必须为数组');
   }
+  const legacyTraits =
+    record['schemaVersion'] === STATE_SCHEMA_VERSION_V3 ||
+    record['schemaVersion'] === STATE_SCHEMA_VERSION_V4;
   const agents: AgentState[] = (societyRecord['agents'] as unknown[]).map((raw) =>
-    decodeAgent(raw, `$.society.agents`, classCount, validatedConfig.network.maxDegree),
+    decodeAgent(
+      raw,
+      `$.society.agents`,
+      classCount,
+      validatedConfig.network.maxDegree,
+      legacyTraits,
+    ),
   );
   agents.sort((a, b) => compareAgentId(a.id, b.id));
   for (let index = 1; index < agents.length; index += 1) {

@@ -130,3 +130,5 @@ out/*
 !out/p6-05e-analysis.json
 !out/p6-06-prereg.json
 !out/p6-06-analysis.json
+!out/p6-07-prereg.json
+!out/p6-07-analysis.json

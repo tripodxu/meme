@@ -8,6 +8,7 @@ import {
   CONFIG_SCHEMA_VERSION_V5,
   CONFIG_SCHEMA_VERSION_V6,
   CONFIG_SCHEMA_VERSION_V7,
+  CONFIG_SCHEMA_VERSION_V8,
   RULES_VERSION,
 } from '../control/versions.js';
 import { DEFAULT_RUN_CONFIG } from './defaults.js';
@@ -443,7 +444,21 @@ function migrateConfigInput(input: unknown): unknown {
         openness[key] = value;
       }
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, openness };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V8, openness };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V8) {
+    const rawBehavior = record['behavior'];
+    const behavior =
+      typeof rawBehavior === 'object' && rawBehavior !== null && !Array.isArray(rawBehavior)
+        ? { ...(rawBehavior as Record<string, unknown>) }
+        : {};
+    const defaults = DEFAULT_RUN_CONFIG.behavior;
+    for (const [key, value] of Object.entries(defaults)) {
+      if (behavior[key] === undefined) {
+        behavior[key] = value;
+      }
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, behavior };
   }
   return record;
 }
@@ -460,6 +475,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'opportunity',
       'lifespan',
       'attributes',
+      'behavior',
       'effort',
       'need',
       'descent',
@@ -617,6 +633,41 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
         `必须 <= 1 + hardLifeFactor×(attributes.hard.min-1)（当前上界 ${minFactor}），否则会在合法 hard 域内改变寿命损耗`,
       );
     }
+  }
+
+  if (
+    checkObject(collector, root['behavior'], '$.behavior', [
+      'riskTraitSigma',
+      'crossClassTraitSigma',
+      'riskCompeteSensitivity',
+      'crossClassCompeteSensitivity',
+    ])
+  ) {
+    const behavior = root['behavior'];
+    checkRegisteredNumber(
+      collector,
+      behavior['riskTraitSigma'],
+      '$.behavior.riskTraitSigma',
+      'behavior.riskTraitSigma',
+    );
+    checkRegisteredNumber(
+      collector,
+      behavior['crossClassTraitSigma'],
+      '$.behavior.crossClassTraitSigma',
+      'behavior.crossClassTraitSigma',
+    );
+    checkRegisteredNumber(
+      collector,
+      behavior['riskCompeteSensitivity'],
+      '$.behavior.riskCompeteSensitivity',
+      'behavior.riskCompeteSensitivity',
+    );
+    checkRegisteredNumber(
+      collector,
+      behavior['crossClassCompeteSensitivity'],
+      '$.behavior.crossClassCompeteSensitivity',
+      'behavior.crossClassCompeteSensitivity',
+    );
   }
 
   if (checkObject(collector, root['effort'], '$.effort', ['shape'])) {

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_RUN_CONFIG } from '../../../src/core/config/defaults.js';
 import { computeParamsHash } from '../../../src/core/config/hash.js';
 import { validateRunConfig } from '../../../src/core/config/validate.js';
+import { CONFIG_SCHEMA_VERSION } from '../../../src/core/control/versions.js';
 import { asSeed, type AgentId } from '../../../src/core/control/ids.js';
 import { step } from '../../../src/core/engine/engine.js';
 import {
@@ -156,8 +157,9 @@ describe('rules-v13 institutional regime state machine', () => {
     const result = validateRunConfig(v7);
     expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
     if (result.ok) {
-      expect(result.config.schemaVersion).toBe('stratify-config-v8');
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
       expect(result.config.openness).toEqual(DEFAULT_RUN_CONFIG.openness);
+      expect(result.config.behavior).toEqual(DEFAULT_RUN_CONFIG.behavior);
     }
   });
 

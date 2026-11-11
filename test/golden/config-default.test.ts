@@ -28,10 +28,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v13.json');
-const golden = readJson('../fixtures/config/default-rules-v13.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v15.json');
+const golden = readJson('../fixtures/config/default-rules-v15.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v13 default config', () => {
+describe('golden: rules-v15 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -47,11 +47,18 @@ describe('golden: rules-v13 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v13.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v15.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
-  it('v13 默认关闭显式制度状态机（regimeMode=continuous、θR=0，与 v12 逐位一致）', () => {
+  it('v15 行为异质性默认关闭（sigmas/sensitivities=0，逐位退回 v14 语义）', () => {
+    expect(DEFAULT_RUN_CONFIG.behavior.riskTraitSigma).toBe(0);
+    expect(DEFAULT_RUN_CONFIG.behavior.crossClassTraitSigma).toBe(0);
+    expect(DEFAULT_RUN_CONFIG.behavior.riskCompeteSensitivity).toBe(0);
+    expect(DEFAULT_RUN_CONFIG.behavior.crossClassCompeteSensitivity).toBe(0);
+  });
+
+  it('v13 显式制度状态机默认关闭（regimeMode=continuous、θR=0，与 v12 逐位一致）', () => {
     expect(DEFAULT_RUN_CONFIG.need.referenceMode).toBe('class');
     expect(DEFAULT_RUN_CONFIG.need.graceDays).toBe(30);
     expect(DEFAULT_RUN_CONFIG.need.referenceSmoothing).toBe(0.2);

@@ -11,8 +11,10 @@ import {
 import type { SimState } from '../../../src/core/model/state.js';
 import {
   decideMockWeighted,
+  decideMockWeightedV2,
   MOCK_WEIGHTED_V1_CONSTANTS,
   POLICY_VERSION_MOCK,
+  POLICY_VERSION_MOCK_V2,
 } from '../../../src/decision/mock.js';
 import { decideRandomUniform, POLICY_VERSION_RANDOM } from '../../../src/decision/random.js';
 
@@ -222,5 +224,118 @@ describe('random-uniform-v1（04 §2.1）', () => {
         legal: { actions: [], ascendCost: null, descendCost: null, targets: [] },
       }),
     ).toThrowError(/拒绝猜测/);
+  });
+});
+
+describe('mock-weighted-v2（D2 行为异质性，ADR 0007）', () => {
+  function decideV2(state: SimState, agentIndex: number) {
+    const { agent, legal } = legalOf(state, agentIndex);
+    return {
+      v1: decideMockWeighted({
+        runId: 'local-test',
+        seed: SEED,
+        state,
+        agentId: agent.id,
+        stateHash: 'sha256:aa',
+        actionSetHash: 'sha256:bb',
+        legal,
+      }),
+      v2: decideMockWeightedV2({
+        runId: 'local-test',
+        seed: SEED,
+        state,
+        agentId: agent.id,
+        stateHash: 'sha256:aa',
+        actionSetHash: 'sha256:bb',
+        legal,
+      }),
+      agent,
+      legal,
+    };
+  }
+
+  function withBehavior(
+    state: SimState,
+    behavior: {
+      riskTraitSigma?: number;
+      crossClassTraitSigma?: number;
+      riskCompeteSensitivity?: number;
+      crossClassCompeteSensitivity?: number;
+    },
+  ): SimState {
+    return {
+      ...state,
+      config: { ...state.config, behavior: { ...state.config.behavior, ...behavior } },
+    };
+  }
+
+  it('敏感性为 0 时与 v1 概率和选择逐位一致（默认配置）', () => {
+    const base = makeState();
+    const state = withBehavior(base, { riskTraitSigma: 0, crossClassTraitSigma: 0 });
+    for (let index = 0; index < state.society.agents.length; index += 1) {
+      const { v1, v2, legal } = decideV2(state, index);
+      expect(v2.selectedAction).toBe(v1.selectedAction);
+      for (const action of legal.actions) {
+        expect((v2.probabilities ?? {})[action]).toBe((v1.probabilities ?? {})[action]);
+      }
+      expect(v2.policyVersion).toBe(POLICY_VERSION_MOCK_V2);
+      expect(v1.policyVersion).toBe(POLICY_VERSION_MOCK);
+    }
+  });
+
+  it('风险敏感性提高高特质个体的竞争权重，并降低低特质个体', () => {
+    const base = makeState();
+    const state = withBehavior(base, { riskCompeteSensitivity: 4 });
+    const agent = state.society.agents[0];
+    if (agent === undefined) throw new Error('roster 过小');
+    const legal = enumerateLegalActions(state, agent.id);
+    const compete = legal.actions.filter((action) => action.startsWith('compete:'));
+    if (compete.length === 0) throw new Error('demo 配置应存在 compete 行动');
+
+    (agent as { riskTolerance: number }).riskTolerance = 1;
+    const high = decideV2(state, 0);
+    (agent as { riskTolerance: number }).riskTolerance = 0;
+    const low = decideV2(state, 0);
+
+    for (const action of compete) {
+      expect((high.v2.probabilities ?? {})[action] ?? 0).toBeGreaterThan(
+        (high.v1.probabilities ?? {})[action] ?? 0,
+      );
+      expect((low.v2.probabilities ?? {})[action] ?? 0).toBeLessThan(
+        (low.v1.probabilities ?? {})[action] ?? 0,
+      );
+    }
+    // 非 compete 权重不变：accumulate 概率随 compete 权重上升而下降。
+    expect((high.v2.probabilities ?? {})['accumulate'] ?? 0).toBeLessThan(
+      (high.v1.probabilities ?? {})['accumulate'] ?? 0,
+    );
+  });
+
+  it('跨层敏感性只放大跨层目标，不放大同层目标', () => {
+    const base = makeState();
+    const state = withBehavior(base, { crossClassCompeteSensitivity: 4 });
+    const agent = state.society.agents[0];
+    if (agent === undefined) throw new Error('roster 过小');
+    (agent as { crossClassOpenness: number }).crossClassOpenness = 1;
+    const legal = enumerateLegalActions(state, agent.id);
+    const result = decideV2(state, 0);
+    let sawSameClass = false;
+    for (const action of legal.actions) {
+      if (!action.startsWith('compete:')) continue;
+      const target = state.society.agents.find((candidate) => action === `compete:${candidate.id}`);
+      if (target === undefined) throw new Error('目标缺失');
+      if (target.classIndex === agent.classIndex) {
+        sawSameClass = true;
+        // 权重不变，但归一化分母变大 → 同层竞争概率下降。
+        expect((result.v2.probabilities ?? {})[action] ?? 0).toBeLessThan(
+          (result.v1.probabilities ?? {})[action] ?? 0,
+        );
+      } else {
+        expect((result.v2.probabilities ?? {})[action] ?? 0).toBeGreaterThan(
+          (result.v1.probabilities ?? {})[action] ?? 0,
+        );
+      }
+    }
+    expect(sawSameClass).toBe(true);
   });
 });

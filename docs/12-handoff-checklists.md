@@ -1,6 +1,10 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 40）
+## 1. 当前交接状态（2026-11-11，rev 42）
+
+- rev 42（2026-11-11，**P6-07 探索完成**）：`p6-07-eea8f47d` 240/240 完成、0 排除、0 灭绝；A/B 安慰剂 30/30 逐位一致；C–F 相对 A 的 `TV(P)≤0.026`、`|ΔO|≤0.053`、`|ΔS|≤0.087`，均 <0.10；k=2 [130,50]、ARI median 0.178、silhouette 0.175、14600 同簇率 0.650；k=3 [101,50,29]，两/三个簇都混合全部 6 个 cell。`verdict.passes=null`、`status='exploratory-not-g6-confirmation'`；D2 行为异质性未产生可复现的参数区域分离或稳定第三簇。G6 仍未通过（changes/0068）。
+
+- rev 41（2026-11-11，**D2 落地 / P6-07 探索**）：规则负责人选择 D2。新增不可变行为特质 `riskTolerance`/`crossClassOpenness` 与 `mock-weighted-v2`（只改写 `compete` 权重），`rules-v15`/`engine-v0.12.0`/config schema v9/state schema v5；默认 `behavior.*=0` 与 v13/v14 逐位一致（ADR 0007、changes/0067）。P6-07 为**探索轮**：固定 P6-05 B 区域，A 全零对照、B 特质安慰剂、C–F 逐步打开风险/跨层敏感性，6 cell × 30 新 seed × 40 人 × 10950 tick（前 10 续跑 14600），`mock-weighted-v2`；`verdict.passes=null`，不是 G6 确认。D1 目标与 `docs/07` §8.2 不变，G6 仍未通过。
 
 - rev 40（2026-11-11，**P6-06 未通过**）：`p6-06-a3c1624e` 240/240 完成、0 排除、0 灭绝。k=2 簇 [30,150]（A 单独 vs B–F），ARI median **1.000**、silhouette **0.661**、同簇率 **1.000**、`antiPreset=true`，`|ΔO|=0.556`、`|ΔS|=0.300`、`TV(P)=0.723`——两体制证据很强；但 k=3 簇 [30,66,84]、ARI median **0.768**、同簇率 **0.850**、三簇均 ≥5，按预注册“无稳定第三簇”检查**判失败**（第三簇是 B–F 内部分裂）。**G6 仍未通过**；旧 k=3 结果不得追认。下一步需新 ADR 细化“第三簇”定义并用全新 seed 确认，或转 D2（行为/阶级异质性）；不得调 k/seed/阈值（changes/0066）。
 - rev 39（2026-11-11，**D1 目标修订**）：规则负责人选择 D1，G6 结构目标从“≥3 类结构”改为**“2 体制 + 连续统”**（ADR 0006、rule.md v14、changes/0065）。新口径：预注册 k=2 聚类稳定（两簇各 ≥5、ARI median ≥0.70、silhouette ≥0.35、同簇率 ≥0.80、至少一个簇 ≥2 cell、序参量 `|ΔO|`/`|ΔS|`/`TV(P)` 至少一项 ≥0.10），且 k=3 不产生稳定第三簇（07 §8.2）；旧 k=3 结果不得追认通过，新旧口径同报。下一步 **P6-06 确认轮**（6 个 P6-05 参数区域 × 30 个全新 seed × 40 人 × 10950 tick + 每 cell 10 个 14600），尚未预注册/运行；G6 仍未通过，仍不得声称已校准或结构已涌现。
@@ -49,7 +53,7 @@
 - rev 18（2026-11-05，D-04 冻结）：P6 预算按 VPS `2zhou` 实测冻结 v1（Stage A 1200 run/180 min/256 MB、Stage B 60/240/512、微扰 240/120/256、消融 120/240/512；换预算=新 experimentId）；基准记录 `docs/benchmarks/2026-11-05-p5a-engine.md`（开发机+VPS 双环境，VPS 1000 人×3650tick=120s）；批跑人口实验级化（`--population`，200 人×730tick 实机验证）。证据：`changes/0036`、`docs/research/2026-11-05-d04-p6-budget-freeze.md`。**至此 P6-01 的全部前置（工程 P5a + 预算 D-04）满足**。
 - rev 16（2026-11-05，P5-06 收口）：`deploy/` 三工件——stratify-runner.service（oneshot、ConditionPathExists、专用用户、Restart=on-failure+StartLimit、ExecStart 固定 manifest+--resume+checkpoint-ticks 500、ProtectSystem=strict）、check-disk-space.sh（磁盘守卫 2048MB）、journald drop-in（200M/1G/14d）；11 项静态契约测试；docs/09 §6 加 deploy/ 指引，docs/01 §2 目录树补 deploy/。证据：changes/0034。**边界**：VPS systemctl 实装演练归发布前；常驻调度/budget.sqlite 归 P5-02。
 - 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、上传对接（P5b，0/2）、Jev Key 轮换（provider 侧吊销确认）、P6-05d 判读与 G6 校准验收、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。P5a 五项、P6-01/P6-02/P6-03/P6-04a、重测信度、1-seed live pilot、VPS 标准部署、P6-04b 正式 live 对照、P6-05/P6-05b/P6-05c 聚类尝试（均未通过）、rules-v13 落地与 P6-05d 开跑已完成（changes/0031–0035、0040 前置、0050–0063）。
-- 下一唯一入口：**规则负责人选择**——P6-06 的 k=2 证据很强（ARI/silhouette/同簇率 1.000/0.661/1.000、两体制差异 0.723），但预注册“无稳定第三簇”检查因 k=3 稳定（ARI 0.768、同簇率 0.850）而失败。选项：(1) 新 ADR 细化“第三簇”定义（如要求第三簇与两体制在序参量上有 ≥0.10 差异），用**全新 seed** 重新确认；(2) 转 D2 引入行为/阶级异质性；(3) 停止 P6 结构目标。不得在 P6-06 上追认、调 k/seed/阈值。G6 仍未通过。P3/P4/P5b 按 01 §9 在 G6 后并行。
+- 下一唯一入口：**规则负责人选择**——P6-07 未产生可复现的参数区域分离或稳定第三簇（changes/0068）。选项：(1) 停止 P6 结构目标，保留 G6 未通过，转 P3/P4/P5b/P7 工程轨道；(2) 另立机制 ADR（特质进入需求/流动/网络等，而非只改竞争权重），重新预注册、全新 seed；(3) 回到 D1 第三簇定义修订，需新 ADR 与全新确认轮。不得在 P6-07 上追认、调 sigma/敏感性、换 k/seed/阈值。G6 仍未通过。
 - 不得提前声称：三类结构已出现（目前只有 class-share 单特征候选）、Jev 行为有效、性能已达标、生产可发布、网关免费即生产免费。
 
 ## 2. 新接手者开工清单

@@ -98,24 +98,34 @@ describe('G-D：own 模式与 rules-v5 逐位一致（语义状态全字段）',
 
   for (const reference of fixture.runs.slice(0, 2)) {
     it(
-      `seed=${reference.seed}：agents 与 society（除 refIncome/occupancyPressure/institutionalRegime）逐位一致`,
+      `seed=${reference.seed}：agents 与 society（除 refIncome/occupancyPressure/institutionalRegime/行为特质）逐位一致`,
       { timeout: 120_000 },
       () => {
         const config = toV6Own(reference.config);
         const outcome = runSingle(config, asSeed(reference.seed), { policy: 'mock-weighted-v1' });
         const encoded = encodeSimState(outcome.finalState);
 
-        // agents：全部字段逐位一致（Object.is 级别的浮点比较）
-        expect(encoded.society.agents).toEqual(reference.society['agents']);
+        // agents：除 v15 新增行为特质（v5 参照无此字段，默认 0.5）外全部字段
+        // 逐位一致（Object.is 级别的浮点比较）。
+        const actualAgents = encoded.society.agents.map((agent) => {
+          const copy = { ...agent } as Record<string, unknown>;
+          delete copy['riskTolerance'];
+          delete copy['crossClassOpenness'];
+          return copy;
+        });
+        expect(actualAgents).toEqual(reference.society['agents']);
 
         // society：除 refIncome、v11 新增 occupancyPressure 与 v13 新增
         // institutionalRegime 外全部字段（v5 参照 fixture 早于这些字段；
         // 它们不是 v5 语义的一部分）
         const actualSociety = { ...encoded.society } as Record<string, unknown>;
+        delete actualSociety['agents'];
         delete actualSociety['refIncome'];
         delete actualSociety['occupancyPressure'];
         delete actualSociety['institutionalRegime'];
-        expect(actualSociety).toEqual(reference.society);
+        const expectedSociety = { ...(reference.society as Record<string, unknown>) };
+        delete expectedSociety['agents'];
+        expect(actualSociety).toEqual(expectedSociety);
 
         // refIncome：own 模式保持初始值 B×env0[c]
         expect(encoded.society.refIncome).toEqual(

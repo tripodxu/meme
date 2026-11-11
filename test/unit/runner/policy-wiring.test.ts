@@ -114,6 +114,16 @@ describe('Policy 接线（P2-01/P2-06）', () => {
     expect(asyncOutcome.report.aliveAtEnd).toBe(sync.report.aliveAtEnd);
   });
 
+  it('mock-weighted-v2 在零敏感性配置下与 v1 轨迹逐位一致', () => {
+    const v1 = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v1' });
+    const v2 = runSingle(CONFIG, SEED, { policy: 'mock-weighted-v2' });
+    expect(v2.report.finalStateHash).toBe(v1.report.finalStateHash);
+    expect(v2.decisions.map((entry) => entry.selectedAction)).toEqual(
+      v1.decisions.map((entry) => entry.selectedAction),
+    );
+    expect(v2.decisions.every((entry) => entry.policyVersion === 'mock-weighted-v2')).toBe(true);
+  });
+
   it('RandomPolicy 在异步路径上确定：同种子两次运行终态一致', async () => {
     const options = {
       policy: new RandomPolicy(),

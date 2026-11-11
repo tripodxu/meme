@@ -30,6 +30,12 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     ge: { sigma: 0.5, median: 1, min: 0.2, max: 3.0 },
     hard: { sigma: 0.5, median: 1, min: 0.2, max: 3.0 },
   },
+  behavior: {
+    riskTraitSigma: 0,
+    crossClassTraitSigma: 0,
+    riskCompeteSensitivity: 0,
+    crossClassCompeteSensitivity: 0,
+  },
   effort: {
     shape: 1.2,
   },

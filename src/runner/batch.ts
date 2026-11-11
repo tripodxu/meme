@@ -27,7 +27,7 @@ export interface BatchManifest {
   readonly engineVersion: string;
   readonly populationSize: number;
   readonly totalTicks: number;
-  readonly policy: 'mock-weighted-v1' | 'random-uniform-v1';
+  readonly policy: 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
   readonly seeds: readonly string[];
   readonly cells: readonly BatchCell[];
 }
@@ -178,7 +178,11 @@ export function validateBatchManifest(value: unknown, baseConfig?: RunConfig): B
     throw new StratifyError(errorCodes.CONFIG_INVALID, 'manifest.totalTicks 非法');
   }
   const policy = record['policy'];
-  if (policy !== 'mock-weighted-v1' && policy !== 'random-uniform-v1') {
+  if (
+    policy !== 'mock-weighted-v1' &&
+    policy !== 'mock-weighted-v2' &&
+    policy !== 'random-uniform-v1'
+  ) {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
       'manifest.policy 必须为 mock/random（live 走 P2 管线）',

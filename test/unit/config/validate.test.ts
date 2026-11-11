@@ -95,6 +95,18 @@ describe('validateRunConfig', () => {
     expect(codesOf(config)).toContain(errorCodes.CONFIG_INVALID);
   });
 
+  it('migrates a v8 config by filling behavior defaults=0 (D2, rules-v15)', () => {
+    const v8 = cloneConfig();
+    v8['schemaVersion'] = 'stratify-config-v8';
+    delete v8['behavior'];
+    const result = validateRunConfig(v8);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.behavior).toEqual(DEFAULT_RUN_CONFIG.behavior);
+    }
+  });
+
   it('migrates a v1 config by filling openness.updateMode=dynamic (P1-10)', () => {
     const v1 = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
     v1['schemaVersion'] = 'stratify-config-v1';

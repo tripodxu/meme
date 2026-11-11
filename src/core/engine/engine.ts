@@ -70,6 +70,8 @@ interface WorkingAgent {
   value: number;
   readonly ge: number;
   readonly hard: number;
+  readonly riskTolerance: number;
+  readonly crossClassOpenness: number;
   readonly initialLife: number;
   remainingLife: number;
   classAge: number;

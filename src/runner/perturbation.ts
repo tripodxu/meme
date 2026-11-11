@@ -30,7 +30,7 @@ export type DeclaredPerturbation =
   | { readonly kind: 'wealth_absolute'; readonly delta: number };
 
 export interface PerturbationPairOptions {
-  readonly policy: 'mock-weighted-v1' | 'random-uniform-v1';
+  readonly policy: 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
   /** 预注册检查点 tick（07 §7.1 默认 burn-in 后 365；此处必须显式声明）。 */
   readonly checkpointTick: number;
   readonly declared: DeclaredPerturbation;
@@ -464,7 +464,7 @@ export interface PerturbationBatchSummary {
   readonly schemaVersion: 'perturbation-summary-v1';
   readonly rulesVersion: string;
   readonly engineVersion: string;
-  readonly policy: 'mock-weighted-v1' | 'random-uniform-v1';
+  readonly policy: 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
   readonly checkpointTick: number;
   readonly tasks: readonly PerturbationTaskSpec[];
   readonly pairs: readonly PerturbationPairOutcome[];
@@ -480,7 +480,7 @@ export function runPerturbationBatch(
   config: RunConfig,
   tasks: readonly PerturbationTaskSpec[],
   options: {
-    policy: 'mock-weighted-v1' | 'random-uniform-v1';
+    policy: 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
     checkpointTick: number;
     maxTicks?: number;
   },

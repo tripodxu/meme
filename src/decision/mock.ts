@@ -26,6 +26,7 @@ export const MOCK_WEIGHTED_V1_CONSTANTS = Object.freeze({
 });
 
 export const POLICY_VERSION_MOCK = 'mock-weighted-v1';
+export const POLICY_VERSION_MOCK_V2 = 'mock-weighted-v2';
 
 export interface MockDecisionInput {
   readonly runId: string;
@@ -107,6 +108,84 @@ export function decideMockWeighted(input: MockDecisionInput): DecisionRecord {
     actionSetHash: input.actionSetHash,
     legalActions: [...input.legal.actions],
     policyVersion: POLICY_VERSION_MOCK,
+    promptVersion: null,
+    promptStyle: null,
+    requestedAction: null,
+    selectedAction: selected as ActionKey,
+    source: 'mock',
+    probabilitySource: 'derived',
+    requestedModel: 'mock',
+    responseModel: null,
+    probabilities,
+    confidence: null,
+    topK: 1,
+    usage: {},
+    latencyMs: 0,
+    attempts: 1,
+    fallbackReason: null,
+    rawResponse: null,
+  };
+}
+
+/**
+ * `mock-weighted-v2`（rules-v15 / D2，ADR 0007）：在 v1 权重上按个体行为特质
+ * 调整 `compete` 权重：
+ *
+ * `w = w_v1 × exp(θrisk×(riskTolerance−0.5) + θcross×(crossClassOpenness−0.5)×跨层)`
+ *
+ * θ 全部来自 `config.behavior`；两者为 0 时 `exp(0)=1`，权重与 v1 逐位一致，
+ * 抽样地址仍是 `mock_action`，因此默认配置下轨迹与 v1 相同。
+ */
+export function decideMockWeightedV2(input: MockDecisionInput): DecisionRecord {
+  const agent = input.state.society.agents[agentIndexFromId(input.agentId)];
+  if (agent === undefined || agent.id !== input.agentId || !agent.alive) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      `mock-v2 决策个体不存在或已死亡: ${input.agentId}`,
+    );
+  }
+  const behavior = input.state.config.behavior;
+  const weights = mockWeights(agent, input.legal);
+  input.legal.actions.forEach((action, index) => {
+    if (!action.startsWith('compete:')) return;
+    const targetId = action.slice('compete:'.length);
+    const target = input.state.society.agents[agentIndexFromId(targetId as AgentId)];
+    if (target === undefined) {
+      throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `mock-v2 竞争目标缺失: ${targetId}`);
+    }
+    const crossClass = target.classIndex !== agent.classIndex ? 1 : 0;
+    const multiplier = Math.exp(
+      behavior.riskCompeteSensitivity * (agent.riskTolerance - 0.5) +
+        behavior.crossClassCompeteSensitivity * (agent.crossClassOpenness - 0.5) * crossClass,
+    );
+    weights[index] = (weights[index] ?? 0) * multiplier;
+  });
+  const r = rngUnit(
+    input.seed,
+    input.state.society.tick,
+    input.agentId,
+    RNG_EVENT_TAGS.mockAction,
+    0,
+  );
+  const sampledIndex = weightedSampleIndex(weights, r);
+  const selected = input.legal.actions[sampledIndex];
+  if (selected === undefined) {
+    throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'mock-v2 加权抽样未产生合法行动');
+  }
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const probabilities: Record<string, number> = {};
+  input.legal.actions.forEach((action, actionIndex) => {
+    probabilities[action] = (weights[actionIndex] ?? 0) / totalWeight;
+  });
+  return {
+    schemaVersion: DECISION_SCHEMA_VERSION,
+    runId: input.runId,
+    tick: input.state.society.tick,
+    agentId: input.agentId,
+    stateHash: input.stateHash,
+    actionSetHash: input.actionSetHash,
+    legalActions: [...input.legal.actions],
+    policyVersion: POLICY_VERSION_MOCK_V2,
     promptVersion: null,
     promptStyle: null,
     requestedAction: null,

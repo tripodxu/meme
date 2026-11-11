@@ -8,6 +8,7 @@ import {
   sampleTruncatedNormal,
 } from '../rng/sampling.js';
 import { createDraw } from '../rng/rng.js';
+import { clamp } from '../engine/arith.js';
 import { RNG_EVENT_TAGS, RNG_INIT_TICK, RNG_POPULATION_ACTOR } from '../rng/tags.js';
 import type { Seed } from '../control/ids.js';
 
@@ -64,6 +65,21 @@ export function deriveInitialPopulation(config: RunConfig, seed: Seed): InitialP
     const uAge = attributeDraw(RNG_EVENT_TAGS.initAge, 0);
     const remainingLife =
       config.population.initialAgeMode === 'uniform' ? initialLife * (1 - uAge) : initialLife;
+    // rules-v15 / D2：行为特质由 (config, seed) 派生；sigma=0 时恒为 0.5，
+    // 仍消费独立 tag，保证地址不随 sigma 变化而重排。
+    const riskTolerance = clamp(
+      0.5 +
+        config.behavior.riskTraitSigma * (2 * attributeDraw(RNG_EVENT_TAGS.initRiskTrait, 0) - 1),
+      0,
+      1,
+    );
+    const crossClassOpenness = clamp(
+      0.5 +
+        config.behavior.crossClassTraitSigma *
+          (2 * attributeDraw(RNG_EVENT_TAGS.initCrossClassTrait, 0) - 1),
+      0,
+      1,
+    );
     // 步骤 5：Value=initialValue；classAge/baselineSum/belowNeedStreak=0。
     return {
       id,
@@ -73,6 +89,8 @@ export function deriveInitialPopulation(config: RunConfig, seed: Seed): InitialP
       value: config.population.initialValue,
       ge,
       hard,
+      riskTolerance,
+      crossClassOpenness,
       initialLife,
       remainingLife,
       classAge: 0,

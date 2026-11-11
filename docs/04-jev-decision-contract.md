@@ -53,6 +53,17 @@ interface DecisionRecord {
 3. 按 legalActions 请求顺序做加权抽样，使用 `R(seed,tick,agentId,"mock_action",0)`，概率字段为归一化权重、probabilitySource=derived。
 4. 不读取 Jev、不额外生成属性，不使用 topK。Jev 失败回退不是 mock，而是独立 `fallback/accumulate`。
 
+**`mock-weighted-v2`**（rules-v15，ADR 0007）：
+
+1. 先按 `mock-weighted-v1` 构造基础权重（权重常数与 v1 相同）。
+2. 仅对 `compete:<id>` 行动乘以
+   `exp(θrisk×(riskTolerance−0.5) + θcross×(crossClassOpenness−0.5)×crossClass)`；
+   `crossClass=1` 当目标阶级不等于自身阶级，否则 0；特质来自权威状态，
+   `θrisk=behavior.riskCompeteSensitivity`、`θcross=behavior.crossClassCompeteSensitivity`。
+3. `θrisk=θcross=0` 时乘子恒为 1，权重、抽样与选择逐位等于 v1；抽样地址仍是
+   `R(seed,tick,agentId,"mock_action",0)`，probabilitySource=derived。
+4. 不读取 Jev、不使用 topK；特质初始化与结算规则不因该策略改变。
+
 **`random-uniform-v1`**：对全部 legalActions 等概率，使用 `R(seed,tick,agentId,"random_action",0)` 均匀选择；概率为 `1/legalActions.length`、probabilitySource=derived，不使用 topK。非法/空合法集属于核心错误，不由 random 猜测。
 
 ### 2.2 执行记录

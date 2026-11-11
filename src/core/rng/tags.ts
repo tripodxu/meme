@@ -14,6 +14,10 @@ export const RNG_EVENT_TAGS = {
   initLife: 'init_life',
   /** 初始年龄；`uniform`/`newborn` 两种模式都消费该地址。 */
   initAge: 'init_age',
+  /** rules-v15：风险特质；sigma=0 时仍消费但结果恒为 0.5。 */
+  initRiskTrait: 'init_risk_trait',
+  /** rules-v15：跨层意愿特质；sigma=0 时仍消费但结果恒为 0.5。 */
+  initCrossClassTrait: 'init_cross_class_trait',
   networkInit: 'network_init',
   actionOrder: 'action_order',
   /** 竞争候选：counter 2k 选 local/global 来源，2k+1 选目标。 */

@@ -20,6 +20,7 @@
 >
 > **v13 修订（2026-11-11，changes/0063，ADR 0005）**：规则 42/43 引入**显式制度状态机** `society.institutionalRegime ∈ {closed, open}`——仅在决策周期、`openness.updateMode='dynamic'` 时更新：`closed→open` 需同时满足 `Mup >= enterM` 且 `S <= enterS`；`open→closed` 需满足 `Mup <= exitM` 或 `S >= exitS`；进入/退出阈值之间构成滞回带，防止边界抖动。`O_target` 在 v12 公式上增加 `+θR·sign(regime)`（open 为 `+θR`、closed 为 `−θR`；新参数 `openness.regimeMode/regimeBias/regimeEnterOpenMobility/regimeExitOpenMobility/regimeEnterOpenSegregation/regimeExitOpenSegregation`，默认 `continuous`/0/0.25/0.15/0.20/0.30）。`regimeMode='continuous'` 或 `updateMode='fixed'` 时不更新制度，默认配置与 rules-v12 逐位一致。依据：P6-05c 的 θH 自反馈未产生稳定第三簇（changes/0061），连续 O 缺少离散制度记忆；该修订**不保证**产生三簇，必须由 P6-05d 检验；不是校准或结构涌现声明。
 > **v14 目标修订（2026-11-11，changes/0065，ADR 0006）**：G6 的结构目标从“≥3 类结构”改为**“2 体制 + 连续统”**。不改变任何结算规则、参数、schema 或规则版本；只改变验收口径：预注册 **k=2** 聚类稳定（两簇各 ≥5 个 run、ARI median ≥0.70、silhouette ≥0.35、14600 同簇率 ≥0.80、至少一个簇含 ≥2 个参数区域、序参量 `|ΔO|`/`|ΔS|`/`TV(P)` 至少一项 ≥0.10），且 **k=3 不产生稳定第三簇**；旧 k=3 结果不得追认通过，新旧口径必须同报。依据：P6-05/05b/搜索/05c/05d 五轮均无稳定第三簇，P6-05e 显示第三簇随人口扩大消失（D3）；G6 仍未通过，须由 P6-06 全新 seed 确认（docs/07 §8.2）。
+> **v15 修订（2026-11-11，changes/0067，ADR 0007）**：新增**个体行为异质性**——每个个体在初始化时获得不可变特质 `riskTolerance`/`crossClassOpenness ∈ [0,1]`，由 `(config, seed)` 经地址化随机流 `init_risk_trait`/`init_cross_class_trait` 派生（`sigma=0` 时恒为 0.5）。特质只通过新策略版本 `mock-weighted-v2` 影响 `compete` 权重：`w = w_v1 × exp(θrisk×(riskTolerance−0.5) + θcross×(crossClassOpenness−0.5)×跨层)`；新参数 `behavior.riskTraitSigma/crossClassTraitSigma/riskCompeteSensitivity/crossClassCompeteSensitivity` 默认全 0。结算公式（需求、跌落、流动、网络重构）不读取特质；默认策略仍为 `mock-weighted-v1`，默认配置与 rules-v13/v14 逐位一致。依据：P6-06 的 k=2 很强但 k=3 仍稳定（changes/0066），规则负责人选择 D2，用个体异质性而非继续调 θ 检验额外结构；该修订**不保证**产生第三类或通过 G6，必须由 P6-07 探索轮检验，不是校准或结构涌现声明。
 
 ## 一、基础属性与日常积累
 
@@ -217,3 +218,7 @@
 57. **敏感性验收（v14 目标修订）：** 应找到并冻结至少两组可复现的参数区域，使同一批初始人口形成**“2 体制 + 连续统”**的结构指纹：预注册 **k=2** 聚类稳定（两簇各 ≥5 个 run、ARI median ≥0.70、silhouette ≥0.35、同簇率 ≥0.80、至少一个簇含 ≥2 个参数区域），两簇在序参量 `O`/`S`/`TV(P)` 上至少一项达到 0.10 的实质差异，且 **k=3 不产生稳定第三簇**。同时在远离临界的参数区域验证小扰动会被吸收。两个体制必须是互不相同的聚类，而不是同一状态的多个标签或两组预设；连续统指两簇内部的连续变化，不要求第三个离散类。验收细节见 `docs/07` §8.2 与 ADR 0006；旧 k=3 结果不得追认通过。若只能得到一种结构，说明反馈或持有成本不足；若每次结果都不可归类，说明随机噪声或反馈过强。
 58. **基线与消融：** 必须保留四个对照组：无网络机会（`β=0`）、无制度反馈（`O` 固定）、无阶级拥挤（`η=0`）、无贫富分化反馈（`κ=0`）。另加 `ψ=1`（无阶级持有成本）对照，验证阶级需求乘子对结构的解释力。只有消融后结构明显退化，才能声称对应机制具有解释力。
 59. **不追求混沌指标：** 不以“扰动越大越好”或短期 Lyapunov 分叉作为唯一目标。优先保证结构差异可解释、可重放、可消融，并明确区分参数敏感、路径依赖和纯随机波动。
+
+## 十四、个体行为异质性（v15）
+
+60. **行为特质与竞争权重：** 每个个体在初始化时获得两个不可变特质 `riskTolerance` 与 `crossClassOpenness`，值域 `[0,1]`；由 `(config, seed)` 纯函数和地址化随机流派生，初始化后不随 tick、阶级或财富改变。默认 `sigma=0` 时两者恒为 `0.5`。特质只被 `mock-weighted-v2` 读取：`compete` 权重乘以 `exp(θrisk×(riskTolerance−0.5) + θcross×(crossClassOpenness−0.5)×[目标阶级≠自身阶级])`，其余行动权重、抽样地址与决策 schema 不变；敏感性为 0 时与 `mock-weighted-v1` 逐位一致。结算规则不得读取特质；默认策略仍为 `mock-weighted-v1`。特质与四个 `behavior.*` 参数进入 `configHash`/`paramsHash`；配置 schema v9、状态 schema v5、`rules-v15`。行为异质性是否产生额外宏观结构必须由预注册探索/确认轮检验，不得仅凭公式宣称；P6-07 是探索轮，不构成 G6 确认。

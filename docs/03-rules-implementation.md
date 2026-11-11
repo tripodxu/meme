@@ -444,9 +444,33 @@ O=O+(Otarget-O)×(1-exp(-Δt/τO))
 
 `θH` 是 rules-v12 的 `openness.selfReinforcement`（默认 0、域 [0,20]）；`O_prev` 为本 tick 更新前的 O，不使用同期更新值。`θH=0` 与 rules-v11 逐位一致；`θH>0` 允许两个稳定不动点，但 P6-05c 未产生稳定第三簇（ADR 0004、changes/0060/0061）。
 
-`regime ∈ {closed, open}` 是 rules-v13 的显式制度状态（`society.institutionalRegime`）；`updateRegime` 规则：`closed→open` 需 `Mup >= enterM` 且 `S <= enterS`，`open→closed` 需 `Mup <= exitM` 或 `S >= exitS`，其余保持。`θR` 是 `openness.regimeBias`（默认 0、域 [0,10]），`sign(open)=+1`、`sign(closed)=-1`。`regimeMode='continuous'` 或 `updateMode='fixed'` 时制度不更新；默认 `continuous` 与 rules-v12 逐位一致。`θR>0` 能否形成第三类结构必须由 P6-05d 检验（ADR 0005、changes/0063）。
+`regime ∈ {closed, open}` 是 rules-v13 的显式制度状态（`society.institutionalRegime`）；`updateRegime` 规则：`closed→open` 需 `Mup >= enterM` 且 `S <= enterS`，`open→closed` 需 `Mup <= exitM` 或 `S >= exitS`，其余保持。`θR` 是 `openness.regimeBias`（默认 0、域 [0,20]），`sign(open)=+1`、`sign(closed)=-1`。`regimeMode='continuous'` 或 `updateMode='fixed'` 时制度不更新；默认 `continuous` 与 rules-v12 逐位一致。`θR>0` 能否形成第三类结构必须由 P6-05d 检验（ADR 0005、changes/0063）。
 
 `openness.updateMode=fixed` 时跳过上述 O 更新，O 始终保持 `openness.initial`，制度也保持初值；该开关必须作为可哈希配置项实现（P1-10），不得用极大 `τO` 近似。同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
+
+### 6.11 个体行为异质性（rules-v15，ADR 0007）
+
+初始化阶段在 `init_ge`/`init_hard`/`init_life`/`init_age` 之后、网络初始化之前，
+为每个个体派生两个不可变特质（`tick=-1`，地址化随机流）：
+
+```text
+riskTolerance      = clamp(0.5 + behavior.riskTraitSigma      × (2·R(seed,-1,id,'init_risk_trait',0)      − 1), 0, 1)
+crossClassOpenness = clamp(0.5 + behavior.crossClassTraitSigma × (2·R(seed,-1,id,'init_cross_class_trait',0) − 1), 0, 1)
+```
+
+`sigma=0` 时仍消费地址但恒为 `0.5`；特质进入 `initialPopulationHash` 与
+`society.agents[*]`，初始化后不随任何结算阶段改变。**A–H 阶段（需求、
+跌落、流动、竞争结算、网络重构、慢变量）一律不得读取特质**；它们只被
+`mock-weighted-v2` 策略用于 `compete` 权重（docs/04 §2.1）：
+
+```text
+w_compete = w_v1 × exp(θrisk×(riskTolerance−0.5) + θcross×(crossClassOpenness−0.5)×[target.class≠self.class])
+```
+
+默认 `behavior.*=0` 且 `decision.policy='mock-weighted-v1'` 时，结算轨迹与
+rules-v13/v14 逐位一致；`mock-weighted-v2` 在敏感性为 0 时与 v1 逐位一致。
+配置 v8→v9 补 `behavior` 默认 0；状态 v3/v4→v5 缺特质按 0.5 迁移。
+P6-07 是机制探索轮，不构成 G6 确认（ADR 0007、changes/0067）。
 
 ## 7. 不变量
 

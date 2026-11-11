@@ -23,6 +23,8 @@ function makeAgent(overrides: Partial<AgentState> = {}): AgentState {
     value: 100,
     ge: 1,
     hard: 1,
+    riskTolerance: 0.5,
+    crossClassOpenness: 0.5,
     initialLife: 25550,
     remainingLife: 20000,
     classAge: 5,
