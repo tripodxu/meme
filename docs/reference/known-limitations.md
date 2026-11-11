@@ -48,8 +48,6 @@ P6 已按 ADR 0008 停止。
 
 ## 5. 上传与批跑
 
-- `pnpm batch` 尚未自动产出 `run-upload-bundle-file-v1`；当前需上游导出器或手工
-  准备 artifact 目录（指南 `docs/guides/upload.md`）。
 - 上传创建 run 的网络超时标记 `create_ambiguous`，需人工核对服务器列表；不会自动
   重试以避免复制实验。
 - 批跑已可导出 `metrics-only` 与 `full`（decisions/events/snapshot）；full 捕获会
