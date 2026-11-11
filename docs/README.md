@@ -19,7 +19,8 @@
 > - **P6 停止（2026-11-11）**：规则负责人选择停止 P6 结构目标（ADR 0008、changes/0069）。不再新增 P6 确认轮，不再调 θ/k/seed/阈值或加同类机制旋钮；**G6 保持未通过**，不追认 P6-06/P6-07，不声称已校准或结构已涌现。P3/P4/P5b/P7 解除 G6 前置，可按 `docs/01` §9/§10 启动；工程产物不得表述为科学验收。
 > - **P3 前端（2026-11-11）**：浏览器工作台 MVP 已落地（changes/0070）：12 态 RunController、五工作区、10 类图表、个体检查器、导入导出与 IndexedDB 回放、LTTB 降采样、双主题/键盘/375px 响应式。`jev_live` 仍禁用，待 P4 Worker 代理；P3-07 已有 5 项 jsdom DOM E2E；真实浏览器自动化 E2E 尚未接入。G6 未通过，界面不是校准证据。启动见 `docs/guides/web-app.md`。
 > - **P4 Worker/D1/R2（2026-11-11）**：MVP 代码与契约测试已落地（changes/0071）：Hono 统一错误/requestId、D1 迁移、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB/双 SHA-256/ETag）、complete、keyset 分页、限流、同源 BYOK `/api/jev`。P4-07 的 workerd/preview 部署冒烟、保留策略/维护任务、真实 Jev live 冒烟未完成；`jev_live` 仍禁用，不得声称已部署或 live 验证。
-> - **未开工**：P5b 上传、P7 发布；P3/P4 已落地代码但不构成科学验收。P6 已停止（G6 未通过），工程轨道按 `docs/01` §9/§10 推进。
+> - **P5b 上传（2026-11-11）**：`run-upload-bundle-v1` 上传器、分块重试/幂等、`upload-ledger-v1` 断点续传与 `pnpm upload` CLI 已落地（changes/0072，指南 `docs/guides/upload.md`）。`pnpm batch` 尚未自动导出 bundle；preview/workerd 集成冒烟未执行；上传成功只表示技术完整。
+> - **未开工**：P7 发布硬化；P3/P4/P5b 已落地代码但不构成科学验收。P6 已停止（G6 未通过），工程轨道按 `docs/01` §9/§10 推进。
 
 Stratify 是一个可交互、可回放、可批量实验的社会仿真系统。Jev 负责从合法行动中做结构化选择，确定性 TypeScript 引擎负责全部数值结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 

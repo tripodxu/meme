@@ -2,9 +2,12 @@
 
 Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.md) 施工中：P1.5 的 `preregistration`/`run-cell`/`window-stats`/`cluster` 已可用；P5a 的 `batch`/`checkpoint`（含 `checkpoint-fs`）、**P5-01 批跑 CLI（`batch-cli` + `bin/stratify-batch.mjs`，changes/0031）**、**P5-03 run 内进度检查点（`run-progress`，changes/0032）** 与 **P5-04 微扰配对执行入口（`perturbation`，changes/0033）** 已落地；**P5-02 共享预算/限流/live 批跑执行器（`budget`/`rate-limit`/`batch-live`，changes/0035）** 已落地——**P5a 全部完成**；上传仍未完成。
 
-已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`、`p6-live-comparison`、`p6-cluster-summary`。
+已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`、`p6-live-comparison`、`p6-cluster-summary`、`uploader`、`upload-bundle`。
 
-计划模块：`uploader`（P5b）。
+P5b 上传已落地（`uploader`/`upload-bundle` + `scripts/upload-run.mjs`，changes/0072）：
+`run-upload-bundle-v1` → P4 Worker 的创建/分块/tick/agent/complete，`upload-ledger-v1`
+断点续传；`pnpm batch` 尚未自动导出上传 bundle，指南见
+[docs/guides/upload.md](../../docs/guides/upload.md)。
 
 ## 微扰配对（P5-04）
 

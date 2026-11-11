@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 45）
+## 1. 当前交接状态（2026-11-11，rev 46）
+
+- rev 46（2026-11-11，**P5b 上传器落地**）：`src/runner/uploader.ts` 实现 `run-upload-bundle-v1` → P4 Worker 的创建/分块 artifact/tick/agent/complete 全流程；本地 gzip + 压缩/未压缩 SHA-256，服务器复算不符即终止；409 终止，429/5xx/网络错误指数退避；创建 run 网络失败标记 `create_ambiguous` 不自动重试。`upload-ledger-v1` 逐块原子确认，重跑只补传未确认块；bundle/baseUrl 变化拒绝复用。`scripts/upload-run.mjs` + `pnpm upload`，`RUNNER_TOKEN` 只从环境变量读取。测试 10 项（7 上传器 + 3 加载器）。**边界**：`pnpm batch` 尚未自动导出 bundle；preview/workerd 集成冒烟未执行；上传成功只表示技术完整。不改规则/schema，不构成校准或结构证据（changes/0072）。
 
 - rev 45（2026-11-11，**P4 Worker/D1/R2 MVP 落地**）：`src/worker` Hono 应用 + `migrations/0001_init.sql` + `wrangler.jsonc`，覆盖 P4-01～P4-06/P4-08 的接口面：统一错误/requestId、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB、双 SHA-256、ETag/304）、complete 状态机、keyset 分页、固定窗口限流、同源 BYOK `/api/jev`（模型 allowlist、30s 超时、不记录 Key/body）。验证：`pnpm typecheck`/`pnpm lint` 通过；14 项 Worker 测试（本机 `node:sqlite` 执行真实迁移 + 内存 R2）；`wrangler deploy --dry-run` 打包成功。**边界**：P4-07 workerd/preview 集成与部署冒烟未执行；保留策略/维护任务、`expectedDueDecisions`/`artifactManifestHash` 服务端复算、`diagnosticsHash` 持久化、真实 Jev live 冒烟均未做；`jev_live` 仍禁用。不改规则/schema，不构成校准或结构证据（changes/0071）。
 
