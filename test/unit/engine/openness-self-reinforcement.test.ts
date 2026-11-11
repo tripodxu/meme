@@ -21,6 +21,7 @@ const input = {
   mUp: 0.5,
   gini: 0.25,
   segregation: 0.3,
+  regime: 'closed' as const,
 };
 
 describe('rules-v12 openness.selfReinforcement', () => {
@@ -83,7 +84,8 @@ describe('rules-v12 openness.selfReinforcement', () => {
     expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
     if (result.ok) {
       expect(result.config.openness.selfReinforcement).toBe(0);
-      expect(result.config.schemaVersion).toBe('stratify-config-v7');
+      expect(result.config.schemaVersion).toBe('stratify-config-v8');
+      expect(result.config.openness.regimeMode).toBe('continuous');
     }
   });
 });

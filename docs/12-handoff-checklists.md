@@ -1,7 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-06，rev 36）
+## 1. 当前交接状态（2026-11-11，rev 37）
 
+- rev 37（2026-11-11，rules-v13 落地 / P6-05d 未通过）：ADR 0005 已接受，显式制度状态机实现完成——权威状态 `society.institutionalRegime ∈ {closed, open}`、滞回转移（`enterM=0.25`/`exitM=0.15`/`enterS=0.20`/`exitS=0.30`）、`O_target` 增加 `θR·sign(regime)`；6 个新参数默认 `continuous`/θR=0，与 rules-v12 逐位一致；版本 rules-v13 / engine-v0.11.0 / config v8 / state v4，v7→v8 与 v3→v4 迁移；11 项新单测与 config/engine/param golden 前滚，799 单测全绿（changes/0063）。P6-05d `p6-05d-5cb910dd` **160/160 完成、0 排除、0 灭绝**：k=3 簇 **[76,3,41]**、三簇均混全部 4 cell、ARI median **0.094**、silhouette **0.152**、14600 同簇率 **0.650**，四项判据全部未过；θR>0 的终端 O 几乎全部塌到 0（θR=4 均值 0.004，θR=8/12 均值 0.000；continuous 对照均值 0.252/sd 0.156），属 **closed 单态吸收**，**B 方案失败**。首跑曾因 θR=12 超出原注册域 [0,10] 在 thetaR12 前失败；已把域修为 [0,20] 并新增冻结前逐 cell 校验，用全新目录重跑。按预注册决策规则停止制度机调参，转规则设计评审；不得声称双稳态、三簇或已校准。
 - rev 36（2026-11-06，搜索验证未通过 / P6-05c 未通过）：P6 参数搜索粗筛 **9,600/9,600**（rules-v11、4 shard、0 失败），top 候选 `c0607`（score 1.352、silhouette 0.352、ARI median 1.000、簇 [6,3,3]）；验证 `p6-search-val-ef550c09` **240/240**，k=3 簇 **[74,97,9]**、silhouette **0.241**、ARI median **0.157**、14600 同簇率 **0.683** → `no-stable-region-found`，不启动 confirm。已把 rules-v12 构建（`4b6cec9`）部署到 VPS `/opt/stratify/current`（v11 的 `dist/scripts` 备份为 `dist-v11-20261105`/`scripts-v11-20261105`）；P6-05c `p6-05c-f7f3cc91` **160/160、0 排除、0 灭绝**，k=3 簇 **[72,39,9]**、ARI median **0.182**、silhouette **0.215**、14600 同簇率 **0.675**；k=2 [111,9]、silhouette 0.505，二簇稳健、第三簇不成立 → **A 方案失败，转 B 方案（显式制度状态机，rules-v13）**。不得声称双稳态、三簇或已校准。
 
 > **接手先读**：本节的 rev 11–30 是当前有效口径。更早的 rev 3–10 是历史沿革，
@@ -44,8 +45,8 @@
 - rev 19（2026-11-05，P6-01 Stage A 执行）：预注册冻结（changes/0037，experimentId p6-stageA-40-b9cd2fd9 / p6-stageA-200-366198c5）后执行 840 run 全成功（0 失败/灭绝，wall 2.8+20.5 min）；判读：env0 最强轴（expanded d>band 0.57/0.97）、crossDays 双向与 ψ=1 跨人口一致入选、needThreshold=0.9 仅 200 人口、decay 本视野未达门槛；12 个 (cell,人口) 对入选 → Stage B 候选 6 cell。证据：changes/0038、research/2026-11-05-p6-01-stage-a-result.md、out/p6-stageA-*（artifacts §2 已登记）。**Stage A 仅筛选，不构成结构结论（AGENTS #9）**。
 - rev 18（2026-11-05，D-04 冻结）：P6 预算按 VPS `2zhou` 实测冻结 v1（Stage A 1200 run/180 min/256 MB、Stage B 60/240/512、微扰 240/120/256、消融 120/240/512；换预算=新 experimentId）；基准记录 `docs/benchmarks/2026-11-05-p5a-engine.md`（开发机+VPS 双环境，VPS 1000 人×3650tick=120s）；批跑人口实验级化（`--population`，200 人×730tick 实机验证）。证据：`changes/0036`、`docs/research/2026-11-05-d04-p6-budget-freeze.md`。**至此 P6-01 的全部前置（工程 P5a + 预算 D-04）满足**。
 - rev 16（2026-11-05，P5-06 收口）：`deploy/` 三工件——stratify-runner.service（oneshot、ConditionPathExists、专用用户、Restart=on-failure+StartLimit、ExecStart 固定 manifest+--resume+checkpoint-ticks 500、ProtectSystem=strict）、check-disk-space.sh（磁盘守卫 2048MB）、journald drop-in（200M/1G/14d）；11 项静态契约测试；docs/09 §6 加 deploy/ 指引，docs/01 §2 目录树补 deploy/。证据：changes/0034。**边界**：VPS systemctl 实装演练归发布前；常驻调度/budget.sqlite 归 P5-02。
-- 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、上传对接（P5b，0/2）、Jev Key 轮换（provider 侧吊销确认）、P6-05 验收与 G6 校准验收、rules-v12 ADR、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。P5a 五项、P6-01/P6-02/P6-03/P6-04a、重测信度、1-seed live pilot、VPS 标准部署、P6-04b 正式 live 对照、P6-05/P6-05b 聚类尝试（均未通过）与 live run 内进度检查点已完成（changes/0031–0035、0040 前置、0050–0058）。
-- 下一唯一入口：**ADR 0004 评审确认（proposed）**——P6-05/P6-05b 均未产生稳定第三簇（changes/0057/0058），已起草 rules-v12 自反馈方案（`openness.selfReinforcement` θH、默认 0、config schema v7）；需科学负责人确认接受/拒绝。接受后实现参数/测试/golden 并跑 P6-05c（θH∈{0,6,10,14} × 30 新 seed）；拒绝则讨论方案 B（显式制度状态机）。G6 仍未通过，不得调 k/换指标/事后挑 seed。P3/P4/P5b 按 01 §9 在 G6 后并行。
+- 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、上传对接（P5b，0/2）、Jev Key 轮换（provider 侧吊销确认）、P6-05d 判读与 G6 校准验收、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。P5a 五项、P6-01/P6-02/P6-03/P6-04a、重测信度、1-seed live pilot、VPS 标准部署、P6-04b 正式 live 对照、P6-05/P6-05b/P6-05c 聚类尝试（均未通过）、rules-v13 落地与 P6-05d 开跑已完成（changes/0031–0035、0040 前置、0050–0063）。
+- 下一唯一入口：**规则设计评审（新机制假设 / 新 ADR）**——P6-05、P6-05b、参数搜索、P6-05c 与 P6-05d 均未产生稳定三簇，且 θH/θR/θS/H/share/w 的可调旋钮已按预注册停止；需要重新审视“三类阶级结构”目标与机制假设，不得继续在同一状态机上换种子/调阈值/调 k。G6 仍未通过。P3/P4/P5b 按 01 §9 在 G6 后并行。
 - 不得提前声称：三类结构已出现（目前只有 class-share 单特征候选）、Jev 行为有效、性能已达标、生产可发布、网关免费即生产免费。
 
 ## 2. 新接手者开工清单

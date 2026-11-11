@@ -7,8 +7,10 @@ import {
   CONFIG_SCHEMA_VERSION_V4,
   CONFIG_SCHEMA_VERSION_V5,
   CONFIG_SCHEMA_VERSION_V6,
+  CONFIG_SCHEMA_VERSION_V7,
   RULES_VERSION,
 } from '../control/versions.js';
+import { DEFAULT_RUN_CONFIG } from './defaults.js';
 import { errorCodes, type ErrorCode } from '../control/errors.js';
 import { getParamDefinition, readNumericConstant } from '../params.js';
 import type { ArrayDomain, ParamDefinition, ParamDomain } from '../params.js';
@@ -418,6 +420,28 @@ function migrateConfigInput(input: unknown): unknown {
         : {};
     if (openness['selfReinforcement'] === undefined) {
       openness['selfReinforcement'] = 0;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V7, openness };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V7) {
+    const rawOpenness = record['openness'];
+    const openness =
+      typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
+        ? { ...(rawOpenness as Record<string, unknown>) }
+        : {};
+    const defaults = DEFAULT_RUN_CONFIG.openness;
+    const regimeDefaults: Record<string, unknown> = {
+      regimeMode: defaults.regimeMode,
+      regimeBias: defaults.regimeBias,
+      regimeEnterOpenMobility: defaults.regimeEnterOpenMobility,
+      regimeExitOpenMobility: defaults.regimeExitOpenMobility,
+      regimeEnterOpenSegregation: defaults.regimeEnterOpenSegregation,
+      regimeExitOpenSegregation: defaults.regimeExitOpenSegregation,
+    };
+    for (const [key, value] of Object.entries(regimeDefaults)) {
+      if (openness[key] === undefined) {
+        openness[key] = value;
+      }
     }
     record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, openness };
   }
@@ -975,6 +999,12 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'segregationReference',
       'ascentCostWeight',
       'selfReinforcement',
+      'regimeMode',
+      'regimeBias',
+      'regimeEnterOpenMobility',
+      'regimeExitOpenMobility',
+      'regimeEnterOpenSegregation',
+      'regimeExitOpenSegregation',
       'multiplierMin',
       'multiplierMax',
     ])
@@ -1040,6 +1070,56 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       openness['selfReinforcement'],
       '$.openness.selfReinforcement',
       'openness.selfReinforcement',
+    );
+    checkRegisteredEnum(
+      collector,
+      openness['regimeMode'],
+      '$.openness.regimeMode',
+      'openness.regimeMode',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['regimeBias'],
+      '$.openness.regimeBias',
+      'openness.regimeBias',
+    );
+    const regimeExitOpenMobility = checkRegisteredNumber(
+      collector,
+      openness['regimeExitOpenMobility'],
+      '$.openness.regimeExitOpenMobility',
+      'openness.regimeExitOpenMobility',
+    );
+    const regimeEnterOpenMobility = checkRegisteredNumber(
+      collector,
+      openness['regimeEnterOpenMobility'],
+      '$.openness.regimeEnterOpenMobility',
+      'openness.regimeEnterOpenMobility',
+    );
+    checkPairOrder(
+      collector,
+      regimeExitOpenMobility,
+      regimeEnterOpenMobility,
+      '$.openness.regimeEnterOpenMobility',
+      'regimeExitOpenMobility 必须 <= regimeEnterOpenMobility（迟滞带不得倒置）',
+    );
+    const regimeEnterOpenSegregation = checkRegisteredNumber(
+      collector,
+      openness['regimeEnterOpenSegregation'],
+      '$.openness.regimeEnterOpenSegregation',
+      'openness.regimeEnterOpenSegregation',
+    );
+    const regimeExitOpenSegregation = checkRegisteredNumber(
+      collector,
+      openness['regimeExitOpenSegregation'],
+      '$.openness.regimeExitOpenSegregation',
+      'openness.regimeExitOpenSegregation',
+    );
+    checkPairOrder(
+      collector,
+      regimeEnterOpenSegregation,
+      regimeExitOpenSegregation,
+      '$.openness.regimeExitOpenSegregation',
+      'regimeEnterOpenSegregation 必须 <= regimeExitOpenSegregation（迟滞带不得倒置）',
     );
     const min = checkRegisteredNumber(
       collector,

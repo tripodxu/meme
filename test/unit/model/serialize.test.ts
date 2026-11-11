@@ -21,6 +21,32 @@ describe('权威状态序列化（P1-02）', () => {
     expect(computeAuthoritativeStateHash(decoded)).toBe(computeAuthoritativeStateHash(state));
   });
 
+  it('v3 状态按 O 推断制度并升级为 v4', () => {
+    const state = createSimulation(DEFAULT_RUN_CONFIG, SEED);
+    const encoded = JSON.parse(JSON.stringify(encodeSimState(state))) as {
+      schemaVersion: string;
+      society: Record<string, unknown>;
+    };
+    encoded.schemaVersion = 'stratify-state-v3';
+    delete encoded.society['institutionalRegime'];
+    encoded.society['openness'] = 0.7;
+    const decoded = decodeSimState(encoded);
+    expect(decoded.society.institutionalRegime).toBe('open');
+    expect(encodeSimState(decoded).schemaVersion).toBe('stratify-state-v4');
+
+    encoded.society['openness'] = 0.3;
+    expect(decodeSimState(encoded).society.institutionalRegime).toBe('closed');
+  });
+
+  it('v4 状态缺 institutionalRegime 时拒绝', () => {
+    const state = createSimulation(DEFAULT_RUN_CONFIG, SEED);
+    const encoded = JSON.parse(JSON.stringify(encodeSimState(state))) as {
+      society: Record<string, unknown>;
+    };
+    delete encoded.society['institutionalRegime'];
+    expect(() => decodeSimState(encoded)).toThrowError(/必须为 'open' 或 'closed'/);
+  });
+
   it('cloneSimState 产生独立副本', () => {
     const state = createSimulation(DEFAULT_RUN_CONFIG, SEED);
     const clone = cloneSimState(state);

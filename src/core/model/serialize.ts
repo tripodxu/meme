@@ -1,10 +1,10 @@
-import type { RunConfig } from '../config/types.js';
+import type { InstitutionalRegime, RunConfig } from '../config/types.js';
 import { computeConfigHash, computeParamsHash } from '../config/hash.js';
 import { validateRunConfig } from '../config/validate.js';
 import { canonicalize } from '../hash/jcs.js';
 import { errorCodes, StratifyError } from '../control/errors.js';
 import { asAgentId, asSeed, type AgentId } from '../control/ids.js';
-import { STATE_SCHEMA_VERSION } from '../control/versions.js';
+import { STATE_SCHEMA_VERSION, STATE_SCHEMA_VERSION_V3 } from '../control/versions.js';
 import { DEATH_REASONS, type AgentState, type DeathReason } from './agent.js';
 import { compareAgentId, type FlowWindowEntry, type SocietyState } from './society.js';
 import type { SimState } from './state.js';
@@ -30,8 +30,8 @@ export type SerializedAgent = {
 };
 
 /**
- * 权威状态的 canonical 序列化形状（`stratify-state-v3`；v3 增补
- * society.occupancyPressure，v2 增补 society.refIncome）。
+ * 权威状态的 canonical 序列化形状（`stratify-state-v4`；v4 增补
+ * society.institutionalRegime，v3 增补 society.occupancyPressure，v2 增补 society.refIncome）。
  * 字段集合固定；字段增删或含义变化必须升级 `STATE_SCHEMA_VERSION`。
  */
 export interface SerializedSimState {
@@ -46,6 +46,7 @@ export interface SerializedSimState {
     eByClass: number[];
     refIncome: number[];
     openness: number;
+    institutionalRegime: InstitutionalRegime;
     initialClassShares: number[];
     occupancyPressure: number[];
     gini: number;
@@ -241,6 +242,7 @@ export function encodeSimState(state: SimState): SerializedSimState {
       eByClass: [...state.society.eByClass],
       refIncome: [...state.society.refIncome],
       openness: state.society.openness,
+      institutionalRegime: state.society.institutionalRegime,
       initialClassShares: [...state.society.initialClassShares],
       occupancyPressure: [...state.society.occupancyPressure],
       gini: state.society.gini,
@@ -297,7 +299,10 @@ export function decodeSimState(value: unknown): SimState {
     fail('$', '状态必须是对象');
   }
   const record = value as Record<string, unknown>;
-  if (record['schemaVersion'] !== STATE_SCHEMA_VERSION) {
+  if (
+    record['schemaVersion'] !== STATE_SCHEMA_VERSION &&
+    record['schemaVersion'] !== STATE_SCHEMA_VERSION_V3
+  ) {
     throw new StratifyError(
       errorCodes.CONFIG_UNKNOWN_VERSION,
       `未知状态 schemaVersion: ${String(record['schemaVersion'])}`,
@@ -398,6 +403,16 @@ export function decodeSimState(value: unknown): SimState {
   if (mUp < 0 || mUp > 1) fail('$.society.mUp', 'Mup 必须位于 [0,1]');
   if (mDown < 0 || mDown > 1) fail('$.society.mDown', 'Mdown 必须位于 [0,1]');
   if (openness < 0 || openness > 1) fail('$.society.openness', 'O 必须位于 [0,1]');
+  // rules-v13：v3 状态无制度字段，按 O 推断（与 `createSimulation` 的初值规则一致）。
+  const regimeRaw = societyRecord['institutionalRegime'];
+  let institutionalRegime: InstitutionalRegime;
+  if (record['schemaVersion'] === STATE_SCHEMA_VERSION_V3 && regimeRaw === undefined) {
+    institutionalRegime = openness >= 0.5 ? 'open' : 'closed';
+  } else if (regimeRaw === 'open' || regimeRaw === 'closed') {
+    institutionalRegime = regimeRaw;
+  } else {
+    fail('$.society.institutionalRegime', "必须为 'open' 或 'closed'");
+  }
   const lastOpennessUpdateTick = assertInteger(
     societyRecord['lastOpennessUpdateTick'],
     '$.society.lastOpennessUpdateTick',
@@ -420,6 +435,7 @@ export function decodeSimState(value: unknown): SimState {
     eByClass,
     refIncome,
     openness,
+    institutionalRegime,
     initialClassShares,
     occupancyPressure,
     gini,

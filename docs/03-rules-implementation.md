@@ -437,13 +437,16 @@ E[next,c]=(1-ρE)×E[t,c]+ρE×Eraw
 仅在决策周期更新 O，`Δt=tick-lastOpennessUpdateTick`，更新后写回 `lastOpennessUpdateTick=tick`；tick 0 的 `Δt=0`，首次更新不改变 O：
 
 ```text
-Otarget=sigmoid(θ0+θM×(Mup-Mref)-θG×(G-Gref)-θS×(S-Sref)+θH×(O_prev-0.5))
+regime' = updateRegime(regime, Mup, S)          # rules-v13；仅 dynamic + hysteresis
+Otarget=sigmoid(θ0+θM×(Mup-Mref)-θG×(G-Gref)-θS×(S-Sref)+θH×(O_prev-0.5)+θR×sign(regime'))
 O=O+(Otarget-O)×(1-exp(-Δt/τO))
 ```
 
-`θH` 是 rules-v12 的 `openness.selfReinforcement`（默认 0、域 [0,20]）；`O_prev` 为本 tick 更新前的 O，不使用同期更新值。`θH=0` 与 rules-v11 逐位一致；`θH>0` 允许两个稳定不动点，但是否形成第三类结构必须由 P6-05c 检验（ADR 0004、changes/0060）。
+`θH` 是 rules-v12 的 `openness.selfReinforcement`（默认 0、域 [0,20]）；`O_prev` 为本 tick 更新前的 O，不使用同期更新值。`θH=0` 与 rules-v11 逐位一致；`θH>0` 允许两个稳定不动点，但 P6-05c 未产生稳定第三簇（ADR 0004、changes/0060/0061）。
 
-`openness.updateMode=fixed` 时跳过上述 O 更新，O 始终保持 `openness.initial`；该开关必须作为可哈希配置项实现（P1-10），不得用极大 `τO` 近似。同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
+`regime ∈ {closed, open}` 是 rules-v13 的显式制度状态（`society.institutionalRegime`）；`updateRegime` 规则：`closed→open` 需 `Mup >= enterM` 且 `S <= enterS`，`open→closed` 需 `Mup <= exitM` 或 `S >= exitS`，其余保持。`θR` 是 `openness.regimeBias`（默认 0、域 [0,10]），`sign(open)=+1`、`sign(closed)=-1`。`regimeMode='continuous'` 或 `updateMode='fixed'` 时制度不更新；默认 `continuous` 与 rules-v12 逐位一致。`θR>0` 能否形成第三类结构必须由 P6-05d 检验（ADR 0005、changes/0063）。
+
+`openness.updateMode=fixed` 时跳过上述 O 更新，O 始终保持 `openness.initial`，制度也保持初值；该开关必须作为可哈希配置项实现（P1-10），不得用极大 `τO` 近似。同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
 
 ## 7. 不变量
 

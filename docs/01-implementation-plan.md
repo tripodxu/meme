@@ -257,7 +257,11 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-05b 机制筛选（2026-11-05，未通过）**：`p6-05b-4ba8dc0a`，θS∈{4,8,12} × H∈{0,180} 六 cell，固定 share=0.5/w=15，30 新 seed × 10950 tick（40 人）+ 60 个 14600；240/240 完成、0 排除、0 灭绝（changes/0058）。k=3 簇 [136,17,27]，**三簇都混合全部 6 个 cell**；ARI median 0.291、silhouette 0.297、14600 同簇率 0.550，均未过线；H1（提高 θS）与 H2（H=180）均不成立，非 A 区域只剩 S/O 连续细分。按预注册决策规则**停止参数扫描，转 rules-v12 ADR**（显式制度双稳态）；G6 仍未通过。
 
-**rules-v12 落记录（2026-11-05，ADR 0004）**：P6-05/P6-05b 均未产生稳定第三簇后，按 ADR 0004 给开放度目标加入自反馈项 `θH×(O_prev−0.5)`，新参数 `openness.selfReinforcement`（默认 0、域 [0,20]）；`θH=0` 与 rules-v11 逐位一致。版本升为 rules-v12 / engine-v0.10.0 / config schema v7（v6→v7 迁移补 0）；新增 6 项单测，config/engine/param golden 已前滚更新（changes/0060）。P6-05c 已预注册（θH∈{0,6,10,14} × 30 新 seed，changes/0061），结果待运行；**未通过前不得声称双稳态或第三类结构**。
+**rules-v12 落记录（2026-11-05，ADR 0004）**：P6-05/P6-05b 均未产生稳定第三簇后，按 ADR 0004 给开放度目标加入自反馈项 `θH×(O_prev−0.5)`，新参数 `openness.selfReinforcement`（默认 0、域 [0,20]）；`θH=0` 与 rules-v11 逐位一致。版本升为 rules-v12 / engine-v0.10.0 / config schema v7（v6→v7 迁移补 0）；新增 6 项单测，config/engine/param golden 已前滚更新（changes/0060）。
+
+**P6-05c（2026-11-06，未通过）**：`p6-05c-f7f3cc91`，θH∈{0,6,10,14} × 30 新 seed × 10950 tick（40 人）+ 40 个 14600；160/160 完成、0 排除、0 灭绝（changes/0061）。k=3 簇 [72,39,9]、ARI median 0.182、silhouette 0.215、14600 同簇率 0.675，均未过线；k=2 诊断 [111,9]、silhouette 0.505，二簇稳健、第三簇不成立。θH 自反馈 **A 方案失败**，按 ADR 0004 转 B 方案（显式制度状态机）；G6 仍未通过。
+
+**rules-v13 与 P6-05d（2026-11-11，ADR 0005）**：新增显式制度状态 `society.institutionalRegime ∈ {closed, open}` 与滞回转移（`enterM/exitM/enterS/exitS`），`O_target` 增加 `θR·sign(regime)` 偏置；新参数 `openness.regimeMode/regimeBias/regimeEnterOpenMobility/regimeExitOpenMobility/regimeEnterOpenSegregation/regimeExitOpenSegregation`（默认 `continuous`/0，与 rules-v12 逐位一致）。版本升为 rules-v13 / engine-v0.11.0 / config schema v8 / state schema v4（v7→v8 迁移补默认值、v3 状态按 O 推断制度）；config/engine/param golden 已前滚更新（changes/0063）。P6-05d `p6-05d-5cb910dd` **160/160 完成、0 排除、0 灭绝**：k=3 簇 **[76,3,41]**、三簇均混全部 cell、ARI median **0.094**、silhouette **0.152**、同簇率 **0.650**，四项判据全部未过；θR>0 的终端 O 几乎全部塌到 0（closed 单态吸收），**B 方案失败**。按预注册决策规则停止制度机调参，转规则设计评审；G6 仍未通过。
 
 ## 10. P7：发布硬化
 

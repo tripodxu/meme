@@ -10,7 +10,11 @@ import type { ExecutionRecord } from '../../decision/types.js';
 import { parseActionKey } from '../legal-actions.js';
 import { attemptRewire } from '../network/rewire.js';
 import { computeTickStats, type TickStats } from '../macros/tick-metrics.js';
-import { maybeUpdateOpenness, updateClassEnvironment } from '../feedback/slow-variables.js';
+import {
+  maybeUpdateOpenness,
+  nextInstitutionalRegime,
+  updateClassEnvironment,
+} from '../feedback/slow-variables.js';
 import {
   classShareSnapshot,
   computeAscendBarrier,
@@ -363,6 +367,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   // ---- 阶段 H：慢变量更新（全死亡时不再执行，run 即将结束）----
   let nextE = eByClass;
   let nextOpenness = opennessStart;
+  let nextRegime = state.society.institutionalRegime;
   let lastOpennessUpdateTick = state.society.lastOpennessUpdateTick;
   if (aliveCount > 0) {
     const classShares = stats.classCounts.map((count) => count / aliveCount);
@@ -374,6 +379,17 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       stats.gini,
     );
     if (isDecisionTick) {
+      // rules-v13：先按本 tick 的宏观量推进制度状态，再用新制度计算 O 目标偏置。
+      // `updateMode='fixed'` 或 `regimeMode='continuous'` 时制度保持不变。
+      nextRegime =
+        config.openness.updateMode === 'fixed'
+          ? state.society.institutionalRegime
+          : nextInstitutionalRegime(
+              config,
+              state.society.institutionalRegime,
+              stats.mUp,
+              stats.segregation,
+            );
       // 仅决策周期更新 O（03 §6 阶段 H）；Δt=tick-lastOpennessUpdateTick。
       const opennessUpdate = maybeUpdateOpenness(config, {
         tick,
@@ -382,6 +398,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
         mUp: stats.mUp,
         gini: stats.gini,
         segregation: stats.segregation,
+        regime: nextRegime,
       });
       nextOpenness = opennessUpdate.openness;
       lastOpennessUpdateTick = opennessUpdate.lastOpennessUpdateTick;
@@ -411,6 +428,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       eByClass: nextE,
       refIncome: nextRefIncome,
       openness: nextOpenness,
+      institutionalRegime: nextRegime,
       initialClassShares: state.society.initialClassShares,
       occupancyPressure: nextOccupancyPressure,
       gini: stats.gini,

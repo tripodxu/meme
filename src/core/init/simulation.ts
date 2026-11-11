@@ -48,6 +48,8 @@ export function createSimulation(config: RunConfig, seed: Seed): SimState {
       (env) => validConfig.opportunity.dailyBase * env,
     ),
     openness: validConfig.openness.initial,
+    institutionalRegime:
+      validConfig.openness.initial >= 0.5 ? ('open' as const) : ('closed' as const),
     initialClassShares,
     // rules-v11：tick 0 的记忆由初始占比派生；H=0 时即瞬时压力（v10 语义）。
     occupancyPressure: updateOccupancyPressure(

@@ -14,7 +14,8 @@ export type ParamUnit =
   | 'exponent'
   | 'person'
   | 'classCount'
-  | 'count';
+  | 'count'
+  | 'enum';
 
 export type ScalarDomain =
   | {
@@ -806,6 +807,60 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     guardOnly: false,
     affectsBehavior: true,
     wireTest: '改变 θH 后 O_target 的自反馈项 θH×(O_prev−0.5) 改变；θH=0 与 rules-v11 逐位一致。',
+  },
+  {
+    name: 'openness.regimeMode',
+    unit: 'enum',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'enum', values: ['continuous', 'hysteresis'] },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '切到 hysteresis 后制度状态机参与 O_target；continuous 与 rules-v12 逐位一致。',
+  },
+  {
+    name: 'openness.regimeBias',
+    unit: 'dimensionless',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: 0, max: 20 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '改变 θR 后 open/closed 两个制度对 O_target 的偏置改变。',
+  },
+  {
+    name: 'openness.regimeEnterOpenMobility',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '提高进入阈值后 closed→open 更晚发生。',
+  },
+  {
+    name: 'openness.regimeExitOpenMobility',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '降低退出阈值后 open→closed 更晚发生（迟滞带变宽）。',
+  },
+  {
+    name: 'openness.regimeEnterOpenSegregation',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: -1, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '降低进入 S 上界后 closed→open 更严格。',
+  },
+  {
+    name: 'openness.regimeExitOpenSegregation',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: -1, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '提高退出 S 上界后 open→closed 更晚发生（迟滞带变宽）。',
   },
   {
     name: 'openness.multiplierMin',

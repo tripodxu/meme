@@ -108,6 +108,33 @@ const CELLS_05C = [0, 6, 10, 14].map((selfReinforcement) => ({
   },
 }));
 
+const SEEDS_05D = Array.from(
+  { length: DEFAULTS.seedCount },
+  (_, index) => `p6-05d-seed-${String(index + 1).padStart(3, '0')}`,
+);
+const REGIME_THRESHOLDS = {
+  regimeEnterOpenMobility: 0.25,
+  regimeExitOpenMobility: 0.15,
+  regimeEnterOpenSegregation: 0.2,
+  regimeExitOpenSegregation: 0.3,
+};
+const CELLS_05D = [
+  {
+    cellKey: 'continuous-control',
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 15 },
+      openness: { regimeMode: 'continuous', regimeBias: 0, ...REGIME_THRESHOLDS },
+    },
+  },
+  ...[4, 8, 12].map((regimeBias) => ({
+    cellKey: `thetaR${regimeBias}`,
+    overrides: {
+      ascent: { displacementShare: 0.5, scarcityWeight: 15 },
+      openness: { regimeMode: 'hysteresis', regimeBias, ...REGIME_THRESHOLDS },
+    },
+  })),
+];
+
 function parseArgs(argv) {
   const options = { ...DEFAULTS, mode: null, design: 'p6-05' };
   let preregSet = false;
@@ -140,7 +167,7 @@ function parseArgs(argv) {
       console.log(
         [
           '用法：',
-          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b] [--force]',
+          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b|p6-05c|p6-05d] [--force]',
           '  node scripts/p6-05-cluster.mjs --run [--prereg ...] [--dir ...]',
           '  node scripts/p6-05-cluster.mjs --analyze [--out ...]',
         ].join('\n'),
@@ -151,8 +178,13 @@ function parseArgs(argv) {
     }
   }
   if (options.mode === null) throw new Error('必须指定 --freeze、--run 或 --analyze');
-  if (options.design !== 'p6-05' && options.design !== 'p6-05b' && options.design !== 'p6-05c') {
-    throw new Error('--design 只能为 p6-05、p6-05b 或 p6-05c');
+  if (
+    options.design !== 'p6-05' &&
+    options.design !== 'p6-05b' &&
+    options.design !== 'p6-05c' &&
+    options.design !== 'p6-05d'
+  ) {
+    throw new Error('--design 只能为 p6-05、p6-05b、p6-05c 或 p6-05d');
   }
   if (options.design === 'p6-05b') {
     if (!preregSet) options.prereg = 'out/p6-05b-scan-prereg.json';
@@ -163,6 +195,11 @@ function parseArgs(argv) {
     if (!preregSet) options.prereg = 'out/p6-05c-prereg.json';
     if (!dirSet) options.dir = 'out/p6-05c';
     if (!outSet) options.analysisOut = 'out/p6-05c-analysis.json';
+  }
+  if (options.design === 'p6-05d') {
+    if (!preregSet) options.prereg = 'out/p6-05d-prereg.json';
+    if (!dirSet) options.dir = 'out/p6-05d';
+    if (!outSet) options.analysisOut = 'out/p6-05d-analysis.json';
   }
   return options;
 }
@@ -300,22 +337,85 @@ function buildDesign05c() {
   };
 }
 
+function buildDesign05d() {
+  return {
+    schemaVersion: 'p6-05d-prereg-v1',
+    hypothesis:
+      'P6-05d（ADR 0005 / rules-v13）：显式制度状态机把连续的 O 拆成 closed/open 两个离散制度，' +
+      '并以滞回带阻止边界抖动；O_target 在 v12 公式上增加 ±θR 偏置。' +
+      '固定 share=0.5、w=15，设 continuous 对照 + θR∈{4,8,12} 共 4 cell，' +
+      '30 个全新 seed × 10950 tick（40 人）+ 每 cell 前 10 seed × 14600；' +
+      '全特征 k=3、沿用 P6-05 的 ARI/silhouette/同簇率/反预设验收。' +
+      '若 θR>0 仍无稳定第三簇，方案 B 判失败，停止继续给制度机加可调旋钮，转规则设计评审；' +
+      '结果仅 mock 候选，不是校准或结构涌现声明。',
+    rulesVersion: 'rules-v13',
+    policy: 'mock-weighted-v1',
+    population: DEFAULTS.population,
+    horizon: DEFAULTS.horizon,
+    terminalWindow: { start: 10585, end: 10949, days: 365 },
+    followupHorizon: DEFAULTS.followupHorizon,
+    followupWindow: { start: 14235, end: 14599, days: 365 },
+    followupSeedsPerCell: DEFAULTS.followupSeedsPerCell,
+    seeds: SEEDS_05D,
+    cells: CELLS_05D,
+    fixed: { displacementShare: 0.5, scarcityWeight: 15 },
+    regimeThresholds: REGIME_THRESHOLDS,
+    axis: { regimeMode: ['continuous', 'hysteresis'], regimeBias: [0, 4, 8, 12] },
+    features: ['P0', 'P1', 'P2', 'P3', 'P4', 'G', 'top10', 'Mup', 'Mdown', 'S', 'O'],
+    clustering: {
+      algorithm: 'ward-lw-v1',
+      distance: 'euclidean',
+      standardization: 'z-score(pooled)',
+      k: 3,
+      stabilityShuffles: 20,
+      stabilitySeed: 20261105,
+      ariMedianMin: 0.7,
+      silhouetteMin: 0.35,
+      minClusterRuns: 5,
+    },
+    temporal: { minSameClusterRate: 0.8 },
+    antiPreset: { minCellsInAnyCluster: 2 },
+    exclusion: { excludeExtinct: true, maxExtinctRate: 0.1 },
+    budgets: { runs: 160, wallMinutes: 90 },
+    prediction:
+      'continuous 对照应复现 P6-05c 的弱三簇；θR>0 若把轨迹锁进 closed/open 两制度，' +
+      '应出现 14600 同簇率 >=0.80 的稳定第三簇，且该簇的 O 分布呈双峰。' +
+      '若四个 cell 都无稳定第三簇，方案 B 失败，停止制度机调参。',
+    confirmationStatus: 'P6-05d candidate only; not calibration',
+  };
+}
+
+function validateDesignCells(design) {
+  for (const cell of design.cells) {
+    for (const horizon of [design.horizon, design.followupHorizon]) {
+      // 冻结前用当前代码实际构造每个 cell：非法参数域/覆盖冲突必须在此暴露，
+      // 不能等到 VPS 跑完一半才失败（P6-05d θR=12 事故）。
+      buildCellConfig(
+        { cellKey: `${cell.cellKey}@${horizon}`, overrides: cell.overrides },
+        design.population,
+        horizon,
+      );
+    }
+  }
+}
+
 function freeze(options) {
   const design =
-    options.design === 'p6-05c'
-      ? buildDesign05c()
-      : options.design === 'p6-05b'
-        ? buildDesign05b()
-        : buildDesign();
+    options.design === 'p6-05d'
+      ? buildDesign05d()
+      : options.design === 'p6-05c'
+        ? buildDesign05c()
+        : options.design === 'p6-05b'
+          ? buildDesign05b()
+          : buildDesign();
+  validateDesignCells(design);
   const designHash = hashValue(HASH_DOMAINS.preregistration, design);
   if (existsSync(options.prereg) && !options.force) {
     throw new Error(`${options.prereg} 已存在；预注册不得覆盖（确需重冻结用 --force）`);
   }
   const artifact = {
     schemaVersion: design.schemaVersion,
-    experimentId: `${
-      options.design === 'p6-05c' ? 'p6-05c' : options.design === 'p6-05b' ? 'p6-05b' : 'p6-05'
-    }-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
+    experimentId: `${options.design}-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
     createdAt: new Date().toISOString(),
     hashDomain: HASH_DOMAINS.preregistration,
     hashPreimage: 'JCS(design)',
@@ -635,7 +735,7 @@ function analyze(options) {
       status: verdict.passes ? 'three-cluster-candidate' : 'not-accepted-return-to-rule-review',
     },
     notes: [
-      'P6-05 只判定 mock 策略在 40 人 × 10950 tick 的终端全特征聚类；不是校准、现实因果或 rules-v11 结构涌现声明。',
+      `P6-05 只判定 mock 策略在 40 人 × 10950 tick 的终端全特征聚类（${design.rulesVersion}）；不是校准、现实因果或结构涌现声明。`,
       'k=3 为预注册目标；k=2/4/5 仅作诊断，不得用来替代 k=3 的验收。',
       '簇编号任意，语义由 rawCentroids 的 P/G/Mup/Mdown/S/O 描述，不映射现实阶级结构。',
     ],

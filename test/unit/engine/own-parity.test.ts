@@ -98,7 +98,7 @@ describe('G-D：own 模式与 rules-v5 逐位一致（语义状态全字段）',
 
   for (const reference of fixture.runs.slice(0, 2)) {
     it(
-      `seed=${reference.seed}：agents 与 society（除 refIncome/occupancyPressure）逐位一致`,
+      `seed=${reference.seed}：agents 与 society（除 refIncome/occupancyPressure/institutionalRegime）逐位一致`,
       { timeout: 120_000 },
       () => {
         const config = toV6Own(reference.config);
@@ -108,11 +108,13 @@ describe('G-D：own 模式与 rules-v5 逐位一致（语义状态全字段）',
         // agents：全部字段逐位一致（Object.is 级别的浮点比较）
         expect(encoded.society.agents).toEqual(reference.society['agents']);
 
-        // society：除 refIncome 与 v11 新增 occupancyPressure 外全部字段
-        // （v5 参照 fixture 早于这两个字段；它们不是 v5 语义的一部分）
+        // society：除 refIncome、v11 新增 occupancyPressure 与 v13 新增
+        // institutionalRegime 外全部字段（v5 参照 fixture 早于这些字段；
+        // 它们不是 v5 语义的一部分）
         const actualSociety = { ...encoded.society } as Record<string, unknown>;
         delete actualSociety['refIncome'];
         delete actualSociety['occupancyPressure'];
+        delete actualSociety['institutionalRegime'];
         expect(actualSociety).toEqual(reference.society);
 
         // refIncome：own 模式保持初始值 B×env0[c]

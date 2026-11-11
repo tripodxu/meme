@@ -124,3 +124,5 @@ out/*
 !out/p6-search-validation-analysis.json
 !out/p6-05c-prereg.json
 !out/p6-05c-analysis.json
+!out/p6-05d-prereg.json
+!out/p6-05d-analysis.json

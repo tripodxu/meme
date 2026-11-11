@@ -35,7 +35,7 @@
   "hypothesis": "Registered before the full run",
   "primaryMetric": "TV(P)",
   "experimentType": "rule_sensitivity",
-  "rulesVersion": "rules-v11",
+  "rulesVersion": "rules-v13",
   "engineVersion": "...",
   "decisionSchemaVersion": "stratify-decision-v1",
   "policyVersion": "mock-weighted-v1",

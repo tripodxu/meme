@@ -152,6 +152,12 @@ export interface DynamicsConfig {
 /** O 更新模式（P1-10）：`dynamic` 为默认反馈；`fixed` 为 P6-04 消融开关。 */
 export type OpennessUpdateMode = 'dynamic' | 'fixed';
 
+/** rules-v13：显式制度状态。 */
+export type InstitutionalRegime = 'closed' | 'open';
+
+/** rules-v13：制度状态机模式；`continuous` 与 rules-v12 逐位一致。 */
+export type InstitutionalRegimeMode = 'continuous' | 'hysteresis';
+
 export interface OpennessConfig {
   readonly initial: number;
   readonly updateMode: OpennessUpdateMode;
@@ -165,6 +171,18 @@ export interface OpennessConfig {
   readonly ascentCostWeight: number;
   /** rules-v12：O 目标的自反馈/迟滞权重 θH；0 与 rules-v11 逐位一致。 */
   readonly selfReinforcement: number;
+  /** rules-v13：显式制度状态机；默认 `continuous` 与 rules-v12 逐位一致。 */
+  readonly regimeMode: InstitutionalRegimeMode;
+  /** rules-v13：制度对 O_target 的偏置 θR（open +θR，closed −θR）。 */
+  readonly regimeBias: number;
+  /** 进入 open 所需的最低 Mup。 */
+  readonly regimeEnterOpenMobility: number;
+  /** 退出 open 的 Mup 下界（迟滞带）。 */
+  readonly regimeExitOpenMobility: number;
+  /** 进入 open 所需的最高 S。 */
+  readonly regimeEnterOpenSegregation: number;
+  /** 退出 open 的 S 上界（迟滞带）。 */
+  readonly regimeExitOpenSegregation: number;
   readonly multiplierMin: number;
   readonly multiplierMax: number;
 }

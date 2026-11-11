@@ -7,8 +7,8 @@
  * - `schemaVersion` 管序列化/导入导出；
  * - `promptVersion` 管 Jev 输入。
  */
-export const RULES_VERSION = 'rules-v12' as const;
-export const ENGINE_VERSION = 'engine-v0.10.0' as const;
+export const RULES_VERSION = 'rules-v13' as const;
+export const ENGINE_VERSION = 'engine-v0.11.0' as const;
 export const DECISION_SCHEMA_VERSION = 'stratify-decision-v1' as const;
 /**
  * 配置 schema：v6 起 `ascent.occupancyMemoryDays` 为必填（rules-v11 占用压力记忆，
@@ -27,19 +27,24 @@ export const DECISION_SCHEMA_VERSION = 'stratify-decision-v1' as const;
  * v4 → v5 缺失的占用锚定权重补 `0`（v4 时期无进入壁垒，补 0 保持 v9 逐位语义）。
  * v5 → v6 缺失的占用记忆天数补 `0`（v5 时期无记忆，补 0 保持 v10 逐位语义）。
  * v6 → v7 缺失的开放度自反馈权重补 `0`（v6 时期无自反馈，补 0 保持 v11 逐位语义）。
+ * v7 → v8 缺失的制度状态机字段补默认值（`regimeMode:'continuous'`、θR=0、
+ * enter/exit 阈值 0.25/0.15/0.20/0.30；v7 时期无显式制度，补默认保持 v12 语义）。
  */
-export const CONFIG_SCHEMA_VERSION = 'stratify-config-v7' as const;
+export const CONFIG_SCHEMA_VERSION = 'stratify-config-v8' as const;
 export const CONFIG_SCHEMA_VERSION_V1 = 'stratify-config-v1' as const;
 export const CONFIG_SCHEMA_VERSION_V2 = 'stratify-config-v2' as const;
 export const CONFIG_SCHEMA_VERSION_V3 = 'stratify-config-v3' as const;
 export const CONFIG_SCHEMA_VERSION_V4 = 'stratify-config-v4' as const;
 export const CONFIG_SCHEMA_VERSION_V5 = 'stratify-config-v5' as const;
 export const CONFIG_SCHEMA_VERSION_V6 = 'stratify-config-v6' as const;
+export const CONFIG_SCHEMA_VERSION_V7 = 'stratify-config-v7' as const;
 export const PARAMS_SCHEMA_VERSION = 'stratify-params-v1' as const;
 export const INITIAL_POPULATION_SCHEMA_VERSION = 'stratify-initial-population-v1' as const;
 export const PREREGISTRATION_SCHEMA_VERSION = 'stratify-preregistration-v1' as const;
-/** 权威状态序列化 schema；v3 增补 society.occupancyPressure（rules-v11 占用压力记忆）。 */
-export const STATE_SCHEMA_VERSION = 'stratify-state-v3' as const;
+/** 权威状态序列化 schema；v4 增补 society.institutionalRegime（rules-v13 制度状态机）。 */
+export const STATE_SCHEMA_VERSION = 'stratify-state-v4' as const;
+/** 迁移源：v3 增补 society.occupancyPressure（rules-v11 占用压力记忆）。 */
+export const STATE_SCHEMA_VERSION_V3 = 'stratify-state-v3' as const;
 /** 快照封装 schema（02 §7：原子写入由存储适配层负责）。 */
 export const SNAPSHOT_SCHEMA_VERSION = 'stratify-snapshot-v1' as const;
 

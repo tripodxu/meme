@@ -17,6 +17,8 @@
 > **v11 修订（2026-11-04，changes/0027）**：规则 9 新增**占用压力记忆** `ascent.occupancyMemoryDays`（H，默认 0，域 [0,365] 整数）——瞬时压力 `p_c=max(0, P_c/target_c−1)` 不变，壁垒改用 `m_c(t)=max(p_c(t), e^{-1/H}·m_c(t−1))`；`m_c` 升级为权威状态 `society.occupancyPressure`（状态 schema v3），tick 0 由初始占比派生，之后由上一 tick 结束时的存活占比与上一期记忆派生，`H=0` 逐位退回 v10。依据：v10 的壁垒只看当期，占比一回落压力即刻消失，无法承载迟滞。实测：H 只能延迟、不能钉住第三类——W6 长视野（120 run × 10950 tick）在 class-share 单特征上给出三类候选（轮廓 0.638、k=3 ARI 0.997/0.938、A/B/C 各 30/30/30、14600 tick 同簇 29/30），但全部运行 `H=0`，即**第三类与 H 无关**；该结果是三类候选，不是 P6-05 正式验收，也不是参数校准（changes/0028）。
 >
 > **v12 修订（2026-11-05，changes/0060，ADR 0004）**：规则 42 的开放度目标加入**自反馈/迟滞项** `θH×(O_prev−0.5)`，新参数 `openness.selfReinforcement`（θH，默认 0，域 [0,20]，sigmoid 斜率单位）；`O_prev` 是本 tick 更新前的 O，不使用同期更新值，不引入个体顺序依赖。`θH=0` 与 rules-v11 逐位一致；`θH>0` 允许 O 出现两个稳定不动点，把 rule 45 的候选双稳态从散文变成可检验机制。依据：P6-05/P6-05b 在现有参数内均未产生稳定第三簇（changes/0057/0058），第三簇只是非 A 体制内沿 S/O 的相位漂移；rule 45 的正反馈缺少迟滞。该修订**不保证**产生三簇，必须由 P6-05c 检验；不是校准或结构涌现声明。
+>
+> **v13 修订（2026-11-11，changes/0063，ADR 0005）**：规则 42/43 引入**显式制度状态机** `society.institutionalRegime ∈ {closed, open}`——仅在决策周期、`openness.updateMode='dynamic'` 时更新：`closed→open` 需同时满足 `Mup >= enterM` 且 `S <= enterS`；`open→closed` 需满足 `Mup <= exitM` 或 `S >= exitS`；进入/退出阈值之间构成滞回带，防止边界抖动。`O_target` 在 v12 公式上增加 `+θR·sign(regime)`（open 为 `+θR`、closed 为 `−θR`；新参数 `openness.regimeMode/regimeBias/regimeEnterOpenMobility/regimeExitOpenMobility/regimeEnterOpenSegregation/regimeExitOpenSegregation`，默认 `continuous`/0/0.25/0.15/0.20/0.30）。`regimeMode='continuous'` 或 `updateMode='fixed'` 时不更新制度，默认配置与 rules-v12 逐位一致。依据：P6-05c 的 θH 自反馈未产生稳定第三簇（changes/0061），连续 O 缺少离散制度记忆；该修订**不保证**产生三簇，必须由 P6-05d 检验；不是校准或结构涌现声明。
 
 ## 一、基础属性与日常积累
 
@@ -148,9 +150,9 @@
 
 42. **开放度目标值：** 每个决策周期计算：
 
-    `O_target = sigmoid(θ0 + θM×(Mup-Mref) - θG×(G-Gref) - θS×(S-Sref) + θH×(O_prev-0.5))`
+    `O_target = sigmoid(θ0 + θM×(Mup-Mref) - θG×(G-Gref) - θS×(S-Sref) + θH×(O_prev-0.5) + θR×sign(regime))`
 
-    默认 `θ0=0`、`θM=3`（v4 由 8 下调，再平衡开放度反馈制动，使 O 可进入中间区间）、`Mref=0.10`、`θG=6`、`Gref=0.25`、`θS=4`、`Sref=0.30`、`θH=0`（v12；`θH=0` 与 v11 逐位一致）。`Sref` 按调整后同层边占比（`[-1,1]`）解释，不再使用未调整的同层比例；`O_prev` 是本 tick 更新前的 O，不得使用同期更新值。
+    默认 `θ0=0`、`θM=3`（v4 由 8 下调，再平衡开放度反馈制动，使 O 可进入中间区间）、`Mref=0.10`、`θG=6`、`Gref=0.25`、`θS=4`、`Sref=0.30`、`θH=0`（v12；`θH=0` 与 v11 逐位一致）、`θR=0`（v13；`regimeMode='continuous'` 时 `sign` 项恒为 0，与 v12 逐位一致）。`Sref` 按调整后同层边占比（`[-1,1]`）解释，不再使用未调整的同层比例；`O_prev` 是本 tick 更新前的 O，不得使用同期更新值。`regime` 为显式制度状态，`open` 时 `sign=+1`、`closed` 时 `sign=-1`。
 
 43. **开放度慢更新：**
 
@@ -158,13 +160,21 @@
 
     默认 `τO=60` 日，初始 `O=0.5`。高流动性提高开放度，高贫富差距和高网络隔离降低开放度。
 
+    **v13 制度状态机：** 在每个决策周期（且 `updateMode='dynamic'`）先更新制度，再计算 `O_target`：
+
+    - `closed → open`：`Mup >= enterM` 且 `S <= enterS`；
+    - `open → closed`：`Mup <= exitM` 或 `S >= exitS`；
+    - 其余情况保持原制度。默认 `enterM=0.25`、`exitM=0.15`、`enterS=0.20`、`exitS=0.30`（`exitM <= enterM`、`enterS <= exitS`，形成滞回带）。
+
+    `regimeMode='continuous'` 或 `updateMode='fixed'` 时制度不更新（保持初值）；初始制度由 `O_initial >= 0.5` 决定（open）否则 closed。
+
 44. **开放度作用于跨越成本：**
 
     `cross_dynamic = cross_base × clamp(exp(λO × (0.5-O)), 0.50, 2.50)`
 
     默认 `λO=2`。跨越成本的动态乘子与重返减免相乘，但重返减免只作用于 `cross_base` 部分；最终费用仍必须大于 0。
 
-45. **候选双稳态机制（待校准）：** “高流动 → 高开放 → 低跨越成本/多跨层关系 → 更高流动”和“高隔离/高不平等 → 低开放 → 高跨越成本/少跨层关系 → 更低流动”构成两条正反馈路径；阶级拥挤、反馈上下限和寿命损耗提供制动。不得额外加入强制社会转向规则。**v12：** 规则 42 的 `θH×(O_prev−0.5)` 是该候选机制的最小显式实现；`θH>0` 是否真的产生两个稳定状态、以及能否形成第三类全特征结构，必须由 P6-05c 预注册检验，不得仅凭公式宣称双稳态。
+45. **候选双稳态机制（待校准）：** “高流动 → 高开放 → 低跨越成本/多跨层关系 → 更高流动”和“高隔离/高不平等 → 低开放 → 高跨越成本/少跨层关系 → 更低流动”构成两条正反馈路径；阶级拥挤、反馈上下限和寿命损耗提供制动。不得额外加入强制社会转向规则。**v12：** 规则 42 的 `θH×(O_prev−0.5)` 是该候选机制的最小显式实现；**v13：** 规则 43 的显式制度状态机 + `θR` 偏置提供离散制度记忆与滞回带。`θH>0` 或 `θR>0` 是否真的产生两个稳定状态、以及能否形成第三类全特征结构，必须分别由 P6-05c/P6-05d 预注册检验，不得仅凭公式宣称双稳态。
 
 ## 十一、随机流、微扰与可复现性
 

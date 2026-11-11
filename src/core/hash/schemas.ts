@@ -106,7 +106,7 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
   {
     domain: HASH_DOMAINS.authoritativeState,
     fields: [
-      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v3。' },
+      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v4。' },
       { name: 'config', type: 'object', ordering: 'none', description: '完整冻结 RunConfig。' },
       { name: 'seed', type: 'string', description: 'run seed。' },
       {
@@ -152,6 +152,11 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
               '需求参照系 refIncome[C]（rules-v6）：上期各阶级人均收入的 EMA；own 模式保持初始值。',
           },
           { name: 'openness', type: 'number', description: 'O ∈ [0,1]。' },
+          {
+            name: 'institutionalRegime',
+            type: 'string',
+            description: "显式制度状态 'closed' | 'open'（rules-v13）。",
+          },
           {
             name: 'initialClassShares',
             type: 'array',
