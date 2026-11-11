@@ -833,7 +833,7 @@ function analyze(options) {
       status: verdict.passes ? 'three-cluster-candidate' : 'not-accepted-return-to-rule-review',
     },
     notes: [
-      `P6-05 只判定 mock 策略在 40 人 × 10950 tick 的终端全特征聚类（${design.rulesVersion}）；不是校准、现实因果或结构涌现声明。`,
+      `P6-05 只判定 mock 策略在 ${(design.populations ?? [design.population]).join('/')} 人 × 10950 tick 的终端全特征聚类（${design.rulesVersion}）；不是校准、现实因果或结构涌现声明。`,
       'k=3 为预注册目标；k=2/4/5 仅作诊断，不得用来替代 k=3 的验收。',
       '簇编号任意，语义由 rawCentroids 的 P/G/Mup/Mdown/S/O 描述，不映射现实阶级结构。',
     ],
