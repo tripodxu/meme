@@ -108,9 +108,9 @@ node scripts/upload-run.mjs my-run/bundle.json \
 
 ## 3. 当前边界
 
-- 批跑已可自动导出 metrics-only bundle（changes/0075）；`artifactProfile=full`
-  （decisions/events/snapshot）仍需上游单独导出。
-- 未执行真实 Cloudflare preview 部署与 workerd+D1/R2 集成冒烟（P4-07）；本地上传
-  与 workerd 冒烟已通过。
+- 批跑已可自动导出 metrics-only 或 full bundle（changes/0075/0080）；full 捕获
+  events/executions/周期快照会显著增加内存，且不能与 `--checkpoint-ticks` 同用。
+- `--resume` 复用的已完成 run 不会重新触发 bundle 导出；需要换输出目录或上游单独导出。
+- 未执行真实 Cloudflare preview 部署；本地上传与 workerd 冒烟已通过（P4-07 远程部分未做）。
 - 上传成功只代表技术完整（`verificationStatus=uploaded`），不代表内容已验证，
   也不构成校准或结构证据。

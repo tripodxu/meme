@@ -52,7 +52,9 @@ P6 已按 ADR 0008 停止。
   准备 artifact 目录（指南 `docs/guides/upload.md`）。
 - 上传创建 run 的网络超时标记 `create_ambiguous`，需人工核对服务器列表；不会自动
   重试以避免复制实验。
-- `metrics-only` 不可回放；`full` 需要 decisions/events/snapshot 全量 artifact。
+- 批跑已可导出 `metrics-only` 与 `full`（decisions/events/snapshot）；full 捕获会
+  显著增加内存、不能与 checkpoint 同用，`--resume` 复用的 run 不会补生成 bundle。
+- `metrics-only` 不可回放；只有 `full` 才具备 decisions/events/snapshot 全量 artifact。
 - 上传 ledger 含 writeToken，调用方必须保证文件权限（Node 宿主默认 0600）。
 
 ## 6. 发布与运维
