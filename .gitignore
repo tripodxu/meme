@@ -127,3 +127,4 @@ out/*
 !out/p6-05d-prereg.json
 !out/p6-05d-analysis.json
 !out/p6-05e-prereg.json
+!out/p6-05e-analysis.json
