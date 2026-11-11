@@ -90,3 +90,5 @@
 | [0067](0067-rules-v15-behavioral-heterogeneity.md) | rules-v15 个体行为异质性（D2，ADR 0007） | 2026-11-11 | 新增不可变 `riskTolerance`/`crossClassOpenness`（`sigma=0` 恒 0.5）与 `mock-weighted-v2`（只改写 compete 权重）；4 个 `behavior.*` 参数默认 0；rules-v15 / engine-v0.12.0 / config v9 / state v5；v8→v9 与 v4→v5 迁移；新增 7 项测试，812 单测全绿；P6-07 仅探索，不构成 G6 确认 |
 
 | [0068](0068-p6-07-behavior-exploration.md) | P6-07 D2 行为异质性探索结果 | 2026-11-11 | 240/240、0 排除、0 灭绝；A/B 安慰剂 30/30 逐位一致；C–F 相对 A 的 TV(P)≤0.026、|ΔO|≤0.053、|ΔS|≤0.087，均 <0.10；k=2 [130,50]、ARI 0.178、silhouette 0.175、同簇率 0.650，簇跨全部 cell；k=3 [101,50,29] 仍跨全部 cell；verdict.passes=null，仅探索，不构成 G6 确认 |
+
+| [0069](0069-stop-p6-engineering-track.md) | 停止 P6 结构目标，转工程轨道（ADR 0008） | 2026-11-11 | 规则负责人选择“停止 P6”：不再新增确认轮/调参；G6 保持未通过，不追认旧结果；P3/P4/P5b/P7 解除 G6 前置；无代码/规则/schema 变更，不触发重跑 |

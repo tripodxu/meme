@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 42）
+## 1. 当前交接状态（2026-11-11，rev 43）
+
+- rev 43（2026-11-11，**停止 P6，转工程轨道**）：规则负责人选择“停止 P6”（ADR 0008、changes/0069）。不再新增 P6 预注册轮次，不再调 θH/θR/θS/H/share/w/k/seed/阈值或新增同类机制旋钮；**G6 保持未通过**，不追认 P6-05/P6-06/P6-07，不声称已校准或结构已涌现。P3 前端、P4 Worker/D1/R2、P5b 上传、P7 发布硬化解除 G6 前置，可按 `docs/01` §9/§10 启动；工程产物不得表述为科学验收。全部 P6 产物与 `rules-v15` 代码保留。
 
 - rev 42（2026-11-11，**P6-07 探索完成**）：`p6-07-eea8f47d` 240/240 完成、0 排除、0 灭绝；A/B 安慰剂 30/30 逐位一致；C–F 相对 A 的 `TV(P)≤0.026`、`|ΔO|≤0.053`、`|ΔS|≤0.087`，均 <0.10；k=2 [130,50]、ARI median 0.178、silhouette 0.175、14600 同簇率 0.650；k=3 [101,50,29]，两/三个簇都混合全部 6 个 cell。`verdict.passes=null`、`status='exploratory-not-g6-confirmation'`；D2 行为异质性未产生可复现的参数区域分离或稳定第三簇。G6 仍未通过（changes/0068）。
 
@@ -53,7 +55,7 @@
 - rev 18（2026-11-05，D-04 冻结）：P6 预算按 VPS `2zhou` 实测冻结 v1（Stage A 1200 run/180 min/256 MB、Stage B 60/240/512、微扰 240/120/256、消融 120/240/512；换预算=新 experimentId）；基准记录 `docs/benchmarks/2026-11-05-p5a-engine.md`（开发机+VPS 双环境，VPS 1000 人×3650tick=120s）；批跑人口实验级化（`--population`，200 人×730tick 实机验证）。证据：`changes/0036`、`docs/research/2026-11-05-d04-p6-budget-freeze.md`。**至此 P6-01 的全部前置（工程 P5a + 预算 D-04）满足**。
 - rev 16（2026-11-05，P5-06 收口）：`deploy/` 三工件——stratify-runner.service（oneshot、ConditionPathExists、专用用户、Restart=on-failure+StartLimit、ExecStart 固定 manifest+--resume+checkpoint-ticks 500、ProtectSystem=strict）、check-disk-space.sh（磁盘守卫 2048MB）、journald drop-in（200M/1G/14d）；11 项静态契约测试；docs/09 §6 加 deploy/ 指引，docs/01 §2 目录树补 deploy/。证据：changes/0034。**边界**：VPS systemctl 实装演练归发布前；常驻调度/budget.sqlite 归 P5-02。
 - 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、上传对接（P5b，0/2）、Jev Key 轮换（provider 侧吊销确认）、P6-05d 判读与 G6 校准验收、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。P5a 五项、P6-01/P6-02/P6-03/P6-04a、重测信度、1-seed live pilot、VPS 标准部署、P6-04b 正式 live 对照、P6-05/P6-05b/P6-05c 聚类尝试（均未通过）、rules-v13 落地与 P6-05d 开跑已完成（changes/0031–0035、0040 前置、0050–0063）。
-- 下一唯一入口：**规则负责人选择**——P6-07 未产生可复现的参数区域分离或稳定第三簇（changes/0068）。选项：(1) 停止 P6 结构目标，保留 G6 未通过，转 P3/P4/P5b/P7 工程轨道；(2) 另立机制 ADR（特质进入需求/流动/网络等，而非只改竞争权重），重新预注册、全新 seed；(3) 回到 D1 第三簇定义修订，需新 ADR 与全新确认轮。不得在 P6-07 上追认、调 sigma/敏感性、换 k/seed/阈值。G6 仍未通过。
+- 下一唯一入口：**工程轨道选择**（P6 已停止，ADR 0008）。可选 P4（Worker/D1/R2）、P3（前端）、P5b（上传/云端）或 P7（发布硬化）；建议先选一条，避免同时铺开。G6 仍未通过；所有对外文案必须区分“可运行/可回放”与“结构已校准”，发布说明必须写明 G6 未通过及 P6 停止决定。
 - 不得提前声称：三类结构已出现（目前只有 class-share 单特征候选）、Jev 行为有效、性能已达标、生产可发布、网关免费即生产免费。
 
 ## 2. 新接手者开工清单
