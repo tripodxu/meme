@@ -153,6 +153,9 @@ export interface BatchRunOptions {
   readonly runCheckpoints?: BatchRunCheckpointOptions;
   /** P6-01：实验级 base config（人口规模校验基准）；缺省 DEFAULT_RUN_CONFIG。 */
   readonly baseConfig?: RunConfig;
+  /** P5b：为 full 上传导出收集 events/executions/snapshots。 */
+  readonly captureArtifacts?: boolean;
+  readonly snapshotStride?: number;
 }
 
 export interface BatchLedger {
@@ -518,6 +521,8 @@ export async function runBatch(
         policy: manifest.policy,
         ...(options.maxTicksPerRun !== undefined ? { maxTicks: options.maxTicksPerRun } : {}),
         ...(runCheckpoint !== undefined ? { runCheckpoint } : {}),
+        ...(options.captureArtifacts === true ? { captureArtifacts: true } : {}),
+        ...(options.snapshotStride !== undefined ? { snapshotStride: options.snapshotStride } : {}),
       };
       const outcome = runImpl(task.config, task.seed, runOptions);
       const elapsedMs = performance.now() - startedAt;

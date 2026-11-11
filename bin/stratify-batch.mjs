@@ -61,6 +61,9 @@ function printHelp() {
       '                        kill 后从 tick 级完整点恢复，长 run 建议开启，如 500）',
       '  --upload-bundles <dir>  为每个成功 run 导出 run-upload-bundle-file-v1 到 <dir>',
       '                        （metrics-only；可用 pnpm upload 上传，见 docs/guides/upload.md）',
+      '  --artifact-profile <p>  上传 bundle 的 profile：metrics-only（缺省）或 full；',
+      '                        full 需同时收集 events/decisions/snapshot（内存更高）',
+      '  --snapshot-stride N     full profile 的周期快照间隔（缺省 config.schedule.snapshotStride）',
       '  --population N     实验级人口规模（P6-01 Stage A 200 / Stage B 1000；',
       '                     manifest.populationSize 必须与之一致），缺省 40',
       '  --help              显示本帮助',
@@ -96,6 +99,8 @@ function parseArgs(argv) {
     checkpointTicks: null,
     population: null,
     uploadBundles: null,
+    artifactProfile: 'metrics-only',
+    snapshotStride: null,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -136,6 +141,23 @@ function parseArgs(argv) {
         process.exit(2);
       }
       args.uploadBundles = value;
+      i += 1;
+    } else if (arg === '--artifact-profile') {
+      const value = argv[i + 1];
+      if (value !== 'metrics-only' && value !== 'full') {
+        process.stderr.write('[batch] --artifact-profile 只能是 metrics-only 或 full。\n');
+        process.exit(2);
+      }
+      args.artifactProfile = value;
+      i += 1;
+    } else if (arg === '--snapshot-stride') {
+      const value = argv[i + 1];
+      const parsed = value === undefined ? Number.NaN : Number(value);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        process.stderr.write('[batch] --snapshot-stride 需要 >=1 的整数。\n');
+        process.exit(2);
+      }
+      args.snapshotStride = parsed;
       i += 1;
     } else if (args.manifest === null && !arg.startsWith('--')) {
       args.manifest = arg;
@@ -186,9 +208,19 @@ try {
   const manifest = validateBatchManifest(manifestRecord, baseConfig);
   mkdirSync(outDir, { recursive: true });
   const uploadBundlesDir = args.uploadBundles === null ? null : resolve(args.uploadBundles);
+  if (args.artifactProfile === 'full' && uploadBundlesDir === null) {
+    log('--artifact-profile full 必须同时提供 --upload-bundles。');
+    process.exit(2);
+  }
+  if (args.artifactProfile === 'full' && args.checkpointTicks !== null) {
+    log('full artifact 捕获与 --checkpoint-ticks 不能同时启用（恢复段缺少 events/snapshots）。');
+    process.exit(2);
+  }
   if (uploadBundlesDir !== null) {
     mkdirSync(uploadBundlesDir, { recursive: true });
-    log(`上传 bundle 输出：${uploadBundlesDir}（metrics-only；runtimeVersion=${process.version}）`);
+    log(
+      `上传 bundle 输出：${uploadBundlesDir}（${args.artifactProfile}；runtimeVersion=${process.version}）`,
+    );
   }
 
   const ledgerPath = join(outDir, 'batch-ledger.json');
@@ -206,6 +238,8 @@ try {
 
   const summary = await runBatch(manifest, {
     ...(baseConfig !== undefined ? { baseConfig } : {}),
+    ...(args.artifactProfile === 'full' ? { captureArtifacts: true } : {}),
+    ...(args.snapshotStride !== null ? { snapshotStride: args.snapshotStride } : {}),
     ledger: { host, path: ledgerPath },
     ...(uploadBundlesDir !== null
       ? {
@@ -218,6 +252,7 @@ try {
               outcome,
               runtimeVersion: process.version,
               codeSha: process.env.STRATIFY_CODE_SHA ?? 'local-batch',
+              artifactProfile: args.artifactProfile,
             });
           },
         }

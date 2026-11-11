@@ -103,3 +103,4 @@
 | [0077](0077-complete-manifest-diagnostics.md) | complete 清单复算与 diagnosticsHash | 2026-11-11 | 服务器从 D1 artifacts 复算 `artifactManifestHash`，不一致 409；上传器改用字节序排序；migration 0003 新增 `diagnostics_hash`，cancel/fail 校验并持久化；`expectedDueDecisions` 复算与远程冒烟未完成 |
 | [0078](0078-browser-live-proxy.md) | 浏览器 live（同源 BYOK 代理） | 2026-11-11 | `jev_live` 经同源 `/api/jev`；Key 仅内存/Auth 头，预算/截止/熔断启用；控制器支持 live 与 `jev_replay`，导出不含 Key；允许 loopback http；3 项单测 + 1 项 jsdom E2E；真实 live 冒烟、全局保险丝与规模硬门禁未完成 |
 | [0079](0079-live-scale-fuse.md) | live 规模门禁与 Jev 全局保险丝 | 2026-11-11 | `/api/jev` 增加 `jev:global` 小时限流（默认 1000）；浏览器超过 40 人/730 tick/间隔 30 时必须显式勾选确认，否则阻止启动；新增 3 项测试（Worker/E2E/工具函数）；固定窗口非分布式令牌桶，真实冒烟未执行 |
+| [0080](0080-p5b-full-artifacts.md) | P5b full profile 上传 artifact | 2026-11-11 | `captureArtifacts` 收集 events/executions/周期快照；full 导出 decision-v1/event-v1/snapshot-v1 并按 4 MiB 分块；CLI `--artifact-profile full`/`--snapshot-stride`；full 上传 complete 与本地上传冒烟通过；内存与 resume 补导出限制未解决 |

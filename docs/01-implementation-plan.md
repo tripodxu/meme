@@ -227,7 +227,7 @@ P5 拆成两段，避免 P6 被云端依赖卡住：**P5a 只做本地批跑与�
 
 **闸门 G5b**：故障注入覆盖网络断开、重复上传和服务器 409/5xx；不产生虚假 complete，不因上传失败重跑实验。
 
-**P5b 进度记录（2026-11-11，changes/0072/0075）**：P5-05/P5-07 的上传器与断点续传已落地：`src/runner/uploader.ts` 完成创建 run、artifact 分块 PUT、tick/agent 批次与 complete；本地 gzip + 压缩/未压缩 SHA-256，服务器复算不符即终止；409 终止，429/5xx/网络错误指数退避；创建 run 网络失败标记 `create_ambiguous` 不自动重试。`upload-ledger-v1` 逐块原子确认，重跑只补传未确认块，bundle/baseUrl 变化拒绝复用。`src/runner/upload-bundle.ts` 加载 `run-upload-bundle-file-v1` 并拒绝 `..` 逃逸；`scripts/upload-run.mjs`/`pnpm upload` 只从环境变量读取 `RUNNER_TOKEN`。批跑已可自动导出 metrics-only bundle（`src/runner/upload-export.ts`、`bin/stratify-batch.mjs --upload-bundles`，changes/0075）。测试 13 项（7 上传器 + 3 加载器 + 3 导出）；20 tick 导出→上传→complete 与重跑幂等冒烟通过。**未完成**：`full` profile（decisions/events/snapshot）导出、preview/workerd 远程集成冒烟、独立验证器与内容回放验证。上传成功只表示技术完整，不构成校准或结构证据。
+**P5b 进度记录（2026-11-11，changes/0072/0075/0080）**：P5-05/P5-07 的上传器与断点续传已落地：`src/runner/uploader.ts` 完成创建 run、artifact 分块 PUT、tick/agent 批次与 complete；本地 gzip + 压缩/未压缩 SHA-256，服务器复算不符即终止；409 终止，429/5xx/网络错误指数退避；创建 run 网络失败标记 `create_ambiguous` 不自动重试。`upload-ledger-v1` 逐块原子确认，重跑只补传未确认块，bundle/baseUrl 变化拒绝复用。`src/runner/upload-bundle.ts` 加载 `run-upload-bundle-file-v1` 并拒绝 `..` 逃逸；`scripts/upload-run.mjs`/`pnpm upload` 只从环境变量读取 `RUNNER_TOKEN`。批跑已可自动导出 bundle：默认 metrics-only，`--artifact-profile full` 通过 `captureArtifacts` 导出 decisions/events/snapshot（4 MiB 分块；changes/0075/0080）。测试 14 项（7 上传器 + 3 加载器 + 4 导出）；20 tick 导出→上传→complete、重跑幂等与 full 5 chunks complete 冒烟通过。**未完成**：full 捕获内存评估、resume 补导出、preview 远程集成冒烟、独立验证器与内容回放验证。上传成功只表示技术完整，不构成校准或结构证据。
 
 P6 不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P5b 和 P3 原计划在 G6 通过后并行；P6 停止后按 ADR 0008 解除 G6 前置，可直接启动，但仍不得把工程产物表述为科学验收。
 

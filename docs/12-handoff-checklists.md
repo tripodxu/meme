@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 53）
+## 1. 当前交接状态（2026-11-11，rev 54）
+
+- rev 54（2026-11-11，**P5b full profile**）：`runSingle`/`runSingleWithPolicy` 新增 `captureArtifacts`（全部 events、每 tick executions、周期快照；与 checkpoint 禁止组合）；`writeUploadBundle` 支持 full，导出 decision-v1/event-v1/snapshot-v1 并按 4 MiB 分块；CLI 新增 `--artifact-profile full`/`--snapshot-stride`。full 导出→workerd 上传 complete（5 chunks）冒烟通过。**边界**：full 捕获内存高、resume 不补导出、preview/独立验证器未执行。不改规则/schema，不构成校准或结构证据（changes/0080）。
 
 - rev 53（2026-11-11，**live 规模门禁与全局保险丝**）：`/api/jev` 增加 `jev:global` 小时限流（默认 1000，`JEV_GLOBAL_HOURLY_LIMIT` 可覆盖）；浏览器超过 40 人 / 730 tick / 间隔 30 时显示确认复选框，未勾选 `start()`/`step()` 被阻止。Worker 17 项、live 4 项与 7 项 jsdom E2E 通过。固定窗口不是分布式令牌桶，真实 Jev 冒烟未执行；不改规则/schema，不构成校准或结构证据（changes/0079）。
 

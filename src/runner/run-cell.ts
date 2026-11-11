@@ -2,7 +2,7 @@ import { computeConfigHash, computeParamsHash } from '../core/config/hash.js';
 import { createSimulation } from '../core/init/simulation.js';
 import type { RunConfig } from '../core/config/types.js';
 import type { SimState } from '../core/model/state.js';
-import { captureSnapshot } from '../core/replay/snapshot.js';
+import { captureSnapshot, type Snapshot } from '../core/replay/snapshot.js';
 import { asSeed, type AgentId, type Seed } from '../core/control/ids.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { step } from '../core/engine/engine.js';
@@ -17,7 +17,7 @@ import {
   computeDecisionStateHash,
   PROMPT_VERSION,
 } from '../decision/serialize.js';
-import type { DecisionRecord } from '../decision/types.js';
+import type { DecisionRecord, ExecutionRecord } from '../decision/types.js';
 import type { TickStats } from '../core/macros/tick-metrics.js';
 import { computeAuthoritativeStateHash } from '../core/hash/state-hash.js';
 import { ANALYSIS_WINDOWS, summarizeWindow, type WindowSummary } from './window-stats.js';
@@ -79,6 +79,10 @@ export interface RunOptions {
   readonly initialState?: SimState;
   /** P5-03：run 内进度检查点；与 `initialState` 不得同时给出（起点歧义）。 */
   readonly runCheckpoint?: RunCheckpointOptions;
+  /** P5b：收集 full profile 所需的 events/executions/periodic snapshots。 */
+  readonly captureArtifacts?: boolean;
+  /** 快照间隔；缺省 `config.schedule.snapshotStride`。 */
+  readonly snapshotStride?: number;
 }
 
 export interface RunOutcome {
@@ -95,6 +99,10 @@ export interface RunOutcome {
   readonly report: RunWindowReport;
   /** run 结束时的权威状态（G-D own 逐位对照、微扰克隆等用途）。 */
   readonly finalState: SimState;
+  /** P5b：仅在 `captureArtifacts` 时收集；用于 full profile 上传。 */
+  readonly events?: readonly TickEvent[];
+  readonly executionsByTick?: ReadonlyMap<number, readonly ExecutionRecord[]>;
+  readonly snapshots?: readonly Snapshot[];
 }
 
 function flowsFromEvents(
@@ -168,6 +176,12 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
       'initialState 与 runCheckpoint 不得同时给出（起点歧义）',
     );
   }
+  if (options.captureArtifacts === true && runCheckpoint !== undefined) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      'full artifact 捕获与 runCheckpoint 不能同时启用（恢复段缺少 events/snapshots）',
+    );
+  }
   let state: SimState;
   let savedAtSequence = 0;
   let resumedStats: readonly TickStats[] = [];
@@ -235,6 +249,11 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
         ? new MockPolicyV2()
         : new RandomPolicy());
   const decisionRecords: DecisionRecord[] = [];
+  const capture = options.captureArtifacts === true;
+  const snapshotStride = Math.max(1, options.snapshotStride ?? config.schedule.snapshotStride);
+  const capturedEvents: TickEvent[] = [];
+  const executionsByTick = new Map<number, readonly ExecutionRecord[]>();
+  const snapshots: Snapshot[] = capture ? [captureSnapshot(state)] : [];
   let endReason: string | null = null;
   // 初值 = 已完成 tick（P5-03 恢复路径可能无需再跑任何 tick，endTick 仍是检查点位置）。
   let endTick = state.society.tick;
@@ -290,6 +309,13 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     flowsByTick.set(tick, flowsFromEvents(result.events, classCount));
     endTick = tick;
     endReason = result.endReason;
+    if (capture) {
+      capturedEvents.push(...result.events);
+      executionsByTick.set(tick, result.executions);
+      if ((tick + 1) % snapshotStride === 0) {
+        snapshots.push(captureSnapshot(state));
+      }
+    }
     if (
       runCheckpoint !== undefined &&
       checkpointConfigHash !== null &&
@@ -341,6 +367,13 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     state,
     endReason,
     endTick,
+    ...(capture
+      ? {
+          capturedEvents,
+          executionsByTick,
+          snapshots: ensureFinalSnapshot(snapshots, state),
+        }
+      : {}),
   });
 }
 
@@ -357,6 +390,17 @@ interface FinalizeInput {
   readonly endReason: string | null;
   readonly endTick: number;
   readonly cancelled?: boolean;
+  readonly capturedEvents?: readonly TickEvent[];
+  readonly executionsByTick?: ReadonlyMap<number, readonly ExecutionRecord[]>;
+  readonly snapshots?: readonly Snapshot[];
+}
+
+function ensureFinalSnapshot(snapshots: Snapshot[], state: SimState): Snapshot[] {
+  const final = captureSnapshot(state);
+  const last = snapshots[snapshots.length - 1];
+  return last !== undefined && last.stateHash === final.stateHash
+    ? snapshots
+    : [...snapshots, final];
 }
 
 /** 共享收尾：窗口聚合、标签、extinct 与权威状态哈希（同步/异步路径同一口径）。 */
@@ -404,6 +448,9 @@ function finalizeRun(input: FinalizeInput): RunOutcome {
       aliveAtEnd,
     },
     finalState: state,
+    ...(input.capturedEvents === undefined ? {} : { events: input.capturedEvents }),
+    ...(input.executionsByTick === undefined ? {} : { executionsByTick: input.executionsByTick }),
+    ...(input.snapshots === undefined ? {} : { snapshots: input.snapshots }),
   };
 }
 
@@ -430,6 +477,9 @@ export interface PolicyRunOptions {
     readonly everyTicks: number;
     readonly cellKey: string;
   };
+  /** P5b：收集 full profile 所需的 events/executions/periodic snapshots。 */
+  readonly captureArtifacts?: boolean;
+  readonly snapshotStride?: number;
 }
 
 export async function runSingleWithPolicy(
@@ -439,6 +489,12 @@ export async function runSingleWithPolicy(
 ): Promise<RunOutcome> {
   const validatedSeed = asSeed(seed);
   const checkpoint = options.runCheckpoint;
+  if (options.captureArtifacts === true && checkpoint !== undefined) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      'full artifact 捕获与 runCheckpoint 不能同时启用（恢复段缺少 events/snapshots）',
+    );
+  }
   let state = createSimulation(config, validatedSeed);
   let savedAtSequence = 0;
   let recentEvents: TickEvent[] = [];
@@ -446,6 +502,11 @@ export async function runSingleWithPolicy(
   const flowsByTick = new Map<number, readonly (readonly number[])[]>();
   const decisionsByTick = new Map<number, { due: number; fallbacks: number }>();
   const decisionRecords: DecisionRecord[] = [];
+  const capture = options.captureArtifacts === true;
+  const snapshotStride = Math.max(1, options.snapshotStride ?? config.schedule.snapshotStride);
+  const capturedEvents: TickEvent[] = [];
+  const executionsByTick = new Map<number, readonly ExecutionRecord[]>();
+  const snapshots: Snapshot[] = capture ? [captureSnapshot(state)] : [];
   if (checkpoint !== undefined) {
     // 恢复语义与同步版一致：meta 三元组（cellKey/seed/configHash）不匹配抛错；
     // 损坏按不存在处理（确定性重跑）；前段决策日志随检查点恢复（live 审计链不中断）。
@@ -544,6 +605,13 @@ export async function runSingleWithPolicy(
     recentEvents = [...recentEvents, ...result.events].slice(-50);
     endTick = tick;
     endReason = result.endReason;
+    if (capture) {
+      capturedEvents.push(...result.events);
+      executionsByTick.set(tick, result.executions);
+      if ((tick + 1) % snapshotStride === 0) {
+        snapshots.push(captureSnapshot(state));
+      }
+    }
     if (checkpoint !== undefined && state.society.tick % checkpoint.everyTicks === 0) {
       savedAtSequence += 1;
       // 异步路径直接 await 宿主写；取消/致命失败不落盘本次进度（保留上一完整点）。
@@ -593,6 +661,13 @@ export async function runSingleWithPolicy(
     endReason,
     endTick,
     cancelled,
+    ...(capture
+      ? {
+          capturedEvents,
+          executionsByTick,
+          snapshots: ensureFinalSnapshot(snapshots, state),
+        }
+      : {}),
   });
 }
 

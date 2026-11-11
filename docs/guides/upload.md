@@ -76,8 +76,16 @@ node bin/stratify-batch.mjs manifest.json --out out/my-batch \
   --upload-bundles out/my-batch/upload-bundles
 ```
 
-每个成功 run 输出 `out/my-batch/upload-bundles/<cellKey>-<seed>/`。当前只导出
-`metrics-only`（metrics + final_state + agents）；`full` profile 需上游单独导出。
+每个成功 run 输出 `out/my-batch/upload-bundles/<cellKey>-<seed>/`。默认导出
+`metrics-only`（metrics + final_state + agents）；需要可回放时加
+`--artifact-profile full`（会额外收集 events/decisions/snapshot，内存更高，
+且不能与 `--checkpoint-ticks` 同用）：
+
+```bash
+node bin/stratify-batch.mjs manifest.json --out out/my-batch \
+  --upload-bundles out/my-batch/upload-bundles \
+  --artifact-profile full --snapshot-stride 365
+```
 
 手工上传：
 

@@ -70,6 +70,56 @@ describe('P5b 批跑上传 bundle 导出', () => {
     expect(body.runtimeAuthority).toBe('authoritative');
   });
 
+  it('full profile 导出 decisions/events/snapshot 并完成 full complete', async () => {
+    const config = createDemoConfig({ schedule: { totalTicks: 20 } });
+    const seed = 'seed-export-full';
+    const outcome = runSingle(config, asSeed(seed), {
+      policy: 'mock-weighted-v1',
+      captureArtifacts: true,
+    });
+    expect(outcome.events?.length).toBeGreaterThan(0);
+    expect(outcome.snapshots?.length).toBeGreaterThan(1);
+    const outDir = tempDir();
+    const written = writeUploadBundle({
+      outDir,
+      cellKey: 'full',
+      seed: asSeed(seed),
+      config,
+      outcome,
+      runtimeVersion: 'test-runtime',
+      artifactProfile: 'full',
+    });
+    expect(written.artifactProfile).toBe('full');
+    const bundle = loadUploadBundle(written.bundlePath);
+    expect(bundle.artifactProfile).toBe('full');
+    const kinds = new Set(bundle.artifacts.map((artifact) => artifact.kind));
+    for (const kind of ['metrics', 'final_state', 'decisions', 'events', 'snapshot']) {
+      expect(kinds.has(kind as never)).toBe(true);
+    }
+
+    const decisions = bundle.artifacts.find((artifact) => artifact.kind === 'decisions');
+    const lines = (decisions?.ndjson ?? '')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+    expect(lines.length).toBe(outcome.decisions.length);
+    expect(lines[0]?.['tickSettled']).toBe(true);
+    expect(lines[0]?.['execution']).not.toBeNull();
+
+    const env = createTestEnv();
+    const result = await uploadRun(bundle, { baseUrl: BASE, fetchImpl: workerFetch(env) });
+    expect(result.status).toBe('completed');
+    const detail = await app.request(`${BASE}/api/runs/${result.runId}`, {}, env);
+    const body = (await detail.json()) as {
+      status: string;
+      artifactProfile: string;
+      artifacts: unknown[];
+    };
+    expect(body.status).toBe('completed');
+    expect(body.artifactProfile).toBe('full');
+    expect(body.artifacts.length).toBeGreaterThanOrEqual(5);
+  });
+
   it('bundle 文件可读且 metrics 行含完整字段', () => {
     const config = createDemoConfig({ schedule: { totalTicks: 20 } });
     const outcome = runSingle(config, asSeed('seed-export-2'), { policy: 'mock-weighted-v1' });

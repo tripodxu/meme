@@ -6,7 +6,7 @@ Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.m
 
 P5b 上传已落地（`uploader`/`upload-bundle`/`upload-export` + `scripts/upload-run.mjs`，changes/0072/0075）：
 `run-upload-bundle-v1` → P4 Worker 的创建/分块/tick/agent/complete，`upload-ledger-v1`
-断点续传；批跑 `--upload-bundles` 自动导出 metrics-only bundle（`full` profile 未实现），
+断点续传；批跑 `--upload-bundles` 自动导出 bundle，`--artifact-profile full` 额外导出 decisions/events/snapshot，
 指南见 [docs/guides/upload.md](../../docs/guides/upload.md)。
 
 ## 微扰配对（P5-04）
