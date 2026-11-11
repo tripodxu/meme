@@ -5,12 +5,18 @@ import { computeConfigHash } from '../core/config/hash.js';
 import { errorCodes, StratifyError } from '../core/control/errors.js';
 import { HASH_DOMAINS } from '../core/hash/domains.js';
 import { hashValue } from '../core/hash/hash.js';
-import { buildBatchTasks, resolveBatchBaseConfig, type BatchManifest } from './batch.js';
+import {
+  buildBatchTasks,
+  resolveBatchBaseConfig,
+  type BatchManifest,
+  type BatchTask,
+} from './batch.js';
 import type { CheckpointHost, SyncCheckpointHost } from './checkpoint.js';
 import {
   runSingle,
   type RunCheckpointOptions,
   type RunOptions,
+  type RunOutcome,
   type RunWindowReport,
 } from './run-cell.js';
 
@@ -122,9 +128,21 @@ export interface BatchRunCheckpointOptions {
   readonly everyTicks: number;
 }
 
+export interface BatchRunComplete {
+  readonly index: number;
+  readonly task: BatchTask;
+  readonly outcome: RunOutcome;
+  readonly elapsedMs: number;
+}
+
 export interface BatchRunOptions {
   /** 逐 run 完成回调（CLI 层写 stderr；嵌入方可静默）。 */
   readonly onProgress?: (progress: BatchProgress) => void;
+  /**
+   * run 成功结算后的回调（P5b：导出上传 bundle）。抛错按该任务技术失败处理，
+   * 不写入 ledger 成功记录；重跑会重新结算，不会上传半个 bundle。
+   */
+  readonly onRunComplete?: (complete: BatchRunComplete) => void;
   /** 断点续跑 ledger；缺省不落盘（进程内一次性批跑）。 */
   readonly ledger?: BatchLedgerOptions;
   /** 单 run 护栏：单 run 最大 tick 数（透传 `runSingle.maxTicks`）。 */
@@ -503,6 +521,7 @@ export async function runBatch(
       };
       const outcome = runImpl(task.config, task.seed, runOptions);
       const elapsedMs = performance.now() - startedAt;
+      options.onRunComplete?.({ index, task, outcome, elapsedMs });
       record = {
         cellKey: task.cellKey,
         seed: task.seed,

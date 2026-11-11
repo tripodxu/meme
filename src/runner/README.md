@@ -4,10 +4,10 @@ Node 批量运行器。按 [01 实施计划](../../docs/01-implementation-plan.m
 
 已实现模块：`preregistration`、`run-cell`、`window-stats`、`cluster`、`batch`、`checkpoint`、`checkpoint-fs`、`batch-cli`、`run-progress`、`perturbation`、`budget`、`rate-limit`、`batch-live`、`p6-analysis`、`p6-factorial`、`p6-perturbation`、`p6-ablation`、`reliability`、`p6-live-comparison`、`p6-cluster-summary`、`uploader`、`upload-bundle`。
 
-P5b 上传已落地（`uploader`/`upload-bundle` + `scripts/upload-run.mjs`，changes/0072）：
+P5b 上传已落地（`uploader`/`upload-bundle`/`upload-export` + `scripts/upload-run.mjs`，changes/0072/0075）：
 `run-upload-bundle-v1` → P4 Worker 的创建/分块/tick/agent/complete，`upload-ledger-v1`
-断点续传；`pnpm batch` 尚未自动导出上传 bundle，指南见
-[docs/guides/upload.md](../../docs/guides/upload.md)。
+断点续传；批跑 `--upload-bundles` 自动导出 metrics-only bundle（`full` profile 未实现），
+指南见 [docs/guides/upload.md](../../docs/guides/upload.md)。
 
 ## 微扰配对（P5-04）
 

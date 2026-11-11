@@ -68,6 +68,19 @@ my-run/
 
 ## 2. 上传
 
+批跑可自动导出 bundle：
+
+```bash
+pnpm build
+node bin/stratify-batch.mjs manifest.json --out out/my-batch \
+  --upload-bundles out/my-batch/upload-bundles
+```
+
+每个成功 run 输出 `out/my-batch/upload-bundles/<cellKey>-<seed>/`。当前只导出
+`metrics-only`（metrics + final_state + agents）；`full` profile 需上游单独导出。
+
+手工上传：
+
 ```bash
 pnpm build
 node scripts/upload-run.mjs my-run/bundle.json \
@@ -87,8 +100,9 @@ node scripts/upload-run.mjs my-run/bundle.json \
 
 ## 3. 当前边界
 
-- 尚未自动从 `pnpm batch` 输出生成 `run-upload-bundle-file-v1`；当前需要上游
-  导出器或手工准备 artifact 目录。
-- 未执行真实 Cloudflare preview 部署与 workerd+D1/R2 集成冒烟（P4-07）。
+- 批跑已可自动导出 metrics-only bundle（changes/0075）；`artifactProfile=full`
+  （decisions/events/snapshot）仍需上游单独导出。
+- 未执行真实 Cloudflare preview 部署与 workerd+D1/R2 集成冒烟（P4-07）；本地上传
+  与 workerd 冒烟已通过。
 - 上传成功只代表技术完整（`verificationStatus=uploaded`），不代表内容已验证，
   也不构成校准或结构证据。

@@ -44,6 +44,9 @@ const { DEFAULT_RUN_CONFIG, mergeConfig } = await import(
 const { nodeCheckpointHost, nodeCheckpointHostSync } = await import(
   `file://${join(here, '..', 'dist', 'runner', 'checkpoint-fs.js').replace(/\\/g, '/')}`
 );
+const { writeUploadBundle } = await import(
+  `file://${join(here, '..', 'dist', 'runner', 'upload-export.js').replace(/\\/g, '/')}`
+);
 
 function printHelp() {
   process.stdout.write(
@@ -56,6 +59,8 @@ function printHelp() {
       '  --resume            从 ledger 恢复，跳过已完成 run（kill 后续跑）',
       '  --checkpoint-ticks N  每 N 个 tick 落 run 内进度检查点（<out>/run-checkpoints/；',
       '                        kill 后从 tick 级完整点恢复，长 run 建议开启，如 500）',
+      '  --upload-bundles <dir>  为每个成功 run 导出 run-upload-bundle-file-v1 到 <dir>',
+      '                        （metrics-only；可用 pnpm upload 上传，见 docs/guides/upload.md）',
       '  --population N     实验级人口规模（P6-01 Stage A 200 / Stage B 1000；',
       '                     manifest.populationSize 必须与之一致），缺省 40',
       '  --help              显示本帮助',
@@ -90,6 +95,7 @@ function parseArgs(argv) {
     help: false,
     checkpointTicks: null,
     population: null,
+    uploadBundles: null,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -122,6 +128,14 @@ function parseArgs(argv) {
         process.exit(2);
       }
       args.checkpointTicks = parsed;
+      i += 1;
+    } else if (arg === '--upload-bundles') {
+      const value = argv[i + 1];
+      if (value === undefined || value.startsWith('--')) {
+        process.stderr.write('[batch] --upload-bundles 需要一个目录参数。\n');
+        process.exit(2);
+      }
+      args.uploadBundles = value;
       i += 1;
     } else if (args.manifest === null && !arg.startsWith('--')) {
       args.manifest = arg;
@@ -171,6 +185,11 @@ try {
       : undefined;
   const manifest = validateBatchManifest(manifestRecord, baseConfig);
   mkdirSync(outDir, { recursive: true });
+  const uploadBundlesDir = args.uploadBundles === null ? null : resolve(args.uploadBundles);
+  if (uploadBundlesDir !== null) {
+    mkdirSync(uploadBundlesDir, { recursive: true });
+    log(`上传 bundle 输出：${uploadBundlesDir}（metrics-only；runtimeVersion=${process.version}）`);
+  }
 
   const ledgerPath = join(outDir, 'batch-ledger.json');
   if (!args.resume && existsSync(ledgerPath)) {
@@ -188,6 +207,21 @@ try {
   const summary = await runBatch(manifest, {
     ...(baseConfig !== undefined ? { baseConfig } : {}),
     ledger: { host, path: ledgerPath },
+    ...(uploadBundlesDir !== null
+      ? {
+          onRunComplete: ({ task, outcome }) => {
+            writeUploadBundle({
+              outDir: uploadBundlesDir,
+              cellKey: task.cellKey,
+              seed: task.seed,
+              config: task.config,
+              outcome,
+              runtimeVersion: process.version,
+              codeSha: process.env.STRATIFY_CODE_SHA ?? 'local-batch',
+            });
+          },
+        }
+      : {}),
     ...(args.checkpointTicks !== null
       ? (() => {
           const checkpointDir = join(outDir, 'run-checkpoints');

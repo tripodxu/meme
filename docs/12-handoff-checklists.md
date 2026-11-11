@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 48）
+## 1. 当前交接状态（2026-11-11，rev 49）
+
+- rev 49（2026-11-11，**批跑自动导出上传 bundle**）：`src/runner/upload-export.ts` 从 `RunOutcome` 生成 metrics-only `run-upload-bundle-file-v1`（全分辨率 metrics、final_state、agents）；`bin/stratify-batch.mjs --upload-bundles <dir>` 每个成功 run 自动导出，`onRunComplete` 抛错按技术失败处理。3 项导出测试；20 tick 导出 → `loadUploadBundle` → Worker 上传 → complete（tickRows=3、agentRows=40）与 CLI 重跑幂等（chunksSkipped=2、duplicateComplete）冒烟通过。`full` profile 与远程 preview 冒烟仍未完成。不改规则/schema，不构成校准或结构证据（changes/0075）。
 
 - rev 48（2026-11-11，**P7 本地可验证部分**）：新增部署冒烟（`src/ops/smoke.ts` + `pnpm smoke:worker`：health/首页/创建/读取/取消）、D1 导出静态校验与 `backup:d1`/`verify:backup`、CI 前端构建与 Worker dry-run、快速开始/指标词典/已知限制文档（changes/0074）。6 项 ops 测试通过。**未执行**真实 preview/production 部署、冒烟、备份恢复、回滚与发布后监控；不得声称已发布或 P7 完成。不改规则/schema，不构成校准或结构证据。
 
