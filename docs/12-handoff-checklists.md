@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 43）
+## 1. 当前交接状态（2026-11-11，rev 44）
+
+- rev 44（2026-11-11，**P3 前端 MVP 落地**）：`src/app` 12 态 RunController + IndexedDB/导入导出/回放，`src/ui` 原生 DOM/SVG 五工作区（设置/总览/个体/回放/管理）与 Vite 入口；P3-01～06 完成，P3-07 的 LTTB、5 项 jsdom DOM E2E 与手动真实浏览器验证完成，但真实浏览器自动化 E2E 尚未接入（无 Playwright/Puppeteer 依赖）；`jev_live` 仍禁用，待 P4 Worker 代理。验证：71 文件 / 826 测试、typecheck、lint、format、docs/secrets 检查通过；浏览器手动验证默认 40 人/120 tick、导入回放、375px 无溢出、主题/键盘。G6 未通过，界面不是校准证据（changes/0070）。
 
 - rev 43（2026-11-11，**停止 P6，转工程轨道**）：规则负责人选择“停止 P6”（ADR 0008、changes/0069）。不再新增 P6 预注册轮次，不再调 θH/θR/θS/H/share/w/k/seed/阈值或新增同类机制旋钮；**G6 保持未通过**，不追认 P6-05/P6-06/P6-07，不声称已校准或结构已涌现。P3 前端、P4 Worker/D1/R2、P5b 上传、P7 发布硬化解除 G6 前置，可按 `docs/01` §9/§10 启动；工程产物不得表述为科学验收。全部 P6 产物与 `rules-v15` 代码保留。
 
@@ -55,7 +57,7 @@
 - rev 18（2026-11-05，D-04 冻结）：P6 预算按 VPS `2zhou` 实测冻结 v1（Stage A 1200 run/180 min/256 MB、Stage B 60/240/512、微扰 240/120/256、消融 120/240/512；换预算=新 experimentId）；基准记录 `docs/benchmarks/2026-11-05-p5a-engine.md`（开发机+VPS 双环境，VPS 1000 人×3650tick=120s）；批跑人口实验级化（`--population`，200 人×730tick 实机验证）。证据：`changes/0036`、`docs/research/2026-11-05-d04-p6-budget-freeze.md`。**至此 P6-01 的全部前置（工程 P5a + 预算 D-04）满足**。
 - rev 16（2026-11-05，P5-06 收口）：`deploy/` 三工件——stratify-runner.service（oneshot、ConditionPathExists、专用用户、Restart=on-failure+StartLimit、ExecStart 固定 manifest+--resume+checkpoint-ticks 500、ProtectSystem=strict）、check-disk-space.sh（磁盘守卫 2048MB）、journald drop-in（200M/1G/14d）；11 项静态契约测试；docs/09 §6 加 deploy/ 指引，docs/01 §2 目录树补 deploy/。证据：changes/0034。**边界**：VPS systemctl 实装演练归发布前；常驻调度/budget.sqlite 归 P5-02。
 - 尚无：UI（P3，0/7）、Worker/D1/R2（P4，0/8，需 Cloudflare 账号）、上传对接（P5b，0/2）、Jev Key 轮换（provider 侧吊销确认）、P6-05d 判读与 G6 校准验收、发布（P7；P5-06 的 VPS systemctl 安装演练归发布前）。P5a 五项、P6-01/P6-02/P6-03/P6-04a、重测信度、1-seed live pilot、VPS 标准部署、P6-04b 正式 live 对照、P6-05/P6-05b/P6-05c 聚类尝试（均未通过）、rules-v13 落地与 P6-05d 开跑已完成（changes/0031–0035、0040 前置、0050–0063）。
-- 下一唯一入口：**工程轨道选择**（P6 已停止，ADR 0008）。可选 P4（Worker/D1/R2）、P3（前端）、P5b（上传/云端）或 P7（发布硬化）；建议先选一条，避免同时铺开。G6 仍未通过；所有对外文案必须区分“可运行/可回放”与“结构已校准”，发布说明必须写明 G6 未通过及 P6 停止决定。
+- 下一唯一入口：**P4 Worker/D1/R2 数据服务**（P3 已落地；`jev_live` 与云端 run 依赖 P4）。P3-07 自动化浏览器 E2E 仍待补（可随 P7 硬化或单独补依赖）。G6 仍未通过；所有对外文案必须区分“可运行/可回放”与“结构已校准”。
 - 不得提前声称：三类结构已出现（目前只有 class-share 单特征候选）、Jev 行为有效、性能已达标、生产可发布、网关免费即生产免费。
 
 ## 2. 新接手者开工清单

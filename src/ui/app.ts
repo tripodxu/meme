@@ -22,6 +22,14 @@ const TABS: readonly { id: TabId; label: string; hint: string }[] = [
   { id: 'manager', label: '⑤ 实验管理', hint: '本地存储、导出与诊断' },
 ];
 
+const KEYBOARD_TABS: Record<string, TabId> = {
+  '1': 'setup',
+  '2': 'overview',
+  '3': 'inspector',
+  '4': 'replay',
+  '5': 'manager',
+};
+
 const STATUS_TEXT: Record<ControllerSnapshot['status'], string> = {
   idle: '未配置',
   validating: '校验中',
@@ -59,6 +67,7 @@ export class StratifyApp {
   speed = 1;
   private root: HTMLElement | null = null;
   private renderQueued = false;
+  private keyboardBound = false;
   private snapshot: ControllerSnapshot;
 
   constructor() {
@@ -88,8 +97,54 @@ export class StratifyApp {
     } catch {
       // 忽略本地偏好读取失败。
     }
+    this.bindKeyboard();
     void this.refreshRuns();
     this.render();
+  }
+
+  private bindKeyboard(): void {
+    if (this.keyboardBound) return;
+    this.keyboardBound = true;
+    window.addEventListener('keydown', (event) => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'select' || tag === 'textarea' || target.isContentEditable) {
+          return;
+        }
+      }
+      const tab = KEYBOARD_TABS[event.key];
+      if (tab !== undefined) {
+        event.preventDefault();
+        this.setTab(tab);
+        return;
+      }
+      if (event.key === ' ') {
+        event.preventDefault();
+        const status = this.controller.snapshot().status;
+        if (status === 'running' || status === 'awaiting_decision' || status === 'replaying') {
+          this.controller.pause();
+        } else if (status === 'paused') {
+          if (this.controller.snapshot().replay !== null) this.controller.startReplay();
+          else this.controller.start();
+        } else if (status === 'ready') {
+          this.controller.start();
+        } else {
+          this.start();
+        }
+        return;
+      }
+      if (event.key.toLowerCase() === 'n') {
+        event.preventDefault();
+        this.step();
+        return;
+      }
+      if (event.key.toLowerCase() === 'e') {
+        event.preventDefault();
+        this.downloadBundle();
+      }
+    });
   }
 
   /** 保存节流：每个 run 最多每 2 秒写一次完整 bundle。 */

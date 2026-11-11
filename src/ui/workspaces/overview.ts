@@ -35,28 +35,68 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
       }),
     ]),
     h('div', { class: 'span-6' }, [
-      card('阶级结构堆叠', [classChart(snapshot)], {
+      card('阶级结构堆叠', [classChart(snapshot), classLegend()], {
         subtitle: '各阶级存活人口占比；死亡不折算为流动。全周期窗口。',
       }),
     ]),
     h('div', { class: 'span-6' }, [
-      card('财富与不平等', [wealthChart(snapshot)], {
-        subtitle: `G 与 Top10% 同轴；中位数 ${formatNumber(snapshot.latestStats?.medianValue)}。全周期窗口。`,
-      }),
+      card(
+        '财富与不平等',
+        [
+          wealthChart(snapshot),
+          legend([
+            ['Gini', 'var(--class-4-color)'],
+            ['Top10%', 'var(--class-3-color)'],
+          ]),
+        ],
+        {
+          subtitle: `G 与 Top10% 同轴；中位数 ${formatNumber(snapshot.latestStats?.medianValue)}。全周期窗口。`,
+        },
+      ),
     ]),
     h('div', { class: 'span-4' }, [
-      card('双向流动', [mobilityChart(snapshot)], {
-        subtitle: 'Mup/Mdown 为 metrics.mobilityWindowDays 日参与率；二者分开显示。',
-      }),
+      card(
+        '双向流动',
+        [
+          mobilityChart(snapshot),
+          legend([
+            ['Mup', 'var(--action-ascend)'],
+            ['Mdown', 'var(--action-descend)'],
+          ]),
+        ],
+        {
+          subtitle: 'Mup/Mdown 为 metrics.mobilityWindowDays 日参与率；二者分开显示。',
+        },
+      ),
     ]),
     h('div', { class: 'span-4' }, [
-      card('网络结构', [networkChart(snapshot)], {
-        subtitle: '无连边时显示 edgeCount=0，不用 S=1 代替空网络。',
-      }),
+      card(
+        '网络结构',
+        [
+          networkChart(snapshot),
+          legend([
+            ['crossClassEdgeShare', 'var(--class-2-color)'],
+            ['S', 'var(--class-3-color)'],
+          ]),
+        ],
+        {
+          subtitle: '无连边时显示 edgeCount=0，不用 S=1 代替空网络。',
+        },
+      ),
     ]),
     h('div', { class: 'span-4' }, [
       card('开放度与机会', [opennessChart(snapshot)], {
         subtitle: 'O 为慢变量；E 为各阶级环境持有人系数。全周期窗口。',
+      }),
+    ]),
+    h('div', { class: 'span-4' }, [
+      card('竞争与净损耗', [competitionChart(snapshot)], {
+        subtitle: '按 tick 汇总发起竞争的损失/获得；净损耗 = 损失 − 获得。全周期窗口。',
+      }),
+    ]),
+    h('div', { class: 'span-4' }, [
+      card('寿命与死亡', [deathChart(snapshot, app)], {
+        subtitle: '累计死亡按 tick 累加；按阶级死亡来自当前权威状态。全周期窗口。',
       }),
     ]),
     h('div', { class: 'span-6' }, [
@@ -220,6 +260,80 @@ function opennessChart(snapshot: ControllerSnapshot): SVGSVGElement {
     yLabel: 'O / E',
     title: '开放度与动态机会',
   });
+}
+
+function legend(items: readonly (readonly [string, string])[]): HTMLElement {
+  return h(
+    'div',
+    { class: 'legend' },
+    items.map(([label, color]) =>
+      h('span', {}, [h('span', { class: 'legend-swatch', style: `background:${color}` }), label]),
+    ),
+  );
+}
+
+function classLegend(): HTMLElement {
+  const symbols = ['○', '△', '□', '◇', '☆'];
+  return legend(
+    CLASS_COLORS.map((color, index) => [`${symbols[index] ?? '•'} Class ${index}`, color] as const),
+  );
+}
+
+function competitionChart(snapshot: ControllerSnapshot): SVGSVGElement {
+  if (snapshot.stats.length === 0) return emptyChart('尚无 tick 数据');
+  const loss: Series = {
+    label: 'loss',
+    color: 'var(--action-descend)',
+    points: snapshot.stats.map((row) => ({ x: row.tick + 1, y: row.competitionLoss })),
+  };
+  const gain: Series = {
+    label: 'gain',
+    color: 'var(--action-ascend)',
+    points: snapshot.stats.map((row) => ({ x: row.tick + 1, y: row.competitionGain })),
+    dashed: true,
+  };
+  return renderLineChart([loss, gain], {
+    height: 190,
+    yMin: 0,
+    xLabel: 'tick',
+    yLabel: 'Value',
+    title: '竞争损失与获得',
+  });
+}
+
+function deathChart(snapshot: ControllerSnapshot, app: StratifyApp): HTMLElement {
+  if (snapshot.stats.length === 0) return h('div', {}, [emptyChart('尚无 tick 数据')]);
+  let cumulative = 0;
+  const points = snapshot.stats.map((row) => {
+    cumulative += row.deathCount;
+    return { x: row.tick + 1, y: cumulative };
+  });
+  const state = app.controller.getState();
+  const classCount = snapshot.config?.population.classCount ?? 5;
+  const deathsByClass = new Array<number>(classCount).fill(0);
+  if (state !== null) {
+    for (const agent of state.society.agents) {
+      if (!agent.alive)
+        deathsByClass[agent.classIndex] = (deathsByClass[agent.classIndex] ?? 0) + 1;
+    }
+  }
+  return h('div', {}, [
+    renderLineChart([{ label: 'cumulative deaths', color: 'var(--class-0-color)', points }], {
+      height: 150,
+      yMin: 0,
+      xLabel: 'tick',
+      yLabel: '人',
+      title: '累计死亡',
+    }),
+    renderBarChart(
+      deathsByClass.map((value, index) => ({
+        label: `C${index}`,
+        value,
+        color: CLASS_COLORS[index] ?? 'var(--accent)',
+      })),
+      { height: 110, title: '按阶级死亡' },
+    ),
+  ]);
 }
 
 function flowMatrix(snapshot: ControllerSnapshot): HTMLElement {
