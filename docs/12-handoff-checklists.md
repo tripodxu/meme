@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 50）
+## 1. 当前交接状态（2026-11-11，rev 51）
+
+- rev 51（2026-11-11，**complete 清单复算 + diagnosticsHash**）：`artifactManifestHash` 改由服务器从 D1 artifacts 复算（不一致 409），上传器改用字节序排序；migration 0003 新增 `runs.diagnostics_hash`，cancel/fail 校验并持久化、详情回显。Worker 测试 16 项、上传/导出测试继续通过。`expectedDueDecisions` 复算与远程冒烟未完成；不改规则/schema，不构成校准或结构证据（changes/0077）。
 
 - rev 50（2026-11-11，**P4-06 保留策略**）：`src/worker/maintenance.ts` 实现 browser 7d / runner 90d 保留、Cron `17 3 * * *`、按 run 删除 R2 artifact 后级联删 D1、清理 2 天前 `rate_limits`；`wrangler.jsonc` 增加 triggers 与保留天数变量。2 项维护测试通过（过期 browser/runner 删除、新 run 保留、R2 3→1、限流行保留/删除）。**边界**：R2 孤儿对象枚举、线上 Cron 触发与真实删除演练未执行；不改规则/schema，不构成校准或结构证据（changes/0076）。
 

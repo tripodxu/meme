@@ -700,6 +700,24 @@ app.post('/api/runs/:id/complete', async (c) => {
     }
     return fail(c, 409, 'state_conflict', 'run 已 complete 且摘要不同');
   }
+  // artifactManifestHash 由服务器从已上传清单复算：只证明调用方看到的块集合
+  // 与 D1 清单一致，不证明内容已解压/回放验证。
+  const manifestRows = await c.env.DB.prepare(
+    'SELECT kind, chunk_id, compressed_sha256, bytes FROM artifacts WHERE run_id = ?',
+  )
+    .bind(id)
+    .all<{ kind: string; chunk_id: string; compressed_sha256: string; bytes: number }>();
+  const manifestList = (manifestRows.results ?? [])
+    .map((row) => ({
+      key: `${row.kind}/${row.chunk_id}`,
+      sha256: row.compressed_sha256,
+      bytes: row.bytes,
+    }))
+    .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  const expectedManifestHash = `sha256:${await sha256Hex(JSON.stringify(manifestList))}`;
+  if (complete['artifactManifestHash'] !== expectedManifestHash) {
+    return fail(c, 409, 'state_conflict', 'artifactManifestHash 与已上传清单不一致');
+  }
   await c.env.DB.prepare(
     `UPDATE runs SET status = 'completed', end_reason = ?, final_tick = ?, final_alive_count = ?,
        final_state_hash = ?, summary_hash = ?, complete_json = ?, verification_status = 'uploaded',
@@ -753,11 +771,19 @@ async function terminateRun(
   if (finalTick !== null && (typeof finalTick !== 'number' || !Number.isInteger(finalTick))) {
     return fail(c, 422, 'validation_failed', 'finalTick 必须是整数或 null');
   }
+  const diagnosticsHash = body['diagnosticsHash'] ?? null;
+  if (
+    diagnosticsHash !== null &&
+    (typeof diagnosticsHash !== 'string' || !/^sha256:[0-9a-f]{64}$/.test(diagnosticsHash))
+  ) {
+    return fail(c, 422, 'validation_failed', 'diagnosticsHash 必须为 sha256:hex 或 null');
+  }
   await c.env.DB.prepare(
     `UPDATE runs SET status = ?, end_reason = NULL, final_tick = ?, error_code = ?,
-       error_message = ?, updated_at = ? WHERE run_id = ? AND status = 'running'`,
+       error_message = ?, diagnostics_hash = ?, updated_at = ?
+       WHERE run_id = ? AND status = 'running'`,
   )
-    .bind(status, finalTick, status, body['reason'], new Date().toISOString(), id)
+    .bind(status, finalTick, status, body['reason'], diagnosticsHash, new Date().toISOString(), id)
     .run();
   return c.json({ runId: id, status });
 }

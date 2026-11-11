@@ -665,7 +665,7 @@ export async function uploadRun(
       sha256: chunk.compressedSha256,
       bytes: chunk.bytes,
     }))
-    .sort((a, b) => a.key.localeCompare(b.key));
+    .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   const artifactManifestHash = `sha256:${sha256Hex(JSON.stringify(manifest))}`;
   const completeHeaders: Record<string, string> = {
     authorization: `Bearer ${ledger.writeToken}`,

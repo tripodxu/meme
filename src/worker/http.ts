@@ -211,6 +211,7 @@ export interface RunRow {
   readonly final_state_hash: string | null;
   readonly summary_hash: string | null;
   readonly complete_json: string | null;
+  readonly diagnostics_hash: string | null;
   readonly error_code: string | null;
   readonly error_message: string | null;
 }
@@ -243,6 +244,7 @@ export function publicRun(row: RunRow): Record<string, unknown> {
     finalAliveCount: row.final_alive_count,
     finalStateHash: row.final_state_hash,
     summaryHash: row.summary_hash,
+    diagnosticsHash: row.diagnostics_hash,
     error: row.error_code === null ? null : { code: row.error_code, message: row.error_message },
   };
 }

@@ -108,11 +108,21 @@ async function completeBody(
   expectedAgentRows: number,
   expectedDueDecisions = 0,
 ): Promise<Record<string, unknown>> {
-  void env;
-  void run;
   const config = createDemoConfig();
   const finalTick = config.schedule.totalTicks - 1;
   const planned = plannedStatsTicks(config.schedule.totalTicks, config.schedule.statsStride);
+  const rows = await env.DB.prepare(
+    'SELECT kind, chunk_id, compressed_sha256, bytes FROM artifacts WHERE run_id = ?',
+  )
+    .bind(run.runId)
+    .all<{ kind: string; chunk_id: string; compressed_sha256: string; bytes: number }>();
+  const manifest = (rows.results ?? [])
+    .map((row) => ({
+      key: `${row.kind}/${row.chunk_id}`,
+      sha256: row.compressed_sha256,
+      bytes: row.bytes,
+    }))
+    .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   return {
     finalTick,
     finalAliveCount: 40,
@@ -122,7 +132,7 @@ async function completeBody(
     endReason: 'scheduled',
     finalStateHash: SHA_ZERO,
     summaryHash: SHA_ZERO,
-    artifactManifestHash: SHA_ZERO,
+    artifactManifestHash: `sha256:${await sha256Hex(JSON.stringify(manifest))}`,
   };
 }
 
@@ -333,6 +343,19 @@ describe('P4 Worker API', () => {
 
     await uploadArtifact(env, run, 'metrics', 'metrics-1', new TextEncoder().encode('m'));
     await uploadArtifact(env, run, 'final_state', 'final-1', new TextEncoder().encode('f'));
+    const wrongManifest = await app.request(
+      `${BASE}/api/runs/${run.runId}/complete`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          ...(await completeBody(env, run, 1)),
+          artifactManifestHash: SHA_ZERO,
+        }),
+      },
+      env,
+    );
+    expect(wrongManifest.status).toBe(409);
     const complete = await app.request(
       `${BASE}/api/runs/${run.runId}/complete`,
       { method: 'POST', headers, body: JSON.stringify(await completeBody(env, run, 1)) },
@@ -528,6 +551,40 @@ describe('P4 Worker API', () => {
       env,
     );
     expect(rollback.status).toBe(409);
+  });
+
+  it('cancel/fail 持久化 diagnosticsHash 并校验格式', async () => {
+    const env = createTestEnv();
+    const run = await createRun(env, { artifactProfile: 'metrics-only' });
+    const headers = {
+      authorization: `Bearer ${run.writeToken}`,
+      'content-type': 'application/json',
+    };
+    const invalid = await app.request(
+      `${BASE}/api/runs/${run.runId}/cancel`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ reason: 'bad', finalTick: null, diagnosticsHash: 'nope' }),
+      },
+      env,
+    );
+    expect(invalid.status).toBe(422);
+
+    const cancelled = await app.request(
+      `${BASE}/api/runs/${run.runId}/cancel`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ reason: 'smoke', finalTick: 3, diagnosticsHash: SHA_ZERO }),
+      },
+      env,
+    );
+    expect(cancelled.status).toBe(200);
+    const detail = await app.request(`${BASE}/api/runs/${run.runId}`, {}, env);
+    const body = (await detail.json()) as { status: string; diagnosticsHash: string | null };
+    expect(body.status).toBe('cancelled');
+    expect(body.diagnosticsHash).toBe(SHA_ZERO);
   });
 
   it('无 writeToken 不能写入任何 run', async () => {
