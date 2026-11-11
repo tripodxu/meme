@@ -3,7 +3,15 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'fixtures/**'],
+    ignores: [
+      'dist/**',
+      'dist-web/**',
+      '.wrangler/**',
+      '.wrangler-dry/**',
+      'coverage/**',
+      'node_modules/**',
+      'fixtures/**',
+    ],
   },
   ...tseslint.configs.recommended,
   {

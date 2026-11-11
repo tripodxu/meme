@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 44）
+## 1. 当前交接状态（2026-11-11，rev 45）
+
+- rev 45（2026-11-11，**P4 Worker/D1/R2 MVP 落地**）：`src/worker` Hono 应用 + `migrations/0001_init.sql` + `wrangler.jsonc`，覆盖 P4-01～P4-06/P4-08 的接口面：统一错误/requestId、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB、双 SHA-256、ETag/304）、complete 状态机、keyset 分页、固定窗口限流、同源 BYOK `/api/jev`（模型 allowlist、30s 超时、不记录 Key/body）。验证：`pnpm typecheck`/`pnpm lint` 通过；14 项 Worker 测试（本机 `node:sqlite` 执行真实迁移 + 内存 R2）；`wrangler deploy --dry-run` 打包成功。**边界**：P4-07 workerd/preview 集成与部署冒烟未执行；保留策略/维护任务、`expectedDueDecisions`/`artifactManifestHash` 服务端复算、`diagnosticsHash` 持久化、真实 Jev live 冒烟均未做；`jev_live` 仍禁用。不改规则/schema，不构成校准或结构证据（changes/0071）。
 
 - rev 44（2026-11-11，**P3 前端 MVP 落地**）：`src/app` 12 态 RunController + IndexedDB/导入导出/回放，`src/ui` 原生 DOM/SVG 五工作区（设置/总览/个体/回放/管理）与 Vite 入口；P3-01～06 完成，P3-07 的 LTTB、5 项 jsdom DOM E2E 与手动真实浏览器验证完成，但真实浏览器自动化 E2E 尚未接入（无 Playwright/Puppeteer 依赖）；`jev_live` 仍禁用，待 P4 Worker 代理。验证：71 文件 / 826 测试、typecheck、lint、format、docs/secrets 检查通过；浏览器手动验证默认 40 人/120 tick、导入回放、375px 无溢出、主题/键盘。G6 未通过，界面不是校准证据（changes/0070）。
 

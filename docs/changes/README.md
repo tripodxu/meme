@@ -94,3 +94,4 @@
 | [0069](0069-stop-p6-engineering-track.md) | 停止 P6 结构目标，转工程轨道（ADR 0008） | 2026-11-11 | 规则负责人选择“停止 P6”：不再新增确认轮/调参；G6 保持未通过，不追认旧结果；P3/P4/P5b/P7 解除 G6 前置；无代码/规则/schema 变更，不触发重跑 |
 
 | [0070](0070-p3-frontend-mvp.md) | P3 前端交互 MVP 落地（RunController + 五工作区） | 2026-11-11 | 12 态 RunController、时间片调度、IndexedDB/导入导出/回放；原生 DOM/SVG 五工作区与 10 类图表；个体检查器含决策概率与执行记录；LTTB 降采样、双主题/键盘/375px；826 测试通过；P3-07 自动化 E2E 未接入，`jev_live` 待 P4；不是校准证据 |
+| [0071](0071-p4-worker-api.md) | P4 Worker/D1/R2 工程落地（MVP） | 2026-11-11 | Hono 统一错误/requestId、D1 迁移、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB/双 SHA-256/ETag）、complete、keyset 分页、限流、同源 BYOK `/api/jev`；14 项 Worker 测试与 dry-run 打包；P4-07 部署冒烟与维护任务未完成，无规则/schema 变更 |

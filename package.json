@@ -30,9 +30,15 @@
     "build": "tsc -p tsconfig.build.json",
     "dev:web": "vite --port 5180 --strictPort",
     "build:web": "vite build",
-    "preview:web": "vite preview --port 4173"
+    "preview:web": "vite preview --port 4173",
+    "dev:worker": "wrangler dev",
+    "deploy:worker": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply stratify-local --local",
+    "db:migrate:preview": "wrangler d1 migrations apply stratify-preview --remote --env preview",
+    "db:migrate:prod": "wrangler d1 migrations apply stratify-prod --remote --env production"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261110.1",
     "@types/node": "22.20.5",
     "@vitest/coverage-v8": "5.0.5",
     "ajv": "^8.20.0",
@@ -44,9 +50,11 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.1",
     "vite": "8.3.5",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "wrangler": "^4.160.0"
   },
   "dependencies": {
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "hono": "^4.13.17"
   }
 }

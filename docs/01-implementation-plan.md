@@ -186,6 +186,8 @@ docs/              本施工文档与 adr/
 | P4-07 | workerd+D1/R2 集成和部署冒烟               | P4-06       | 本地集成与预览环境通过；备份后部署，部署后验证                             |
 | P4-08 | Worker 同源 BYOK 代理与浏览器 live 冒烟    | P2-04,P4-01 | 浏览器只经同源 `/api/jev`；Key 不落库/日志/URL；模型 allowlist；成本有上限 |
 
+**P4 进度记录（2026-11-11，changes/0071）**：P4-01～P4-06、P4-08 的代码与单元契约测试已落地：`src/worker` Hono 应用、`migrations/0001_init.sql`、`wrangler.jsonc` 三环境配置；覆盖统一错误/requestId、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB、双 SHA-256、ETag/304）、complete、keyset 分页、固定窗口限流、同源 BYOK `/api/jev`（allowlist、30s 超时、不记录 Key/body）。`test/unit/worker/api.test.ts` 14 项通过（本机 `node:sqlite` 执行真实迁移、内存 R2），`wrangler deploy --dry-run` 打包成功。**未完成**：P4-07 的 workerd/preview 集成与部署冒烟未执行；保留策略/维护任务、`expectedDueDecisions`/`artifactManifestHash` 服务端复算、`diagnosticsHash` 持久化、真实 Jev live 冒烟未做；浏览器 `jev_live` 仍禁用。不改规则/schema，不构成校准或结构证据。
+
 **闸门 G4**：幂等、并发、越权、超限和损坏 artifact 测试通过；D1 无海量事件表；同源代理只接受白名单字段且无任意转发；无密钥泄漏。
 
 ## 8. P5：VPS 批量 Runner
