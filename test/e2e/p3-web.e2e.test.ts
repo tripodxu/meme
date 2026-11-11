@@ -74,6 +74,30 @@ describe('P3 浏览器工作台 E2E（jsdom）', () => {
     expect(root.querySelector('#setup-live-key')).toBeNull();
   });
 
+  it('live 超建议规模时阻止启动，勾选确认后才解除', () => {
+    const { app, root } = mountApp();
+    app.draftConfig = createDemoConfig({
+      population: { initialPopulation: 50 },
+      schedule: { totalTicks: 20 },
+    });
+    app.liveApiKey = 'e2e-fake-key';
+    const select = root.querySelector('#setup-policy') as HTMLSelectElement | null;
+    if (select === null) throw new Error('缺少策略选择');
+    select.value = 'jev_live';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    const confirm = root.querySelector('#setup-live-scale-confirm') as HTMLInputElement | null;
+    expect(confirm).not.toBeNull();
+    app.start();
+    expect(app.getSnapshot().status).toBe('idle');
+    expect(app.notice).toContain('建议上限');
+    if (confirm !== null) {
+      confirm.checked = true;
+      confirm.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    expect(app.liveScaleConfirmed).toBe(true);
+    expect(JSON.stringify(app.getSnapshot())).not.toContain('e2e-fake-key');
+  });
+
   it('个体检查器可筛选并展示决策与执行记录', async () => {
     const { app } = mountApp();
     app.start();

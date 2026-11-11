@@ -3,7 +3,7 @@ import type { RunConfig } from '../core/config/types.js';
 import { WEB_PRESETS, findPreset, type WebPreset } from '../app/presets.js';
 import { RunController } from '../app/run-controller.js';
 import { IdbRunStore, type StoredRunMeta } from '../app/idb-store.js';
-import type { BrowserLiveOptions } from '../app/live-policy.js';
+import { exceedsLiveSuggestion, type BrowserLiveOptions } from '../app/live-policy.js';
 import type { ControllerSnapshot, OfflinePolicyId, WebRunBundle } from '../app/types.js';
 import { buildKpis, formatNumber, formatTick } from '../app/view-model.js';
 import { badge, clear, h } from './dom.js';
@@ -63,6 +63,8 @@ export class StratifyApp {
   liveMaxCalls = 200;
   liveMaxInputTokens = 200_000;
   liveMaxMinutes = 30;
+  /** 超出 06 建议规模时，必须显式勾选后才能启动 live。 */
+  liveScaleConfirmed = false;
   selectedPresetId: string;
   notice: string | null = null;
   importedBundle: WebRunBundle | null = null;
@@ -236,7 +238,18 @@ export class StratifyApp {
     if (patch.draftConfig !== undefined) this.draftConfig = patch.draftConfig;
     if (patch.draftSeed !== undefined) this.draftSeed = patch.draftSeed;
     if (patch.draftPolicy !== undefined) this.draftPolicy = patch.draftPolicy;
+    if (patch.draftConfig !== undefined || patch.draftPolicy !== undefined) {
+      this.liveScaleConfirmed = false;
+    }
     this.selectedPresetId = 'custom';
+  }
+
+  private liveScaleBlocked(): boolean {
+    return (
+      this.draftPolicy === 'jev_live' &&
+      exceedsLiveSuggestion(this.draftConfig) &&
+      !this.liveScaleConfirmed
+    );
   }
 
   private liveOptions(): BrowserLiveOptions | undefined {
@@ -251,6 +264,12 @@ export class StratifyApp {
   }
 
   start(): void {
+    if (this.liveScaleBlocked()) {
+      this.notice =
+        '当前规模超过浏览器 live 建议上限（40 人 / 730 tick / 决策间隔 30）；请在设置页勾选确认后再启动。';
+      this.render();
+      return;
+    }
     const result = this.controller.prepare(
       this.draftConfig,
       this.draftSeed,
@@ -268,6 +287,12 @@ export class StratifyApp {
   }
 
   step(): void {
+    if (this.liveScaleBlocked()) {
+      this.notice =
+        '当前规模超过浏览器 live 建议上限（40 人 / 730 tick / 决策间隔 30）；请在设置页勾选确认后再单步。';
+      this.render();
+      return;
+    }
     if (this.controller.snapshot().status === 'idle') {
       const result = this.controller.prepare(
         this.draftConfig,

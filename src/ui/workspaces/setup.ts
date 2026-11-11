@@ -2,6 +2,7 @@ import { mergeConfig, type DeepPartialConfig } from '../../core/config/defaults.
 import { validateRunConfig } from '../../core/config/validate.js';
 import type { RunConfig } from '../../core/config/types.js';
 import { WEB_PRESETS } from '../../app/presets.js';
+import { exceedsLiveSuggestion, LIVE_SUGGESTED_LIMITS } from '../../app/live-policy.js';
 import { badge, card, field, h, table } from '../dom.js';
 import { configPreview, numeric, type StratifyApp } from '../app.js';
 
@@ -420,6 +421,26 @@ function liveFields(app: StratifyApp): HTMLElement[] {
       }),
       '到点停止新调用；不会自动重跑。',
     ),
+    ...(exceedsLiveSuggestion(app.draftConfig)
+      ? [
+          field(
+            '超建议规模确认',
+            h('label', { class: 'checkbox' }, [
+              h('input', {
+                id: 'setup-live-scale-confirm',
+                type: 'checkbox',
+                checked: app.liveScaleConfirmed,
+                onChange: (event) => {
+                  app.liveScaleConfirmed = (event.target as HTMLInputElement).checked;
+                },
+              }),
+              h('span', {
+                text: `我确认当前规模超过 ${LIVE_SUGGESTED_LIMITS.maxPopulation} 人 / ${LIVE_SUGGESTED_LIMITS.maxTicks} tick / 间隔 ${LIVE_SUGGESTED_LIMITS.minDecisionInterval} 的建议上限，并承担调用与等待成本。`,
+              }),
+            ]),
+          ),
+        ]
+      : []),
     h('div', { class: 'notice notice-warn' }, [
       h('strong', { text: 'live 会产生真实调用与费用。' }),
       h('br'),

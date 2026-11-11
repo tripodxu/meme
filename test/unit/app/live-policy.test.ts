@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createDemoConfig } from '../../../src/core/config/defaults.js';
 import { asSeed } from '../../../src/core/control/ids.js';
-import { createBrowserLivePolicy } from '../../../src/app/live-policy.js';
+import {
+  createBrowserLivePolicy,
+  exceedsLiveSuggestion,
+  LIVE_SUGGESTED_LIMITS,
+} from '../../../src/app/live-policy.js';
 import { RunController } from '../../../src/app/run-controller.js';
 import { runSingleWithPolicy } from '../../../src/runner/run-cell.js';
 
@@ -106,6 +110,33 @@ describe('浏览器 live 策略（同源代理）', () => {
       expect(String(init?.body ?? '')).not.toContain(KEY);
     }
     expect(view.budget.usage().callsUsed).toBeGreaterThan(0);
+  });
+
+  it('超过 06 建议规模时要求显式确认', () => {
+    const within = createDemoConfig({
+      population: { initialPopulation: LIVE_SUGGESTED_LIMITS.maxPopulation },
+      schedule: { totalTicks: LIVE_SUGGESTED_LIMITS.maxTicks },
+      decision: { interval: LIVE_SUGGESTED_LIMITS.minDecisionInterval },
+    });
+    expect(exceedsLiveSuggestion(within)).toBe(false);
+    expect(exceedsLiveSuggestion(createDemoConfig())).toBe(true);
+    expect(
+      exceedsLiveSuggestion(
+        createDemoConfig({
+          population: { initialPopulation: LIVE_SUGGESTED_LIMITS.maxPopulation + 1 },
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      exceedsLiveSuggestion(
+        createDemoConfig({ schedule: { totalTicks: LIVE_SUGGESTED_LIMITS.maxTicks + 1 } }),
+      ),
+    ).toBe(true);
+    expect(
+      exceedsLiveSuggestion(
+        createDemoConfig({ decision: { interval: LIVE_SUGGESTED_LIMITS.minDecisionInterval - 1 } }),
+      ),
+    ).toBe(true);
   });
 
   it('控制器 snapshot/export 不含 Key', () => {

@@ -1,4 +1,5 @@
 import { StratifyError, errorCodes } from '../core/control/errors.js';
+import type { RunConfig } from '../core/config/types.js';
 import type { DecisionPolicy } from '../decision/policy.js';
 import {
   AttemptBudget,
@@ -31,6 +32,21 @@ export interface BrowserLivePolicyView {
   readonly policy: DecisionPolicy;
   readonly endpoint: string;
   readonly budget: AttemptBudget;
+}
+
+/** docs/06 §live：浏览器 live 的建议规模；超出必须显式确认。 */
+export const LIVE_SUGGESTED_LIMITS = {
+  maxPopulation: 40,
+  maxTicks: 730,
+  minDecisionInterval: 30,
+} as const;
+
+export function exceedsLiveSuggestion(config: RunConfig): boolean {
+  return (
+    config.population.initialPopulation > LIVE_SUGGESTED_LIMITS.maxPopulation ||
+    config.schedule.totalTicks > LIVE_SUGGESTED_LIMITS.maxTicks ||
+    config.decision.interval < LIVE_SUGGESTED_LIMITS.minDecisionInterval
+  );
 }
 
 export function createBrowserLivePolicy(options: BrowserLiveOptions): BrowserLivePolicyView {

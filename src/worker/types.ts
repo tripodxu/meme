@@ -56,6 +56,8 @@ export interface Env {
   readonly RUNNER_TOKEN?: string;
   readonly JEV_UPSTREAM_URL?: string;
   readonly JEV_ALLOWED_MODELS?: string;
+  /** 全局小时调用保险丝；缺省 1000。 */
+  readonly JEV_GLOBAL_HOURLY_LIMIT?: string;
   readonly ENVIRONMENT?: string;
   readonly VERSION?: string;
   /** 服务器权威 hash 运行时；与 run 的 runtimeVersion 不同则标记 non-authoritative（ADR 0001）。 */

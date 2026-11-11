@@ -54,6 +54,16 @@ app.get('/api/health', async (c) => {
 app.post('/api/jev', async (c) => {
   const allowed = await checkRateLimit(c.env.DB, `${clientBucket(c)}:jev`, 60, 60);
   if (!allowed) return fail(c, 429, 'rate_limited', 'Jev 代理请求过于频繁');
+  const globalLimit = Number(c.env.JEV_GLOBAL_HOURLY_LIMIT ?? '1000');
+  const globalAllowed = await checkRateLimit(
+    c.env.DB,
+    'jev:global',
+    Number.isInteger(globalLimit) && globalLimit > 0 ? globalLimit : 1000,
+    3600,
+  );
+  if (!globalAllowed) {
+    return fail(c, 429, 'rate_limited', 'Jev 代理全局小时配额已耗尽');
+  }
   const apiKey = c.req.header('x-api-key');
   if (apiKey === undefined || apiKey.length === 0) {
     return fail(c, 401, 'unauthorized', '缺少 X-Api-Key');

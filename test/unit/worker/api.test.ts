@@ -654,6 +654,29 @@ describe('P4 Worker API', () => {
     expect(JSON.stringify(upstreamBody)).not.toContain('key-123');
   });
 
+  it('Jev 代理全局小时配额耗尽时返回 429', async () => {
+    const env = createTestEnv({ JEV_GLOBAL_HOURLY_LIMIT: '1' });
+    const windowStart = Math.floor(Date.now() / 3_600_000) * 3600;
+    await env.DB.prepare('INSERT INTO rate_limits (bucket, window_start, count) VALUES (?, ?, 1)')
+      .bind('jev:global', windowStart)
+      .run();
+    const response = await app.request(
+      `${BASE}/api/jev`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': 'test-key' },
+        body: JSON.stringify({
+          model: 'jev-small',
+          state: {},
+          questions: [{ type: 'action', choices: ['a'] }],
+        }),
+      },
+      env,
+    );
+    expect(response.status).toBe(429);
+    expect(JSON.stringify(await response.json())).toContain('全局小时配额');
+  });
+
   it('固定窗口限流', async () => {
     const db = createTestD1();
     expect(await checkRateLimit(db, 'ip:1', 2, 60, 1_000)).toBe(true);

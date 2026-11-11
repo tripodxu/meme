@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 52）
+## 1. 当前交接状态（2026-11-11，rev 53）
+
+- rev 53（2026-11-11，**live 规模门禁与全局保险丝**）：`/api/jev` 增加 `jev:global` 小时限流（默认 1000，`JEV_GLOBAL_HOURLY_LIMIT` 可覆盖）；浏览器超过 40 人 / 730 tick / 间隔 30 时显示确认复选框，未勾选 `start()`/`step()` 被阻止。Worker 17 项、live 4 项与 7 项 jsdom E2E 通过。固定窗口不是分布式令牌桶，真实 Jev 冒烟未执行；不改规则/schema，不构成校准或结构证据（changes/0079）。
 
 - rev 52（2026-11-11，**浏览器 live 接入**）：`jev_live` 通过同源 `/api/jev` 代理启用；Key 只驻留内存并进 Authorization 头，不写存储/导出/日志；预算/截止/熔断/回退率启用，jitter=0。控制器支持 live 与 `jev_replay`，导入 live bundle 不要求重新提供 Key；loopback http 允许本地代理。3 项单测 + 1 项 jsdom E2E 通过。**真实 live 冒烟未执行**；Worker 全局保险丝、规模硬门禁与远程部署未完成。不改规则/schema，不构成校准或结构证据（changes/0078）。
 

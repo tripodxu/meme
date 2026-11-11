@@ -46,6 +46,10 @@ RUNNER_TOKEN=仅通过 wrangler secret 配置
 
 MVP 不配置公共 TYPESAFE_API_KEY；访客使用自己的 X-Api-Key。密钥通过 `wrangler secret put RUNNER_TOKEN` 的交互安全流程设置，不写入文件/命令历史。
 
+`/api/jev` 另有全局小时保险丝：D1 `rate_limits` bucket `jev:global`，默认 1000 次/小时，
+可用 `JEV_GLOBAL_HOURLY_LIMIT` 调整；耗尽返回 429。它与按 IP 的 60 次/分钟限流叠加，
+是固定窗口计数而非分布式令牌桶（changes/0079）。
+
 ### 2.3 P4 代码落地范围（2026-11-11，changes/0071）
 
 仓库已提供 `wrangler.jsonc`（Static Assets `dist-web`、`/api/*` 走 Worker、D1/R2 binding、
