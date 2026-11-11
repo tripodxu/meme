@@ -1,7 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 37）
+## 1. 当前交接状态（2026-11-11，rev 38）
 
+- rev 38（2026-11-11，D3 批准 / P6-05e 开跑）：按规则设计评审建议，先做测量充分性检查（不改规则）：continuous 对照、share=0.5/w=15、人口 200/1000 × 30 个全新 seed × 10950 tick + 每 cell 10 个 14600，共 80 run，`p6-05e-1b652168`；VPS `2zhou` 以 `--cell` 两 shard 并行运行（`p6-05e-pop200`/`p6-05e-pop1000`）。仅诊断第三簇是否为 40 人小样本噪声；不构成 G6 确认，若出现稳定三簇须另立全新确认 seed 轮次（changes/0064）。
 - rev 37（2026-11-11，rules-v13 落地 / P6-05d 未通过）：ADR 0005 已接受，显式制度状态机实现完成——权威状态 `society.institutionalRegime ∈ {closed, open}`、滞回转移（`enterM=0.25`/`exitM=0.15`/`enterS=0.20`/`exitS=0.30`）、`O_target` 增加 `θR·sign(regime)`；6 个新参数默认 `continuous`/θR=0，与 rules-v12 逐位一致；版本 rules-v13 / engine-v0.11.0 / config v8 / state v4，v7→v8 与 v3→v4 迁移；11 项新单测与 config/engine/param golden 前滚，799 单测全绿（changes/0063）。P6-05d `p6-05d-5cb910dd` **160/160 完成、0 排除、0 灭绝**：k=3 簇 **[76,3,41]**、三簇均混全部 4 cell、ARI median **0.094**、silhouette **0.152**、14600 同簇率 **0.650**，四项判据全部未过；θR>0 的终端 O 几乎全部塌到 0（θR=4 均值 0.004，θR=8/12 均值 0.000；continuous 对照均值 0.252/sd 0.156），属 **closed 单态吸收**，**B 方案失败**。首跑曾因 θR=12 超出原注册域 [0,10] 在 thetaR12 前失败；已把域修为 [0,20] 并新增冻结前逐 cell 校验，用全新目录重跑。按预注册决策规则停止制度机调参，转规则设计评审；不得声称双稳态、三簇或已校准。
 - rev 36（2026-11-06，搜索验证未通过 / P6-05c 未通过）：P6 参数搜索粗筛 **9,600/9,600**（rules-v11、4 shard、0 失败），top 候选 `c0607`（score 1.352、silhouette 0.352、ARI median 1.000、簇 [6,3,3]）；验证 `p6-search-val-ef550c09` **240/240**，k=3 簇 **[74,97,9]**、silhouette **0.241**、ARI median **0.157**、14600 同簇率 **0.683** → `no-stable-region-found`，不启动 confirm。已把 rules-v12 构建（`4b6cec9`）部署到 VPS `/opt/stratify/current`（v11 的 `dist/scripts` 备份为 `dist-v11-20261105`/`scripts-v11-20261105`）；P6-05c `p6-05c-f7f3cc91` **160/160、0 排除、0 灭绝**，k=3 簇 **[72,39,9]**、ARI median **0.182**、silhouette **0.215**、14600 同簇率 **0.675**；k=2 [111,9]、silhouette 0.505，二簇稳健、第三簇不成立 → **A 方案失败，转 B 方案（显式制度状态机，rules-v13）**。不得声称双稳态、三簇或已校准。
 

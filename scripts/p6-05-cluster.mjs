@@ -135,6 +135,20 @@ const CELLS_05D = [
   })),
 ];
 
+const SEEDS_05E = Array.from(
+  { length: DEFAULTS.seedCount },
+  (_, index) => `p6-05e-seed-${String(index + 1).padStart(3, '0')}`,
+);
+// D3 测量充分性：不改规则，只把人口从 40 扩到 200/1000，检验第三簇是否只是小样本噪声。
+const CELLS_05E = [200, 1000].map((populationSize) => ({
+  cellKey: `pop${populationSize}`,
+  population: populationSize,
+  overrides: {
+    ascent: { displacementShare: 0.5, scarcityWeight: 15 },
+    openness: { regimeMode: 'continuous', regimeBias: 0 },
+  },
+}));
+
 function parseArgs(argv) {
   const options = { ...DEFAULTS, mode: null, design: 'p6-05' };
   let preregSet = false;
@@ -161,14 +175,18 @@ function parseArgs(argv) {
     } else if (flag === '--out') {
       options.analysisOut = next();
       outSet = true;
+    } else if (flag === '--cell') {
+      options.cell = next();
+    } else if (flag === '--shard') {
+      options.shard = next();
     } else if (flag === '--force') options.force = true;
     else if (flag === '--dry-run') options.dryRun = true;
     else if (flag === '--help' || flag === '-h') {
       console.log(
         [
           '用法：',
-          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b|p6-05c|p6-05d] [--force]',
-          '  node scripts/p6-05-cluster.mjs --run [--prereg ...] [--dir ...]',
+          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b|p6-05c|p6-05d|p6-05e] [--force]',
+          '  node scripts/p6-05-cluster.mjs --run [--prereg ...] [--dir ...] [--cell <cellKey>] [--shard i/n]',
           '  node scripts/p6-05-cluster.mjs --analyze [--out ...]',
         ].join('\n'),
       );
@@ -182,9 +200,10 @@ function parseArgs(argv) {
     options.design !== 'p6-05' &&
     options.design !== 'p6-05b' &&
     options.design !== 'p6-05c' &&
-    options.design !== 'p6-05d'
+    options.design !== 'p6-05d' &&
+    options.design !== 'p6-05e'
   ) {
-    throw new Error('--design 只能为 p6-05、p6-05b、p6-05c 或 p6-05d');
+    throw new Error('--design 只能为 p6-05、p6-05b、p6-05c、p6-05d 或 p6-05e');
   }
   if (options.design === 'p6-05b') {
     if (!preregSet) options.prereg = 'out/p6-05b-scan-prereg.json';
@@ -200,6 +219,11 @@ function parseArgs(argv) {
     if (!preregSet) options.prereg = 'out/p6-05d-prereg.json';
     if (!dirSet) options.dir = 'out/p6-05d';
     if (!outSet) options.analysisOut = 'out/p6-05d-analysis.json';
+  }
+  if (options.design === 'p6-05e') {
+    if (!preregSet) options.prereg = 'out/p6-05e-prereg.json';
+    if (!dirSet) options.dir = 'out/p6-05e';
+    if (!outSet) options.analysisOut = 'out/p6-05e-analysis.json';
   }
   return options;
 }
@@ -385,6 +409,53 @@ function buildDesign05d() {
   };
 }
 
+function buildDesign05e() {
+  return {
+    schemaVersion: 'p6-05e-prereg-v1',
+    hypothesis:
+      'P6-05e（D3 测量充分性检查，规则不变）：P6-05/05b/搜索/05c/05d 的第三簇最小规模始终只有 3–9 个 run，' +
+      '无法区分真实第三类结构与 40 人小样本噪声。本轮不改任何规则，固定 continuous 对照、share=0.5、w=15，' +
+      '把人口扩到 200 与 1000，各 30 个全新 seed × 10950 tick + 每 cell 前 10 seed × 14600，' +
+      '用同一 11 维全特征与 k=3 口径只看 k=2/3 稳定性与簇规模。' +
+      '若 200/1000 人仍无稳定第三簇，则支持“单吸引域/目标修订”判断；若出现稳定三簇，' +
+      '说明此前是测量视野问题，必须用全新确认 seed 另立预注册，不能直接引用本轮作为 G6 证据。',
+    rulesVersion: 'rules-v13',
+    policy: 'mock-weighted-v1',
+    population: 200,
+    populations: [200, 1000],
+    horizon: DEFAULTS.horizon,
+    terminalWindow: { start: 10585, end: 10949, days: 365 },
+    followupHorizon: DEFAULTS.followupHorizon,
+    followupWindow: { start: 14235, end: 14599, days: 365 },
+    followupSeedsPerCell: DEFAULTS.followupSeedsPerCell,
+    seeds: SEEDS_05E,
+    cells: CELLS_05E,
+    fixed: { displacementShare: 0.5, scarcityWeight: 15 },
+    axis: { population: [200, 1000] },
+    features: ['P0', 'P1', 'P2', 'P3', 'P4', 'G', 'top10', 'Mup', 'Mdown', 'S', 'O'],
+    clustering: {
+      algorithm: 'ward-lw-v1',
+      distance: 'euclidean',
+      standardization: 'z-score(pooled)',
+      k: 3,
+      stabilityShuffles: 20,
+      stabilitySeed: 20261105,
+      ariMedianMin: 0.7,
+      silhouetteMin: 0.35,
+      minClusterRuns: 5,
+    },
+    temporal: { minSameClusterRate: 0.8 },
+    antiPreset: { minCellsInAnyCluster: 2 },
+    exclusion: { excludeExtinct: true, maxExtinctRate: 0.1 },
+    budgets: { runs: 80, wallMinutes: 420 },
+    prediction:
+      '若第三簇是 40 人小样本噪声：200/1000 人的 k=3 最小簇仍接近 5 或更小、ARI/silhouette 仍低，k=2 继续更稳。' +
+      '若存在真实第三类：更大人口的簇规模应随 n 增长且 14600 同簇率提升。' +
+      '本轮只作测量充分性诊断，不通过也不失败任何机制；不构成 G6 确认。',
+    confirmationStatus: 'P6-05e measurement-adequacy only; not G6 confirmation',
+  };
+}
+
 function validateDesignCells(design) {
   for (const cell of design.cells) {
     for (const horizon of [design.horizon, design.followupHorizon]) {
@@ -392,7 +463,7 @@ function validateDesignCells(design) {
       // 不能等到 VPS 跑完一半才失败（P6-05d θR=12 事故）。
       buildCellConfig(
         { cellKey: `${cell.cellKey}@${horizon}`, overrides: cell.overrides },
-        design.population,
+        cell.population ?? design.population,
         horizon,
       );
     }
@@ -401,13 +472,15 @@ function validateDesignCells(design) {
 
 function freeze(options) {
   const design =
-    options.design === 'p6-05d'
-      ? buildDesign05d()
-      : options.design === 'p6-05c'
-        ? buildDesign05c()
-        : options.design === 'p6-05b'
-          ? buildDesign05b()
-          : buildDesign();
+    options.design === 'p6-05e'
+      ? buildDesign05e()
+      : options.design === 'p6-05d'
+        ? buildDesign05d()
+        : options.design === 'p6-05c'
+          ? buildDesign05c()
+          : options.design === 'p6-05b'
+            ? buildDesign05b()
+            : buildDesign();
   validateDesignCells(design);
   const designHash = hashValue(HASH_DOMAINS.preregistration, design);
   if (existsSync(options.prereg) && !options.force) {
@@ -455,7 +528,7 @@ function loadPrereg(options) {
 function runOne(design, cell, seed, horizon, window) {
   const config = buildCellConfig(
     { cellKey: `${cell.cellKey}@${horizon}`, overrides: cell.overrides },
-    design.population,
+    cell.population ?? design.population,
     horizon,
   );
   const outcome = runSingle(config, asSeed(seed), {
@@ -517,18 +590,45 @@ function readLedger(path) {
   return map;
 }
 
+function parseShard(raw) {
+  const match = /^([1-9][0-9]*)\/([1-9][0-9]*)$/.exec(raw);
+  if (match === null) throw new Error('--shard 必须为 i/n（1-based，如 1/4）');
+  const index = Number(match[1]);
+  const count = Number(match[2]);
+  if (index > count) throw new Error('--shard 的 i 必须 <= n');
+  return { index, count };
+}
+
 function run(options) {
   const artifact = loadPrereg(options);
   const design = artifact.design;
+  const cells =
+    options.cell === undefined
+      ? design.cells
+      : design.cells.filter((cell) => cell.cellKey === options.cell);
+  if (cells.length === 0) {
+    throw new Error(`--cell ${options.cell} 不在预注册 cells 中`);
+  }
+  const seedShard = options.shard === undefined ? null : parseShard(options.shard);
+  const seeds =
+    seedShard === null
+      ? design.seeds
+      : design.seeds.filter((_, index) => index % seedShard.count === seedShard.index - 1);
+  if (seeds.length === 0) throw new Error('--shard 未分到任何 seed');
+  // 续跑只针对全局前 N 个 seed；分片时各 shard 只跑落在自己分片的那部分。
+  const followupSeeds = design.seeds
+    .slice(0, design.followupSeedsPerCell)
+    .filter((seed) => seeds.includes(seed));
   if (options.dryRun) {
     console.log(
       JSON.stringify(
         {
           dryRun: true,
           experimentId: artifact.experimentId,
-          runs: design.cells.length * design.seeds.length,
-          followupRuns: design.cells.length * design.followupSeedsPerCell,
-          population: design.population,
+          runs: cells.length * (seeds.length + followupSeeds.length),
+          cell: options.cell ?? null,
+          shard: options.shard ?? null,
+          populations: design.populations ?? [design.population],
           horizon: design.horizon,
         },
         null,
@@ -542,10 +642,9 @@ function run(options) {
   const ledgerPath = join(options.dir, 'runs.ndjson');
   const ledger = readLedger(ledgerPath);
   let done = 0;
-  const total =
-    design.cells.length * design.seeds.length + design.cells.length * design.followupSeedsPerCell;
-  for (const cell of design.cells) {
-    for (const seed of design.seeds) {
+  const total = cells.length * (seeds.length + followupSeeds.length);
+  for (const cell of cells) {
+    for (const seed of seeds) {
       const runKey = `${cell.cellKey}:${design.horizon}:${seed}`;
       if (!ledger.has(runKey)) {
         const record = runOne(design, cell, seed, design.horizon, design.terminalWindow);
@@ -555,7 +654,6 @@ function run(options) {
       done += 1;
       process.stderr.write(`[p6-05] ${done}/${total} ${runKey}\n`);
     }
-    const followupSeeds = design.seeds.slice(0, design.followupSeedsPerCell);
     for (const seed of followupSeeds) {
       const runKey = `${cell.cellKey}:${design.followupHorizon}:${seed}`;
       if (!ledger.has(runKey)) {
