@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 47）
+## 1. 当前交接状态（2026-11-11，rev 48）
+
+- rev 48（2026-11-11，**P7 本地可验证部分**）：新增部署冒烟（`src/ops/smoke.ts` + `pnpm smoke:worker`：health/首页/创建/读取/取消）、D1 导出静态校验与 `backup:d1`/`verify:backup`、CI 前端构建与 Worker dry-run、快速开始/指标词典/已知限制文档（changes/0074）。6 项 ops 测试通过。**未执行**真实 preview/production 部署、冒烟、备份恢复、回滚与发布后监控；不得声称已发布或 P7 完成。不改规则/schema，不构成校准或结构证据。
 
 - rev 47（2026-11-11，**运行时权威边界 + workerd 冒烟**）：Node 上传器与 workerd 服务器对同一 `(config,seed)` 的 `ge` 相差 1 ulp（`Math.exp/log/cos`），服务器原口径错误地跨运行时复算 `initialPopulationHash`。按 ADR 0001 修正：新增 `RUNTIME_VERSION` 环境变量与 `migrations/0002_runtime_authority.sql`；同运行时复算并要求相等（`authoritative`），不同运行时只验证 config/seed 并标记 `non-authoritative`，正式对照按 runtimeVersion 分组。**P4-07 本地 workerd+D1+R2 集成冒烟通过**：health、创建、artifact 分块、3 tick + 1 agent、artifact 200/304、stats、complete 全链路；preview 远程部署冒烟仍未执行。验证：Worker 15 项 + 上传器 7 项测试通过。不改规则/schema，不构成校准或结构证据（changes/0073）。
 

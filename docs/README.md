@@ -19,8 +19,9 @@
 > - **P6 停止（2026-11-11）**：规则负责人选择停止 P6 结构目标（ADR 0008、changes/0069）。不再新增 P6 确认轮，不再调 θ/k/seed/阈值或加同类机制旋钮；**G6 保持未通过**，不追认 P6-06/P6-07，不声称已校准或结构已涌现。P3/P4/P5b/P7 解除 G6 前置，可按 `docs/01` §9/§10 启动；工程产物不得表述为科学验收。
 > - **P3 前端（2026-11-11）**：浏览器工作台 MVP 已落地（changes/0070）：12 态 RunController、五工作区、10 类图表、个体检查器、导入导出与 IndexedDB 回放、LTTB 降采样、双主题/键盘/375px 响应式。`jev_live` 仍禁用，待 P4 Worker 代理；P3-07 已有 5 项 jsdom DOM E2E；真实浏览器自动化 E2E 尚未接入。G6 未通过，界面不是校准证据。启动见 `docs/guides/web-app.md`。
 > - **P4 Worker/D1/R2（2026-11-11）**：MVP 代码与契约测试已落地（changes/0071）：Hono 统一错误/requestId、D1 迁移、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB/双 SHA-256/ETag）、complete、keyset 分页、限流、同源 BYOK `/api/jev`。按 ADR 0001 新增运行时权威边界（`RUNTIME_VERSION`/`runtime_authority`，changes/0073）；本地 workerd+D1+R2 全链路上传冒烟已通过。preview 远程部署冒烟、保留策略/维护任务、真实 Jev live 冒烟未完成；`jev_live` 仍禁用，不得声称已部署或 live 验证。
-> - **P5b 上传（2026-11-11）**：`run-upload-bundle-v1` 上传器、分块重试/幂等、`upload-ledger-v1` 断点续传与 `pnpm upload` CLI 已落地（changes/0072，指南 `docs/guides/upload.md`）。`pnpm batch` 尚未自动导出 bundle；preview/workerd 集成冒烟未执行；上传成功只表示技术完整。
-> - **未开工**：P7 发布硬化；P3/P4/P5b 已落地代码但不构成科学验收。P6 已停止（G6 未通过），工程轨道按 `docs/01` §9/§10 推进。
+> - **P5b 上传（2026-11-11）**：`run-upload-bundle-v1` 上传器、分块重试/幂等、`upload-ledger-v1` 断点续传与 `pnpm upload` CLI 已落地（changes/0072，指南 `docs/guides/upload.md`）。`pnpm batch` 尚未自动导出 bundle；本地上传与 workerd 冒烟已通过，preview 远程未验证；上传成功只表示技术完整。
+> - **P7 发布硬化（本地可验证部分，2026-11-11）**：部署冒烟（health/首页/创建/读取/取消）、D1 导出静态校验与 `backup:d1`、CI 前端构建与 Worker dry-run、快速开始/指标词典/已知限制已落地（changes/0074）。**未在真实 preview/production 执行部署、冒烟、备份恢复或回滚**；发布后监控未接入。
+> - **未开工 / 未验证**：云端 preview/production 部署与发布演练；P3/P4/P5b/P7 已落地代码但不构成科学验收。P6 已停止（G6 未通过），工程轨道按 `docs/01` §9/§10 推进。
 
 Stratify 是一个可交互、可回放、可批量实验的社会仿真系统。Jev 负责从合法行动中做结构化选择，确定性 TypeScript 引擎负责全部数值结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 
@@ -71,12 +72,16 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 以下文件是对编号规格的提炼，**不构成新的验收口径**；与编号文档或 `rule.md` 冲突时，以编号文档为准。
 
 - [总体施工计划与契约总览](guides/plan-and-contracts.md)：架构铁律、阶段表、核心公式、哈希与 API 的一页式汇总。
+- [快速开始](guides/quick-start.md)：本地浏览器、批跑、Worker、上传与门禁命令。
 - [前端设计指南](guides/frontend-design.md)：设计令牌、五大工作区、帧预算调度与降采样方案。
+- [本地 run 上传](guides/upload.md)：`run-upload-bundle-file-v1` 格式、CLI 与断点续传。
 - [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)：端点实测结论、密钥处理、冒烟命令、VPS `2zhou` 部署与故障速查。
 
 ### 3.3 参考资料（非契约）
 
 - [Jev（TypeSafe）简介](reference/jev-overview.md)：System One 三种原语、接口、限制与已知局限。
+- [指标词典](reference/metrics-dictionary.md)：人口、财富、流动、网络、开放度与证据字段。
+- [已知限制](reference/known-limitations.md)：科学结论、确定性、Worker、前端、上传与发布边界。
 - [实验产物登记](reference/artifacts.md)：`out/` 入库白名单、体积上限、重跑程序与当前缺口。
 
 ### 3.4 决策与记录

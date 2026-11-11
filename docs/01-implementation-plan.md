@@ -285,6 +285,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **最终发布闸门**：G0–G6 均有可复现证据；P7 不设独立编号闸门，其验收即本节各项。若某非关键项豁免，必须记录负责人、理由、到期日和回滚条件。
 
+**P7 进度记录（2026-11-11，changes/0074）**：本地可验证部分已落地：`src/ops/smoke.ts` + `pnpm smoke:worker`（health → 首页 → 创建 20 tick run → 读取 → 取消，不调用 Jev/不写 Key）；`src/ops/backup.ts` + `pnpm backup:d1`/`verify:backup`（D1 导出后检查 7 张关键表、INSERT 与末尾截断）；CI 增加 `pnpm build:web` 与 `wrangler deploy --dry-run`；新增快速开始、指标词典、已知限制文档。6 项 ops 测试。**未执行**：真实 preview/production 部署、冒烟、备份恢复、回滚与依赖审计云端复跑；发布后错误率/Jev 回退率/D1/R2 增长/Runner 失败率/成本监控未接入。因此不得声称 P7 完成或已发布。
+
 ## 11. 标准验证命令
 
 脚手架建立后统一提供：

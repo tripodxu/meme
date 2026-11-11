@@ -71,13 +71,16 @@ wrangler d1 migrations apply stratify-prod --remote
 ```bash
 pnpm deploy:preview
 pnpm deploy:prod
-pnpm smoke:preview
-pnpm smoke:prod
-pnpm backup:d1
-pnpm verify:backup
+pnpm smoke:worker --base-url <url> --runtime-version <runtime>
+pnpm backup:d1 --database <name> --env preview --output <file>
+pnpm verify:backup <file>
 ```
 
-脚本未实现前不得声称这些命令可用；P4/P7 负责补齐。
+P7 已登记上述脚本并完成本地可验证部分（changes/0074）：`smoke:worker` 做
+health/首页/创建/读取/取消；`backup:d1` 调用 `wrangler d1 export --remote` 后立即
+静态校验（缺表/空数据/截断会失败）；`verify:backup` 可独立复检。**这些命令尚未在
+真实 preview/production 执行**，恢复与回滚演练也未完成；在演练通过前不得写进
+发布记录或声称可用。
 
 ## 4. 标准发布流程
 

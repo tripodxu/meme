@@ -53,3 +53,7 @@ jobs:
         run: pnpm test:e2e
       - name: 构建
         run: pnpm build
+      - name: 构建前端静态资源
+        run: pnpm build:web
+      - name: Worker 打包与绑定校验（不部署）
+        run: pnpm exec wrangler deploy --dry-run --outdir .wrangler-dry --env=""
