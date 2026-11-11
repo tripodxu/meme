@@ -181,3 +181,73 @@ export function evaluateP6ClusterVerdict(input: P6ClusterVerdictInput): P6Cluste
   if (!antiPreset) reasons.push('三个簇与三个 cell 一一对应，无法排除“三组预设”');
   return { passes: reasons.length === 0, antiPreset, reasons };
 }
+
+export interface P6TwoRegimeVerdictInput {
+  readonly ariMedian: number;
+  readonly silhouette: number;
+  readonly sizes: readonly number[];
+  readonly composition: readonly ClusterComposition[];
+  readonly temporalRate: number;
+  readonly extinctRate: number;
+  readonly minClusterRuns: number;
+  readonly minAri: number;
+  readonly minSilhouette: number;
+  readonly minTemporalRate: number;
+  /** 两簇在 |ΔO|、|ΔS|、TV(P) 上的最大差异。 */
+  readonly regimeDifference: number;
+  readonly k3: {
+    readonly sizes: readonly number[];
+    readonly ariMedian: number;
+    readonly temporalRate: number;
+  };
+  readonly k3MinAri: number;
+  readonly k3MinTemporalRate: number;
+}
+
+/**
+ * P6-06 验收（07 §8.2 + rule 57 v14，ADR 0006）：
+ * - k=2 且两簇均 >= minClusterRuns；
+ * - 稳定性 ARI 中位数、轮廓系数、时序同簇率均达门槛；
+ * - extinct 率 <= 10%；
+ * - 不是两组预设：至少一个簇包含 >=2 个 cell；
+ * - 两簇在 |ΔO|/|ΔS|/TV(P) 上至少一项 >= 0.10；
+ * - k=3 不得同时满足“所有簇 >= minClusterRuns、ARI median >= k3MinAri、
+ *   同簇率 >= k3MinTemporalRate”，否则存在稳定第三簇。
+ */
+export function evaluateP6TwoRegimeVerdict(input: P6TwoRegimeVerdictInput): P6ClusterVerdict {
+  const reasons: string[] = [];
+  if (input.sizes.length !== 2 || input.sizes.some((size) => size < input.minClusterRuns)) {
+    reasons.push(`簇大小 ${input.sizes.join('/')} 未全部达到 ${input.minClusterRuns}`);
+  }
+  if (input.ariMedian < input.minAri) {
+    reasons.push(`ARI median ${input.ariMedian.toFixed(3)} < ${input.minAri}`);
+  }
+  if (input.silhouette < input.minSilhouette) {
+    reasons.push(`silhouette ${input.silhouette.toFixed(3)} < ${input.minSilhouette}`);
+  }
+  if (input.temporalRate < input.minTemporalRate) {
+    reasons.push(
+      `temporal same-cluster ${input.temporalRate.toFixed(3)} < ${input.minTemporalRate}`,
+    );
+  }
+  if (input.extinctRate > 0.1) {
+    reasons.push(`extinct rate ${input.extinctRate.toFixed(3)} > 0.10`);
+  }
+  const antiPreset = input.composition.some((cluster) => Object.keys(cluster.cells).length >= 2);
+  if (!antiPreset) reasons.push('两个簇与两个 cell 一一对应，无法排除“两组预设”');
+  if (input.regimeDifference < 0.1) {
+    reasons.push(`regime difference ${input.regimeDifference.toFixed(3)} < 0.10`);
+  }
+  const stableThird =
+    input.k3.sizes.length === 3 &&
+    input.k3.sizes.every((size) => size >= input.minClusterRuns) &&
+    input.k3.ariMedian >= input.k3MinAri &&
+    input.k3.temporalRate >= input.k3MinTemporalRate;
+  if (stableThird) {
+    reasons.push(
+      `k=3 仍形成稳定第三簇（ARI ${input.k3.ariMedian.toFixed(3)}、` +
+        `同簇率 ${input.k3.temporalRate.toFixed(3)}）`,
+    );
+  }
+  return { passes: reasons.length === 0, antiPreset, reasons };
+}

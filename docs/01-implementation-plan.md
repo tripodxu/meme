@@ -235,7 +235,7 @@ P6 不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P
 | P6-04 | 五个消融（含 ψ=1）和 Jev/mock 对照    | P6-03,P2,P5-02   | β=0、O 固定（通过 P1-10 开关）、η=0、κ=0、ψ=1；真实 Jev 单独报告                                                                                                                      |
 | P6-05 | 冻结结构与规则预设并写校准报告        | P6-04            | 至少三类互不相同的结构指纹聚类（按预注册聚类协议，非三组预设/多标签）；未达标则记录失败并回到规则评审                                                                                 |
 
-**闸门 G6**：满足 `rule.md` 第 56–59 条；三类结构按指纹聚类验收，不按标签计数；预设带 ruleset hash 和证据链接；不得把单次结果写成普遍结论。
+**闸门 G6**：满足 `rule.md` 第 56–59 条；结构目标为**“2 体制 + 连续统”**（v14 目标修订，ADR 0006）：预注册 k=2 聚类稳定且 k=3 不产生稳定第三簇，按 `docs/07` §8.2 验收；旧 k=3 口径结果不得追认通过，新旧口径同报；预设带 ruleset hash 和证据链接；不得把单次结果写成普遍结论。
 
 P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02，不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P5b 和 P3-06/P3-07 可在 G6 通过后并行，避免云与 UI 先于科学前提投入。
 
@@ -262,6 +262,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 **P6-05c（2026-11-06，未通过）**：`p6-05c-f7f3cc91`，θH∈{0,6,10,14} × 30 新 seed × 10950 tick（40 人）+ 40 个 14600；160/160 完成、0 排除、0 灭绝（changes/0061）。k=3 簇 [72,39,9]、ARI median 0.182、silhouette 0.215、14600 同簇率 0.675，均未过线；k=2 诊断 [111,9]、silhouette 0.505，二簇稳健、第三簇不成立。θH 自反馈 **A 方案失败**，按 ADR 0004 转 B 方案（显式制度状态机）；G6 仍未通过。
 
 **rules-v13 与 P6-05d（2026-11-11，ADR 0005）**：新增显式制度状态 `society.institutionalRegime ∈ {closed, open}` 与滞回转移（`enterM/exitM/enterS/exitS`），`O_target` 增加 `θR·sign(regime)` 偏置；新参数 `openness.regimeMode/regimeBias/regimeEnterOpenMobility/regimeExitOpenMobility/regimeEnterOpenSegregation/regimeExitOpenSegregation`（默认 `continuous`/0，与 rules-v12 逐位一致）。版本升为 rules-v13 / engine-v0.11.0 / config schema v8 / state schema v4（v7→v8 迁移补默认值、v3 状态按 O 推断制度）；config/engine/param golden 已前滚更新（changes/0063）。P6-05d `p6-05d-5cb910dd` **160/160 完成、0 排除、0 灭绝**：k=3 簇 **[76,3,41]**、三簇均混全部 cell、ARI median **0.094**、silhouette **0.152**、同簇率 **0.650**，四项判据全部未过；θR>0 的终端 O 几乎全部塌到 0（closed 单态吸收），**B 方案失败**。按预注册决策规则停止制度机调参，转规则设计评审。评审建议的 D3 测量充分性检查已完成：P6-05e `p6-05e-1b652168`（规则不变、continuous 对照、人口 200/1000 × 30 新 seed）**80/80 完成、0 排除、0 灭绝**；k=3 簇 [41,13,6]，全部 30 个 pop1000 run 同簇，另两簇 13/6 仅来自 pop200；ARI median 0.527、silhouette 0.282、14600 同簇率 0.300，k=2 [47,13]。第三簇未随人口规模持续存在，更像有限样本噪声；支持“单吸引域/目标修订”方向，但**不构成 G6 确认**（changes/0064）。G6 仍未通过。
+
+**P6-06 目标修订确认轮（2026-11-11，待运行，ADR 0006）**：规则负责人选择 D1 后，G6 结构目标改为“2 体制 + 连续统”。确认轮沿用 P6-05 的 6 个参数区域 × 30 个全新 seed × 40 人 × 10950 tick（每 cell 前 10 续跑 14600），以 k=2 聚类验收：两簇各 ≥5、ARI median ≥0.70、silhouette ≥0.35、同簇率 ≥0.80、至少一个簇 ≥2 cell、序参量 `|ΔO|`/`|ΔS|`/`TV(P)` 至少一项 ≥0.10；同时要求 k=3 不产生稳定第三簇。旧 k=3 结果不得追认通过；若 P6-06 未通过，G6 仍未通过，下一步才讨论 D2。详见 `docs/07` §8.2 与 changes/0065。
 
 ## 10. P7：发布硬化
 

@@ -2,7 +2,8 @@
 
 > 状态（2026-11-11）
 >
-> - **规则**：`rules-v13`（显式制度状态机 + θR 偏置；默认 `continuous`/θR=0 与 v12 逐位一致，config schema v8、state schema v4）；P6-05c（A 方案）与 P6-05d（B 方案）均未通过，制度机可调旋钮按预注册停止；未通过 `07` 统计验收，不得声称已校准或结构已涌现。
+> - **规则**：`rules-v13`（显式制度状态机 + θR 偏置；默认 `continuous`/θR=0 与 v12 逐位一致，config schema v8、state schema v4）；P6-05c（A 方案）与 P6-05d（B 方案）均未通过，制度机可调旋钮按预注册停止。
+> - **目标（D1，2026-11-11）**：G6 从“≥3 类结构”修订为**“2 体制 + 连续统”**（ADR 0006、rule.md v14、07 §8.2）：k=2 稳定 + k=3 无稳定第三簇；旧 k=3 结果不得追认通过，P6-06 确认轮待运行。未通过 `07` 统计验收，不得声称已校准或结构已涌现。
 > - **闸门**：W4 已通过 G1.5（≥2 类）；W5 在 3650 tick 未通过；W6 在 10950 tick 终态给出 class-share 三类候选（仅 `mock`、仅单特征，非 P6-05 正式验收）。
 > - **工程**：P0/P1 完成、P2 收口 7/7（真实冒烟经自建网关跑通）、P5a 五项全完成（批跑 CLI/检查点/微扰/共享预算/systemd）。
 > - **P6-01**：Stage A 840 run 完成；Stage B 六单元已全部跑完并按 07 严格口径判读：**1 个确认（needThreshold=0.9）**，5 个未确认/exploratory（env0 expanded/compressed、crossDays half/double、psi=1）；G6 仍未通过。

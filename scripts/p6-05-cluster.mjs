@@ -36,6 +36,7 @@ import {
   clusterComposition,
   clusterSizes,
   evaluateP6ClusterVerdict,
+  evaluateP6TwoRegimeVerdict,
   minimumCentroidDistance,
   structuralFeatureVector,
   temporalSameClusterRate,
@@ -149,6 +150,16 @@ const CELLS_05E = [200, 1000].map((populationSize) => ({
   },
 }));
 
+const SEEDS_06 = Array.from(
+  { length: DEFAULTS.seedCount },
+  (_, index) => `p6-06-seed-${String(index + 1).padStart(3, '0')}`,
+);
+// P6-06：D1 目标修订确认轮，沿用 P6-05 的 6 个参数区域，k=2 验收。
+const CELLS_06 = CELLS.map((cell) => ({
+  cellKey: cell.cellKey,
+  overrides: cell.overrides,
+}));
+
 function parseArgs(argv) {
   const options = { ...DEFAULTS, mode: null, design: 'p6-05' };
   let preregSet = false;
@@ -185,7 +196,7 @@ function parseArgs(argv) {
       console.log(
         [
           '用法：',
-          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b|p6-05c|p6-05d|p6-05e] [--force]',
+          '  node scripts/p6-05-cluster.mjs --freeze [--design p6-05|p6-05b|p6-05c|p6-05d|p6-05e|p6-06] [--force]',
           '  node scripts/p6-05-cluster.mjs --run [--prereg ...] [--dir ...] [--cell <cellKey>] [--shard i/n]',
           '  node scripts/p6-05-cluster.mjs --analyze [--out ...]',
         ].join('\n'),
@@ -201,9 +212,10 @@ function parseArgs(argv) {
     options.design !== 'p6-05b' &&
     options.design !== 'p6-05c' &&
     options.design !== 'p6-05d' &&
-    options.design !== 'p6-05e'
+    options.design !== 'p6-05e' &&
+    options.design !== 'p6-06'
   ) {
-    throw new Error('--design 只能为 p6-05、p6-05b、p6-05c、p6-05d 或 p6-05e');
+    throw new Error('--design 只能为 p6-05、p6-05b、p6-05c、p6-05d、p6-05e 或 p6-06');
   }
   if (options.design === 'p6-05b') {
     if (!preregSet) options.prereg = 'out/p6-05b-scan-prereg.json';
@@ -224,6 +236,11 @@ function parseArgs(argv) {
     if (!preregSet) options.prereg = 'out/p6-05e-prereg.json';
     if (!dirSet) options.dir = 'out/p6-05e';
     if (!outSet) options.analysisOut = 'out/p6-05e-analysis.json';
+  }
+  if (options.design === 'p6-06') {
+    if (!preregSet) options.prereg = 'out/p6-06-prereg.json';
+    if (!dirSet) options.dir = 'out/p6-06';
+    if (!outSet) options.analysisOut = 'out/p6-06-analysis.json';
   }
   return options;
 }
@@ -456,6 +473,50 @@ function buildDesign05e() {
   };
 }
 
+function buildDesign06() {
+  return {
+    schemaVersion: 'p6-06-prereg-v1',
+    hypothesis:
+      'P6-06（D1 / ADR 0006）：G6 结构目标已改为“2 体制 + 连续统”。沿用 P6-05 的 6 个参数区域、' +
+      '11 维全特征、终端窗口与 14600 followup，使用 30 个全新 seed × 40 人 × 10950 tick，' +
+      '以 k=2 聚类验收：两簇各 >=5、ARI median >=0.70、silhouette >=0.35、同簇率 >=0.80、' +
+      '至少一个簇含 >=2 个参数区域、序参量 |ΔO|/|ΔS|/TV(P) 至少一项 >=0.10；' +
+      '同时要求 k=3 不形成稳定第三簇。旧 k=3 结果不得追认；本轮不通过则 G6 仍未通过。',
+    rulesVersion: 'rules-v13',
+    policy: 'mock-weighted-v1',
+    population: DEFAULTS.population,
+    horizon: DEFAULTS.horizon,
+    terminalWindow: { start: 10585, end: 10949, days: 365 },
+    followupHorizon: DEFAULTS.followupHorizon,
+    followupWindow: { start: 14235, end: 14599, days: 365 },
+    followupSeedsPerCell: DEFAULTS.followupSeedsPerCell,
+    seeds: SEEDS_06,
+    cells: CELLS_06,
+    features: ['P0', 'P1', 'P2', 'P3', 'P4', 'G', 'top10', 'Mup', 'Mdown', 'S', 'O'],
+    clustering: {
+      algorithm: 'ward-lw-v1',
+      distance: 'euclidean',
+      standardization: 'z-score(pooled)',
+      k: 2,
+      stabilityShuffles: 20,
+      stabilitySeed: 20261105,
+      ariMedianMin: 0.7,
+      silhouetteMin: 0.35,
+      minClusterRuns: 5,
+    },
+    temporal: { minSameClusterRate: 0.8 },
+    antiPreset: { minCellsInAnyCluster: 2 },
+    exclusion: { excludeExtinct: true, maxExtinctRate: 0.1 },
+    regimeDifference: { minOrderParameterDifference: 0.1 },
+    noStableThirdCluster: { minAri: 0.7, minTemporalRate: 0.8 },
+    budgets: { runs: 240, wallMinutes: 120 },
+    prediction:
+      '若规则族只支持 2 体制 + 连续统：k=2 应稳定，两簇在 O/S/TV(P) 上有 >=0.10 差异，' +
+      'k=3 不应同时达到 ARI/同簇率/最小簇门槛。若 k=2 也不稳定，G6 仍未通过，下一步讨论 D2。',
+    confirmationStatus: 'P6-06 G6 confirmation under 2-regime target; not calibration',
+  };
+}
+
 function validateDesignCells(design) {
   for (const cell of design.cells) {
     for (const horizon of [design.horizon, design.followupHorizon]) {
@@ -472,15 +533,17 @@ function validateDesignCells(design) {
 
 function freeze(options) {
   const design =
-    options.design === 'p6-05e'
-      ? buildDesign05e()
-      : options.design === 'p6-05d'
-        ? buildDesign05d()
-        : options.design === 'p6-05c'
-          ? buildDesign05c()
-          : options.design === 'p6-05b'
-            ? buildDesign05b()
-            : buildDesign();
+    options.design === 'p6-06'
+      ? buildDesign06()
+      : options.design === 'p6-05e'
+        ? buildDesign05e()
+        : options.design === 'p6-05d'
+          ? buildDesign05d()
+          : options.design === 'p6-05c'
+            ? buildDesign05c()
+            : options.design === 'p6-05b'
+              ? buildDesign05b()
+              : buildDesign();
   validateDesignCells(design);
   const designHash = hashValue(HASH_DOMAINS.preregistration, design);
   if (existsSync(options.prereg) && !options.force) {
@@ -766,23 +829,95 @@ function analyze(options) {
       ? 0
       : baseRows.filter((record) => record.extinct).length / baseRows.length;
 
-  const verdict = evaluateP6ClusterVerdict({
-    k: design.clustering.k,
-    ariMedian,
-    ariMin,
-    silhouette,
-    sizes,
-    composition,
-    temporalRate,
-    extinctRate,
-    minClusterRuns: design.clustering.minClusterRuns,
-    minAri: design.clustering.ariMedianMin,
-    minSilhouette: design.clustering.silhouetteMin,
-    minTemporalRate: design.temporal.minSameClusterRate,
-  });
+  const isTwoRegime = design.clustering.k === 2;
+  let twoRegime = null;
+  if (isTwoRegime) {
+    // k=2 目标下必须同时报告 k=3，检查是否存在稳定第三簇。
+    const assignments3 = wardCluster(matrix, 3);
+    const sizes3 = clusterSizes(assignments3, 3);
+    const centroids3 = clusterCentroids(matrix, assignments3, 3);
+    const aris3 = [];
+    for (let iteration = 0; iteration < design.clustering.stabilityShuffles; iteration += 1) {
+      const shuffle = seededShuffle(n, design.clustering.stabilitySeed + iteration);
+      const result = bisectStability(matrix, 3, [shuffle], design.clustering.ariMedianMin);
+      aris3.push(result.ari);
+    }
+    aris3.sort((left, right) => left - right);
+    const k3AriMedian = median(aris3);
+    const baseA3 = [];
+    const followA3 = [];
+    for (const record of followRows) {
+      const key = `${record.cellKey}:${record.seed}`;
+      const base = baseByKey.get(key);
+      if (base === undefined || record.extinct || record.window?.missingTicks !== 0) continue;
+      const position = usable.indexOf(base);
+      if (position < 0) continue;
+      const standardized = scaler.standardize(record.features);
+      baseA3.push(assignments3[position]);
+      followA3.push(nearestCentroid(standardized, centroids3));
+    }
+    const k3TemporalRate = temporalSameClusterRate(baseA3, followA3);
+    const deltaP =
+      0.5 *
+      [0, 1, 2, 3, 4].reduce(
+        (sum, index) =>
+          sum + Math.abs((rawCentroids[0][index] ?? 0) - (rawCentroids[1][index] ?? 0)),
+        0,
+      );
+    const deltaO = Math.abs((rawCentroids[0][10] ?? 0) - (rawCentroids[1][10] ?? 0));
+    const deltaS = Math.abs((rawCentroids[0][9] ?? 0) - (rawCentroids[1][9] ?? 0));
+    twoRegime = {
+      regimeDifference: Math.max(deltaP, deltaO, deltaS),
+      orderParameter: { deltaO, deltaS, tvP: deltaP },
+      k3: {
+        sizes: sizes3,
+        ariMedian: k3AriMedian,
+        temporalRate: k3TemporalRate,
+        silhouette: silhouetteScore(matrix, assignments3),
+      },
+    };
+  }
+
+  const verdict = isTwoRegime
+    ? evaluateP6TwoRegimeVerdict({
+        ariMedian,
+        silhouette,
+        sizes,
+        composition,
+        temporalRate,
+        extinctRate,
+        minClusterRuns: design.clustering.minClusterRuns,
+        minAri: design.clustering.ariMedianMin,
+        minSilhouette: design.clustering.silhouetteMin,
+        minTemporalRate: design.temporal.minSameClusterRate,
+        regimeDifference: twoRegime.regimeDifference,
+        k3: {
+          sizes: twoRegime.k3.sizes,
+          ariMedian: twoRegime.k3.ariMedian,
+          temporalRate: twoRegime.k3.temporalRate,
+        },
+        k3MinAri: design.noStableThirdCluster?.minAri ?? design.clustering.ariMedianMin,
+        k3MinTemporalRate:
+          design.noStableThirdCluster?.minTemporalRate ?? design.temporal.minSameClusterRate,
+      })
+    : evaluateP6ClusterVerdict({
+        k: design.clustering.k,
+        ariMedian,
+        ariMin,
+        silhouette,
+        sizes,
+        composition,
+        temporalRate,
+        extinctRate,
+        minClusterRuns: design.clustering.minClusterRuns,
+        minAri: design.clustering.ariMedianMin,
+        minSilhouette: design.clustering.silhouetteMin,
+        minTemporalRate: design.temporal.minSameClusterRate,
+      });
 
   const diagnostics = {};
-  for (const k of [2, 4, 5]) {
+  for (const k of [2, 3, 4, 5]) {
+    if (k === design.clustering.k) continue;
     const assignment = wardCluster(matrix, k);
     diagnostics[`k=${k}`] = {
       sizes: clusterSizes(assignment, k),
@@ -820,6 +955,7 @@ function analyze(options) {
       rawCentroids,
       diagnostics,
     },
+    ...(isTwoRegime ? { twoRegime } : {}),
     temporal: {
       sameClusterRate: temporalRate,
       pairs: baseAssignments.length,
@@ -830,11 +966,17 @@ function analyze(options) {
       passes: verdict.passes,
       antiPreset: verdict.antiPreset,
       reasons: verdict.reasons,
-      status: verdict.passes ? 'three-cluster-candidate' : 'not-accepted-return-to-rule-review',
+      status: verdict.passes
+        ? isTwoRegime
+          ? 'two-regime-candidate'
+          : 'three-cluster-candidate'
+        : 'not-accepted-return-to-rule-review',
     },
     notes: [
       `P6-05 只判定 mock 策略在 ${(design.populations ?? [design.population]).join('/')} 人 × 10950 tick 的终端全特征聚类（${design.rulesVersion}）；不是校准、现实因果或结构涌现声明。`,
-      'k=3 为预注册目标；k=2/4/5 仅作诊断，不得用来替代 k=3 的验收。',
+      isTwoRegime
+        ? 'k=2 为预注册目标；k=3 用于检查是否形成稳定第三簇，不得用 k=3 的有利结果替代 k=2 验收。'
+        : 'k=3 为预注册目标；k=2/4/5 仅作诊断，不得用来替代 k=3 的验收。',
       '簇编号任意，语义由 rawCentroids 的 P/G/Mup/Mdown/S/O 描述，不映射现实阶级结构。',
     ],
   };

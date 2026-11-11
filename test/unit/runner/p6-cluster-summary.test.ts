@@ -5,6 +5,7 @@ import {
   clusterComposition,
   clusterSizes,
   evaluateP6ClusterVerdict,
+  evaluateP6TwoRegimeVerdict,
   minimumCentroidDistance,
   structuralFeatureVector,
   temporalSameClusterRate,
@@ -166,5 +167,74 @@ describe('evaluateP6ClusterVerdict', () => {
     const verdict = evaluateP6ClusterVerdict({ ...base, sizes: [10, 10, 4] });
     expect(verdict.passes).toBe(false);
     expect(verdict.reasons.some((reason) => reason.includes('簇大小'))).toBe(true);
+  });
+});
+
+describe('evaluateP6TwoRegimeVerdict', () => {
+  const base = {
+    ariMedian: 0.9,
+    silhouette: 0.5,
+    sizes: [20, 20],
+    composition: [
+      { cluster: 0, total: 20, cells: { A: 10, B: 10 } },
+      { cluster: 1, total: 20, cells: { C: 10, D: 10 } },
+    ],
+    temporalRate: 0.9,
+    extinctRate: 0,
+    minClusterRuns: 5,
+    minAri: 0.7,
+    minSilhouette: 0.35,
+    minTemporalRate: 0.8,
+    regimeDifference: 0.2,
+    k3: { sizes: [20, 15, 5], ariMedian: 0.5, temporalRate: 0.9 },
+    k3MinAri: 0.7,
+    k3MinTemporalRate: 0.8,
+  };
+
+  it('两簇稳定且无稳定第三簇时通过', () => {
+    const verdict = evaluateP6TwoRegimeVerdict(base);
+    expect(verdict.passes).toBe(true);
+    expect(verdict.antiPreset).toBe(true);
+    expect(verdict.reasons).toEqual([]);
+  });
+
+  it('两簇与两个 cell 一一对应时拒绝', () => {
+    const verdict = evaluateP6TwoRegimeVerdict({
+      ...base,
+      composition: [
+        { cluster: 0, total: 20, cells: { A: 20 } },
+        { cluster: 1, total: 20, cells: { B: 20 } },
+      ],
+    });
+    expect(verdict.passes).toBe(false);
+    expect(verdict.antiPreset).toBe(false);
+  });
+
+  it('体制差异不足时拒绝', () => {
+    const verdict = evaluateP6TwoRegimeVerdict({ ...base, regimeDifference: 0.05 });
+    expect(verdict.passes).toBe(false);
+    expect(verdict.reasons.some((reason) => reason.includes('regime difference'))).toBe(true);
+  });
+
+  it('k=3 仍稳定时拒绝', () => {
+    const verdict = evaluateP6TwoRegimeVerdict({
+      ...base,
+      k3: { sizes: [20, 10, 10], ariMedian: 0.9, temporalRate: 0.9 },
+    });
+    expect(verdict.passes).toBe(false);
+    expect(verdict.reasons.some((reason) => reason.includes('稳定第三簇'))).toBe(true);
+  });
+
+  it('簇过小或指标不达标时逐条报告', () => {
+    const verdict = evaluateP6TwoRegimeVerdict({
+      ...base,
+      sizes: [20, 4],
+      ariMedian: 0.5,
+      silhouette: 0.2,
+      temporalRate: 0.5,
+      extinctRate: 0.2,
+    });
+    expect(verdict.passes).toBe(false);
+    expect(verdict.reasons.length).toBeGreaterThanOrEqual(5);
   });
 });
