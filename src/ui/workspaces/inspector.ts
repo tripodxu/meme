@@ -6,6 +6,7 @@ import {
   decisionsForAgent,
   formatNumber,
   formatPercent,
+  latestExecution,
 } from '../../app/view-model.js';
 import { badge, card, h, table } from '../dom.js';
 import type { StratifyApp } from '../app.js';
@@ -127,6 +128,7 @@ export function renderInspector(root: HTMLElement, app: StratifyApp): void {
       return;
     }
     const decisions = decisionsForAgent(app.getSnapshot(), agentId, 8);
+    const execution = latestExecution(app.getSnapshot(), agentId);
     const events = agentEvents(app.getSnapshot().events, agentId, 30);
     detailContainer.append(
       card(
@@ -161,7 +163,7 @@ export function renderInspector(root: HTMLElement, app: StratifyApp): void {
         ],
         { class: 'span-6' },
       ),
-      card('决策 X 光', [decisionView(decisions)], { class: 'span-6' }),
+      card('决策 X 光', [decisionView(decisions), executionView(execution)], { class: 'span-6' }),
       card('财富与事件账本', [eventLedger(events)], { class: 'span-6' }),
       card(
         '关系网络',
@@ -246,6 +248,17 @@ function decisionView(decisions: ReturnType<typeof decisionsForAgent>): HTMLElem
     );
   }
   return list;
+}
+
+function executionView(execution: ReturnType<typeof latestExecution>): HTMLElement {
+  if (execution === null) return h('p', { class: 'muted', text: '尚无核心执行记录。' });
+  return h('div', { class: 'notice' }, [
+    h('strong', { text: '核心实际执行：' }),
+    h('span', {
+      text: `tick ${execution.tick} · ${execution.status} · ${execution.selectedAction}`,
+    }),
+    execution.reason === null ? null : h('span', { text: ` · ${execution.reason}` }),
+  ]);
 }
 
 function eventLedger(events: ReturnType<typeof agentEvents>): HTMLElement {

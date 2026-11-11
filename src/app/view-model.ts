@@ -3,7 +3,7 @@ import type { TickEvent } from '../core/events.js';
 import { computeNeedClass, computeNeedOwn } from '../core/engine/settlement.js';
 import type { AgentState } from '../core/model/agent.js';
 import type { SimState } from '../core/model/state.js';
-import type { DecisionRecord } from '../decision/types.js';
+import type { DecisionRecord, ExecutionRecord } from '../decision/types.js';
 import type { ControllerSnapshot } from './types.js';
 
 export interface Kpi {
@@ -233,6 +233,17 @@ function toDecisionView(record: DecisionRecord): DecisionView {
     probabilities,
     fallbackReason: record.fallbackReason,
   };
+}
+
+export function latestExecution(
+  snapshot: ControllerSnapshot,
+  agentId: string,
+): ExecutionRecord | null {
+  for (let index = snapshot.executions.length - 1; index >= 0; index -= 1) {
+    const record = snapshot.executions[index];
+    if (record !== undefined && record.agentId === agentId) return record;
+  }
+  return null;
 }
 
 export interface EventView {

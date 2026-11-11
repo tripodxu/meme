@@ -2,7 +2,7 @@ import type { RunConfig } from '../core/config/types.js';
 import type { TickEvent } from '../core/events.js';
 import type { TickStats } from '../core/macros/tick-metrics.js';
 import type { Snapshot } from '../core/replay/snapshot.js';
-import type { DecisionRecord } from '../decision/types.js';
+import type { DecisionRecord, ExecutionRecord } from '../decision/types.js';
 
 /** 浏览器端 RunController 状态（02 §5 / 06 §4）。 */
 export type RunStatus =
@@ -63,6 +63,7 @@ export interface ControllerSnapshot {
   readonly stats: readonly TickStats[];
   readonly events: readonly TickEvent[];
   readonly decisions: readonly DecisionRecord[];
+  readonly executions: readonly ExecutionRecord[];
   readonly endReason: 'scheduled' | 'extinct' | null;
   readonly failure: RunFailure | null;
   readonly issues: readonly RunIssue[];

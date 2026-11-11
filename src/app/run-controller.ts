@@ -14,7 +14,7 @@ import { computeInitialPopulationHash } from '../core/hash/state-hash.js';
 import { MockPolicy, MockPolicyV2, RandomPolicy } from '../decision/policies.js';
 import type { DecisionPolicy } from '../decision/policy.js';
 import { buildDecisionState, computeDecisionStateHash } from '../decision/serialize.js';
-import type { DecisionRecord } from '../decision/types.js';
+import type { DecisionRecord, ExecutionRecord } from '../decision/types.js';
 import type {
   ControllerSnapshot,
   OfflinePolicyId,
@@ -96,6 +96,7 @@ export class RunController {
   private stats: TickStats[] = [];
   private events: TickEvent[] = [];
   private decisions: DecisionRecord[] = [];
+  private executions: ExecutionRecord[] = [];
   private decisionsTruncated = false;
   private initialSnapshot: Snapshot | null = null;
   private latestSnapshot: Snapshot | null = null;
@@ -206,6 +207,7 @@ export class RunController {
       stats: this.stats,
       events: this.events,
       decisions: this.decisions,
+      executions: this.executions,
       endReason: this.endReason,
       failure: this.failure,
       issues: this.issues,
@@ -287,6 +289,7 @@ export class RunController {
     this.stats = [];
     this.events = [];
     this.decisions = [];
+    this.executions = [];
     this.decisionsTruncated = false;
     this.initialSnapshot = null;
     this.latestSnapshot = null;
@@ -489,6 +492,7 @@ export class RunController {
     this.state = result.state;
     this.pushStats(result.stats);
     this.pushEvents(result.events);
+    this.pushExecutions(result.executions);
     if (
       this.latestSnapshot === null ||
       this.state.society.tick % this.config.schedule.snapshotStride === 0
@@ -579,6 +583,7 @@ export class RunController {
     this.state = result.state;
     this.pushStats(result.stats);
     this.pushEvents(result.events);
+    this.pushExecutions(result.executions);
     if (
       this.latestSnapshot === null ||
       this.state.society.tick % this.config.schedule.snapshotStride === 0
@@ -607,6 +612,13 @@ export class RunController {
     }
     if (this.events.length > MAX_EVENTS) {
       this.events.splice(0, this.events.length - MAX_EVENTS);
+    }
+  }
+
+  private pushExecutions(records: readonly ExecutionRecord[]): void {
+    for (const record of records) this.executions.push(record);
+    if (this.executions.length > MAX_DECISIONS) {
+      this.executions.splice(0, this.executions.length - MAX_DECISIONS);
     }
   }
 

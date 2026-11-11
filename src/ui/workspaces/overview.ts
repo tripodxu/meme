@@ -100,12 +100,12 @@ function classChart(snapshot: ControllerSnapshot): SVGSVGElement {
   const classCount = snapshot.config?.population.classCount ?? 5;
   const points = snapshot.stats;
   const cumulative: Series[] = [];
-  const running = new Array<number>(classCount).fill(0);
   for (let classIndex = 0; classIndex < classCount; classIndex += 1) {
+    let running = 0;
     const seriesPoints = points.map((row) => {
       const total = row.aliveCount > 0 ? row.aliveCount : 1;
-      running[classIndex] = (running[classIndex] ?? 0) + (row.classCounts[classIndex] ?? 0) / total;
-      return { x: row.tick + 1, y: running[classIndex] ?? 0 };
+      running += (row.classCounts[classIndex] ?? 0) / total;
+      return { x: row.tick + 1, y: running };
     });
     cumulative.push({
       label: `Class ${classIndex}`,
