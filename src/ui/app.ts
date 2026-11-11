@@ -3,6 +3,7 @@ import type { RunConfig } from '../core/config/types.js';
 import { WEB_PRESETS, findPreset, type WebPreset } from '../app/presets.js';
 import { RunController } from '../app/run-controller.js';
 import { IdbRunStore, type StoredRunMeta } from '../app/idb-store.js';
+import type { BrowserLiveOptions } from '../app/live-policy.js';
 import type { ControllerSnapshot, OfflinePolicyId, WebRunBundle } from '../app/types.js';
 import { buildKpis, formatNumber, formatTick } from '../app/view-model.js';
 import { badge, clear, h } from './dom.js';
@@ -56,6 +57,12 @@ export class StratifyApp {
   draftConfig: RunConfig;
   draftSeed: string;
   draftPolicy: OfflinePolicyId;
+  /** live Key 只驻留内存；不写 localStorage/IndexedDB/导出 bundle。 */
+  liveApiKey = '';
+  liveModel = 'jev-small';
+  liveMaxCalls = 200;
+  liveMaxInputTokens = 200_000;
+  liveMaxMinutes = 30;
   selectedPresetId: string;
   notice: string | null = null;
   importedBundle: WebRunBundle | null = null;
@@ -232,8 +239,24 @@ export class StratifyApp {
     this.selectedPresetId = 'custom';
   }
 
+  private liveOptions(): BrowserLiveOptions | undefined {
+    if (this.draftPolicy !== 'jev_live') return undefined;
+    return {
+      apiKey: this.liveApiKey,
+      model: this.liveModel,
+      maxCalls: this.liveMaxCalls,
+      maxInputTokens: this.liveMaxInputTokens,
+      maxRunMinutes: this.liveMaxMinutes,
+    };
+  }
+
   start(): void {
-    const result = this.controller.prepare(this.draftConfig, this.draftSeed, this.draftPolicy);
+    const result = this.controller.prepare(
+      this.draftConfig,
+      this.draftSeed,
+      this.draftPolicy,
+      this.liveOptions(),
+    );
     if (!result.ok) {
       this.notice = null;
       this.render();
@@ -246,7 +269,12 @@ export class StratifyApp {
 
   step(): void {
     if (this.controller.snapshot().status === 'idle') {
-      const result = this.controller.prepare(this.draftConfig, this.draftSeed, this.draftPolicy);
+      const result = this.controller.prepare(
+        this.draftConfig,
+        this.draftSeed,
+        this.draftPolicy,
+        this.liveOptions(),
+      );
       if (!result.ok) {
         this.render();
         return;

@@ -49,6 +49,31 @@ describe('P3 浏览器工作台 E2E（jsdom）', () => {
     expect(document.body.textContent).not.toContain('NaN');
   });
 
+  it('选择 jev_live 显示内存 Key 字段，且 Key 不进入 snapshot/本地存储', () => {
+    const { app, root } = mountApp();
+    const select = root.querySelector('#setup-policy') as HTMLSelectElement | null;
+    expect(select).not.toBeNull();
+    if (select === null) return;
+    select.value = 'jev_live';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    const keyInput = root.querySelector('#setup-live-key') as HTMLInputElement | null;
+    expect(keyInput).not.toBeNull();
+    expect(keyInput?.type).toBe('password');
+    if (keyInput !== null) {
+      keyInput.value = 'e2e-memory-key';
+      keyInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    expect(app.draftPolicy).toBe('jev_live');
+    expect(app.liveApiKey).toBe('e2e-memory-key');
+    expect(JSON.stringify(app.getSnapshot())).not.toContain('e2e-memory-key');
+    expect(JSON.stringify(localStorage)).not.toContain('e2e-memory-key');
+    expect(JSON.stringify(sessionStorage)).not.toContain('e2e-memory-key');
+
+    select.value = 'mock-weighted-v1';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(root.querySelector('#setup-live-key')).toBeNull();
+  });
+
   it('个体检查器可筛选并展示决策与执行记录', async () => {
     const { app } = mountApp();
     app.start();

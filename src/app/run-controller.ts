@@ -1,5 +1,6 @@
 import { validateRunConfig } from '../core/config/validate.js';
 import type { RunConfig } from '../core/config/types.js';
+import { StratifyError, errorCodes } from '../core/control/errors.js';
 import { asSeed, type AgentId, type Seed } from '../core/control/ids.js';
 import { step, type StepDecisions } from '../core/engine/engine.js';
 import type { TickEvent } from '../core/events.js';
@@ -15,6 +16,7 @@ import { MockPolicy, MockPolicyV2, RandomPolicy } from '../decision/policies.js'
 import type { DecisionPolicy } from '../decision/policy.js';
 import { buildDecisionState, computeDecisionStateHash } from '../decision/serialize.js';
 import type { DecisionRecord, ExecutionRecord } from '../decision/types.js';
+import { createBrowserLivePolicy, type BrowserLiveOptions } from './live-policy.js';
 import type {
   ControllerSnapshot,
   OfflinePolicyId,
@@ -31,6 +33,7 @@ const MAX_DECISIONS = 50_000;
 
 export interface RunControllerOptions {
   readonly policy?: OfflinePolicyId;
+  readonly live?: BrowserLiveOptions;
   readonly runId?: string;
   readonly config?: RunConfig;
   readonly seed?: string;
@@ -54,10 +57,17 @@ function yieldToMain(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-function createPolicy(policy: OfflinePolicyId): DecisionPolicy {
+function createPolicy(policy: OfflinePolicyId, live?: BrowserLiveOptions): DecisionPolicy {
   if (policy === 'mock-weighted-v1') return new MockPolicy();
   if (policy === 'mock-weighted-v2') return new MockPolicyV2();
-  return new RandomPolicy();
+  if (policy === 'random-uniform-v1') return new RandomPolicy();
+  if (live === undefined) {
+    throw new StratifyError(
+      errorCodes.CONFIG_INVALID,
+      'jev_live 需要内存中的 API Key、模型与预算配置',
+    );
+  }
+  return createBrowserLivePolicy(live).policy;
 }
 
 function localRunId(): string {
@@ -68,6 +78,7 @@ function localRunId(): string {
 }
 
 function replayMode(policy: OfflinePolicyId): ReplayInfo['mode'] {
+  if (policy === 'jev_live') return 'jev_replay';
   return policy === 'random-uniform-v1' ? 'random_replay' : 'mock_replay';
 }
 
@@ -89,6 +100,8 @@ export class RunController {
   private status: RunStatus = 'idle';
   private policyId: OfflinePolicyId;
   private policy: DecisionPolicy;
+  /** 仅内存；不进入 snapshot/导出/IndexedDB。 */
+  private liveOptions: BrowserLiveOptions | undefined;
   private config: RunConfig | null = null;
   private seed: Seed | null = null;
   private runId: string | null = null;
@@ -115,17 +128,23 @@ export class RunController {
 
   constructor(options: RunControllerOptions = {}) {
     this.policyId = options.policy ?? 'mock-weighted-v1';
-    this.policy = createPolicy(this.policyId);
+    this.liveOptions = options.live;
+    this.policy = createPolicy(this.policyId, this.liveOptions);
     this.sliceBudgetMs = options.sliceBudgetMs ?? 10;
     if (options.runId !== undefined) this.runId = options.runId;
     if (options.config !== undefined) {
-      this.prepare(options.config, options.seed ?? 'web-seed-001', options.policy);
+      this.prepare(options.config, options.seed ?? 'web-seed-001', options.policy, options.live);
     }
     if (options.onUpdate !== undefined) this.subscribe(options.onUpdate);
   }
 
   /** 校验并冻结配置；成功进入 ready，失败进入 invalid，不创建任何状态。 */
-  prepare(config: RunConfig, seed: string, policy: OfflinePolicyId = this.policyId): PrepareResult {
+  prepare(
+    config: RunConfig,
+    seed: string,
+    policy: OfflinePolicyId = this.policyId,
+    live: BrowserLiveOptions | undefined = this.liveOptions,
+  ): PrepareResult {
     this.generation += 1;
     this.abortController.abort();
     this.abortController = new AbortController();
@@ -153,7 +172,8 @@ export class RunController {
       this.config = result.config;
       this.seed = validSeed;
       this.policyId = policy;
-      this.policy = createPolicy(policy);
+      this.liveOptions = live;
+      this.policy = createPolicy(policy, live);
       this.state = state;
       this.runId = this.runId ?? localRunId();
       this.stats = [];
@@ -361,7 +381,9 @@ export class RunController {
       this.seed = validSeed;
       this.runId = bundle.runId;
       this.policyId = bundle.policy;
-      this.policy = createPolicy(bundle.policy);
+      // 导入 live bundle 时只回放已保存的 selectedAction；策略不会被调用，
+      // 用一个无副作用的确定性实现占位，避免要求用户重新提供 Key。
+      this.policy = bundle.policy === 'jev_live' ? new MockPolicyV2() : createPolicy(bundle.policy);
       this.state = state;
       this.stats = [...bundle.stats];
       this.events = [...bundle.events];
@@ -725,11 +747,12 @@ function parseBundle(
   if (
     policy !== 'mock-weighted-v1' &&
     policy !== 'mock-weighted-v2' &&
-    policy !== 'random-uniform-v1'
+    policy !== 'random-uniform-v1' &&
+    policy !== 'jev_live'
   ) {
     return {
       ok: false,
-      issues: [{ path: '$.policy', message: '仅支持离线确定性策略', code: 'unsupported_policy' }],
+      issues: [{ path: '$.policy', message: '仅支持已登记策略', code: 'unsupported_policy' }],
     };
   }
   const latestSnapshot = record['latestSnapshot'];

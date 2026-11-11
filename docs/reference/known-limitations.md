@@ -23,12 +23,17 @@ P6 已按 ADR 0008 停止。
 
 - **preview/production 尚未真实部署或冒烟**；只有 `wrangler deploy --dry-run`
   与本地 `wrangler dev --local` 的 workerd+D1+R2 全链路（changes/0073）。
-- 保留策略与维护任务（过期 run、孤儿 artifact、`rate_limits` 清理）未实现。
-- `expectedDueDecisions`、`artifactManifestHash` 只做格式校验，未做服务端复算。
-- `diagnosticsHash` 未持久化；cancel/fail 只记录 reason 与 finalTick。
+- 保留策略已实现（browser 7d / runner 90d、Cron、R2→D1 级联；changes/0076），
+  但 **R2 孤儿对象枚举**、线上 Cron 触发与真实删除演练未执行。
+- `artifactManifestHash` 已由服务器从 D1 清单复算（changes/0077）；
+  `expectedDueDecisions` 仍只做格式校验，未服务端复算。
+- `diagnosticsHash` 已持久化并在详情返回，但不参与回放或内容认证。
 - 独立验证器、压缩/未压缩内容复核与回放验证未接入；`verificationStatus=uploaded`
   不代表内容已验证。
-- 同源 `/api/jev` 代理没有真实 live 冒烟；浏览器 `jev_live` 仍禁用。
+- 同源 `/api/jev` 代理已有 mock 上游单元测试与浏览器接入，但**没有真实 live 冒烟**；
+  `jev_live` 已启用，未经真实上游验证，不得声称可用或已计费验证。
+- Worker 全局保险丝/跨用户配额与 40 人/730 tick/interval 30 的硬门禁未实现；当前只有
+  IP 限流、run 内预算与设置页提示。
 - 未实现跨进程上传队列或配额计费；限流是固定窗口表，不提供全局保险丝。
 
 ## 4. 前端
@@ -36,7 +41,8 @@ P6 已按 ADR 0008 停止。
 - P3-07 只有 5 项 jsdom DOM E2E 与手动 Chromium 验证；**真实浏览器自动化 E2E
   未接入**（仓库无 Playwright/Puppeteer）。
 - IndexedDB 自动保存每 2 秒至多一次；关闭标签页后不续传，服务器 run 依赖静默超时。
-- `jev_live` 禁用；导入/回放只对保存了 `selectedAction` 的决策有效。
+- `jev_live` 可用但 Key 只在内存；导入/回放只对保存了 `selectedAction` 的决策有效，
+  回放不再调用模型。
 - 单次对比只给描述性差异，不提供显著性结论。
 
 ## 5. 上传与批跑

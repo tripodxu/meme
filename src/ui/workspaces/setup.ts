@@ -60,8 +60,9 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
             field(
               '决策策略',
               selectPolicy(app),
-              'live 需 P4 Worker 代理与内存 Key；当前仅离线确定性策略。',
+              'jev_live 只经同源 /api/jev 代理；Key 仅驻留内存，不写存储/导出。',
             ),
+            ...liveFields(app),
             field(
               '初始人口',
               numberInput(
@@ -357,20 +358,76 @@ function selectPolicy(app: StratifyApp): HTMLSelectElement {
     onChange: (event) => {
       const value = (event.target as HTMLSelectElement).value as StratifyApp['draftPolicy'];
       app.updateDraft({ draftPolicy: value });
-      updatePreview(app, preview);
+      app.render();
     },
   });
   for (const [value, label] of [
     ['mock-weighted-v1', 'mock-weighted-v1'],
     ['mock-weighted-v2', 'mock-weighted-v2（D2）'],
     ['random-uniform-v1', 'random-uniform-v1'],
+    ['jev_live', 'jev_live（同源代理 · BYOK）'],
   ] as const) {
     select.append(h('option', { value, text: label, selected: value === app.draftPolicy }));
   }
-  select.append(
-    h('option', { value: 'jev_live', text: 'jev_live（需 P4 代理，暂不可用）', disabled: true }),
-  );
   return select;
+}
+
+function liveFields(app: StratifyApp): HTMLElement[] {
+  if (app.draftPolicy !== 'jev_live') return [];
+  return [
+    field(
+      'Jev API Key（仅内存）',
+      h('input', {
+        id: 'setup-live-key',
+        type: 'password',
+        placeholder: app.liveApiKey.length > 0 ? '已填写（不会回显）' : 'jv-…',
+        onInput: (event) => {
+          app.liveApiKey = (event.target as HTMLInputElement).value;
+        },
+      }),
+      '不写 localStorage/IndexedDB/导出 bundle；刷新页面即丢失。',
+    ),
+    field(
+      '模型',
+      h('input', {
+        id: 'setup-live-model',
+        type: 'text',
+        value: app.liveModel,
+        onInput: (event) => {
+          app.liveModel = (event.target as HTMLInputElement).value.trim();
+        },
+      }),
+      '必须在 Worker 的 JEV_ALLOWED_MODELS 中；服务端会再次校验。',
+    ),
+    field(
+      '最大调用数',
+      numberInput('setup-live-calls', app.liveMaxCalls, 1, 100_000, (value) => {
+        app.liveMaxCalls = value;
+      }),
+      '跨本 run 所有个体决策；耗尽后 live run 停止。',
+    ),
+    field(
+      '最大 input token（估算）',
+      numberInput('setup-live-tokens', app.liveMaxInputTokens, 1_000, 100_000_000, (value) => {
+        app.liveMaxInputTokens = value;
+      }),
+      '按 utf8-three-quarter-v1 估算，保守值由 Worker/runner 再核对。',
+    ),
+    field(
+      '最长运行分钟',
+      numberInput('setup-live-minutes', app.liveMaxMinutes, 1, 240, (value) => {
+        app.liveMaxMinutes = value;
+      }),
+      '到点停止新调用；不会自动重跑。',
+    ),
+    h('div', { class: 'notice notice-warn' }, [
+      h('strong', { text: 'live 会产生真实调用与费用。' }),
+      h('br'),
+      h('span', {
+        text: '浏览器只经同源 /api/jev 转发；认证/预算/熔断失败会停止 run，不会静默回退继续。',
+      }),
+    ]),
+  ];
 }
 
 function scaleWarning(config: RunConfig): HTMLElement {

@@ -20,8 +20,12 @@ export type RunStatus =
   | 'failed'
   | 'replaying';
 
-/** 离线浏览器只允许确定性策略；live/replay 通过注入实现接入。 */
-export type OfflinePolicyId = 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
+/**
+ * 浏览器可选策略。`jev_live` 只经同源 `/api/jev` 代理，Key 仅存内存；
+ * mock/random 为确定性离线策略。
+ */
+export type OfflinePolicyId =
+  'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1' | 'jev_live';
 
 export interface RunIssue {
   readonly path: string;

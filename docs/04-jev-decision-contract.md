@@ -136,7 +136,7 @@ interface ExecutionRecord {
 
 ### 3.3 System One 请求
 
-上游端点：默认 `https://api.typesafe.ai/v1/systemone`，**必须可配置**（`JevClientOptions.endpoint`）。浏览器经同源 `POST /api/jev`，VPS 可直连。直连使用 `Authorization: Bearer <key>`；Worker 代理接收 `X-Api-Key` 并转成上游鉴权。Worker 代理在 P4-08 交付；P2 的真实冒烟走 VPS 直连，不依赖 Worker。
+上游端点：默认 `https://api.typesafe.ai/v1/systemone`，**必须可配置**（`JevClientOptions.endpoint`）。浏览器经同源 `POST /api/jev`，VPS 可直连。直连使用 `Authorization: Bearer <key>`；Worker 代理接收 `X-Api-Key` 并转成上游鉴权。Worker 代理已在 P4-08 交付；浏览器默认只允许同源 `/api/jev`，`resolveEndpoint` 允许 loopback `http:`（localhost/127.0.0.1/::1）以便本地 Vite 代理，远程明文仍拒绝。
 
 端点可配置的现实原因（2026-11-04 实测）：官方域名按来源地域返回 `451 Typesafe is not available in your region`，受限网络只能经自建网关转发；网关会把请求的模型名归一化成它实际提供的档位（请求 `jev-1.13.0` → 响应 `model` 为 `jev-1.13-free`）。因此**响应中的真实 `model` 必须落日志**，不得用请求名冒充。端点与 `tokenEstimatorVersion` 一样进入 run manifest：端点不同不改变决策语义，但影响可达性、实际模型名与计费单位。
 

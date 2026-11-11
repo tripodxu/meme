@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 51）
+## 1. 当前交接状态（2026-11-11，rev 52）
+
+- rev 52（2026-11-11，**浏览器 live 接入**）：`jev_live` 通过同源 `/api/jev` 代理启用；Key 只驻留内存并进 Authorization 头，不写存储/导出/日志；预算/截止/熔断/回退率启用，jitter=0。控制器支持 live 与 `jev_replay`，导入 live bundle 不要求重新提供 Key；loopback http 允许本地代理。3 项单测 + 1 项 jsdom E2E 通过。**真实 live 冒烟未执行**；Worker 全局保险丝、规模硬门禁与远程部署未完成。不改规则/schema，不构成校准或结构证据（changes/0078）。
 
 - rev 51（2026-11-11，**complete 清单复算 + diagnosticsHash**）：`artifactManifestHash` 改由服务器从 D1 artifacts 复算（不一致 409），上传器改用字节序排序；migration 0003 新增 `runs.diagnostics_hash`，cancel/fail 校验并持久化、详情回显。Worker 测试 16 项、上传/导出测试继续通过。`expectedDueDecisions` 复算与远程冒烟未完成；不改规则/schema，不构成校准或结构证据（changes/0077）。
 

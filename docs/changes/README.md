@@ -101,3 +101,4 @@
 | [0075](0075-batch-upload-export.md) | 批跑自动导出上传 bundle | 2026-11-11 | `writeUploadBundle` 从 RunOutcome 导出 metrics-only bundle（metrics/final_state/agents）；`--upload-bundles` 批跑自动导出、`onRunComplete` 失败即技术失败；20 tick 导出→上传→complete 与本地上传/重跑幂等冒烟通过；`full` profile 与远程冒烟未完成 |
 | [0076](0076-p4-retention.md) | P4-06 保留策略与维护任务 | 2026-11-11 | browser 7d/runner 90d 保留天数、Cron `17 3 * * *`、按 run 删除 R2 artifact 后级联删 D1、清理 2 天前限流行；2 项测试；R2 孤儿枚举、线上 Cron 与删除演练未执行 |
 | [0077](0077-complete-manifest-diagnostics.md) | complete 清单复算与 diagnosticsHash | 2026-11-11 | 服务器从 D1 artifacts 复算 `artifactManifestHash`，不一致 409；上传器改用字节序排序；migration 0003 新增 `diagnostics_hash`，cancel/fail 校验并持久化；`expectedDueDecisions` 复算与远程冒烟未完成 |
+| [0078](0078-browser-live-proxy.md) | 浏览器 live（同源 BYOK 代理） | 2026-11-11 | `jev_live` 经同源 `/api/jev`；Key 仅内存/Auth 头，预算/截止/熔断启用；控制器支持 live 与 `jev_replay`，导出不含 Key；允许 loopback http；3 项单测 + 1 项 jsdom E2E；真实 live 冒烟、全局保险丝与规模硬门禁未完成 |
