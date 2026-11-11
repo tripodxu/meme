@@ -9,7 +9,7 @@ import { runSingle } from '../../../src/runner/run-cell.js';
 import { loadUploadBundle } from '../../../src/runner/upload-bundle.js';
 import { writeUploadBundle } from '../../../src/runner/upload-export.js';
 import { uploadRun } from '../../../src/runner/uploader.js';
-import app from '../../../src/worker/index.js';
+import { app } from '../../../src/worker/index.js';
 import type { Env } from '../../../src/worker/types.js';
 import { BASE, createTestEnv } from '../../helpers/worker-env.js';
 

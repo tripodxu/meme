@@ -99,3 +99,4 @@
 | [0073](0073-runtime-authority.md) | 运行时权威边界与 workerd 上传冒烟 | 2026-11-11 | Node 与 workerd 抽样值差 1 ulp；按 ADR 0001 只在 `runtimeVersion` 相同才复算 `initialPopulationHash`，新增 `RUNTIME_VERSION` 与 `runtime_authority`（migration 0002）；本地 workerd+D1+R2 上传/complete/artifact/stats 冒烟通过；preview 远程未部署 |
 | [0074](0074-p7-release-hardening.md) | P7 发布硬化（本地可验证部分） | 2026-11-11 | 部署冒烟（health/首页/创建/读取/取消）、D1 导出静态校验、backup/verify 脚本、CI 前端构建与 Worker dry-run、快速开始/指标词典/已知限制；真实 preview/production 部署、备份恢复、回滚与发布后监控未执行 |
 | [0075](0075-batch-upload-export.md) | 批跑自动导出上传 bundle | 2026-11-11 | `writeUploadBundle` 从 RunOutcome 导出 metrics-only bundle（metrics/final_state/agents）；`--upload-bundles` 批跑自动导出、`onRunComplete` 失败即技术失败；20 tick 导出→上传→complete 与本地上传/重跑幂等冒烟通过；`full` profile 与远程冒烟未完成 |
+| [0076](0076-p4-retention.md) | P4-06 保留策略与维护任务 | 2026-11-11 | browser 7d/runner 90d 保留天数、Cron `17 3 * * *`、按 run 删除 R2 artifact 后级联删 D1、清理 2 天前限流行；2 项测试；R2 孤儿枚举、线上 Cron 与删除演练未执行 |

@@ -6,7 +6,7 @@ import { HASH_DOMAINS } from '../../../src/core/hash/domains.js';
 import { hashValue } from '../../../src/core/hash/hash.js';
 import { plannedStatsTicks } from '../../../src/worker/contracts.js';
 import { sha256Hex, checkRateLimit } from '../../../src/worker/http.js';
-import app from '../../../src/worker/index.js';
+import { app } from '../../../src/worker/index.js';
 import type { Env } from '../../../src/worker/types.js';
 import {
   BASE,

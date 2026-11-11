@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildSmokeRunBody, runRemoteSmoke } from '../../../src/ops/smoke.js';
-import app from '../../../src/worker/index.js';
+import { app } from '../../../src/worker/index.js';
 import type { Env } from '../../../src/worker/types.js';
 import { BASE, createTestEnv } from '../../helpers/worker-env.js';
 

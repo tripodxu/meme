@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 49）
+## 1. 当前交接状态（2026-11-11，rev 50）
+
+- rev 50（2026-11-11，**P4-06 保留策略**）：`src/worker/maintenance.ts` 实现 browser 7d / runner 90d 保留、Cron `17 3 * * *`、按 run 删除 R2 artifact 后级联删 D1、清理 2 天前 `rate_limits`；`wrangler.jsonc` 增加 triggers 与保留天数变量。2 项维护测试通过（过期 browser/runner 删除、新 run 保留、R2 3→1、限流行保留/删除）。**边界**：R2 孤儿对象枚举、线上 Cron 触发与真实删除演练未执行；不改规则/schema，不构成校准或结构证据（changes/0076）。
 
 - rev 49（2026-11-11，**批跑自动导出上传 bundle**）：`src/runner/upload-export.ts` 从 `RunOutcome` 生成 metrics-only `run-upload-bundle-file-v1`（全分辨率 metrics、final_state、agents）；`bin/stratify-batch.mjs --upload-bundles <dir>` 每个成功 run 自动导出，`onRunComplete` 抛错按技术失败处理。3 项导出测试；20 tick 导出 → `loadUploadBundle` → Worker 上传 → complete（tickRows=3、agentRows=40）与 CLI 重跑幂等（chunksSkipped=2、duplicateComplete）冒烟通过。`full` profile 与远程 preview 冒烟仍未完成。不改规则/schema，不构成校准或结构证据（changes/0075）。
 

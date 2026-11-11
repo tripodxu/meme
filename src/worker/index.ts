@@ -28,7 +28,8 @@ import {
   sha256Hex,
   type RunRow,
 } from './http.js';
-import type { WorkerBindings } from './types.js';
+import type { Env, ExecutionContext, ScheduledEvent, WorkerBindings } from './types.js';
+import { runMaintenance } from './maintenance.js';
 
 const app = new Hono<WorkerBindings>();
 
@@ -882,5 +883,15 @@ function parseOptionalInt(value: string | undefined): number | null {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
-export default app;
+const worker = {
+  fetch: (request: Request, env: Env, ctx: Parameters<typeof app.fetch>[2]) =>
+    app.fetch(request, env, ctx),
+  /** P4-06：Cron 保留策略；失败由平台重试，下一轮幂等继续清理。 */
+  scheduled: async (_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> => {
+    ctx.waitUntil(runMaintenance(env));
+  },
+};
+
+export default worker;
 export { app };
+export { runMaintenance } from './maintenance.js';

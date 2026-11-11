@@ -66,6 +66,13 @@ wrangler d1 migrations apply stratify-prod --remote
 
 生产 apply 前必须先备份、核对迁移列表和 SQL；已应用迁移永不修改。R2 配置生命周期/保留策略要与 D1 `artifacts/runs` 一致，避免只删一边。清理任务先在 preview 对小数据演练。
 
+P4-06 已实现 Cron 保留任务（changes/0076）：`wrangler.jsonc` 的
+`triggers.crons = ["17 3 * * *"]` 每日触发 `runMaintenance`；browser run 默认
+7 天、runner 默认 90 天（`BROWSER_RUN_RETENTION_DAYS`/`RUNNER_RUN_RETENTION_DAYS`）。
+删除顺序是 R2 artifact → D1 run（tick/agent/artifact 级联）→ 2 天前 `rate_limits`；
+R2 删除失败会保留 D1 行，下一轮重试。**R2 孤儿对象枚举、线上 Cron 触发与真实
+删除演练尚未执行**，生产启用前必须按 §8 完成备份/恢复演练并记录。
+
 部署脚本至少提供：
 
 ```bash

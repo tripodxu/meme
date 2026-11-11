@@ -18,7 +18,7 @@ import {
   type RunUploadBundle,
   type UploadAgent,
 } from '../../../src/runner/uploader.js';
-import app from '../../../src/worker/index.js';
+import { app } from '../../../src/worker/index.js';
 import type { Env } from '../../../src/worker/types.js';
 import {
   BASE,

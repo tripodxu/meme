@@ -60,6 +60,20 @@ export interface Env {
   readonly VERSION?: string;
   /** 服务器权威 hash 运行时；与 run 的 runtimeVersion 不同则标记 non-authoritative（ADR 0001）。 */
   readonly RUNTIME_VERSION?: string;
+  /** 保留天数（字符串来自 wrangler vars）；缺省 browser=7、runner=90。 */
+  readonly BROWSER_RUN_RETENTION_DAYS?: string;
+  readonly RUNNER_RUN_RETENTION_DAYS?: string;
 }
 
 export type WorkerBindings = { Bindings: Env; Variables: { requestId: string } };
+
+/** Worker 运行时最小的 scheduled/execution context 类型面。 */
+export interface ExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
+  passThroughOnException?(): void;
+}
+
+export interface ScheduledEvent {
+  readonly scheduledTime: number;
+  readonly cron: string;
+}
