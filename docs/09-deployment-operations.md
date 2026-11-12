@@ -58,10 +58,15 @@ local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_r
 脚本 `dev:worker`、`deploy:worker`、`db:migrate:local/preview/prod` 已登记。
 
 - preview：D1 `stratify-preview` 已创建（`WNAM`，ID 见 `wrangler.jsonc`），
-  0001–0003 已通过 `--remote` 应用；`pnpm build:web` 通过。
-- R2：账户未开通 R2（API `10042`），`stratify-artifacts-preview` 未创建；
-  `wrangler deploy --env preview` 因 bucket 不存在（API `10085`）中止，
-  `wrangler deployments list --env preview` 无记录，**preview 未发布**。
+  0001–0003 已通过 `--remote` 应用；R2 `stratify-artifacts-preview` 已创建；
+  `pnpm build:web` 与 `wrangler deploy --env preview` 成功，
+  端点 `https://stratify-preview.xd04040212.workers.dev`（changes/0081）。
+- Cron：账户 Workers Free 的 5 个槽位已满（API `10072`），preview 显式
+  `triggers.crons = []`，不注册保留任务；production 的每日 Cron 在槽位释放或
+  升级计划前无法注册。
+- 远程冒烟**未执行**：本机无法访问 `*.workers.dev`（DNS 污染、TLS 重置），
+  `wrangler dev --remote` 与 remote bindings 也失败；health→创建→读取→取消
+  均未在线验证，不得声称 preview 冒烟通过。
 - production：D1/R2 未创建，`database_id` 仍为占位符。
 - 本地 `wrangler dev --local` 已跑通 health → 创建 run → artifact 上传/304 →
   tick/agent → stats → complete 全链路（changes/0073）；`wrangler deploy --dry-run`

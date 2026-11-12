@@ -33,6 +33,9 @@
   "env": {
     "preview": {
       "name": "stratify-preview",
+      // 账户 Workers Free 的 5 个 Cron 槽位已被其他 Worker 占用（API 10072）；
+      // preview 显式不注册保留任务，避免每次 deploy 触发部分更新失败。
+      "triggers": { "crons": [] },
       "vars": {
         "ENVIRONMENT": "preview",
         "VERSION": "preview",
