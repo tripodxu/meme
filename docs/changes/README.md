@@ -105,3 +105,4 @@
 | [0079](0079-live-scale-fuse.md) | live 规模门禁与 Jev 全局保险丝 | 2026-11-11 | `/api/jev` 增加 `jev:global` 小时限流（默认 1000）；浏览器超过 40 人/730 tick/间隔 30 时必须显式勾选确认，否则阻止启动；新增 3 项测试（Worker/E2E/工具函数）；固定窗口非分布式令牌桶，真实冒烟未执行 |
 | [0080](0080-p5b-full-artifacts.md) | P5b full profile 上传 artifact | 2026-11-11 | `captureArtifacts` 收集 events/executions/周期快照；full 导出 decision-v1/event-v1/snapshot-v1 并按 4 MiB 分块；CLI `--artifact-profile full`/`--snapshot-stride`；full 上传 complete 与本地上传冒烟通过；内存与 resume 补导出限制未解决 |
 | [0081](0081-preview-remote-resources.md) | preview 远程资源与首次部署（冒烟未执行） | 2026-11-12 | 创建 `stratify-preview` D1/R2，远程应用 0001–0003，`wrangler deploy --env preview` 成功（版本 83be6ffa）；Cron 受 Free 5 槽限制，preview 置空；本机 DNS/TLS 无法访问 workers.dev，远程冒烟未执行，公开端点未验证 |
+| [0082](0082-class-stack-chart-fix.md) | 阶级结构堆叠图跨 tick 累加修复 | 2026-11-12 | `classChart` 原先把 `running` 跨 tick 累加，曲线冲出 `[0,1]`（实测 y=-730）；改为每 tick 独立按 class 0..i 累加并导出 `buildClassStack`；新增 2 项单测与 E2E 多边形边界断言；7/7 E2E、typecheck/lint/build 通过 |

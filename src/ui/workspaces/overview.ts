@@ -135,25 +135,46 @@ function kpiGrid(snapshot: ControllerSnapshot): HTMLElement {
   return grid;
 }
 
+export interface ClassStackRow {
+  readonly tick: number;
+  readonly aliveCount: number;
+  readonly classCounts: readonly number[];
+}
+
+/**
+ * 阶级堆叠图的每一层上边界：同一 tick 内累加 class 0..i 的存活占比。
+ *
+ * 累加必须按 tick 独立进行；不能把 running 跨 tick 延续，否则曲线会随
+ * 时间单调上升并远超 [0,1]，在图表里冲出画布。
+ */
+export function buildClassStack(rows: readonly ClassStackRow[], classCount: number): Series[] {
+  if (rows.length === 0) return [];
+  const cumulative = new Array<number>(rows.length).fill(0);
+  const series: Series[] = [];
+  for (let classIndex = 0; classIndex < classCount; classIndex += 1) {
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+      const row = rows[rowIndex];
+      if (row === undefined) continue;
+      const total = row.aliveCount > 0 ? row.aliveCount : 1;
+      const share = (row.classCounts[classIndex] ?? 0) / total;
+      cumulative[rowIndex] = (cumulative[rowIndex] ?? 0) + share;
+    }
+    series.push({
+      label: `Class ${classIndex}`,
+      color: CLASS_COLORS[classIndex] ?? 'var(--accent)',
+      points: rows.map((row, rowIndex) => ({
+        x: row.tick + 1,
+        y: Math.min(1, Math.max(0, cumulative[rowIndex] ?? 0)),
+      })),
+    });
+  }
+  return series;
+}
+
 function classChart(snapshot: ControllerSnapshot): SVGSVGElement {
   if (snapshot.stats.length === 0) return emptyChart('尚无 tick 数据');
   const classCount = snapshot.config?.population.classCount ?? 5;
-  const points = snapshot.stats;
-  const cumulative: Series[] = [];
-  for (let classIndex = 0; classIndex < classCount; classIndex += 1) {
-    let running = 0;
-    const seriesPoints = points.map((row) => {
-      const total = row.aliveCount > 0 ? row.aliveCount : 1;
-      running += (row.classCounts[classIndex] ?? 0) / total;
-      return { x: row.tick + 1, y: running };
-    });
-    cumulative.push({
-      label: `Class ${classIndex}`,
-      color: CLASS_COLORS[classIndex] ?? 'var(--accent)',
-      points: seriesPoints,
-    });
-  }
-  return renderStackedArea(cumulative, {
+  return renderStackedArea(buildClassStack(snapshot.stats, classCount), {
     height: 220,
     yMin: 0,
     yMax: 1,

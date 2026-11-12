@@ -45,6 +45,20 @@ describe('P3 浏览器工作台 E2E（jsdom）', () => {
     expect(snapshot.stats).toHaveLength(6);
     expect(snapshot.decisions.length).toBeGreaterThan(0);
     expect(document.querySelectorAll('svg.chart').length).toBeGreaterThan(0);
+    const classChart = document.querySelector('svg[aria-label="阶级结构堆叠"]');
+    expect(classChart).not.toBeNull();
+    const viewBox = (classChart?.getAttribute('viewBox') ?? '').split(/\s+/).map(Number);
+    const chartHeight = viewBox[3] ?? 0;
+    expect(chartHeight).toBeGreaterThan(0);
+    const polygons = [...(classChart?.querySelectorAll('polygon') ?? [])];
+    expect(polygons.length).toBeGreaterThan(0);
+    for (const polygon of polygons) {
+      const ys = (polygon.getAttribute('points') ?? '')
+        .trim()
+        .split(/\s+/)
+        .map((point) => Number(point.split(',')[1]));
+      expect(ys.every((y) => y >= -0.5 && y <= chartHeight + 0.5)).toBe(true);
+    }
     expect(document.body.textContent).toContain('结构指纹与核心指标');
     expect(document.body.textContent).not.toContain('NaN');
   });
