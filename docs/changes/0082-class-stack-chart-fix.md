@@ -30,6 +30,9 @@
 - 浏览器实测 40 人 × 120 tick：五个 polygon 的 y 范围分别为
   `90.25–188`、`35–111.5`、`18–60.5`、`18–35`、`18–22.25`，全部位于 220 高的画布内；
   修复前同一图表出现 `-730` 级坐标。
+- 已重新部署 preview（版本 `523f516d-c046-477c-afa7-e990f9b6bba6`）：
+  `https://stratify.logicc.top/` 返回新构建 `assets/index-B4DH8Xdh.js`，
+  `/api/health` 返回 `status=ok`、`version=preview`。
 
 ## 4. 边界
 
