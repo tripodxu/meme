@@ -21,7 +21,9 @@ P6 已按 ADR 0008 停止。
 
 ## 3. Worker / 数据服务
 
-- **preview/production 尚未真实部署或冒烟**；只有 `wrangler deploy --dry-run`
+- **preview 未部署**：preview D1 已创建并应用 0001–0003 迁移（changes/0081），
+  但账户未开通 R2，`stratify-artifacts-preview` 无法创建，`wrangler deploy --env preview`
+  因 bucket 不存在中止；production 资源未创建。目前只有 `wrangler deploy --dry-run`
   与本地 `wrangler dev --local` 的 workerd+D1+R2 全链路（changes/0073）。
 - 保留策略已实现（browser 7d / runner 90d、Cron、R2→D1 级联；changes/0076），
   但 **R2 孤儿对象枚举**、线上 Cron 触发与真实删除演练未执行。

@@ -50,16 +50,23 @@ MVP 不配置公共 TYPESAFE_API_KEY；访客使用自己的 X-Api-Key。密钥�
 可用 `JEV_GLOBAL_HOURLY_LIMIT` 调整；耗尽返回 429。它与按 IP 的 60 次/分钟限流叠加，
 是固定窗口计数而非分布式令牌桶（changes/0079）。
 
-### 2.3 P4 代码落地范围（2026-11-11，changes/0071）
+### 2.3 P4 代码落地范围与远程资源状态（2026-11-12，changes/0071/0081）
 
 仓库已提供 `wrangler.jsonc`（Static Assets `dist-web`、`/api/*` 走 Worker、D1/R2 binding、
-local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_runtime_authority.sql`；
-远程 D1 ID 仍为占位符，必须在创建资源后替换；`RUNTIME_VERSION` 必须改为该环境实际运行时。
-脚本 `dev:worker`、`deploy:worker`、`db:migrate:local/preview/prod` 已登记，但
-**preview/production 尚未实际部署或冒烟**。本地 `wrangler dev --local` 已跑通
-health → 创建 run → artifact 上传/304 → tick/agent → stats → complete 全链路
-（changes/0073）；`wrangler deploy --dry-run` 只验证打包与绑定识别。P4-07 的
-preview 部署与恢复验证仍未执行，在完成前不得把本节命令视为已验证可用的发布流程。
+local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_runtime_authority.sql`、
+`0003_diagnostics_hash.sql`；`RUNTIME_VERSION` 必须改为该环境实际运行时。
+脚本 `dev:worker`、`deploy:worker`、`db:migrate:local/preview/prod` 已登记。
+
+- preview：D1 `stratify-preview` 已创建（`WNAM`，ID 见 `wrangler.jsonc`），
+  0001–0003 已通过 `--remote` 应用；`pnpm build:web` 通过。
+- R2：账户未开通 R2（API `10042`），`stratify-artifacts-preview` 未创建；
+  `wrangler deploy --env preview` 因 bucket 不存在（API `10085`）中止，
+  `wrangler deployments list --env preview` 无记录，**preview 未发布**。
+- production：D1/R2 未创建，`database_id` 仍为占位符。
+- 本地 `wrangler dev --local` 已跑通 health → 创建 run → artifact 上传/304 →
+  tick/agent → stats → complete 全链路（changes/0073）；`wrangler deploy --dry-run`
+  只验证打包与绑定识别。远程部署与冒烟仍未执行，在完成前不得声称 preview 已部署，
+  也不得把本节命令视为已验证可用的发布流程。
 
 ## 3. 数据库与 R2 初始化
 

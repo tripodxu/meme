@@ -46,7 +46,7 @@
         {
           "binding": "DB",
           "database_name": "stratify-preview",
-          "database_id": "REPLACE_WITH_PREVIEW_D1_ID",
+          "database_id": "3db883f2-c44a-4f30-8884-bbf5f7c3bddf",
           "migrations_dir": "migrations",
         },
       ],
