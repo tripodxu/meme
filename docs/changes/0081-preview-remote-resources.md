@@ -24,21 +24,29 @@
   （API `10072`）。preview 现在显式 `triggers.crons = []`，重新 deploy 无部分失败；
   production 仍保留每日 Cron 配置，但在槽位释放或升级计划前无法注册。
 
-## 2. 未执行：远程冒烟
+## 2. 远程可达性与平台故障（2026-11-12）
 
-`scripts/smoke-remote.mjs` 需要本机向公开 URL 发起 HTTP 请求。本机网络无法到达
-`*.workers.dev`，以下路径均已尝试且失败：
+本机网络无法直连 `*.workers.dev`：本地 DNS 返回污染地址（`75.126.33.156` 与
+Facebook 段 IPv6），经 DoH 取得真实地址后 TLS 仍被重置，WebFetch 安全校验被阻止。
+随后通过本机代理访问，观察到：
 
-- 本地 DNS 返回 `75.126.33.156` 与 Facebook 段 IPv6，属污染结果；
-- 经 DoH（1.1.1.1）取得 `172.67.128.254` / `104.21.2.89` 后用 `curl --resolve`
-  直连，TLS 握手被重置；
-- WebFetch 对该域名的安全校验被网络策略阻止；
-- `wrangler dev --remote` 启动后所有请求报 `ProxyWorker ... internal error`；
-- `wrangler dev` + D1/R2 remote bindings 启动成功，但 health 的 `SELECT 1` 超时；
+- preview 的 `/api/health`、`/`、静态资源与 `/api/does-not-exist` 全部返回
+  HTTP 500（`error code: 1101`），版本预览 URL 同样；
+- 账户内其他无关 Worker（`film-sort`、`jev-piano`、`vocab`）也返回 1101，
+  `zhouyi-hexagram` 返回自身 404；说明不是 `stratify-preview` 独有；
+- Cloudflare Status 同期显示 Workers 组件 `degraded_performance`
+  （D1、R2、Workers Assets 为 operational，2026-11-12T12:50Z）；
+- 已创建 tail 会话并触发请求，但没有任何 tail 事件，符合启动/平台层失败，
+  而非业务路由异常；
+- 本地 `wrangler dev --env preview`（local bindings）health 返回 200、`db=ok`；
+  从 API 下载的部署脚本与本地 dry-run bundle 一致，且不含 `node:` 内置依赖；
+- `wrangler dev --remote` 仍报 `ProxyWorker ... internal error`，与本机到
+  workers.dev 的网络限制及平台降级一致；
 - VPS `2zhou` SSH 返回 “machine ... is stopped”。
 
-因此 health → 静态首页 → 创建/读取/取消 run 的远程冒烟**未执行**，
-preview 的公开可达性与 API 行为均未验证，不得声称冒烟通过。
+结论：部署上传成功，但平台恢复前无法验证 preview 的公开行为。
+health → 静态首页 → 创建/读取/取消 run 的远程冒烟**未执行**，
+不得声称冒烟通过，也不把 1101 归因于本仓库代码。
 
 ## 3. 未完成 / 边界
 

@@ -64,9 +64,11 @@ local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_r
 - Cron：账户 Workers Free 的 5 个槽位已满（API `10072`），preview 显式
   `triggers.crons = []`，不注册保留任务；production 的每日 Cron 在槽位释放或
   升级计划前无法注册。
-- 远程冒烟**未执行**：本机无法访问 `*.workers.dev`（DNS 污染、TLS 重置），
-  `wrangler dev --remote` 与 remote bindings 也失败；health→创建→读取→取消
-  均未在线验证，不得声称 preview 冒烟通过。
+- 远程冒烟**未执行**：本机无法直连 `*.workers.dev`（DNS 污染、TLS 重置）；
+  经代理访问时 preview 全部路由返回 500/`error code: 1101`，账户内其他无关
+  Worker 同样 1101，且 Cloudflare Status 显示 Workers `degraded_performance`
+  （2026-11-12T12:50Z）。平台恢复前不得声称 preview 冒烟通过，也不把 1101
+  归因于本仓库代码。
 - production：D1/R2 未创建，`database_id` 仍为占位符。
 - 本地 `wrangler dev --local` 已跑通 health → 创建 run → artifact 上传/304 →
   tick/agent → stats → complete 全链路（changes/0073）；`wrangler deploy --dry-run`
