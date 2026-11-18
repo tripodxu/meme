@@ -8,14 +8,15 @@ import type { RunConfig } from '../core/config/types.js';
 import type { OfflinePolicyId } from './types.js';
 
 /**
- * 浏览器预设。科学口径见 docs/07：在 G6 通过前不存在“已校准”预设，
- * 所有预设都必须显式显示“未校准”。
+ * 浏览器预设。科学口径见 docs/07：通过 P6-09（ADR 0010）与 R4 微扰/消融闭环后，
+ * `regime1_pyramid` 与 `regime2_continuum` 标记为 `calibrated: true`（D1 两体制口径）；
+ * 其余探索/轻量演示预设继续严格标记 `calibrated: false`。
  */
 export interface WebPreset {
   readonly id: string;
   readonly name: string;
   readonly description: string;
-  readonly calibrated: false;
+  readonly calibrated: boolean;
   readonly policy: OfflinePolicyId;
   readonly seed: string;
   readonly config: RunConfig;
@@ -46,13 +47,14 @@ function build(
   policy: OfflinePolicyId,
   patch: DeepPartialConfig,
   base: RunConfig = DEFAULT_RUN_CONFIG,
+  calibrated = false,
 ): WebPreset {
   const config = mergeConfig(base, patch);
   return {
     id,
     name,
     description,
-    calibrated: false,
+    calibrated,
     policy,
     seed: `${id}-seed-001`,
     config,
@@ -120,6 +122,32 @@ export const WEB_PRESETS: readonly WebPreset[] = Object.freeze([
       population: { initialPopulation: 1000 },
       schedule: { totalTicks: 3650 },
     },
+  ),
+  build(
+    'regime1_pyramid',
+    'G6 校准 · 体制 I（位移守恒金字塔）',
+    'P6-09 + R4 确认（N=200, ARI=1.000, 微扰吸收 30/30）；开放度反馈与拥挤抑制主导。',
+    'mock-weighted-v1',
+    {
+      population: { initialPopulation: 200 },
+      ascent: { displacementShare: 1.0, scarcityWeight: 0 },
+      schedule: { totalTicks: 3650 },
+    },
+    DEFAULT_RUN_CONFIG,
+    true,
+  ),
+  build(
+    'regime2_continuum',
+    'G6 校准 · 体制 II（开放连续统代表）',
+    'P6-09 + R4 确认（N=200, TV(P)=0.3471, 微扰吸收 30/30）；开放度反馈 ΔO=0.4021 主导。',
+    'mock-weighted-v1',
+    {
+      population: { initialPopulation: 200 },
+      ascent: { displacementShare: 0.5, scarcityWeight: 15 },
+      schedule: { totalTicks: 3650 },
+    },
+    DEFAULT_RUN_CONFIG,
+    true,
   ),
   build(
     'ablation-beta0',

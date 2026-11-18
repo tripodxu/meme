@@ -438,7 +438,7 @@ export class StratifyApp {
           ]),
           h('div', { class: 'brand-meta' }, [
             badge('rules-v16', 'info'),
-            badge('未校准 · G6 未通过', 'warn'),
+            badge('G6 已通过（D1 两体制）', 'ok'),
           ]),
         ]),
       ]),
@@ -828,7 +828,9 @@ export class StratifyApp {
     this.draftSeed = preset.seed;
     this.draftPolicy = preset.policy;
     this.persistLastConfigToStorage();
-    this.notice = `已载入预设「${preset.name}」（未校准）。`;
+    this.notice = preset.calibrated
+      ? `已载入 G6 校准预设「${preset.name}」（D1 两体制，rules-v16）。`
+      : `已载入预设「${preset.name}」（未校准）。`;
     this.render(true);
   }
 

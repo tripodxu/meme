@@ -43,7 +43,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
       h('div', { class: 'actions-row' }, [
         badge('双引擎工作台', 'info'),
         badge(authority.label, authority.authoritative ? 'ok' : 'warn'),
-        badge('未校准 · G6 未通过', 'warn'),
+        badge('G6 已通过（D1 两体制）', 'ok'),
       ]),
       h('h2', {
         class: 'setup-hero-title',
@@ -718,7 +718,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
         h('p', {
           class: 'muted',
           style: 'margin-top:0',
-          text: 'G6 未通过，全部预设均为“未校准演示”。修改任何字段会自动标记为自定义并实时计算相对默认配置的叶子 Diff。',
+          text: 'D1“2 体制 + 连续统”已通过 P6-09 + R4 校准；带“已校准 (D1)”徽章的预设已冻结（仅限 mock-weighted-v1 / N=200），其余预设仍为未校准探索。修改任何字段会自动标记为自定义。',
         }),
         h(
           'div',
@@ -735,7 +735,10 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
               [
                 h('div', { class: 'preset-top' }, [
                   h('strong', { text: preset.name }),
-                  badge('未校准', 'warn'),
+                  badge(
+                    preset.calibrated ? '已校准 (D1)' : '未校准',
+                    preset.calibrated ? 'ok' : 'warn',
+                  ),
                 ]),
                 h('span', { text: preset.description }),
                 h('span', {
@@ -795,7 +798,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
           h('div', { class: 'notice notice-warn' }, [
             h('strong', { text: '科学验收边界：' }),
             h('span', {
-              text: 'rules-v15 尚未通过 docs/07 的结构统计验收（G6 未通过，P6 已停止）。浏览器实验仅供交互探索、个体溯源与回放对比，不得表述为“已校准”或“结构已涌现”。',
+              text: 'D1“2 体制 + 连续统”已在 rules-v16 / N=200 / mock-weighted-v1 下通过 P6-09 与 R4 闭环；传统 k≥3 离散结构与 Jev 因果对照仍未通过，不得外推为“三态涌现”或现实因果。',
             }),
           ]),
           h('div', { style: 'height:12px' }),
@@ -857,13 +860,17 @@ function previewContent(app: StratifyApp, config: RunConfig): HTMLElement {
       hashSummary = { configHash: '—', paramsHash: '—' };
     }
   }
+  const activePreset = WEB_PRESETS.find((preset) => preset.id === app.selectedPresetId);
+  const isCalibratedPreset = activePreset?.calibrated === true;
   return h('div', {}, [
     h('div', { class: 'actions-row', style: 'margin-bottom:8px' }, [
       badge(
         app.selectedPresetId === 'custom'
           ? '自定义 · 未校准'
-          : `预设:${app.selectedPresetId} · 未校准`,
-        'warn',
+          : isCalibratedPreset
+            ? `预设:${app.selectedPresetId} · 已校准 (D1)`
+            : `预设:${app.selectedPresetId} · 未校准`,
+        isCalibratedPreset ? 'ok' : 'warn',
       ),
       badge(`差异字段 ${diffPaths.length}`, diffPaths.length > 0 ? 'info' : 'muted'),
     ]),

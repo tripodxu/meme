@@ -196,7 +196,7 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
           h('dt', { text: '浏览器引擎权威性' }),
           h('dd', {}, [badge(authority.label, authority.authoritative ? 'ok' : 'warn')]),
           h('dt', { text: '统计校准闸门' }),
-          h('dd', { text: 'G6 未通过 · P6 已按 ADR 0008 停止' }),
+          h('dd', { text: 'G6 已通过（D1 两体制 · P6-09 + R4）' }),
         ]),
         h('p', {
           class: 'muted',
