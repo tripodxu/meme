@@ -2,13 +2,20 @@ import type { RunConfig } from '../config/types.js';
 import { errorCodes, StratifyError } from '../control/errors.js';
 import type { AgentId, Seed } from '../control/ids.js';
 import { compareAgentId, type FlowWindowEntry } from '../model/society.js';
+import { agentIdFromIndex } from '../model/agent.js';
 import type { SimState } from '../model/state.js';
 import { createDraw } from '../rng/rng.js';
+import {
+  sampleTruncatedLognormal,
+  sampleTruncatedNormal,
+  weightedSampleIndex,
+} from '../rng/sampling.js';
 import { RNG_EVENT_TAGS } from '../rng/tags.js';
 import { EventSequence, type TickEvent } from '../events.js';
 import type { ExecutionRecord } from '../../decision/types.js';
 import { parseActionKey } from '../legal-actions.js';
 import { attemptRewire } from '../network/rewire.js';
+import { clamp } from './arith.js';
 import { computeTickStats, type TickStats } from '../macros/tick-metrics.js';
 import {
   maybeUpdateOpenness,
@@ -313,6 +320,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
 
   // ---- 阶段 E：寿命与死亡 ----
   let deathCount = 0;
+  const diedThisTick: WorkingAgent[] = [];
   for (const agent of agents) {
     if (!agent.alive) {
       continue;
@@ -324,6 +332,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       agent.deathTick = tick;
       agent.deathReason = 'age';
       deathCount += 1;
+      diedThisTick.push(agent);
       for (const neighborId of agent.ties) {
         const neighbor = agentMap.get(neighborId);
         if (neighbor === undefined) {
@@ -337,6 +346,20 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       agent.ties = [];
       events.emit({ type: 'agent_died', agentId: agent.id, cause: 'age' });
     }
+  }
+
+  // rules-v16（ADR 0009）：代际更替；'none' 模式不消费随机数、与 v15 逐位一致。
+  if (config.population.generationalMode === 'replace' && diedThisTick.length > 0) {
+    spawnSuccessorsForDeaths(
+      config,
+      state.seed,
+      tick,
+      diedThisTick,
+      agents,
+      agentMap,
+      opennessStart,
+      events,
+    );
   }
 
   const aliveCount = agents.reduce((count, agent) => count + (agent.alive ? 1 : 0), 0);
@@ -832,4 +855,110 @@ function executeAction(input: ExecuteActionInput): void {
     gain: outcome.gain,
   });
   record(decision.selectedAction, 'executed', null);
+}
+
+/**
+ * rules-v16（ADR 0009）：在阶段 E 末按 1:1 替补本 tick 死亡个体。
+ * 死亡者 ID 永不复用，新生个体使用单调递增的 `a-xxxx` 并通过 `(seed, tick, childId)`
+ * 独立地址抽样天赋、努力、寿命、行为特质、初始阶级与初始网络关系。
+ */
+function spawnSuccessorsForDeaths(
+  config: RunConfig,
+  seed: Seed,
+  tick: number,
+  diedThisTick: readonly WorkingAgent[],
+  agents: WorkingAgent[],
+  agentMap: Map<string, WorkingAgent>,
+  openness: number,
+  events: EventSequence,
+): void {
+  const degreeTarget = Math.min(config.network.initialDegree, config.network.maxDegree);
+  const maxDegree = config.network.maxDegree;
+  for (const parent of diedThisTick) {
+    const childId = agentIdFromIndex(agents.length);
+    const draw = createDraw(seed, tick, childId);
+    const ge = sampleTruncatedLognormal(config.attributes.ge, (counter) =>
+      draw(RNG_EVENT_TAGS.initGe, counter),
+    );
+    const hard = sampleTruncatedLognormal(config.attributes.hard, (counter) =>
+      draw(RNG_EVENT_TAGS.initHard, counter),
+    );
+    const initialLife = sampleTruncatedNormal(config.lifespan.initialLife, (counter) =>
+      draw(RNG_EVENT_TAGS.initLife, counter),
+    );
+    const riskTolerance = clamp(
+      0.5 + config.behavior.riskTraitSigma * (2 * draw(RNG_EVENT_TAGS.initRiskTrait, 0) - 1),
+      0,
+      1,
+    );
+    const crossClassOpenness = clamp(
+      0.5 +
+        config.behavior.crossClassTraitSigma *
+          (2 * draw(RNG_EVENT_TAGS.initCrossClassTrait, 0) - 1),
+      0,
+      1,
+    );
+    const uClass = draw(RNG_EVENT_TAGS.birthClass, 0);
+    const classIndex = uClass < config.population.classInheritanceRate ? parent.classIndex : 0;
+    const value = parent.value * config.population.bequestRate;
+    const child: WorkingAgent = {
+      id: childId,
+      alive: true,
+      classIndex,
+      maxClassIndex: classIndex,
+      value,
+      ge,
+      hard,
+      riskTolerance,
+      crossClassOpenness,
+      initialLife,
+      remainingLife: initialLife,
+      classAge: 0,
+      baselineSum: 0,
+      belowNeedStreak: 0,
+      lastAscentTick: null,
+      lastDescentTick: null,
+      ties: [],
+      deathTick: null,
+      deathReason: null,
+    };
+    agents.push(child);
+    agentMap.set(childId, child);
+    const childLogValue = Math.log(1 + child.value);
+    for (let edgeIdx = 0; edgeIdx < degreeTarget; edgeIdx += 1) {
+      const candidates = agents.filter(
+        (candidate) =>
+          candidate.alive &&
+          candidate.id !== child.id &&
+          !child.ties.includes(candidate.id) &&
+          candidate.ties.length < maxDegree,
+      );
+      if (candidates.length === 0) break;
+      const weights = candidates.map((candidate) => {
+        const classDiff = Math.abs(child.classIndex - candidate.classIndex);
+        const logValueDiff = Math.abs(childLogValue - Math.log(1 + candidate.value));
+        return Math.exp(
+          -config.network.classWeight * (1 - openness) * classDiff -
+            config.network.valueWeight * logValueDiff,
+        );
+      });
+      const r = draw(RNG_EVENT_TAGS.networkBirth, edgeIdx);
+      let chosenIdx = weightedSampleIndex(weights, r);
+      if (chosenIdx < 0) {
+        chosenIdx = Math.floor(r * candidates.length);
+      }
+      const partner = candidates[chosenIdx] as WorkingAgent;
+      child.ties.push(partner.id);
+      partner.ties.push(child.id);
+      child.ties.sort(compareAgentId);
+      partner.ties.sort(compareAgentId);
+    }
+    events.emit({
+      type: 'agent_born',
+      agentId: childId,
+      parentId: parent.id,
+      classIndex,
+      value,
+    });
+  }
 }

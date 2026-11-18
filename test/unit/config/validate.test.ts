@@ -107,6 +107,23 @@ describe('validateRunConfig', () => {
     }
   });
 
+  it('migrates a v9 config by filling generationalMode=none/bequestRate=0/classInheritanceRate=0 (rules-v16)', () => {
+    const v9 = cloneConfig();
+    v9['schemaVersion'] = 'stratify-config-v9';
+    const pop = v9['population'] as Record<string, unknown>;
+    delete pop['generationalMode'];
+    delete pop['bequestRate'];
+    delete pop['classInheritanceRate'];
+    const result = validateRunConfig(v9);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.population.generationalMode).toBe('none');
+      expect(result.config.population.bequestRate).toBe(0);
+      expect(result.config.population.classInheritanceRate).toBe(0);
+    }
+  });
+
   it('migrates a v1 config by filling openness.updateMode=dynamic (P1-10)', () => {
     const v1 = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
     v1['schemaVersion'] = 'stratify-config-v1';

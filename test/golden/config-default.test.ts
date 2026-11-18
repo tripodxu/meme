@@ -28,10 +28,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v15.json');
-const golden = readJson('../fixtures/config/default-rules-v15.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v16.json');
+const golden = readJson('../fixtures/config/default-rules-v16.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v15 default config', () => {
+describe('golden: rules-v16 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -47,8 +47,14 @@ describe('golden: rules-v15 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v15.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v16.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
+  });
+
+  it('v16 代际更替默认关闭（generationalMode=none、bequestRate=0、classInheritanceRate=0）', () => {
+    expect(DEFAULT_RUN_CONFIG.population.generationalMode).toBe('none');
+    expect(DEFAULT_RUN_CONFIG.population.bequestRate).toBe(0);
+    expect(DEFAULT_RUN_CONFIG.population.classInheritanceRate).toBe(0);
   });
 
   it('v15 行为异质性默认关闭（sigmas/sensitivities=0，逐位退回 v14 语义）', () => {

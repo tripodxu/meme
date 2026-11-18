@@ -69,6 +69,41 @@
       "affectsBehavior": true
     },
     {
+      "name": "population.generationalMode",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 E（rules-v16，ADR 0009）",
+      "domain": {
+        "kind": "enum",
+        "values": ["none", "replace"]
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.bequestRate",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 E（rules-v16，ADR 0009）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.classInheritanceRate",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 E（rules-v16，ADR 0009）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "opportunity.dailyBase",
       "unit": "value",
       "formulaRef": "03 §6 阶段 C / rule.md 3",

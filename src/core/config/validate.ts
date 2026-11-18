@@ -9,6 +9,7 @@ import {
   CONFIG_SCHEMA_VERSION_V6,
   CONFIG_SCHEMA_VERSION_V7,
   CONFIG_SCHEMA_VERSION_V8,
+  CONFIG_SCHEMA_VERSION_V9,
   RULES_VERSION,
 } from '../control/versions.js';
 import { DEFAULT_RUN_CONFIG } from './defaults.js';
@@ -458,7 +459,25 @@ function migrateConfigInput(input: unknown): unknown {
         behavior[key] = value;
       }
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, behavior };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V9, behavior };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V9) {
+    const rawPopulation = record['population'];
+    const population =
+      typeof rawPopulation === 'object' && rawPopulation !== null && !Array.isArray(rawPopulation)
+        ? { ...(rawPopulation as Record<string, unknown>) }
+        : {};
+    const defaults = DEFAULT_RUN_CONFIG.population;
+    if (population['generationalMode'] === undefined) {
+      population['generationalMode'] = defaults.generationalMode;
+    }
+    if (population['bequestRate'] === undefined) {
+      population['bequestRate'] = defaults.bequestRate;
+    }
+    if (population['classInheritanceRate'] === undefined) {
+      population['classInheritanceRate'] = defaults.classInheritanceRate;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, population };
   }
   return record;
 }
@@ -517,6 +536,9 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'classShares',
       'initialValue',
       'initialAgeMode',
+      'generationalMode',
+      'bequestRate',
+      'classInheritanceRate',
     ])
   ) {
     checkRegisteredNumber(
@@ -542,6 +564,24 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       population['initialAgeMode'],
       '$.population.initialAgeMode',
       'population.initialAgeMode',
+    );
+    checkRegisteredEnum(
+      collector,
+      population['generationalMode'],
+      '$.population.generationalMode',
+      'population.generationalMode',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['bequestRate'],
+      '$.population.bequestRate',
+      'population.bequestRate',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['classInheritanceRate'],
+      '$.population.classInheritanceRate',
+      'population.classInheritanceRate',
     );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(

@@ -1,38 +1,62 @@
-import { badge, card, h, table } from '../dom.js';
+import { IdbRunStore } from '../../app/idb-store.js';
+import { detectRuntimeAuthority } from '../../app/view-model.js';
+import { append, badge, card, h, table } from '../dom.js';
 import type { StratifyApp } from '../app.js';
 
 export function renderManager(root: HTMLElement, app: StratifyApp): void {
   const snapshot = app.getSnapshot();
-  const storage = h('p', { class: 'muted', text: '正在读取存储配额…' });
+  const authority = detectRuntimeAuthority();
+  const idbAvailable = IdbRunStore.available();
+
+  const storageText = h('p', {
+    class: 'muted',
+    style: 'margin:0',
+    text: '正在估算浏览器存储配额…',
+  });
+  const quotaFill = h('div', { class: 'prob-fill', style: 'width:0%' });
+
   if (typeof navigator !== 'undefined' && navigator.storage?.estimate !== undefined) {
     void navigator.storage
       .estimate()
       .then((estimate) => {
         const usage = estimate.usage ?? 0;
         const quota = estimate.quota ?? 0;
-        storage.textContent = `已用 ${formatBytes(usage)} / 配额 ${formatBytes(quota)}（${quota === 0 ? '—' : ((usage / quota) * 100).toFixed(2)}%）。`;
+        const pct = quota === 0 ? 0 : (usage / quota) * 100;
+        quotaFill.style.width = `${Math.min(100, Math.max(1, pct)).toFixed(2)}%`;
+        storageText.textContent = `已用 ${formatBytes(usage)} / 配额上限 ${formatBytes(quota)}（${quota === 0 ? '—' : pct.toFixed(2)}%）。`;
       })
       .catch(() => {
-        storage.textContent = '无法读取存储配额。';
+        storageText.textContent = '无法读取浏览器存储配额。';
       });
   } else {
-    storage.textContent = '当前环境不支持 navigator.storage.estimate。';
+    storageText.textContent = '当前宿主环境不支持 navigator.storage.estimate。';
   }
 
   const runRows = app.recentRuns.map((run) => [
     h('span', { class: 'mono', text: run.runId }),
-    run.status,
+    badge(run.status, run.status === 'completed' ? 'ok' : 'muted'),
     `${run.tick}/${run.totalTicks}`,
     run.seed,
     run.policy,
+    run.chunkCounts === undefined
+      ? '单包(v2)'
+      : `S${run.chunkCounts.snapshots}·M${run.chunkCounts.stats}·D${run.chunkCounts.decisions}·E${run.chunkCounts.events}`,
     h('div', { class: 'actions-row' }, [
       h('button', {
-        class: 'btn btn-sm',
-        text: '载入',
+        class: 'btn btn-sm btn-primary',
+        type: 'button',
+        text: '载入回放',
         onClick: () => void app.loadStoredRun(run.runId),
       }),
       h('button', {
+        class: 'btn btn-sm',
+        type: 'button',
+        text: '设为对比基准',
+        onClick: () => void app.pinStoredRunAsBaseline(run.runId),
+      }),
+      h('button', {
         class: 'btn btn-sm btn-danger',
+        type: 'button',
         text: '删除',
         onClick: () => {
           void app.store.remove(run.runId).then(() => app.refreshRuns());
@@ -41,121 +65,147 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
     ]),
   ]);
 
-  root.append(
+  append(root, [
+    !idbAvailable
+      ? h('div', { class: 'span-12 notice notice-warn' }, [
+          h('strong', { text: '⚠ IndexedDB 不可用：' }),
+          h('span', {
+            text: '刷新或关闭标签页将丢失当前内存中的实验数据，请及时导出完整 JSON Bundle。',
+          }),
+        ])
+      : null,
     h('div', { class: 'span-8' }, [
-      card('当前 run 与导出', [
+      card('当前活动实验身份与归档导出', [
         h('dl', { class: 'detail-list' }, [
           h('dt', { text: 'runId' }),
           h('dd', { text: snapshot.runId ?? '—（尚未开始）' }),
-          h('dt', { text: '状态' }),
-          h('dd', {}, [badge(snapshot.status, snapshot.status === 'failed' ? 'danger' : 'muted')]),
+          h('dt', { text: '运行状态' }),
+          h('dd', {}, [
+            badge(snapshot.status, snapshot.status === 'failed' ? 'danger' : 'info'),
+            h('span', { class: 'muted', text: ' · 仅本地权威 · 未上传云端' }),
+          ]),
           h('dt', { text: 'configHash' }),
           h('dd', { text: snapshot.configHash ?? '—' }),
           h('dt', { text: 'paramsHash' }),
           h('dd', { text: snapshot.paramsHash ?? '—' }),
           h('dt', { text: 'initialPopulationHash' }),
           h('dd', { text: snapshot.initialPopulationHash ?? '—' }),
-          h('dt', { text: '决策日志' }),
+          h('dt', { text: '内存决策日志' }),
           h('dd', {
             text: snapshot.decisionsTruncated
-              ? `已截断（内存上限），共 ${snapshot.decisions.length} 条`
-              : `完整，共 ${snapshot.decisions.length} 条`,
+              ? `已达内存环形上限截断，保留最近 ${snapshot.decisions.length} 条`
+              : `完整无截断，共 ${snapshot.decisions.length} 条`,
           }),
         ]),
-        h('div', { class: 'actions-row', style: 'margin-top:12px' }, [
+        h('div', { class: 'actions-row', style: 'margin-top:14px' }, [
           h('button', {
             class: 'btn btn-primary',
-            text: '导出完整 bundle',
+            type: 'button',
+            text: '⬇ 导出完整离线 Bundle',
             disabled: snapshot.runId === null,
             onClick: () => app.downloadBundle(),
           }),
           h('button', {
             class: 'btn',
-            text: '下载诊断',
+            type: 'button',
+            text: '☁ 云端上传说明',
+            onClick: () =>
+              app.notify(
+                '离线 run (local-*) 仅限本地导出与回放；为防篡改，MVP 不支持将浏览器离线结果直接采纳为云端权威记录，受控上传请使用本地 runner + pnpm upload。',
+              ),
+          }),
+          h('button', {
+            class: 'btn',
+            type: 'button',
+            text: '🩺 下载失败诊断包',
             disabled: snapshot.failure === null,
             onClick: () => downloadDiagnostics(app),
           }),
           h('button', {
             class: 'btn btn-danger',
-            text: '清除本地实验',
+            type: 'button',
+            text: '🗑 清除本地实验库',
             onClick: () => void app.clearStoredRuns(),
           }),
         ]),
-        h('p', {
-          class: 'muted',
-          text: '离线 run 使用 local-<uuid>，只支持导出/回放；MVP 不支持把离线结果直接采纳为云端权威记录。',
-        }),
         snapshot.failure === null
           ? null
-          : h('div', { class: 'notice notice-danger' }, [
-              h('strong', { text: `${snapshot.failure.code} · ${snapshot.failure.phase}` }),
-              h('p', { text: snapshot.failure.message }),
+          : h('div', { class: 'notice notice-danger', style: 'margin-top:12px' }, [
+              h('strong', { text: `${snapshot.failure.code} · 阶段=${snapshot.failure.phase}` }),
+              h('p', { style: 'margin:4px 0', text: snapshot.failure.message }),
               h('pre', {
-                class: 'mono',
-                style: 'white-space:pre-wrap;font-size:11px',
+                class: 'mono code-preview',
                 text: JSON.stringify(snapshot.failure.diagnostics, null, 2),
               }),
             ]),
       ]),
       card(
-        '本地实验注册表（IndexedDB）',
+        '本地实验注册表（IndexedDB v3 分块快表）',
         [
           app.recentRuns.length === 0
-            ? h('p', { class: 'muted', text: '暂无本地实验。运行后会自动写入最近 bundle。' })
-            : table(['runId', '状态', 'tick', 'seed', '策略', '操作'], runRows),
-          h('div', { class: 'actions-row', style: 'margin-top:8px' }, [
+            ? h('p', {
+                class: 'muted',
+                text: '暂无本地保存记录。实验运行或完成时会自动按分块写入 IndexedDB。',
+              })
+            : table(['runId', '状态', '进度', 'seed', '策略', '分块计数', '操作'], runRows),
+          h('div', { class: 'actions-row', style: 'margin-top:10px' }, [
             h('button', {
               class: 'btn btn-sm',
-              text: '刷新列表',
+              type: 'button',
+              text: '↻ 刷新注册表',
               onClick: () => void app.refreshRuns(),
             }),
           ]),
         ],
-        { subtitle: '每 2 秒至多保存一次；刷新后可手动载入回放。' },
+        { subtitle: 'v3 分块原子持久化（snapshots / stats / decisions / events）+ 秒级元数据读取' },
       ),
     ]),
     h('div', { class: 'span-4' }, [
-      card('存储与显示', [
-        storage,
-        h('div', { style: 'height:8px' }),
+      card('存储健康与视觉主题', [
+        storageText,
+        h('div', { class: 'prob-track', style: 'margin:8px 0 14px' }, [quotaFill]),
         h('div', { class: 'field' }, [
-          h('label', { class: 'field-label', text: '主题' }),
+          h('label', { class: 'field-label', text: '精密观测站主题 (Theme)' }),
           h('div', { class: 'actions-row' }, [
             h('button', {
-              class: `btn ${app.theme === 'obsidian' ? 'btn-primary' : ''}`,
-              text: 'Obsidian Lab',
+              class: `btn ${app.theme === 'obsidian' ? 'btn-primary' : ''}`.trim(),
+              type: 'button',
+              text: '🌙 Obsidian Lab (深空黑曜)',
               onClick: () => app.setTheme('obsidian'),
             }),
             h('button', {
-              class: `btn ${app.theme === 'paper' ? 'btn-primary' : ''}`,
-              text: 'Paper Lab',
+              class: `btn ${app.theme === 'paper' ? 'btn-primary' : ''}`.trim(),
+              type: 'button',
+              text: '☀ Paper Lab (学术出版)',
               onClick: () => app.setTheme('paper'),
             }),
           ]),
         ]),
         h('p', {
           class: 'muted',
-          text: 'IndexedDB 保存完整 bundle（配置、快照、统计、决策）。关闭标签页不会上传；浏览器可能在配额不足时提示。',
+          style: 'margin:10px 0 0',
+          text: '主题偏好保存在 localStorage；真实 Jev API Key 永不落盘。',
         }),
       ]),
-      card('版本与限制', [
+      card('协议版本与运行时权威边界', [
         h('dl', { class: 'detail-list' }, [
-          h('dt', { text: '规则' }),
-          h('dd', { text: 'rules-v15' }),
-          h('dt', { text: 'config' }),
-          h('dd', { text: 'stratify-config-v9' }),
-          h('dt', { text: 'state' }),
-          h('dd', { text: 'stratify-state-v5' }),
-          h('dt', { text: 'G6' }),
-          h('dd', { text: '未通过 · P6 已停止' }),
+          h('dt', { text: '规则版本' }),
+          h('dd', { text: 'rules-v16' }),
+          h('dt', { text: '配置 / 状态 Schema' }),
+          h('dd', { text: 'stratify-config-v10 / stratify-state-v5' }),
+          h('dt', { text: '浏览器引擎权威性' }),
+          h('dd', {}, [badge(authority.label, authority.authoritative ? 'ok' : 'warn')]),
+          h('dt', { text: '统计校准闸门' }),
+          h('dd', { text: 'G6 未通过 · P6 已按 ADR 0008 停止' }),
         ]),
         h('p', {
           class: 'muted',
-          text: '本界面不是校准证据。所有结构相关结论必须以 docs/07 的统计验收与预注册产物为准。',
+          style: 'margin:10px 0 0',
+          text: authority.detail,
         }),
       ]),
     ]),
-  );
+  ]);
 }
 
 function formatBytes(bytes: number): string {

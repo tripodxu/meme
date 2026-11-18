@@ -408,6 +408,46 @@ describe('寿命与死亡（03 §6 阶段 E）', () => {
     expect(state.society.agents.every((agent) => !agent.alive)).toBe(true);
     expect(() => step(state, new Map(), { runId: 'local-engine-test' })).toThrowError(/全死亡/);
   });
+
+  it('rules-v16 replace 模式在死亡后生成继承个体、按遗产率折算财富并保持网络对称', () => {
+    const config = makeConfig({
+      population: {
+        initialPopulation: 10,
+        generationalMode: 'replace',
+        bequestRate: 0.5,
+        classInheritanceRate: 1.0,
+      },
+      schedule: { totalTicks: 20, statsStride: 1, snapshotStride: 100 },
+    });
+    const state = createSimulation(config, SEED);
+    const victim = state.society.agents.find((entry) => entry.alive && entry.classIndex > 0);
+    if (victim === undefined) throw new Error('缺少非底层个体');
+    victim.remainingLife = 0.2;
+    victim.value = 100;
+    const result = step(state, mockDecisions(state), { runId: 'local-engine-test' });
+    const bornEvent = result.events.find((event) => event.type === 'agent_born');
+    expect(bornEvent).toBeDefined();
+    if (bornEvent?.type !== 'agent_born') return;
+    expect(bornEvent.parentId).toBe(victim.id);
+    expect(bornEvent.classIndex).toBe(victim.classIndex);
+    const child = result.state.society.agents.find((entry) => entry.id === bornEvent.agentId);
+    expect(child?.alive).toBe(true);
+    const accEvent = result.events.find(
+      (e) => e.type === 'wealth_changed' && e.agentId === victim.id && e.cause === 'accumulate',
+    );
+    const delta = accEvent?.type === 'wealth_changed' ? accEvent.delta : 0;
+    expect(child?.value).toBeCloseTo((100 + delta) * 0.5, 6);
+    expect(result.state.society.agents.filter((a) => a.alive)).toHaveLength(10);
+    // 关系对称性与死亡者零边不变量
+    for (const a of result.state.society.agents) {
+      if (!a.alive) expect(a.ties).toEqual([]);
+      for (const bId of a.ties) {
+        const b = result.state.society.agents.find((entry) => entry.id === bId);
+        expect(b?.alive).toBe(true);
+        expect(b?.ties).toContain(a.id);
+      }
+    }
+  });
 });
 
 describe('慢变量更新（03 §6 阶段 H）', () => {

@@ -4,6 +4,9 @@ import { CONFIG_SCHEMA_VERSION } from '../control/versions.js';
 /** 初始年龄模式。`uniform` 产生年龄结构；`newborn` 仅用于演示。 */
 export type InitialAgeMode = 'uniform' | 'newborn';
 
+/** rules-v16 代际更替模式。`none` 关闭出生与继承，与 v15 逐位一致；`replace` 按 1:1 替补死亡个体。 */
+export type GenerationalMode = 'none' | 'replace';
+
 /** 决策策略标识。真实 live 策略在 P2 接入，P0 只冻结标识。 */
 export type PolicyId = 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1' | 'jev_live';
 
@@ -29,6 +32,12 @@ export interface PopulationConfig {
   readonly classShares: readonly number[];
   readonly initialValue: number;
   readonly initialAgeMode: InitialAgeMode;
+  /** rules-v16：代际更替模式，默认 'none'（与 v15 逐位一致）。 */
+  readonly generationalMode: GenerationalMode;
+  /** rules-v16：遗产折算率 ∈ [0,1]，默认 0。 */
+  readonly bequestRate: number;
+  /** rules-v16：出身阶级继承概率 ∈ [0,1]，默认 0。 */
+  readonly classInheritanceRate: number;
 }
 
 export interface OpportunityConfig {

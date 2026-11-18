@@ -15,6 +15,9 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     classShares: [0.45, 0.3, 0.15, 0.08, 0.02],
     initialValue: 0,
     initialAgeMode: 'uniform',
+    generationalMode: 'none',
+    bequestRate: 0,
+    classInheritanceRate: 0,
   },
   opportunity: {
     dailyBase: 2,

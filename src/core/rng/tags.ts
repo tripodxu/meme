@@ -35,6 +35,10 @@ export const RNG_EVENT_TAGS = {
   displacementAdmit: 'displacement_admit',
   /** 网络重构判定；counter 1 选旧边、counter 2 选新候选（03 §4.4）。 */
   networkRewire: 'network_rewire',
+  /** rules-v16：代际更替新生儿初始阶级判定。 */
+  birthClass: 'birth_class',
+  /** rules-v16：代际更替新生儿初始关系网络加边。 */
+  networkBirth: 'network_birth',
 } as const;
 
 export type RngEventTag = (typeof RNG_EVENT_TAGS)[keyof typeof RNG_EVENT_TAGS];
