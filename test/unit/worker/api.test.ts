@@ -602,14 +602,28 @@ describe('P4 Worker API', () => {
     expect(response.status).toBe(401);
   });
 
-  it('Jev 代理强制模型白名单、单位置拒绝与上游透传', async () => {
+  it('Jev 代理强制 System One schema、模型白名单、单问题 1-9 选项与上游透传', async () => {
     const env = createTestEnv();
+    const validQuestions = {
+      action: {
+        type: 'choice',
+        instructions: 'Choose one action.',
+        criteria: {
+          accumulate: 'Receive normal daily accumulation.',
+          ascend: 'Pay value to move upward.',
+        },
+      },
+    };
     const payload = {
       model: 'jev-unknown',
-      state: {},
-      questions: [{ type: 'action', choices: ['a'] }],
+      state: { schema: 'stratify-decision-v1' },
+      questions: validQuestions,
     };
-    const request = (apiKey: string | null, body: unknown) =>
+    const request = (
+      apiKey: string | null,
+      body: unknown,
+      extraHeaders: Record<string, string> = {},
+    ) =>
       app.request(
         `${BASE}/api/jev`,
         {
@@ -617,6 +631,7 @@ describe('P4 Worker API', () => {
           headers: {
             'content-type': 'application/json',
             ...(apiKey === null ? {} : { 'x-api-key': apiKey }),
+            ...extraHeaders,
           },
           body: JSON.stringify(body),
         },
@@ -624,21 +639,43 @@ describe('P4 Worker API', () => {
       );
     expect((await request(null, payload)).status).toBe(401);
     expect((await request('key-123', payload)).status).toBe(422);
+    expect((await request('key-123', { ...payload, model: 'jev-1.13.0', extra: 1 })).status).toBe(
+      422,
+    );
+    const tenCriteria = Object.fromEntries(
+      Array.from({ length: 10 }, (_, idx) => [`opt_${idx}`, `Option ${idx}`]),
+    );
+    expect(
+      (
+        await request('key-123', {
+          ...payload,
+          model: 'jev-1.13.0',
+          questions: { action: { type: 'choice', criteria: tenCriteria } },
+        })
+      ).status,
+    ).toBe(422);
 
     const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
       async () =>
-        new Response(JSON.stringify({ choice: 0 }), {
+        new Response(JSON.stringify({ model: 'jev-1.13-free' }), {
           status: 200,
           headers: { 'content-type': 'application/json' },
         }),
     );
     vi.stubGlobal('fetch', fetchMock);
-    const ok = await request('key-123', { ...payload, model: 'jev-small' });
+    const ok = await request('key-123', { ...payload, model: 'jev-1.13.0' });
     expect(ok.status).toBe(200);
-    expect(await ok.json()).toEqual({ choice: 0 });
+    expect(await ok.json()).toEqual({ model: 'jev-1.13-free' });
     const init = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
     expect((init?.headers as Record<string, string>)['authorization']).toBe('Bearer key-123');
     expect(init?.body).not.toContain('key-123');
+
+    const bearerOk = await request(
+      null,
+      { ...payload, model: 'jev-small' },
+      { authorization: 'Bearer key-bearer' },
+    );
+    expect(bearerOk.status).toBe(200);
 
     vi.stubGlobal(
       'fetch',
@@ -666,15 +703,57 @@ describe('P4 Worker API', () => {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': 'test-key' },
         body: JSON.stringify({
-          model: 'jev-small',
-          state: {},
-          questions: [{ type: 'action', choices: ['a'] }],
+          model: 'jev-1.13.0',
+          state: { schema: 'stratify-decision-v1' },
+          questions: {
+            action: { type: 'choice', criteria: { accumulate: 'Stay.' } },
+          },
         }),
       },
       env,
     );
     expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('3600');
     expect(JSON.stringify(await response.json())).toContain('全局小时配额');
+  });
+
+  it('Jev 代理按 IP+Key 指纹限流，不落盘明文 Key 且 429 带 Retry-After', async () => {
+    const db = createTestD1();
+    const env = createTestEnv({ DB: db });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ model: 'jev-1.13-free' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+      ),
+    );
+    const body = {
+      model: 'jev-1.13.0',
+      state: { schema: 'stratify-decision-v1' },
+      questions: {
+        action: { type: 'choice', criteria: { accumulate: 'Stay.' } },
+      },
+    };
+    const res1 = await app.request(
+      `${BASE}/api/jev`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'cf-connecting-ip': '203.0.113.9',
+          'x-api-key': 'super-secret-byok-alpha',
+        },
+        body: JSON.stringify(body),
+      },
+      env,
+    );
+    expect(res1.status).toBe(200);
+    const buckets = db.raw.prepare('SELECT bucket FROM rate_limits').all() as { bucket: string }[];
+    expect(JSON.stringify(buckets)).not.toContain('super-secret-byok-alpha');
+    expect(buckets.some((b) => b.bucket.startsWith('ip:203.0.113.9:jev:'))).toBe(true);
   });
 
   it('固定窗口限流', async () => {

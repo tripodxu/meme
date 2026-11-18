@@ -20,8 +20,10 @@ import type {
   D1Result,
   Env,
   R2Bucket,
+  R2ListOptions,
   R2Object,
   R2ObjectBody,
+  R2Objects,
 } from '../../src/worker/types.js';
 
 const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'migrations');
@@ -107,7 +109,10 @@ export function createTestD1(): D1Database & { readonly raw: DatabaseSync } {
   };
 }
 
-export function createTestR2(): R2Bucket & { readonly size: number } {
+export function createTestR2(): R2Bucket & {
+  readonly size: number;
+  setUploadedAt(key: string, uploaded: Date): void;
+} {
   const objects = new Map<
     string,
     { bytes: Uint8Array; contentType?: string | undefined; uploaded: Date }
@@ -119,6 +124,12 @@ export function createTestR2(): R2Bucket & { readonly size: number } {
   const bucket = {
     get size(): number {
       return objects.size;
+    },
+    setUploadedAt(key: string, uploaded: Date): void {
+      const existing = objects.get(key);
+      if (existing !== undefined) {
+        objects.set(key, { ...existing, uploaded });
+      }
     },
     async put(
       key: string,
@@ -166,6 +177,21 @@ export function createTestR2(): R2Bucket & { readonly size: number } {
     async delete(key: string): Promise<void> {
       objects.delete(key);
     },
+    async list(options?: R2ListOptions): Promise<R2Objects> {
+      const prefix = options?.prefix ?? '';
+      const limit = options?.limit ?? 1000;
+      const startIndex = options?.cursor !== undefined ? Number(options.cursor) : 0;
+      const matched = [...objects.entries()]
+        .filter(([k]) => k.startsWith(prefix))
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([k, v]) => describe(k, v.uploaded, v.bytes));
+      const slice = matched.slice(startIndex, startIndex + limit);
+      const nextIndex = startIndex + slice.length;
+      const truncated = nextIndex < matched.length;
+      return truncated
+        ? { objects: slice, truncated: true, cursor: String(nextIndex) }
+        : { objects: slice, truncated: false };
+    },
   };
   return bucket;
 }
@@ -180,8 +206,8 @@ export function createTestEnv(overrides: Partial<Env> = {}): Env {
     ENVIRONMENT: 'test',
     VERSION: 'test',
     RUNTIME_VERSION: 'test-runtime',
-    JEV_UPSTREAM_URL: 'https://jev.test/v1/choice',
-    JEV_ALLOWED_MODELS: 'jev-small,jev-medium',
+    JEV_UPSTREAM_URL: 'https://jev.test/v1/systemone',
+    JEV_ALLOWED_MODELS: 'jev-1.13.0,jev-small,jev-medium',
     ...overrides,
   };
 }

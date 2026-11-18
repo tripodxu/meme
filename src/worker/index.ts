@@ -18,9 +18,12 @@ import {
   clientBucket,
   errorBody,
   fail,
+  hasOnlyKeys,
   isRecord,
+  parseBearer,
   publicRun,
   randomToken,
+  rateLimited,
   readJson,
   requestIdMiddleware,
   requireRunner,
@@ -50,10 +53,39 @@ app.get('/api/health', async (c) => {
   });
 });
 
-/** P4-08：同源 BYOK 代理；仅允许白名单字段与模型，不记录 Key/body。 */
+/** 校验 System One action choice 结构（04 §3.3 / 05 §4.1：仅单问题 action，选项 1–9 个）。 */
+function isValidJevQuestions(questions: unknown): boolean {
+  if (!isRecord(questions) || !hasOnlyKeys(questions, ['action'])) return false;
+  const action = questions['action'];
+  if (!isRecord(action) || !hasOnlyKeys(action, ['type', 'instructions', 'criteria'])) {
+    return false;
+  }
+  if (action['type'] !== 'choice') return false;
+  if (action['instructions'] !== undefined && typeof action['instructions'] !== 'string') {
+    return false;
+  }
+  const criteria = action['criteria'];
+  if (!isRecord(criteria)) return false;
+  const entries = Object.entries(criteria);
+  if (entries.length < 1 || entries.length > 9) return false;
+  return entries.every(
+    ([key, desc]) => key.length > 0 && typeof desc === 'string' && desc.length > 0,
+  );
+}
+
+/** P4-08：同源 BYOK 代理；按 IP+Key 指纹限流，仅允许白名单字段与模型，不记录 Key/body。 */
 app.post('/api/jev', async (c) => {
-  const allowed = await checkRateLimit(c.env.DB, `${clientBucket(c)}:jev`, 60, 60);
-  if (!allowed) return fail(c, 429, 'rate_limited', 'Jev 代理请求过于频繁');
+  const headerKey = c.req.header('x-api-key')?.trim();
+  const apiKey =
+    headerKey !== undefined && headerKey.length > 0
+      ? headerKey
+      : parseBearer(c.req.header('authorization'));
+  if (apiKey === null || apiKey.length === 0) {
+    return fail(c, 401, 'unauthorized', '缺少 X-Api-Key');
+  }
+  const keyFp = (await sha256Hex(apiKey)).slice(0, 24);
+  const allowed = await checkRateLimit(c.env.DB, `${clientBucket(c)}:jev:${keyFp}`, 60, 60);
+  if (!allowed) return rateLimited(c, 'Jev 代理请求过于频繁', 60);
   const globalLimit = Number(c.env.JEV_GLOBAL_HOURLY_LIMIT ?? '1000');
   const globalAllowed = await checkRateLimit(
     c.env.DB,
@@ -62,31 +94,20 @@ app.post('/api/jev', async (c) => {
     3600,
   );
   if (!globalAllowed) {
-    return fail(c, 429, 'rate_limited', 'Jev 代理全局小时配额已耗尽');
-  }
-  const apiKey = c.req.header('x-api-key');
-  if (apiKey === undefined || apiKey.length === 0) {
-    return fail(c, 401, 'unauthorized', '缺少 X-Api-Key');
+    return rateLimited(c, 'Jev 代理全局小时配额已耗尽', 3600);
   }
   const body = await readJson(c, 256 * 1024);
   if (body instanceof Response) return body;
   if (!isRecord(body)) return fail(c, 400, 'bad_request', 'body 必须是对象');
+  if (!hasOnlyKeys(body, ['state', 'model', 'questions'])) {
+    return fail(c, 422, 'validation_failed', 'body 仅允许 state/model/questions');
+  }
   if (!isRecord(body['state'])) return fail(c, 422, 'validation_failed', 'state 必须是对象');
-  if (typeof body['model'] !== 'string') {
+  if (typeof body['model'] !== 'string' || body['model'].trim().length === 0) {
     return fail(c, 422, 'validation_failed', 'model 必须是字符串');
   }
   const questions = body['questions'];
-  if (!Array.isArray(questions) || questions.length !== 1 || !isRecord(questions[0])) {
-    return fail(c, 422, 'validation_failed', 'questions 只允许一个问题');
-  }
-  const question = questions[0];
-  const choices = question['choices'];
-  if (
-    question['type'] !== 'action' ||
-    !Array.isArray(choices) ||
-    choices.length < 1 ||
-    choices.length > 9
-  ) {
+  if (!isValidJevQuestions(questions)) {
     return fail(c, 422, 'validation_failed', 'questions 只允许一个 action choice，选项 1–9 个');
   }
   const allowlist = (c.env.JEV_ALLOWED_MODELS ?? 'jev-1.13.0')
@@ -206,7 +227,7 @@ app.post('/api/runs', async (c) => {
   }
   if (source === 'browser') {
     const allowed = await checkRateLimit(c.env.DB, `${clientBucket(c)}:runs`, 30, 3600);
-    if (!allowed) return fail(c, 429, 'rate_limited', '匿名创建 run 频率超限');
+    if (!allowed) return rateLimited(c, '匿名创建 run 频率超限', 3600);
   }
   const body = await readJson(c, 2 * 1024 * 1024);
   if (body instanceof Response) return body;
@@ -371,12 +392,14 @@ app.get('/api/runs/:id', async (c) => {
     .bind(id)
     .first<{ n: number }>();
   const artifacts = await c.env.DB.prepare(
-    'SELECT kind, chunk_id, bytes, start_tick, end_tick, compressed_sha256 FROM artifacts WHERE run_id = ? ORDER BY kind, chunk_id',
+    'SELECT kind, chunk_id, bytes, start_tick, end_tick, compressed_sha256, uncompressed_sha256 FROM artifacts WHERE run_id = ? ORDER BY kind, chunk_id',
   )
     .bind(id)
     .all<Record<string, unknown>>();
   return c.json({
     ...publicRun(row),
+    config: JSON.parse(row.config_json) as unknown,
+    complete: row.complete_json === null ? null : (JSON.parse(row.complete_json) as unknown),
     progress: {
       tickRows: ticks?.n ?? 0,
       agentRows: agents?.n ?? 0,
@@ -388,6 +411,8 @@ app.get('/api/runs/:id', async (c) => {
 app.post('/api/runs/:id/ticks:batch', async (c) => {
   const id = c.req.param('id');
   if (!RUN_ID_PATTERN.test(id)) return fail(c, 400, 'bad_request', 'runId 非法');
+  const writeAllowed = await checkRateLimit(c.env.DB, `runwrite:${id}:${clientBucket(c)}`, 600, 60);
+  if (!writeAllowed) return rateLimited(c, 'run 批写请求频率超限', 60);
   const auth = await requireWriteToken(c, id);
   if (!auth.ok) return auth.response;
   if (auth.row.status !== 'running') {
@@ -460,6 +485,8 @@ app.post('/api/runs/:id/ticks:batch', async (c) => {
 app.post('/api/runs/:id/agents:batch', async (c) => {
   const id = c.req.param('id');
   if (!RUN_ID_PATTERN.test(id)) return fail(c, 400, 'bad_request', 'runId 非法');
+  const writeAllowed = await checkRateLimit(c.env.DB, `runwrite:${id}:${clientBucket(c)}`, 600, 60);
+  if (!writeAllowed) return rateLimited(c, 'run 批写请求频率超限', 60);
   const auth = await requireWriteToken(c, id);
   if (!auth.ok) return auth.response;
   if (auth.row.status !== 'running') {
@@ -523,6 +550,8 @@ app.put('/api/runs/:id/artifacts/:chunkId', async (c) => {
   const chunkId = c.req.param('chunkId');
   if (!RUN_ID_PATTERN.test(id)) return fail(c, 400, 'bad_request', 'runId 非法');
   if (!CHUNK_ID_PATTERN.test(chunkId)) return fail(c, 400, 'bad_request', 'chunkId 非法');
+  const writeAllowed = await checkRateLimit(c.env.DB, `runwrite:${id}:${clientBucket(c)}`, 600, 60);
+  if (!writeAllowed) return rateLimited(c, 'artifact 上传请求频率超限', 60);
   const auth = await requireWriteToken(c, id);
   if (!auth.ok) return auth.response;
   if (auth.row.status !== 'running') {
@@ -823,11 +852,25 @@ app.post('/api/runs/:id/verification', async (c) => {
   ) {
     return c.json({ runId: id, verificationStatus: body['status'], duplicate: true });
   }
-  if (row.verification_status === 'verified' && body['status'] !== 'verified') {
-    return fail(c, 409, 'state_conflict', 'verified 不能改为其他状态');
+  if (row.verification_status === 'verified') {
+    return fail(c, 409, 'state_conflict', 'verified 后不能修改状态或覆盖不同 reportHash');
+  }
+  if (row.verification_status === 'rejected' && body['status'] === 'verified') {
+    return fail(c, 409, 'state_conflict', 'rejected 不能改为 verified');
   }
   if (typeof body['reportHash'] !== 'string' || !/^sha256:[0-9a-f]{64}$/.test(body['reportHash'])) {
     return fail(c, 422, 'validation_failed', 'reportHash 必须为 sha256:hex');
+  }
+  const replayFinalHash = body['replayFinalStateHash'];
+  if (
+    replayFinalHash !== undefined &&
+    replayFinalHash !== null &&
+    (typeof replayFinalHash !== 'string' || !/^sha256:[0-9a-f]{64}$/.test(replayFinalHash))
+  ) {
+    return fail(c, 422, 'validation_failed', 'replayFinalStateHash 必须为 sha256:hex 或 null');
+  }
+  if (body['checkedCounts'] !== undefined && !isRecord(body['checkedCounts'])) {
+    return fail(c, 422, 'validation_failed', 'checkedCounts 必须是对象');
   }
   await c.env.DB.prepare(
     'UPDATE runs SET verification_status = ?, verification_report_hash = ?, updated_at = ? WHERE run_id = ?',
@@ -872,6 +915,35 @@ app.get('/api/runs/:id/stats', async (c) => {
       competitionLoss: row['competition_loss'],
       competitionGain: row['competition_gain'],
       fallbackRate: row['fallback_rate'],
+      payloadHash: row['payload_hash'],
+    })),
+  });
+});
+
+app.get('/api/runs/:id/agents', async (c) => {
+  const id = c.req.param('id');
+  if (!RUN_ID_PATTERN.test(id)) return fail(c, 400, 'bad_request', 'runId 非法');
+  const rows = await c.env.DB.prepare(
+    'SELECT * FROM agent_final WHERE run_id = ? ORDER BY agent_id ASC LIMIT 1001',
+  )
+    .bind(id)
+    .all<Record<string, unknown>>();
+  const results = rows.results ?? [];
+  return c.json({
+    runId: id,
+    truncated: results.length > 1000,
+    agents: results.slice(0, 1000).map((row) => ({
+      agentId: row['agent_id'],
+      alive: row['alive'] === 1 || row['alive'] === true,
+      classIndex: row['class_index'],
+      maxClassIndex: row['max_class_index'],
+      value: row['value'],
+      ge: row['ge'],
+      hard: row['hard'],
+      initialLife: row['initial_life'],
+      remainingLife: row['remaining_life'],
+      deathTick: row['death_tick'] ?? null,
+      deathReason: row['death_reason'] ?? null,
       payloadHash: row['payload_hash'],
     })),
   });

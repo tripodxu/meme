@@ -7,6 +7,7 @@ import {
   SlidingCircuitWindow,
   SlidingFallbackRateWindow,
 } from '../decision/live.js';
+import type { PromptStyle } from '../decision/types.js';
 
 /**
  * 浏览器 live 策略：只经同源 `/api/jev` 代理，Key 仅存在内存与请求头。
@@ -18,6 +19,8 @@ import {
 export interface BrowserLiveOptions {
   readonly apiKey: string;
   readonly model: string;
+  /** 提示词风格（neutral / survival_hint，04 §3.3）。 */
+  readonly promptStyle?: PromptStyle;
   /** 总调用上限（跨 run 内所有个体决策）。 */
   readonly maxCalls: number;
   /** 估算 input token 上限。 */
@@ -85,7 +88,14 @@ export function createBrowserLivePolicy(options: BrowserLiveOptions): BrowserLiv
       fallbackRateWindow: new SlidingFallbackRateWindow(100, 0.2),
     },
     {
-      fetchImpl: (input, init) => fetch(input, init),
+      fetchImpl: (input, init) =>
+        fetch(input, {
+          ...init,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Api-Key': options.apiKey,
+          },
+        }),
       sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
       nowMs: () => Date.now(),
     },

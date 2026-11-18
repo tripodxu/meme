@@ -50,7 +50,7 @@ MVP 不配置公共 TYPESAFE_API_KEY；访客使用自己的 X-Api-Key。密钥�
 可用 `JEV_GLOBAL_HOURLY_LIMIT` 调整；耗尽返回 429。它与按 IP 的 60 次/分钟限流叠加，
 是固定窗口计数而非分布式令牌桶（changes/0079）。
 
-### 2.3 P4 代码落地范围与远程资源状态（2026-11-12，changes/0071/0081）
+### 2.3 P4 代码落地范围与远程资源状态（2026-11-18，changes/0071/0081/0086/0087）
 
 仓库已提供 `wrangler.jsonc`（Static Assets `dist-web`、`/api/*` 走 Worker、D1/R2 binding、
 local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_runtime_authority.sql`、
@@ -59,21 +59,17 @@ local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_r
 
 - preview：D1 `stratify-preview` 已创建（`WNAM`，ID 见 `wrangler.jsonc`），
   0001–0003 已通过 `--remote` 应用；R2 `stratify-artifacts-preview` 已创建；
-  `pnpm build:web` 与 `wrangler deploy --env preview` 成功，
-  端点 `https://stratify-preview.xd04040212.workers.dev`（changes/0081）。
+  绑定公网自定义域名 `https://stratify.logicc.top`（固化于 `wrangler.jsonc` `env.preview.routes`），
+  2026-11-18 已部署版本 `bd6cadab-53b9-4b8e-a7a6-0df5c9dd3e7e`，并完成公网 `smoke:worker`、
+  真实浏览器在线运行、R2 5 分块 `full` 流式上传与独立回放验证（`verified`）、真实同源 `/api/jev`
+  小额 live 代理冒烟（5/5 成功、0 回退）、远端带数据 D1 导出隔离 SQLite 恢复演练与 `wrangler rollback`
+  回滚/前滚演练（changes/0086/0087）。
 - Cron：账户 Workers Free 的 5 个槽位已满（API `10072`），preview 显式
   `triggers.crons = []`，不注册保留任务；production 的每日 Cron 在槽位释放或
   升级计划前无法注册。
-- 远程冒烟**未执行**：本机无法直连 `*.workers.dev`（DNS 污染、TLS 重置）；
-  经代理访问时 preview 全部路由返回 500/`error code: 1101`，账户内其他无关
-  Worker 同样 1101，且 Cloudflare Status 显示 Workers `degraded_performance`
-  （2026-11-12T12:50Z）。平台恢复前不得声称 preview 冒烟通过，也不把 1101
-  归因于本仓库代码。
-- production：D1/R2 未创建，`database_id` 仍为占位符。
-- 本地 `wrangler dev --local` 已跑通 health → 创建 run → artifact 上传/304 →
-  tick/agent → stats → complete 全链路（changes/0073）；`wrangler deploy --dry-run`
-  只验证打包与绑定识别。远程部署与冒烟仍未执行，在完成前不得声称 preview 已部署，
-  也不得把本节命令视为已验证可用的发布流程。
+- production：D1/R2 未创建，`database_id` 仍为占位符，尚未执行生产部署。
+- 本地 `wrangler dev --local` 与远端 `https://stratify.logicc.top` 均已跑通
+  health → 创建 run → artifact 上传/幂等 → tick/agent → complete → 独立回放验证全链路。
 
 ## 3. 数据库与 R2 初始化
 
@@ -101,11 +97,7 @@ pnpm backup:d1 --database <name> --env preview --output <file>
 pnpm verify:backup <file>
 ```
 
-P7 已登记上述脚本并完成本地可验证部分（changes/0074）：`smoke:worker` 做
-health/首页/创建/读取/取消；`backup:d1` 调用 `wrangler d1 export --remote` 后立即
-静态校验（缺表/空数据/截断会失败）；`verify:backup` 可独立复检。**这些命令尚未在
-真实 preview/production 执行**，恢复与回滚演练也未完成；在演练通过前不得写进
-发布记录或声称可用。
+P7 已登记上述脚本并在 Cloudflare Preview（`https://stratify.logicc.top`）演练通过（changes/0074/0086/0087）：`smoke:worker` 完成公网 health/首页/创建/读取/取消；`backup:d1` 从远端 `stratify-preview` 导出含真实业务行的 SQL 快照后静态校验；`verify:backup --rehearse` 在隔离内存 SQLite 完成外键恢复回放，且 `wrangler rollback` 已完成版本回滚与前滚验证。**Production 环境尚未创建与执行上述流程**，正式上线前仍须在独立 `stratify-prod` 环境按 §4 完整复核。
 
 ## 4. 标准发布流程
 

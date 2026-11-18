@@ -9,6 +9,8 @@ import {
 } from '../../../src/app/live-policy.js';
 import { RunController } from '../../../src/app/run-controller.js';
 import { runSingleWithPolicy } from '../../../src/runner/run-cell.js';
+import { app as workerApp } from '../../../src/worker/index.js';
+import { createTestEnv } from '../../helpers/worker-env.js';
 
 const KEY = 'test-key-not-real';
 
@@ -77,7 +79,7 @@ describe('浏览器 live 策略（同源代理）', () => {
     ).toThrow(/maxRunMinutes/);
   });
 
-  it('只向注入的同源端点发 POST，Key 进 Authorization 而非 URL/body', async () => {
+  it('只向注入的同源端点发 POST，Key 进 X-Api-Key 而非 URL/body', async () => {
     const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
       async () => jevResponse(),
     );
@@ -86,7 +88,7 @@ describe('浏览器 live 策略（同源代理）', () => {
     const endpoint = 'https://stratify.test/api/jev';
     const view = createBrowserLivePolicy({
       apiKey: KEY,
-      model: 'jev-small',
+      model: 'jev-1.13.0',
       maxCalls: 100,
       maxInputTokens: 100_000,
       maxRunMinutes: 5,
@@ -96,7 +98,7 @@ describe('浏览器 live 策略（同源代理）', () => {
     const outcome = await runSingleWithPolicy(config, asSeed('live-seed-1'), {
       policy: view.policy,
       runId: 'local-live-test',
-      requestedModel: 'jev-small',
+      requestedModel: 'jev-1.13.0',
       promptStyle: 'neutral',
     });
     expect(outcome.decisions.length).toBeGreaterThan(0);
@@ -106,10 +108,56 @@ describe('浏览器 live 策略（同源代理）', () => {
       expect(String(url)).toBe(endpoint);
       expect(String(url)).not.toContain(KEY);
       const headers = init?.headers as Record<string, string>;
-      expect(headers['Authorization']).toBe(`Bearer ${KEY}`);
+      expect(headers['X-Api-Key']).toBe(KEY);
+      expect(headers['Authorization']).toBeUndefined();
       expect(String(init?.body ?? '')).not.toContain(KEY);
     }
     expect(view.budget.usage().callsUsed).toBeGreaterThan(0);
+  });
+
+  it('端到端贯通 Worker /api/jev 校验并转换为上游 Bearer System One 请求', async () => {
+    const env = createTestEnv();
+    const upstreamCalls: { url: string; headers: Record<string, string>; body: string }[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url === 'https://stratify.test/api/jev') {
+          return workerApp.request(url, init, env);
+        }
+        upstreamCalls.push({
+          url,
+          headers: (init?.headers ?? {}) as Record<string, string>,
+          body: String(init?.body ?? ''),
+        });
+        return jevResponse();
+      }),
+    );
+
+    const view = createBrowserLivePolicy({
+      apiKey: KEY,
+      model: 'jev-1.13.0',
+      maxCalls: 50,
+      maxInputTokens: 100_000,
+      maxRunMinutes: 5,
+      endpoint: 'https://stratify.test/api/jev',
+    });
+    const config = createDemoConfig({
+      population: { initialPopulation: 10 },
+      schedule: { totalTicks: 10 },
+    });
+    const outcome = await runSingleWithPolicy(config, asSeed('live-e2e-wire'), {
+      policy: view.policy,
+      runId: 'local-live-wire',
+      requestedModel: 'jev-1.13.0',
+      promptStyle: 'neutral',
+    });
+    expect(outcome.decisions).toHaveLength(10);
+    expect(outcome.decisions.every((record) => record.source === 'jev_live')).toBe(true);
+    expect(upstreamCalls).toHaveLength(10);
+    expect(upstreamCalls[0]?.url).toBe('https://jev.test/v1/systemone');
+    expect(upstreamCalls[0]?.headers['authorization']).toBe(`Bearer ${KEY}`);
+    expect(upstreamCalls[0]?.body).not.toContain(KEY);
   });
 
   it('超过 06 建议规模时要求显式确认', () => {

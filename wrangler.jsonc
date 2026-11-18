@@ -17,8 +17,8 @@
     "RUNTIME_VERSION": "workerd-local",
     "BROWSER_RUN_RETENTION_DAYS": "7",
     "RUNNER_RUN_RETENTION_DAYS": "90",
-    "JEV_UPSTREAM_URL": "https://api.jev.sh/v1/choice",
-    "JEV_ALLOWED_MODELS": "jev-small,jev-medium,jev-large",
+    "JEV_UPSTREAM_URL": "https://jev.logicc.top/v1/systemone",
+    "JEV_ALLOWED_MODELS": "jev-1.13.0,jev-small,jev-medium,jev-large",
   },
   // 本地默认 D1/R2 由 `wrangler dev` 自动创建；远程 ID 放各环境，不写死源码。
   "d1_databases": [
@@ -33,6 +33,7 @@
   "env": {
     "preview": {
       "name": "stratify-preview",
+      "routes": [{ "pattern": "stratify.logicc.top", "custom_domain": true }],
       // 账户 Workers Free 的 5 个 Cron 槽位已被其他 Worker 占用（API 10072）；
       // preview 显式不注册保留任务，避免每次 deploy 触发部分更新失败。
       "triggers": { "crons": [] },
@@ -42,8 +43,8 @@
         "RUNTIME_VERSION": "workerd-preview",
         "BROWSER_RUN_RETENTION_DAYS": "7",
         "RUNNER_RUN_RETENTION_DAYS": "90",
-        "JEV_UPSTREAM_URL": "https://api.jev.sh/v1/choice",
-        "JEV_ALLOWED_MODELS": "jev-small,jev-medium,jev-large",
+        "JEV_UPSTREAM_URL": "https://jev.logicc.top/v1/systemone",
+        "JEV_ALLOWED_MODELS": "jev-1.13.0,jev-small,jev-medium,jev-large",
       },
       "d1_databases": [
         {
@@ -63,8 +64,8 @@
         "RUNTIME_VERSION": "workerd-production",
         "BROWSER_RUN_RETENTION_DAYS": "7",
         "RUNNER_RUN_RETENTION_DAYS": "90",
-        "JEV_UPSTREAM_URL": "https://api.jev.sh/v1/choice",
-        "JEV_ALLOWED_MODELS": "jev-small,jev-medium,jev-large",
+        "JEV_UPSTREAM_URL": "https://jev.logicc.top/v1/systemone",
+        "JEV_ALLOWED_MODELS": "jev-1.13.0,jev-small,jev-medium,jev-large",
       },
       "d1_databases": [
         {
