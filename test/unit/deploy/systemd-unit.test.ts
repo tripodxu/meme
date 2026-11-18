@@ -75,31 +75,49 @@ describe('stratify-runner.service 静态契约（P5-06 / docs/09 §6）', () => 
   });
 });
 
-const bashAvailable = (() => {
-  const probe = spawnSync('bash', ['--version'], { encoding: 'utf8' });
-  return probe.status === 0;
+const posixDeployDir = deployDir.replaceAll('\\', '/');
+const posixScript = join(deployDir, 'check-disk-space.sh').replaceAll('\\', '/');
+
+const bashBin = (() => {
+  const candidates =
+    process.platform === 'win32' && existsSync('C:/Program Files/Git/bin/bash.exe')
+      ? ['C:/Program Files/Git/bin/bash.exe', 'bash']
+      : ['bash'];
+  for (const bin of candidates) {
+    const probe = spawnSync(
+      bin,
+      ['-c', 'df -Pk "$1" >/dev/null 2>&1 && awk "BEGIN{exit 0}"', '_', posixDeployDir],
+      {
+        encoding: 'utf8',
+      },
+    );
+    if (probe.status === 0) return bin;
+  }
+  return null;
 })();
 
-describe.runIf(bashAvailable)('check-disk-space.sh 行为（P5-06）', () => {
-  const script = join(deployDir, 'check-disk-space.sh');
+describe.runIf(bashBin !== null)('check-disk-space.sh 行为（P5-06）', () => {
+  const bin = bashBin ?? 'bash';
 
   it('充足阈值通过（exit 0）', () => {
-    const result = spawnSync('bash', [script, deployDir, '0'], { encoding: 'utf8' });
+    const result = spawnSync(bin, [posixScript, posixDeployDir, '0'], { encoding: 'utf8' });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('磁盘检查通过');
   });
 
   it('不可达阈值拒绝（exit 1）', () => {
-    const result = spawnSync('bash', [script, deployDir, '104857600'], { encoding: 'utf8' });
+    const result = spawnSync(bin, [posixScript, posixDeployDir, '104857600'], { encoding: 'utf8' });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('磁盘可用空间不足');
   });
 
   it('参数非法拒绝（exit 2）', () => {
-    expect(spawnSync('bash', [script], { encoding: 'utf8' }).status).toBe(2);
-    expect(spawnSync('bash', [script, deployDir, 'abc'], { encoding: 'utf8' }).status).toBe(2);
+    expect(spawnSync(bin, [posixScript], { encoding: 'utf8' }).status).toBe(2);
+    expect(spawnSync(bin, [posixScript, posixDeployDir, 'abc'], { encoding: 'utf8' }).status).toBe(
+      2,
+    );
     expect(
-      spawnSync('bash', [script, 'Z:/definitely/not/exist', '10'], { encoding: 'utf8' }).status,
+      spawnSync(bin, [posixScript, 'Z:/definitely/not/exist', '10'], { encoding: 'utf8' }).status,
     ).toBe(2);
   });
 });

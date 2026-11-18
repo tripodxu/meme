@@ -165,4 +165,89 @@ describe('P3 浏览器工作台 E2E（jsdom）', () => {
     expect(result.ok).toBe(false);
     expect(app.getSnapshot().runId).toBe(before);
   });
+
+  it('交互沙盒剧场可切换、加载探索剧本并通过命运抉择卡出牌推进', async () => {
+    const { app, root } = mountApp();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '0', bubbles: true }));
+    expect(app.surface).toBe('sandbox');
+    expect(root.querySelector('.arena-canvas')).not.toBeNull();
+    expect(root.querySelectorAll('.scenario-card').length).toBeGreaterThanOrEqual(4);
+
+    // 启动手动化身探索：到决策 tick 会挂起并渲染命运抉择行动卡
+    app.controller.start();
+    await waitFor(() => app.getSnapshot().pendingAvatarPrompt !== null);
+    const choiceBtn = root.querySelector('.choice-accumulate') as HTMLButtonElement | null;
+    expect(choiceBtn).not.toBeNull();
+    choiceBtn?.click();
+    await waitFor(() => app.getSnapshot().tick >= 1);
+    app.controller.pause();
+    expect(app.getSnapshot().tick).toBeGreaterThanOrEqual(1);
+  });
+
+  it('检查器持久化外壳在状态刷新时保持搜索输入焦点不丢失，微扰分叉可同步对比页', async () => {
+    const { app } = mountApp();
+    await app.stepDecision();
+    app.setTab('inspector');
+    const search = document.querySelector('#agent-search') as HTMLInputElement | null;
+    expect(search).not.toBeNull();
+    if (search === null) return;
+    search.focus();
+    search.value = 'a-000';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(document.activeElement).toBe(search);
+
+    // 推进单步触发后台通知与增量刷新，搜索框节点和焦点必须原位保持
+    await app.controller.stepOnce();
+    app.render(false);
+    expect(document.querySelector('#agent-search')).toBe(search);
+    expect(document.activeElement).toBe(search);
+
+    // 执行微扰分叉并跳转到回放对比页校验配对审计徽章
+    app.forkFocusedAgent(0.01);
+    app.setTab('replay');
+    expect(document.body.textContent).toContain('平行宇宙微扰分叉溯源');
+    expect(document.body.textContent).toContain('种子已配对');
+    expect(document.body.textContent).toContain('描述性差异');
+  });
+
+  it('高阶向量参数编辑、历史快照跳转、洛伦兹/对数切换与 ≥30 种子森林图护栏生效', async () => {
+    const { app, root } = mountApp();
+    // 设置页存在五阶层向量编辑器且归一化按钮可用
+    expect(root.querySelector('#setup-env0-0')).not.toBeNull();
+    expect(root.querySelector('#setup-share-c0')).not.toBeNull();
+
+    app.start();
+    await waitFor(() => app.getSnapshot().status === 'completed');
+    expect(root.querySelector('svg[aria-label="财富洛伦兹曲线"]')).not.toBeNull();
+
+    // 切换对数中位数财富曲线
+    app.wealthLogScale = true;
+    app.render(true);
+    expect(root.querySelector('svg[aria-label="中位数财富对数轨迹"]')).not.toBeNull();
+
+    // 跳转到周期快照 Tick 2
+    app.jumpToSnapshot(2);
+    expect(app.getSnapshot().tick).toBe(2);
+    expect(app.getSnapshot().status).toBe('paused');
+
+    // 回放页：导入 <30 种子阻止渲染森林图，导入 >=30 种子渲染森林图
+    app.batchForestSummary = {
+      title: '不足样本',
+      pairedSeeds: 10,
+      eligibleForInference: false,
+      metrics: [{ metric: 'Gini', estimate: 0.04, ciLow: -0.01, ciHigh: 0.09 }],
+    };
+    app.setTab('replay');
+    expect(document.body.textContent).toContain('已阻止显著性森林图展示');
+    expect(root.querySelector('svg[aria-label="不足样本"]')).toBeNull();
+
+    app.batchForestSummary = {
+      title: '三十种子配对森林图',
+      pairedSeeds: 30,
+      eligibleForInference: true,
+      metrics: [{ metric: 'Gini', estimate: 0.12, ciLow: 0.05, ciHigh: 0.19 }],
+    };
+    app.render(true);
+    expect(root.querySelector('svg[aria-label="三十种子配对森林图"]')).not.toBeNull();
+  });
 });

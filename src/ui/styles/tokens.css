@@ -1,27 +1,47 @@
 :root,
 [data-theme='obsidian'] {
-  --bg-canvas: #070a12;
-  --bg-panel: #0d1321;
-  --bg-elevated: #131c2e;
-  --bg-interactive: #1a263d;
-  --bg-glass: rgba(13, 19, 33, 0.82);
+  /* 表面层级 (Layered Obsidian Surfaces) */
+  --bg-canvas: #060912;
+  --bg-canvas-glow: radial-gradient(
+    ellipse 80% 50% at 50% -15%,
+    rgba(56, 189, 248, 0.09),
+    rgba(167, 139, 250, 0.04) 45%,
+    transparent 80%
+  );
+  --bg-panel: #0b111f;
+  --bg-panel-subtle: #0e1628;
+  --bg-elevated: #121c31;
+  --bg-interactive: #192742;
+  --bg-glass: rgba(10, 15, 28, 0.82);
+  --bg-card-header: rgba(18, 28, 49, 0.48);
 
-  --border-subtle: #1e293b;
-  --border-strong: #334155;
+  /* 边框与分割线 (Precision Hairlines) */
+  --border-subtle: rgba(148, 163, 184, 0.13);
+  --border-strong: rgba(148, 163, 184, 0.25);
+  --border-highlight: rgba(56, 189, 248, 0.42);
   --border-focus: #38bdf8;
 
+  /* 文本与主题色 (WCAG AA Contrast) */
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.12);
+  --accent-strong: #0ea5e9;
+  --accent-soft: rgba(56, 189, 248, 0.13);
+  --accent-glow: rgba(56, 189, 248, 0.24);
+  --violet: #a78bfa;
+  --violet-soft: rgba(167, 139, 250, 0.14);
+  --gold: #f59e0b;
+  --gold-soft: rgba(245, 158, 11, 0.14);
 
+  /* 五阶级中性科学色板 (5-Class Semantic Palette — 禁红绿股票偏见) */
   --class-0-color: #64748b;
   --class-1-color: #38bdf8;
   --class-2-color: #2dd4bf;
   --class-3-color: #a78bfa;
   --class-4-color: #f59e0b;
 
+  /* 行动与状态语义色 */
   --action-accumulate: #94a3b8;
   --action-ascend: #38bdf8;
   --action-descend: #fb923c;
@@ -32,13 +52,20 @@
   --status-danger: #f43f5e;
   --status-replay: #6366f1;
 
-  --font-sans: 'Inter', 'HarmonyOS Sans SC', 'PingFang SC', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, 'SFMono-Regular', monospace;
+  /* 排印与空间标尺 */
+  --font-sans:
+    'Inter', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', system-ui, -apple-system,
+    sans-serif;
+  --font-mono:
+    'JetBrains Mono', 'Fira Code', 'Cascadia Mono', ui-monospace, 'SFMono-Regular', monospace;
 
+  --text-2xs: 10px;
   --text-xs: 11px;
-  --text-sm: 12px;
+  --text-sm: 12.5px;
   --text-base: 14px;
-  --text-lg: 16px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
   --text-kpi: 22px;
 
   --space-1: 4px;
@@ -46,23 +73,59 @@
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
-  --radius: 8px;
-  --radius-sm: 4px;
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --space-6: 32px;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.36);
+  --shadow-glow: 0 0 0 1px rgba(56, 189, 248, 0.25), 0 12px 32px rgba(8, 145, 178, 0.18);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme='paper'] {
   --bg-canvas: #f1f5f9;
+  --bg-canvas-glow: radial-gradient(
+    ellipse 80% 50% at 50% -15%,
+    rgba(2, 132, 199, 0.07),
+    rgba(99, 102, 241, 0.04) 45%,
+    transparent 80%
+  );
   --bg-panel: #ffffff;
-  --bg-elevated: #f8fafc;
+  --bg-panel-subtle: #f8fafc;
+  --bg-elevated: #f1f5f9;
   --bg-interactive: #e2e8f0;
-  --bg-glass: rgba(248, 250, 252, 0.9);
+  --bg-glass: rgba(255, 255, 255, 0.88);
+  --bg-card-header: rgba(248, 250, 252, 0.85);
+
   --border-subtle: #e2e8f0;
   --border-strong: #cbd5e1;
+  --border-highlight: rgba(2, 132, 199, 0.42);
+  --border-focus: #0284c7;
+
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --accent: #0284c7;
+  --accent-strong: #0369a1;
   --accent-soft: rgba(2, 132, 199, 0.1);
-  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --accent-glow: rgba(2, 132, 199, 0.18);
+  --violet: #7c3aed;
+  --violet-soft: rgba(124, 58, 237, 0.1);
+  --gold: #d97706;
+  --gold-soft: rgba(217, 119, 6, 0.11);
+
+  --class-0-color: #64748b;
+  --class-1-color: #0284c7;
+  --class-2-color: #0d9488;
+  --class-3-color: #7c3aed;
+  --class-4-color: #d97706;
+
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 0 1px rgba(2, 132, 199, 0.25), 0 10px 24px rgba(2, 132, 199, 0.12);
 }

@@ -156,4 +156,85 @@ describe('RunController（P3-01）', () => {
     expect(a.initialPopulationHash).not.toBe(b.initialPopulationHash);
     expect(a.seed).toBe(asSeed('hash-seed-a'));
   });
+
+  it('沙盒玩家化身可挂起等待手动出牌，且拒绝非法行动', async () => {
+    const controller = new RunController();
+    expect(controller.prepare(smallConfig(), 'avatar-seed').ok).toBe(true);
+    const firstAlive = controller.getState()?.society.agents.find((a) => a.alive);
+    expect(firstAlive).toBeDefined();
+    if (firstAlive === undefined) return;
+
+    controller.setAvatar(firstAlive.id, true);
+    const stepPromise = controller.stepOnce();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    const waiting = controller.snapshot();
+    expect(waiting.status).toBe('awaiting_decision');
+    expect(waiting.pendingAvatarPrompt?.agentId).toBe(firstAlive.id);
+
+    // 非法行动必须拒绝
+    expect(controller.submitAvatarAction('illegal_hack_action')).toBe(false);
+    // 合法行动 accumulate 必须放行并完成该 tick
+    expect(controller.submitAvatarAction('accumulate')).toBe(true);
+    await stepPromise;
+    expect(controller.snapshot().tick).toBe(1);
+    expect(controller.snapshot().pendingAvatarPrompt).toBeNull();
+  });
+
+  it('平行宇宙单字段微扰分叉保留原世界基准并生成新权威状态', async () => {
+    const controller = new RunController();
+    expect(controller.prepare(smallConfig(), 'fork-seed').ok).toBe(true);
+    await controller.stepDecisionCycle();
+    const beforeSnap = controller.snapshot();
+    const target = controller.getState()?.society.agents.find((a) => a.alive);
+    expect(target).toBeDefined();
+    if (target === undefined) return;
+    const oldVal = target.value;
+
+    const fork = controller.forkAgentValuePerturbation(target.id, 0.25);
+    expect(fork.ok).toBe(true);
+    expect(fork.baselineBundle?.runId).toBe(beforeSnap.runId);
+    const afterSnap = controller.snapshot();
+    expect(afterSnap.runId).not.toBe(beforeSnap.runId);
+    expect(afterSnap.forkProvenance?.changedField).toBe(`society.agents[${target.id}].value`);
+    expect(afterSnap.forkProvenance?.checkpointStateHash).toMatch(/^sha256:/);
+    const updatedTarget = controller.getState()?.society.agents.find((a) => a.id === target.id);
+    expect(updatedTarget?.value).toBeCloseTo(oldVal + 0.25, 8);
+  });
+
+  it('jumpToSnapshot 可回滚到已存周期快照点并裁剪后续统计与事件', async () => {
+    const controller = new RunController();
+    expect(controller.prepare(smallConfig(), 'jump-seed').ok).toBe(true);
+    controller.start();
+    await controller.whenIdle();
+    const fullSnap = controller.snapshot();
+    expect(fullSnap.tick).toBe(8);
+    expect(fullSnap.availableSnapshotTicks).toContain(4);
+
+    expect(controller.jumpToSnapshot(4)).toBe(true);
+    const jumped = controller.snapshot();
+    expect(jumped.status).toBe('paused');
+    expect(jumped.tick).toBe(4);
+    expect(jumped.stats).toHaveLength(4);
+    expect(jumped.endReason).toBeNull();
+    expect(controller.jumpToSnapshot(999)).toBe(false);
+  });
+
+  it('restoreSessionBundle 原位恢复最新快照与运行进度（同标签页刷新恢复）', async () => {
+    const controller = new RunController();
+    expect(controller.prepare(smallConfig(), 'session-seed').ok).toBe(true);
+    await controller.stepOnce();
+    await controller.stepOnce();
+    await controller.stepOnce();
+    const bundle = controller.exportBundle(true);
+    expect(bundle).not.toBeNull();
+
+    const fresh = new RunController();
+    const res = fresh.restoreSessionBundle(JSON.parse(JSON.stringify(bundle)));
+    expect(res.ok).toBe(true);
+    const restored = fresh.snapshot();
+    expect(restored.tick).toBe(3);
+    expect(restored.status).toBe('paused');
+    expect(restored.stats).toHaveLength(3);
+    expect(restored.replay).toBeNull();
+  });
 });

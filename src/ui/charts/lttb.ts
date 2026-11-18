@@ -53,6 +53,30 @@ export function lttb<T extends Point>(data: readonly T[], threshold: number): T[
   return sampled;
 }
 
+/**
+ * 均匀保首尾索引降采样：用于对齐多维堆叠序列（如 Class 0..4 占比），
+ * 避免对 5 万条 stats 做 20 次全量 `.map()` 内存拷贝。
+ */
+export function sampleRows<T>(rows: readonly T[], threshold: number): readonly T[] {
+  const n = rows.length;
+  if (n <= threshold || threshold < 3) return rows;
+  const out: T[] = [rows[0] as T];
+  const step = (n - 1) / (threshold - 1);
+  let lastIdx = 0;
+  for (let i = 1; i < threshold - 1; i += 1) {
+    const idx = Math.round(i * step);
+    if (idx > lastIdx && idx < n - 1) {
+      const item = rows[idx];
+      if (item !== undefined) {
+        out.push(item);
+        lastIdx = idx;
+      }
+    }
+  }
+  out.push(rows[n - 1] as T);
+  return out;
+}
+
 /** 按容器像素宽度选择阈值：每个像素最多一个点，最少 3 点。 */
 export function pixelThreshold(widthPx: number): number {
   return Math.max(3, Math.round(widthPx));

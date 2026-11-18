@@ -12,6 +12,7 @@ export interface ElementAttributes {
   readonly disabled?: boolean;
   readonly checked?: boolean;
   readonly selected?: boolean;
+  readonly open?: boolean;
   readonly hidden?: boolean;
   readonly href?: string;
   readonly download?: string;
@@ -26,13 +27,17 @@ export interface ElementAttributes {
   readonly ariaSelected?: string;
   readonly ariaPressed?: string;
   readonly ariaCurrent?: string;
+  readonly ariaExpanded?: string;
+  readonly ariaInvalid?: string;
   readonly tabIndex?: number;
   readonly style?: string;
   readonly data?: Record<string, string>;
   readonly onClick?: (event: MouseEvent) => void;
+  readonly onDblClick?: (event: MouseEvent) => void;
   readonly onChange?: (event: Event) => void;
   readonly onInput?: (event: Event) => void;
   readonly onSubmit?: (event: SubmitEvent) => void;
+  readonly onScroll?: (event: Event) => void;
 }
 
 export function h<K extends keyof HTMLElementTagNameMap>(
@@ -56,9 +61,18 @@ export function h<K extends keyof HTMLElementTagNameMap>(
   if (attributes.ariaCurrent !== undefined) {
     element.setAttribute('aria-current', attributes.ariaCurrent);
   }
+  if (attributes.ariaExpanded !== undefined) {
+    element.setAttribute('aria-expanded', attributes.ariaExpanded);
+  }
+  if (attributes.ariaInvalid !== undefined) {
+    element.setAttribute('aria-invalid', attributes.ariaInvalid);
+  }
   if (attributes.tabIndex !== undefined) element.tabIndex = attributes.tabIndex;
   if (attributes.style !== undefined) element.setAttribute('style', attributes.style);
   if (attributes.hidden === true) element.hidden = true;
+  if (tag === 'details' && attributes.open === true) {
+    (element as HTMLDetailsElement).open = true;
+  }
   for (const [key, value] of Object.entries(attributes.data ?? {})) {
     element.dataset[key] = value;
   }
@@ -97,8 +111,14 @@ export function h<K extends keyof HTMLElementTagNameMap>(
   if (attributes.onClick !== undefined) {
     element.addEventListener('click', attributes.onClick as EventListener);
   }
+  if (attributes.onDblClick !== undefined) {
+    element.addEventListener('dblclick', attributes.onDblClick as EventListener);
+  }
   if (attributes.onSubmit !== undefined) {
     element.addEventListener('submit', attributes.onSubmit as EventListener);
+  }
+  if (attributes.onScroll !== undefined) {
+    element.addEventListener('scroll', attributes.onScroll as EventListener, { passive: true });
   }
   append(element, children);
   return element;
@@ -112,7 +132,13 @@ export function append(parent: Element, children: readonly Child[]): void {
 }
 
 export function clear(element: Element): void {
-  while (element.firstChild !== null) element.removeChild(element.firstChild);
+  element.replaceChildren();
+}
+
+export function setTextIfChanged(element: Element | null, next: string): void {
+  if (element !== null && element.textContent !== next) {
+    element.textContent = next;
+  }
 }
 
 export function field(label: string, control: HTMLElement, hint?: string): HTMLElement {
@@ -134,21 +160,24 @@ function hashString(value: string): number {
   return hash;
 }
 
-export function badge(
-  text: string,
-  tone: 'ok' | 'warn' | 'danger' | 'muted' | 'info' = 'muted',
-): HTMLElement {
+export type BadgeTone = 'ok' | 'warn' | 'danger' | 'muted' | 'info' | 'violet';
+
+export function badge(text: string, tone: BadgeTone = 'muted'): HTMLElement {
   return h('span', { class: `badge badge-${tone}`, text });
 }
 
 export function card(
   title: string,
   body: readonly Child[],
-  options: { subtitle?: string; actions?: readonly Child[]; class?: string } = {},
+  options: { subtitle?: string; actions?: readonly Child[]; class?: string; id?: string } = {},
 ): HTMLElement {
-  return h('section', { class: `card ${options.class ?? ''}` }, [
+  const sectionAttrs: ElementAttributes =
+    options.id === undefined
+      ? { class: `card ${options.class ?? ''}`.trim() }
+      : { class: `card ${options.class ?? ''}`.trim(), id: options.id };
+  return h('section', sectionAttrs, [
     h('header', { class: 'card-header' }, [
-      h('div', {}, [
+      h('div', { class: 'card-title-group' }, [
         h('h3', { class: 'card-title', text: title }),
         options.subtitle === undefined
           ? null
@@ -163,8 +192,13 @@ export function card(
 export function table(
   headers: readonly string[],
   rows: readonly (readonly Child[])[],
+  options: { maxHeight?: number } = {},
 ): HTMLElement {
-  return h('div', { class: 'table-wrap' }, [
+  const wrapAttrs: ElementAttributes =
+    options.maxHeight === undefined
+      ? { class: 'table-wrap' }
+      : { class: 'table-wrap', style: `max-height:${options.maxHeight}px` };
+  return h('div', wrapAttrs, [
     h('table', { class: 'data-table' }, [
       h('thead', {}, [
         h(
@@ -186,4 +220,16 @@ export function table(
       ),
     ]),
   ]);
+}
+
+export const CLASS_SYMBOLS = ['○', '△', '□', '◇', '☆'] as const;
+export const CLASS_NAMES = ['底层', '劳工层', '中坚层', '精英层', '顶层'] as const;
+
+export function classSymbol(classIndex: number): string {
+  return CLASS_SYMBOLS[classIndex] ?? '•';
+}
+
+export function classTitle(classIndex: number): string {
+  const name = CLASS_NAMES[classIndex];
+  return name === undefined ? `Class ${classIndex}` : `C${classIndex} ${name}`;
 }
