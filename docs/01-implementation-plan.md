@@ -169,7 +169,7 @@ docs/              本施工文档与 adr/
 | P3-06 | 响应式、键盘和可访问性                 | P3-02~05 | 关键操作可键盘完成；图表不只靠颜色；移动端无功能缺失 |
 | P3-07 | 浏览器 E2E 与大数据渲染降采样          | P3-06    | 核心流程 E2E 通过；图表不逐点渲染全部历史            |
 
-**P3 进度记录（2026-11-11，changes/0070/0078）**：P3-01～P3-06 已落地：`src/app` 的 12 态 RunController（时间片调度、generation、暂停/单步/停止/重置、导出/导入、IndexedDB 持久化）与 `src/ui` 原生 DOM/SVG 五工作区。总览含阶级/财富/流动/网络/开放度/竞争/寿命/转移矩阵/行动分布/事件流；个体检查器展示决策概率与核心执行记录；回放可从初始快照按已保存 selectedAction 重放并统计 `replay_invalid`。P3-07 已实现 LTTB 降采样、6 项 jsdom DOM E2E（`pnpm test:e2e`）与手动真实浏览器验证（默认 40 人/120 tick、导入回放、375px 无溢出、主题/键盘），但**真实浏览器自动化 E2E 尚未接入**（仓库无 Playwright/Puppeteer 依赖）。`jev_live` 已通过同源 `/api/jev` 代理启用：Key 仅内存、预算/截止/熔断启用，导出不含 Key（changes/0078）；**真实 live 冒烟未执行**。G6 未通过，界面仅用于运行/回放/检查，不是校准证据。
+**P3 进度记录（2026-11-18，changes/0070/0078/0083/0084/0087）**：P3-01～P3-07 已全部落地：`src/app` 的 12 态 RunController（时间片调度、generation、周期快照跳转 `jumpToSnapshot`、玩家化身手动出牌与单字段平行宇宙微扰分叉、IndexedDB v3 分块原子存储 + 同标签页刷新自动恢复）与 `src/ui` 双界面架构（「✦ 交互沙盒剧场」Canvas 五阶层动态舞台 + 「◈ 精密科研试验台」五工作区）。实验设置覆盖全部五阶层向量参数与制度滞回细节；总览含洛伦兹微图、对数财富切换、按发起方向竞争统计、剩余寿命直方图、区间缩放与窗口 CSV 导出；检查器含自我中心关系网与脱敏决策审计 JSON；回放对比支持双世界叠加与 `>=30` 配对种子森林图护栏。P3-07 已接入 LTTB 降采样、10 项 jsdom E2E（`pnpm test:e2e`）与 **Playwright 真实浏览器自动化 E2E**（`pnpm test:e2e:browser`，0 控制台错误），并在公网自定义域名 `https://stratify.logicc.top` 完成真实浏览器冒烟与同源 `/api/jev` Live 代理实测（5/5 成功、0 回退、零密钥落盘；changes/0087）。G6 未通过，界面仅用于运行/回放/检查，不是校准证据。
 
 **闸门 G3**：离线 mock、live 小额、导入回放三条路径均通过 E2E；控制台无未处理异常；刷新后的恢复行为明确。P3-06/P3-07 属产品化，可在 G6 后完成；P6 不依赖它们。
 
@@ -186,7 +186,7 @@ docs/              本施工文档与 adr/
 | P4-07 | workerd+D1/R2 集成和部署冒烟               | P4-06       | 本地集成与预览环境通过；备份后部署，部署后验证                             |
 | P4-08 | Worker 同源 BYOK 代理与浏览器 live 冒烟    | P2-04,P4-01 | 浏览器只经同源 `/api/jev`；Key 不落库/日志/URL；模型 allowlist；成本有上限 |
 
-**P4 进度记录（2026-11-11，changes/0071/0073/0076/0077/0078/0079）**：P4-01～P4-08 的代码与单元契约测试已落地：`src/worker` Hono 应用、`migrations/0001_init.sql` + `0002_runtime_authority.sql` + `0003_diagnostics_hash.sql`、`wrangler.jsonc` 三环境配置；覆盖统一错误/requestId、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB、双 SHA-256、ETag/304）、complete（服务器复算 `artifactManifestHash`）、keyset 分页、固定窗口限流、同源 BYOK `/api/jev`（allowlist、30s 超时、不记录 Key/body、`jev:global` 小时保险丝）、Cron 保留策略与 cancel/fail `diagnosticsHash`。Worker 16 项测试通过（本机 `node:sqlite` 执行真实迁移、内存 R2），`wrangler deploy --dry-run` 打包成功。按 ADR 0001 新增 `RUNTIME_VERSION`/`runtime_authority`：同运行时复算 `initialPopulationHash`，跨运行时标记 `non-authoritative`。**P4-07 本地 workerd+D1+R2 集成冒烟已通过**：health、创建、artifact 上传/304、tick/agent、stats、complete 全链路；**preview 远程部署冒烟未执行**。P4-06 保留策略已实现（browser 7d/runner 90d、Cron、R2→D1 级联、旧限流清理），但 R2 孤儿枚举与线上 Cron 演练未执行。`expectedDueDecisions` 服务端复算与真实 Jev live 冒烟未做；浏览器 `jev_live` 已通过同源代理启用，超建议规模需显式确认（changes/0078/0079），但未经真实上游验证。不改规则/schema，不构成校准或结构证据。
+**P4 进度记录（2026-11-18，changes/0071/0073/0076/0077/0078/0079/0084/0085/0087）**：P4-01～P4-08 已全部落地并在 Cloudflare Preview 公网环境验证通过：`src/worker` Hono 应用、`migrations/0001_init.sql`～`0003_diagnostics_hash.sql`、`wrangler.jsonc` 三环境配置；覆盖统一错误/requestId、run 创建与 writeToken 哈希、tick/agent 幂等批写与 `/agents` 查询、R2 artifact（8 MiB、双 SHA-256、ETag/304）、complete（服务器复算 `artifactManifestHash`）、不可逆 verification 状态机、keyset 分页、固定窗口限流（含 `/api/jev` 按 `IP+sha256(Key)` 指纹限流、`jev:global` 小时保险丝、run 批写限流及统一 `Retry-After` 头）、Cron 保留策略（含 `running` 静默超时标记 `abandoned_timeout`、过期 run R2→D1 级联删除、超宽限期 R2 孤儿对象枚举清理）与 cancel/fail `diagnosticsHash`。**P4-07 本地 `workerd` 与远端 `https://stratify.logicc.top` 部署冒烟均已通过**；**P4-08 同源 `/api/jev` 真实上游 System One 小额冒烟已通过**（5/5 成功、0 回退，远端 D1 导出审计确认零明文 Key；changes/0087）。线上 Cron 因 Free 计划 5 槽位限制在 preview 显式置空；不改规则/schema，不构成校准或结构证据。
 
 **闸门 G4**：幂等、并发、越权、超限和损坏 artifact 测试通过；D1 无海量事件表；同源代理只接受白名单字段且无任意转发；无密钥泄漏。
 
@@ -227,7 +227,7 @@ P5 拆成两段，避免 P6 被云端依赖卡住：**P5a 只做本地批跑与�
 
 **闸门 G5b**：故障注入覆盖网络断开、重复上传和服务器 409/5xx；不产生虚假 complete，不因上传失败重跑实验。
 
-**P5b 进度记录（2026-11-11，changes/0072/0075/0080）**：P5-05/P5-07 的上传器与断点续传已落地：`src/runner/uploader.ts` 完成创建 run、artifact 分块 PUT、tick/agent 批次与 complete；本地 gzip + 压缩/未压缩 SHA-256，服务器复算不符即终止；409 终止，429/5xx/网络错误指数退避；创建 run 网络失败标记 `create_ambiguous` 不自动重试。`upload-ledger-v1` 逐块原子确认，重跑只补传未确认块，bundle/baseUrl 变化拒绝复用。`src/runner/upload-bundle.ts` 加载 `run-upload-bundle-file-v1` 并拒绝 `..` 逃逸；`scripts/upload-run.mjs`/`pnpm upload` 只从环境变量读取 `RUNNER_TOKEN`。批跑已可自动导出 bundle：默认 metrics-only，`--artifact-profile full` 通过 `captureArtifacts` 导出 decisions/events/snapshot（4 MiB 分块；changes/0075/0080）。测试 14 项（7 上传器 + 3 加载器 + 4 导出）；20 tick 导出→上传→complete、重跑幂等与 full 5 chunks complete 冒烟通过。**未完成**：full 捕获内存评估、resume 补导出、preview 远程集成冒烟、独立验证器与内容回放验证。上传成功只表示技术完整，不构成校准或结构证据。
+**P5b 进度记录（2026-11-18，changes/0072/0075/0080/0084/0085/0087）**：P5-05/P5-07 的上传器、断点续传、流式 `full` 导出、`--resume` 补导出与**独立验证器**已全部落地并通过远端 Cloudflare Preview 验证：`src/runner/uploader.ts` 完成创建 run、artifact 分块 PUT、tick/agent 批次与 complete；`upload-ledger-v1` 逐块原子确认；`createStreamingBundleWriter`（`ArtifactStreamSink`）逐 tick 将 decisions/events/snapshots 直接刷入磁盘 4 MiB 分块临时文件，消除大规模 `full` 导出内存驻留瓶颈，且 `stratify-batch --resume --upload-bundles` 自动为缺失 bundle 的已完成任务确定性补导出并校验 `finalStateHash` 一致；独立验证器 `src/runner/verifier.ts` + CLI `scripts/verify-run.mjs`（`pnpm verify:run`）已在公网 `https://stratify.logicc.top` 跑通 R2 5 分块流式上传、幂等二次重放与远端下载逐 tick 确定性回放核验（`status: "verified"`；changes/0087）。上传与验证通过只表示技术与回放完整，不构成校准或结构证据。
 
 P6 不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P5b 和 P3 原计划在 G6 通过后并行；P6 停止后按 ADR 0008 解除 G6 前置，可直接启动，但仍不得把工程产物表述为科学验收。
 
@@ -283,9 +283,13 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6 停止（2026-11-11，ADR 0008，changes/0069）**：规则负责人决定**停止 P6 结构目标**。不再新增 P6 预注册轮次，不再调 θH/θR/θS/H/share/w/k/seed/阈值或新增同类机制旋钮；**G6 保持未通过**，不追认任何旧结果，不声称已校准或结构已涌现。P3 前端、P4 Worker/D1/R2、P5b 上传、P7 发布硬化不再以 G6 通过为前置条件，可按 §9/§10 的依赖启动；工程产物不得表述为科学验收。全部 P6 产物与 `rules-v15` 代码保留。未来重启结构目标须新立 ADR、采用不同机制假设并使用全新预注册与 seed。
 
+**P6-08（2026-11-18，ADR 0009，changes/0088）**：按 ADR 0008 重新立项门槛，新立 ADR 0009 与 `rules-v16`（代际更替 `generationalMode='none'|'replace'`、`bequestRate`、`classInheritanceRate`；默认 `'none'` 与 v15 逐位一致；config schema v10 / engine-v0.13.0）。预注册确认轮 `p6-08-f32cf4b4`（6 cell × 30 新 seed × 40 人 × 10950 tick，前 10 续跑 14600，240/240 完成，**0 排除、0 灭绝**）：k=3 簇 `[60,115,5]`、`silhouette=0.4757`、`14600 同簇率=0.9167`、`antiPreset=true`，但 **`ARI median=0.5646 < 0.70`**（min `0.4564`），判定 `not-accepted-return-to-rule-review`（`passes=false`）。**G6 仍未通过**；不调参凑数，保留完整产物供后续研究。
+
+**P6-09（2026-11-18，阶段 R1 / ADR 0010，changes/0089）**：修正 `07 §8.2` 条件 4 连续统几何判据并扩大人口至 `N=200` 消除 40 人有限样本尾部噪声（`p6-09-193e28a0`，6 cell × 30 全新 seed × 10950 tick + 60 条 14600 followup，240/240 完成、**0 排除、0 灭绝**）：`k=2` 簇 `[30,150]`、`ARI=1.000`（min `1.000`）、`silhouette=0.6129`、`14600 同簇率=1.000`、`antiPreset=true`、`TV(P)=0.3471` / `|ΔS|=0.2410` / `|ΔO|=0.2290`；`k=3` 坍缩为 `[30,149,1]`（`ARI=0.4007`），**新旧条件 4 口径均判定无稳定第三簇**。**`verdict = 'two-regime-candidate'`（`passes=true`）**；按 `07 §8.2` 仍须完成阶段 R4（微扰吸收 + 五消融 + 预设冻结）后方可正式关闭 G6。
+
 **最终发布闸门**：G0–G6 均有可复现证据；P7 不设独立编号闸门，其验收即本节各项。若某非关键项豁免，必须记录负责人、理由、到期日和回滚条件。
 
-**P7 进度记录（2026-11-11，changes/0074）**：本地可验证部分已落地：`src/ops/smoke.ts` + `pnpm smoke:worker`（health → 首页 → 创建 20 tick run → 读取 → 取消，不调用 Jev/不写 Key）；`src/ops/backup.ts` + `pnpm backup:d1`/`verify:backup`（D1 导出后检查 7 张关键表、INSERT 与末尾截断）；CI 增加 `pnpm build:web` 与 `wrangler deploy --dry-run`；新增快速开始、指标词典、已知限制文档。6 项 ops 测试。**未执行**：真实 preview/production 部署、冒烟、备份恢复、回滚与依赖审计云端复跑；发布后错误率/Jev 回退率/D1/R2 增长/Runner 失败率/成本监控未接入。因此不得声称 P7 完成或已发布。
+**P7 进度记录（2026-11-18，changes/0074/0085/0086/0087）**：本地与 Cloudflare Preview（`https://stratify.logicc.top`，版本 `bd6cadab`）发布前硬化演练已完成：`src/ops/smoke.ts` + `pnpm smoke:worker` 公网冒烟全绿；`src/ops/backup.ts` + `pnpm backup:d1`/`verify:backup --rehearse` 已对含真实业务数据的远端 `stratify-preview` D1 快照（`27,743` 字节、35 条 `INSERT`）完成导出、本地隔离 SQLite 外键回放与零明文密钥审计；Preview `wrangler rollback` 回滚/前滚演练、公网 R2 流式上传与独立验证器确定性回放、真实 `/api/jev` 小额 live 代理冒烟（5/5 成功、0 回退）及 `pnpm audit --prod --audit-level high` 零高危漏洞核验均已通过。**待生产立项执行**：`stratify-prod` 生产 D1/R2 资源尚未创建，线上 Cron 定时任务（受 Free 5 槽位限制）与生产发布后长期监控看板尚未开启，因此不得声称 Production 已发布。
 
 ## 11. 标准验证命令
 
