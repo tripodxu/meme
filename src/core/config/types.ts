@@ -116,6 +116,11 @@ export interface AscentConfig {
    * H 越大，阶级占比回落后壁垒衰减越慢。
    */
   readonly occupancyMemoryDays: number;
+  /**
+   * rules-v17（ADR 0011）：各阶级结构性容量上限 ∈ (0, 1]；
+   * 期初存活占比 P[target] >= classCapacity[target] 时禁止上升。默认全 1 与 v16 逐位一致。
+   */
+  readonly classCapacity: readonly number[];
 }
 
 export interface CompetitionConfig {

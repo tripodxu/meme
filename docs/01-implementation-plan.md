@@ -289,6 +289,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **阶段 R4 收口与 D1 G6 校准冻结（2026-11-18，changes/0090）**：在 `N=200` 两体制上完成 `420` 项收口验证——（1）30 种子微扰吸收（`ΔValue=1e-4`）：两体制均实现 **30/30（100%）吸收**（`median D=0, max D=0`）；（2）30 种子五消融：体制 I 中 `O=fixed`（`|ΔO|=0.2818, |ΔMup|=0.0552`）与 `η=0`（`|ΔMup|=0.0728, |ΔO|=0.0540`）达到机制解释力，体制 II 中 `O=fixed`（`|ΔO|=0.4021`, `30/30` 超 `D95`）为主驱动。已在 `src/app/presets.ts` 冻结 `regime1_pyramid` 与 `regime2_continuum` 两套 D1 校准预设，**D1 目标（“2 体制 + 连续统”）正式通过 G6**；传统 `k≥3`（阶段 R2）与 Jev 因果实验（阶段 R3）待续。
 
+**P6-10（2026-11-18，阶段 R2-A / ADR 0011，changes/0091）**：按 ADR 0011 落地 `rules-v17`（`ascent.classCapacity` 默认全 1 与 v16 一致；`engine-v0.14.0` / `stratify-config-v11`），并以 30 个全新种子执行 240 run 正式 `k=3` 确认轮（`p6-10-80e12386`，240/240 完成、**0 排除、0 灭绝**）：`ARI median=0.8346`、`silhouette=0.5135`、`temporal=0.9833`、`antiPreset=true`，但 **`clusterSizes = [61, 117, 2]`（第三簇 `< 5`）**，判定 `not-accepted-return-to-rule-review`（`passes=false`）。D1 两体制已校准结论不变；传统 `k≥3` 离散结构仍未通过，不调参凑数。
+
 **最终发布闸门**：G0–G6 均有可复现证据；P7 不设独立编号闸门，其验收即本节各项。若某非关键项豁免，必须记录负责人、理由、到期日和回滚条件。
 
 **P7 进度记录（2026-11-18，changes/0074/0085/0086/0087）**：本地与 Cloudflare Preview（`https://stratify.logicc.top`，版本 `bd6cadab`）发布前硬化演练已完成：`src/ops/smoke.ts` + `pnpm smoke:worker` 公网冒烟全绿；`src/ops/backup.ts` + `pnpm backup:d1`/`verify:backup --rehearse` 已对含真实业务数据的远端 `stratify-preview` D1 快照（`27,743` 字节、35 条 `INSERT`）完成导出、本地隔离 SQLite 外键回放与零明文密钥审计；Preview `wrangler rollback` 回滚/前滚演练、公网 R2 流式上传与独立验证器确定性回放、真实 `/api/jev` 小额 live 代理冒烟（5/5 成功、0 回退）及 `pnpm audit --prod --audit-level high` 零高危漏洞核验均已通过。**待生产立项执行**：`stratify-prod` 生产 D1/R2 资源尚未创建，线上 Cron 定时任务（受 Free 5 槽位限制）与生产发布后长期监控看板尚未开启，因此不得声称 Production 已发布。

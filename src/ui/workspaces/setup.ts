@@ -592,6 +592,19 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
             },
           ),
           vectorRowEditor(
+            '阶级结构性容量上限 classCapacity[0..4] (rules-v17)',
+            'setup-class-capacity',
+            ['C0', 'C1', 'C2', 'C3', 'C4'],
+            config.ascent.classCapacity,
+            0.01,
+            1,
+            0.05,
+            (next) => {
+              updateConfig(app, { ascent: { classCapacity: next } });
+              refreshSidecars();
+            },
+          ),
+          vectorRowEditor(
             '重返原层折扣向量 returnDiscount[d=1..3]',
             'setup-return-discount',
             ['d=1', 'd=2', 'd=3'],

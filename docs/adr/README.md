@@ -36,3 +36,4 @@ ADR 不能静默推翻 `rule.md` 或 `docs/README.md` 的“唯一事实来源�
 | [0008](0008-stop-p6-engineering-track.md) | 停止 P6 结构目标，转工程轨道 | accepted（2026-11-11） | 不再新增 P6 确认轮/调参；G6 保持未通过；P3/P4/P5b/P7 解除 G6 前置；保留 rules-v15 与全部证据；未来重启须新 ADR + 全新预注册/seed |
 | [0009](0009-rules-v16-generational-succession.md) | rules-v16 代际更替与遗产折算机制 | accepted（2026-11-18） | 新增 `population.generationalMode` / `bequestRate` / `classInheritanceRate`；默认 `none` 与 v15 逐位一致；`rules-v16` / `engine-v0.13.0` / `config-v10`；以全新 P6-08 检验三类结构假说 |
 | [0010](0010-two-regime-continuum-silhouette-criterion.md) | 阶段 R1：修正“2 体制 + 连续统”几何判据并立项 P6-09 | accepted（2026-11-18） | 修订 `docs/07` §8.2 条件 4 补齐 `silhouette(k=3) >= 0.35 && >= silhouette(k=2)`（新旧口径同报，不追认 P6-06）；立项 `N=200` 全新 30 种子确认轮 `P6-09` |
+| [0011](0011-rules-v17-class-capacity.md) | 阶段 R2-A：`rules-v17` 阶级结构性容量上限与 P6-10 | accepted（2026-11-18） | 新增 `ascent.classCapacity`（默认全 1 与 v16 逐位一致）；`rules-v17` / `engine-v0.14.0` / `config-v11`；以全新 30 种子 `P6-10` 检验三类离散结构 |

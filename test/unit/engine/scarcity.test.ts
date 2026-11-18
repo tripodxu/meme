@@ -41,7 +41,7 @@ function config(scarcityWeight: number, occupancyMemoryDays = 0) {
       opportunity: { env0: [1, 1.5] },
       lifespan: { decay: [1.3, 1.15] },
       need: { needMultiplier: [1, 1.3] },
-      ascent: { crossDays: [30], scarcityWeight, occupancyMemoryDays },
+      ascent: { crossDays: [30], scarcityWeight, occupancyMemoryDays, classCapacity: [1, 1] },
       network: { maxDegree: 0, initialDegree: 0 },
       decision: { interval: 10_000 },
       schedule: { totalTicks: 5, statsStride: 1, snapshotStride: 100 },

@@ -518,6 +518,21 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
       '下一 tick 的 ascend 枚举与引擎复核仍看到正壁垒；改变 H 改变壁垒序列而非当前 tick 的瞬时压力。',
   },
   {
+    name: 'ascent.classCapacity',
+    unit: 'ratio',
+    formulaRef:
+      '03 §6 阶段 B / rule.md 9（rules-v17，ADR 0011）：P[target] >= classCapacity[target] 时禁止上升',
+    domain: {
+      kind: 'array',
+      length: 'classCount',
+      element: { kind: 'number', exclusiveMin: 0, max: 1 },
+    },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      '全 1 时与 rules-v16 逐位一致；下调 classCapacity[c] 后占比达上限时 ascend 不再合法。',
+  },
+  {
     name: 'competition.powerValueExponent',
     unit: 'exponent',
     formulaRef: '03 §6 阶段 B / rule.md 12',

@@ -40,6 +40,7 @@ describe('DEFAULT_RUN_CONFIG', () => {
       displacementShare: 1,
       scarcityWeight: 0,
       occupancyMemoryDays: 0,
+      classCapacity: [1, 1, 1, 1, 1],
     });
     expect(DEFAULT_RUN_CONFIG.schedule).toEqual({
       totalTicks: 3650,

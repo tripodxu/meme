@@ -65,6 +65,8 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     scarcityWeight: 0,
     // rules-v11：0 = 无占用压力记忆（逐位退回 v10）。
     occupancyMemoryDays: 0,
+    // rules-v17：全 1 = 无容量上限（逐位退回 v16）。
+    classCapacity: [1, 1, 1, 1, 1],
   },
   competition: {
     powerValueExponent: 0.35,

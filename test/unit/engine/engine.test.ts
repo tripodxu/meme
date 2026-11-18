@@ -448,6 +448,29 @@ describe('寿命与死亡（03 §6 阶段 E）', () => {
       }
     }
   });
+
+  it('rules-v17 ascent.classCapacity 达上限时拒绝上升（枚举与执行侧一致）', () => {
+    const config = makeConfig({
+      population: { initialPopulation: 10, classShares: [0.5, 0.5, 0, 0, 0] },
+      ascent: { classCapacity: [1, 0.4, 1, 1, 1] },
+      schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+    });
+    const state = createSimulation(config, SEED);
+    const c0 = state.society.agents.find((a) => a.alive && a.classIndex === 0);
+    if (c0 === undefined) throw new Error('缺少底层个体');
+    c0.value = 1e6;
+    const legal = enumerateLegalActions(state, c0.id);
+    expect(legal.actions).not.toContain('ascend');
+    const decisions = new Map(mockDecisions(state));
+    decisions.set(c0.id, { selectedAction: 'ascend' });
+    const result = step(state, decisions, { runId: 'local-cap-test' });
+    expect(
+      result.events.some(
+        (e) =>
+          e.type === 'action_invalid' && e.agentId === c0.id && e.reason === 'class_capacity_full',
+      ),
+    ).toBe(true);
+  });
 });
 
 describe('慢变量更新（03 §6 阶段 H）', () => {

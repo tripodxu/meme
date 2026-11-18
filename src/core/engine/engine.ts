@@ -146,6 +146,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   const flowCounts: number[][] = Array.from({ length: classCount }, () =>
     new Array<number>(classCount).fill(0),
   );
+  const classSharesStart = classShareSnapshot(agents, classCount);
 
   if (isDecisionTick) {
     for (const agent of actionOrder(state.seed, tick, agents)) {
@@ -168,6 +169,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
         eByClass,
         openness: opennessStart,
         occupancyPressure: occupancyPressureStart,
+        classSharesStart,
         events,
         executions,
         activeChanged,
@@ -520,6 +522,8 @@ interface ExecuteActionInput {
   readonly openness: number;
   /** v11：本 tick 的占用压力记忆（v10 时为瞬时阶级占比压力，由状态携带）。 */
   readonly occupancyPressure: readonly number[];
+  /** v17：本 tick 期初存活阶级占比快照（与枚举侧共享）。 */
+  readonly classSharesStart: readonly number[];
   readonly events: EventSequence;
   readonly executions: ExecutionRecord[];
   readonly activeChanged: Set<string>;
@@ -544,6 +548,7 @@ function executeAction(input: ExecuteActionInput): void {
     eByClass,
     openness,
     occupancyPressure,
+    classSharesStart,
     events,
     executions,
     activeChanged,
@@ -605,6 +610,17 @@ function executeAction(input: ExecuteActionInput): void {
         reason: 'insufficient_cushion',
       });
       record(null, 'stale_invalid', 'insufficient_cushion');
+      return;
+    }
+    const targetCap = config.ascent.classCapacity[agent.classIndex + 1] ?? 1;
+    if ((classSharesStart[agent.classIndex + 1] ?? 0) >= targetCap) {
+      events.emit({
+        type: 'action_invalid',
+        agentId: agent.id,
+        action: decision.selectedAction,
+        reason: 'class_capacity_full',
+      });
+      record(null, 'stale_invalid', 'class_capacity_full');
       return;
     }
     // rules-v8 位移准入（D-09，diagnosis §8）：仅 'class' 参照系——上升需击败目标阶级

@@ -10,6 +10,7 @@ import {
   CONFIG_SCHEMA_VERSION_V7,
   CONFIG_SCHEMA_VERSION_V8,
   CONFIG_SCHEMA_VERSION_V9,
+  CONFIG_SCHEMA_VERSION_V10,
   RULES_VERSION,
 } from '../control/versions.js';
 import { DEFAULT_RUN_CONFIG } from './defaults.js';
@@ -477,7 +478,25 @@ function migrateConfigInput(input: unknown): unknown {
     if (population['classInheritanceRate'] === undefined) {
       population['classInheritanceRate'] = defaults.classInheritanceRate;
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, population };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V10, population };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V10) {
+    const rawAscent = record['ascent'];
+    const ascent =
+      typeof rawAscent === 'object' && rawAscent !== null && !Array.isArray(rawAscent)
+        ? { ...(rawAscent as Record<string, unknown>) }
+        : {};
+    const rawPop = record['population'];
+    const popCount =
+      typeof rawPop === 'object' && rawPop !== null && !Array.isArray(rawPop)
+        ? (rawPop as Record<string, unknown>)['classCount']
+        : undefined;
+    const len =
+      typeof popCount === 'number' && Number.isInteger(popCount) && popCount >= 2 ? popCount : 5;
+    if (ascent['classCapacity'] === undefined) {
+      ascent['classCapacity'] = Array.from({ length: len }, () => 1);
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, ascent };
   }
   return record;
 }
@@ -772,6 +791,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'displacementShare',
       'scarcityWeight',
       'occupancyMemoryDays',
+      'classCapacity',
     ])
   ) {
     const ascent = root['ascent'];
@@ -800,6 +820,13 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'ascent.occupancyMemoryDays',
     );
     if (classCount !== undefined) {
+      checkRegisteredNumberArray(
+        collector,
+        ascent['classCapacity'],
+        '$.ascent.classCapacity',
+        'ascent.classCapacity',
+        classCount,
+      );
       checkRegisteredNumberArray(
         collector,
         ascent['crossDays'],

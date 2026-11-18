@@ -556,6 +556,22 @@
       "affectsBehavior": true
     },
     {
+      "name": "ascent.classCapacity",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 B / rule.md 9（rules-v17，ADR 0011）：P[target] >= classCapacity[target] 时禁止上升",
+      "domain": {
+        "kind": "array",
+        "length": "classCount",
+        "element": {
+          "kind": "number",
+          "exclusiveMin": 0,
+          "max": 1
+        }
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "competition.powerValueExponent",
       "unit": "exponent",
       "formulaRef": "03 §6 阶段 B / rule.md 12",

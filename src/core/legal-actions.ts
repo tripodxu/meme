@@ -300,8 +300,14 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
           crossBaseInfo.crossBase,
           state.society.occupancyPressure,
         );
+  const classSharesStart = classShareSnapshot(state.society.agents, config.population.classCount);
+  const targetCap =
+    ascendCost === null ? 1 : (config.ascent.classCapacity[agent.classIndex + 1] ?? 1);
+  const hasCapacity =
+    ascendCost !== null && (classSharesStart[agent.classIndex + 1] ?? 0) < targetCap;
   const canAscend =
     ascendCost !== null &&
+    hasCapacity &&
     agent.value >=
       ascendCost +
         computeAscendCushion(config, agent.classIndex + 1, eByClass, state.society.refIncome) +

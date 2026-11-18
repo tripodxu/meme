@@ -124,6 +124,19 @@ describe('validateRunConfig', () => {
     }
   });
 
+  it('migrates a v10 config by filling ascent.classCapacity=[1..1] (rules-v17)', () => {
+    const v10 = cloneConfig();
+    v10['schemaVersion'] = 'stratify-config-v10';
+    const ascent = v10['ascent'] as Record<string, unknown>;
+    delete ascent['classCapacity'];
+    const result = validateRunConfig(v10);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.ascent.classCapacity).toEqual([1, 1, 1, 1, 1]);
+    }
+  });
+
   it('migrates a v1 config by filling openness.updateMode=dynamic (P1-10)', () => {
     const v1 = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
     v1['schemaVersion'] = 'stratify-config-v1';
