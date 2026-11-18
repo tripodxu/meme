@@ -21,6 +21,7 @@ describe('DEFAULT_RUN_CONFIG', () => {
       generationalMode: 'none',
       bequestRate: 0,
       classInheritanceRate: 0,
+      talentInheritanceWeight: 0,
     });
     expect(DEFAULT_RUN_CONFIG.opportunity).toEqual({
       dailyBase: 2,

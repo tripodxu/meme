@@ -219,6 +219,20 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
               0.05,
             ),
           ),
+          field(
+            '代际天赋传递权重 (talentInheritanceWeight)',
+            numberInput(
+              'setup-talent-inheritance',
+              config.population.talentInheritanceWeight,
+              0,
+              2,
+              (val) => {
+                updateConfig(app, { population: { talentInheritanceWeight: val } });
+                refreshSidecars();
+              },
+              0.1,
+            ),
+          ),
         ]),
       ]),
 

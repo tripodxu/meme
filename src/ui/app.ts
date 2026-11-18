@@ -437,7 +437,7 @@ export class StratifyApp {
             h('span', { class: 'brand-sub', text: 'Sociology Observatory' }),
           ]),
           h('div', { class: 'brand-meta' }, [
-            badge('rules-v17', 'info'),
+            badge('rules-v18', 'info'),
             badge('G6 已通过（D1 两体制）', 'ok'),
           ]),
         ]),

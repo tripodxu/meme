@@ -18,6 +18,7 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     generationalMode: 'none',
     bequestRate: 0,
     classInheritanceRate: 0,
+    talentInheritanceWeight: 0,
   },
   opportunity: {
     dailyBase: 2,

@@ -38,6 +38,8 @@ export interface PopulationConfig {
   readonly bequestRate: number;
   /** rules-v16：出身阶级继承概率 ∈ [0,1]，默认 0。 */
   readonly classInheritanceRate: number;
+  /** rules-v18（R2-B）：代际天赋传递权重 γ ∈ [0,2]，默认 0（不生效）。 */
+  readonly talentInheritanceWeight: number;
 }
 
 export interface OpportunityConfig {

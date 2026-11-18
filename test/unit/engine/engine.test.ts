@@ -471,6 +471,41 @@ describe('寿命与死亡（03 §6 阶段 E）', () => {
       ),
     ).toBe(true);
   });
+
+  it('rules-v18 talentInheritanceWeight>0 在低开放度下按亲代阶级调节新生儿天赋 ge', () => {
+    const baseCfg = makeConfig({
+      population: {
+        initialPopulation: 10,
+        generationalMode: 'replace',
+        talentInheritanceWeight: 0,
+      },
+      schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+    });
+    const weightedCfg = makeConfig({
+      population: {
+        initialPopulation: 10,
+        generationalMode: 'replace',
+        talentInheritanceWeight: 1.5,
+      },
+      schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+    });
+    const s0 = createSimulation(baseCfg, SEED);
+    const s1 = createSimulation(weightedCfg, SEED);
+    s0.society.openness = 0.2;
+    s1.society.openness = 0.2;
+    const target0 = s0.society.agents.find((a) => a.alive && a.classIndex === 0);
+    const target1 = s1.society.agents.find((a) => a.alive && a.classIndex === 0);
+    if (!target0 || !target1) throw new Error('缺少底层个体');
+    target0.remainingLife = 0.5;
+    target1.remainingLife = 0.5;
+    const r0 = step(s0, new Map(mockDecisions(s0)), { runId: 'r2b-base' });
+    const r1 = step(s1, new Map(mockDecisions(s1)), { runId: 'r2b-weighted' });
+    const child0 = r0.state.society.agents[r0.state.society.agents.length - 1];
+    const child1 = r1.state.society.agents[r1.state.society.agents.length - 1];
+    if (!child0 || !child1) throw new Error('缺少新生个体');
+    expect(child1.ge).toBeLessThanOrEqual(child0.ge);
+    expect(child1.ge).toBeGreaterThanOrEqual(weightedCfg.attributes.ge.min);
+  });
 });
 
 describe('慢变量更新（03 §6 阶段 H）', () => {

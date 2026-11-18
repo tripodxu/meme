@@ -7,8 +7,8 @@
  * - `schemaVersion` 管序列化/导入导出；
  * - `promptVersion` 管 Jev 输入。
  */
-export const RULES_VERSION = 'rules-v17' as const;
-export const ENGINE_VERSION = 'engine-v0.14.0' as const;
+export const RULES_VERSION = 'rules-v18' as const;
+export const ENGINE_VERSION = 'engine-v0.15.0' as const;
 export const DECISION_SCHEMA_VERSION = 'stratify-decision-v1' as const;
 /**
  * 配置 schema：v6 起 `ascent.occupancyMemoryDays` 为必填（rules-v11 占用压力记忆，
@@ -32,8 +32,9 @@ export const DECISION_SCHEMA_VERSION = 'stratify-decision-v1' as const;
  * v8 → v9 缺失的 behavior 字段补 0（v8 时期无行为异质性，补 0 保持 v13 语义）。
  * v9 → v10 缺失的 generationalMode/bequestRate/classInheritanceRate 补 'none'/0/0（保持 v15 语义）。
  * v10 → v11 缺失的 ascent.classCapacity 补全 1 数组（保持 v16 语义）。
+ * v11 → v12 缺失的 population.talentInheritanceWeight 补 0（保持 v17 语义）。
  */
-export const CONFIG_SCHEMA_VERSION = 'stratify-config-v11' as const;
+export const CONFIG_SCHEMA_VERSION = 'stratify-config-v12' as const;
 export const CONFIG_SCHEMA_VERSION_V1 = 'stratify-config-v1' as const;
 export const CONFIG_SCHEMA_VERSION_V2 = 'stratify-config-v2' as const;
 export const CONFIG_SCHEMA_VERSION_V3 = 'stratify-config-v3' as const;
@@ -44,6 +45,7 @@ export const CONFIG_SCHEMA_VERSION_V7 = 'stratify-config-v7' as const;
 export const CONFIG_SCHEMA_VERSION_V8 = 'stratify-config-v8' as const;
 export const CONFIG_SCHEMA_VERSION_V9 = 'stratify-config-v9' as const;
 export const CONFIG_SCHEMA_VERSION_V10 = 'stratify-config-v10' as const;
+export const CONFIG_SCHEMA_VERSION_V11 = 'stratify-config-v11' as const;
 export const PARAMS_SCHEMA_VERSION = 'stratify-params-v1' as const;
 export const INITIAL_POPULATION_SCHEMA_VERSION = 'stratify-initial-population-v1' as const;
 export const PREREGISTRATION_SCHEMA_VERSION = 'stratify-preregistration-v1' as const;

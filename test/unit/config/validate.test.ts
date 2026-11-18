@@ -137,6 +137,19 @@ describe('validateRunConfig', () => {
     }
   });
 
+  it('migrates a v11 config by filling population.talentInheritanceWeight=0 (rules-v18)', () => {
+    const v11 = cloneConfig();
+    v11['schemaVersion'] = 'stratify-config-v11';
+    const pop = v11['population'] as Record<string, unknown>;
+    delete pop['talentInheritanceWeight'];
+    const result = validateRunConfig(v11);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.population.talentInheritanceWeight).toBe(0);
+    }
+  });
+
   it('migrates a v1 config by filling openness.updateMode=dynamic (P1-10)', () => {
     const v1 = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
     v1['schemaVersion'] = 'stratify-config-v1';

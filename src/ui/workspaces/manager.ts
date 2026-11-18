@@ -190,9 +190,9 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
       card('协议版本与运行时权威边界', [
         h('dl', { class: 'detail-list' }, [
           h('dt', { text: '规则版本' }),
-          h('dd', { text: 'rules-v17' }),
+          h('dd', { text: 'rules-v18' }),
           h('dt', { text: '配置 / 状态 Schema' }),
-          h('dd', { text: 'stratify-config-v11 / stratify-state-v5' }),
+          h('dd', { text: 'stratify-config-v12 / stratify-state-v5' }),
           h('dt', { text: '浏览器引擎权威性' }),
           h('dd', {}, [badge(authority.label, authority.authoritative ? 'ok' : 'warn')]),
           h('dt', { text: '统计校准闸门' }),

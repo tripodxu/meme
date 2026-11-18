@@ -893,9 +893,21 @@ function spawnSuccessorsForDeaths(
   for (const parent of diedThisTick) {
     const childId = agentIdFromIndex(agents.length);
     const draw = createDraw(seed, tick, childId);
-    const ge = sampleTruncatedLognormal(config.attributes.ge, (counter) =>
+    const geRaw = sampleTruncatedLognormal(config.attributes.ge, (counter) =>
       draw(RNG_EVENT_TAGS.initGe, counter),
     );
+    const ge =
+      config.population.talentInheritanceWeight === 0
+        ? geRaw
+        : clamp(
+            geRaw *
+              (1 +
+                config.population.talentInheritanceWeight *
+                  (parent.classIndex / Math.max(1, config.population.classCount - 1) - 0.5) *
+                  (1 - openness)),
+            config.attributes.ge.min,
+            config.attributes.ge.max,
+          );
     const hard = sampleTruncatedLognormal(config.attributes.hard, (counter) =>
       draw(RNG_EVENT_TAGS.initHard, counter),
     );

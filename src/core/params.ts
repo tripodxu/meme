@@ -133,6 +133,16 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest: 'replace 模式下 0 让新生个体从 0 层起步，1 让其继承亲代阶级。',
   },
   {
+    name: 'population.talentInheritanceWeight',
+    unit: 'dimensionless',
+    formulaRef:
+      '03 §6 阶段 E（rules-v18，R2-B）：ge_child = clamp(ge_raw*(1+γ*z[parentClass]*(1-O)), min, max)',
+    domain: { kind: 'number', min: 0, max: 2 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'replace 模式下 0 与 rules-v17 逐位一致；>0 时低开放度下亲代阶级调节新生儿天赋 ge。',
+  },
+  {
     name: 'opportunity.dailyBase',
     unit: 'value',
     formulaRef: '03 §6 阶段 C / rule.md 3',

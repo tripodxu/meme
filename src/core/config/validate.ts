@@ -11,6 +11,7 @@ import {
   CONFIG_SCHEMA_VERSION_V8,
   CONFIG_SCHEMA_VERSION_V9,
   CONFIG_SCHEMA_VERSION_V10,
+  CONFIG_SCHEMA_VERSION_V11,
   RULES_VERSION,
 } from '../control/versions.js';
 import { DEFAULT_RUN_CONFIG } from './defaults.js';
@@ -496,7 +497,18 @@ function migrateConfigInput(input: unknown): unknown {
     if (ascent['classCapacity'] === undefined) {
       ascent['classCapacity'] = Array.from({ length: len }, () => 1);
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, ascent };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V11, ascent };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V11) {
+    const rawPopulation = record['population'];
+    const population =
+      typeof rawPopulation === 'object' && rawPopulation !== null && !Array.isArray(rawPopulation)
+        ? { ...(rawPopulation as Record<string, unknown>) }
+        : {};
+    if (population['talentInheritanceWeight'] === undefined) {
+      population['talentInheritanceWeight'] = DEFAULT_RUN_CONFIG.population.talentInheritanceWeight;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, population };
   }
   return record;
 }
@@ -558,6 +570,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'generationalMode',
       'bequestRate',
       'classInheritanceRate',
+      'talentInheritanceWeight',
     ])
   ) {
     checkRegisteredNumber(
@@ -601,6 +614,12 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       population['classInheritanceRate'],
       '$.population.classInheritanceRate',
       'population.classInheritanceRate',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['talentInheritanceWeight'],
+      '$.population.talentInheritanceWeight',
+      'population.talentInheritanceWeight',
     );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(

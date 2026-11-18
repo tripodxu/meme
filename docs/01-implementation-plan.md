@@ -291,6 +291,8 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-10（2026-11-18，阶段 R2-A / ADR 0011，changes/0091）**：按 ADR 0011 落地 `rules-v17`（`ascent.classCapacity` 默认全 1 与 v16 一致；`engine-v0.14.0` / `stratify-config-v11`），并以 30 个全新种子执行 240 run 正式 `k=3` 确认轮（`p6-10-80e12386`，240/240 完成、**0 排除、0 灭绝**）：`ARI median=0.8346`、`silhouette=0.5135`、`temporal=0.9833`、`antiPreset=true`，但 **`clusterSizes = [61, 117, 2]`（第三簇 `< 5`）**，判定 `not-accepted-return-to-rule-review`（`passes=false`）。D1 两体制已校准结论不变；传统 `k≥3` 离散结构仍未通过，不调参凑数。
 
+**阶段 R2-B 探索探针（2026-11-18，ADR 0012，changes/0092）**：落地 `rules-v18`（`population.talentInheritanceWeight` 默认 0 与 v17 一致；`engine-v0.15.0` / `stratify-config-v12`），完成 30-run 探索探针（`explore-r2b-seed-001..005` × 6 单元，30/30 有效、0 灭绝）：`k=2` `[10,20]` `ARI=1.000`、`silhouette=0.4576`；`k=3` `[10,16,4]` `ARI median=0.6145 < 0.85`、`silhouette=0.4302 < 0.45`，未达探索门槛并按纪律停止调参。下一步聚焦阶段 R3（30-seed 真实 Jev 提示词风格因果实验）。
+
 **最终发布闸门**：G0–G6 均有可复现证据；P7 不设独立编号闸门，其验收即本节各项。若某非关键项豁免，必须记录负责人、理由、到期日和回滚条件。
 
 **P7 进度记录（2026-11-18，changes/0074/0085/0086/0087）**：本地与 Cloudflare Preview（`https://stratify.logicc.top`，版本 `bd6cadab`）发布前硬化演练已完成：`src/ops/smoke.ts` + `pnpm smoke:worker` 公网冒烟全绿；`src/ops/backup.ts` + `pnpm backup:d1`/`verify:backup --rehearse` 已对含真实业务数据的远端 `stratify-preview` D1 快照（`27,743` 字节、35 条 `INSERT`）完成导出、本地隔离 SQLite 外键回放与零明文密钥审计；Preview `wrangler rollback` 回滚/前滚演练、公网 R2 流式上传与独立验证器确定性回放、真实 `/api/jev` 小额 live 代理冒烟（5/5 成功、0 回退）及 `pnpm audit --prod --audit-level high` 零高危漏洞核验均已通过。**待生产立项执行**：`stratify-prod` 生产 D1/R2 资源尚未创建，线上 Cron 定时任务（受 Free 5 槽位限制）与生产发布后长期监控看板尚未开启，因此不得声称 Production 已发布。
