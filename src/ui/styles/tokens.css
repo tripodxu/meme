@@ -1,131 +1,210 @@
-:root,
-[data-theme='obsidian'] {
-  /* 表面层级 (Layered Obsidian Surfaces) */
-  --bg-canvas: #060912;
-  --bg-canvas-glow: radial-gradient(
-    ellipse 80% 50% at 50% -15%,
-    rgba(56, 189, 248, 0.09),
-    rgba(167, 139, 250, 0.04) 45%,
-    transparent 80%
-  );
-  --bg-panel: #0b111f;
-  --bg-panel-subtle: #0e1628;
-  --bg-elevated: #121c31;
-  --bg-interactive: #192742;
-  --bg-glass: rgba(10, 15, 28, 0.82);
-  --bg-card-header: rgba(18, 28, 49, 0.48);
+@layer tokens {
+  :root,
+  [data-theme='obsidian'] {
+    /* Quiet Instrument — 中性石墨灰阶 (OKLCH) */
+    --n-0: oklch(0.145 0.006 255);
+    --n-1: oklch(0.175 0.007 255);
+    --n-2: oklch(0.205 0.008 255);
+    --n-3: oklch(0.255 0.009 255);
 
-  /* 边框与分割线 (Precision Hairlines) */
-  --border-subtle: rgba(148, 163, 184, 0.13);
-  --border-strong: rgba(148, 163, 184, 0.25);
-  --border-highlight: rgba(56, 189, 248, 0.42);
-  --border-focus: #38bdf8;
+    --line: oklch(0.32 0.01 255 / 0.55);
+    --line-strong: oklch(0.42 0.012 255 / 0.72);
 
-  /* 文本与主题色 (WCAG AA Contrast) */
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent: #38bdf8;
-  --accent-strong: #0ea5e9;
-  --accent-soft: rgba(56, 189, 248, 0.13);
-  --accent-glow: rgba(56, 189, 248, 0.24);
-  --violet: #a78bfa;
-  --violet-soft: rgba(167, 139, 250, 0.14);
-  --gold: #f59e0b;
-  --gold-soft: rgba(245, 158, 11, 0.14);
+    --fg-1: oklch(0.96 0.003 255);
+    --fg-2: oklch(0.76 0.008 255);
+    --fg-3: oklch(0.6 0.01 255);
+    --fg-disabled: oklch(0.54 0.01 255);
 
-  /* 五阶级中性科学色板 (5-Class Semantic Palette — 禁红绿股票偏见) */
-  --class-0-color: #64748b;
-  --class-1-color: #38bdf8;
-  --class-2-color: #2dd4bf;
-  --class-3-color: #a78bfa;
-  --class-4-color: #f59e0b;
+    /* 唯一界面强调色 */
+    --accent: oklch(0.78 0.11 230);
+    --accent-strong: oklch(0.7 0.13 230);
+    --accent-fg: oklch(0.16 0.03 230);
+    --accent-wash: oklch(0.78 0.11 230 / 0.12);
 
-  /* 行动与状态语义色 */
-  --action-accumulate: #94a3b8;
-  --action-ascend: #38bdf8;
-  --action-descend: #fb923c;
-  --action-compete: #c084fc;
+    /* 语义状态色（必配图标或文本） */
+    --ok: oklch(0.74 0.13 160);
+    --warn: oklch(0.8 0.13 80);
+    --danger: oklch(0.68 0.17 20);
+    --replay: oklch(0.7 0.12 280);
 
-  --status-ok: #10b981;
-  --status-warn: #f59e0b;
-  --status-danger: #f43f5e;
-  --status-replay: #6366f1;
+    /* 五阶级中性科学色板（明度与色相分离，禁红绿股票偏见） */
+    --class-0: oklch(0.62 0.02 255);
+    --class-1: oklch(0.7 0.1 235);
+    --class-2: oklch(0.74 0.1 180);
+    --class-3: oklch(0.72 0.12 295);
+    --class-4: oklch(0.82 0.13 75);
 
-  /* 排印与空间标尺 */
-  --font-sans:
-    'Inter', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', system-ui, -apple-system,
-    sans-serif;
-  --font-mono:
-    'JetBrains Mono', 'Fira Code', 'Cascadia Mono', ui-monospace, 'SFMono-Regular', monospace;
+    /* 行动编码色 */
+    --action-accumulate: oklch(0.68 0.02 255);
+    --action-ascend: oklch(0.76 0.11 230);
+    --action-descend: oklch(0.76 0.14 55);
+    --action-compete: oklch(0.72 0.13 305);
 
-  --text-2xs: 10px;
-  --text-xs: 11px;
-  --text-sm: 12.5px;
-  --text-base: 14px;
-  --text-md: 15px;
-  --text-lg: 17px;
-  --text-xl: 20px;
-  --text-kpi: 22px;
+    /* 两级投影（仅浮层/对话框） */
+    --elev-1: 0 4px 16px oklch(0.06 0.01 255 / 0.48);
+    --elev-2: 0 12px 32px oklch(0.05 0.01 255 / 0.62);
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
+    /* 兼容映射别名 */
+    --bg-canvas: var(--n-0);
+    --bg-canvas-glow: none;
+    --bg-panel: var(--n-1);
+    --bg-panel-subtle: oklch(0.16 0.006 255);
+    --bg-elevated: var(--n-2);
+    --bg-interactive: var(--n-3);
+    --bg-glass: oklch(0.155 0.006 255 / 0.88);
+    --bg-card-header: oklch(0.19 0.007 255 / 0.65);
 
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 14px;
-  --radius-pill: 999px;
+    --border-subtle: var(--line);
+    --border-strong: var(--line-strong);
+    --border-highlight: oklch(0.78 0.11 230 / 0.45);
+    --border-focus: var(--accent);
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.36);
-  --shadow-glow: 0 0 0 1px rgba(56, 189, 248, 0.25), 0 12px 32px rgba(8, 145, 178, 0.18);
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-}
+    --text-primary: var(--fg-1);
+    --text-secondary: var(--fg-2);
+    --text-muted: var(--fg-3);
 
-[data-theme='paper'] {
-  --bg-canvas: #f1f5f9;
-  --bg-canvas-glow: radial-gradient(
-    ellipse 80% 50% at 50% -15%,
-    rgba(2, 132, 199, 0.07),
-    rgba(99, 102, 241, 0.04) 45%,
-    transparent 80%
-  );
-  --bg-panel: #ffffff;
-  --bg-panel-subtle: #f8fafc;
-  --bg-elevated: #f1f5f9;
-  --bg-interactive: #e2e8f0;
-  --bg-glass: rgba(255, 255, 255, 0.88);
-  --bg-card-header: rgba(248, 250, 252, 0.85);
+    --accent-soft: var(--accent-wash);
+    --accent-glow: oklch(0.78 0.11 230 / 0.18);
+    --violet: var(--class-3);
+    --violet-soft: oklch(0.72 0.12 295 / 0.14);
+    --gold: var(--class-4);
+    --gold-soft: oklch(0.82 0.13 75 / 0.14);
 
-  --border-subtle: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --border-highlight: rgba(2, 132, 199, 0.42);
-  --border-focus: #0284c7;
+    --class-0-color: var(--class-0);
+    --class-1-color: var(--class-1);
+    --class-2-color: var(--class-2);
+    --class-3-color: var(--class-3);
+    --class-4-color: var(--class-4);
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --accent: #0284c7;
-  --accent-strong: #0369a1;
-  --accent-soft: rgba(2, 132, 199, 0.1);
-  --accent-glow: rgba(2, 132, 199, 0.18);
-  --violet: #7c3aed;
-  --violet-soft: rgba(124, 58, 237, 0.1);
-  --gold: #d97706;
-  --gold-soft: rgba(217, 119, 6, 0.11);
+    --status-ok: var(--ok);
+    --status-warn: var(--warn);
+    --status-danger: var(--danger);
+    --status-replay: var(--replay);
 
-  --class-0-color: #64748b;
-  --class-1-color: #0284c7;
-  --class-2-color: #0d9488;
-  --class-3-color: #7c3aed;
-  --class-4-color: #d97706;
+    /* 排印、字阶与空间标尺 */
+    --font-sans:
+      'Inter Variable', 'Inter', 'HarmonyOS Sans SC', 'PingFang SC', 'Segoe UI',
+      'Microsoft YaHei UI', system-ui, -apple-system, sans-serif;
+    --font-mono:
+      'JetBrains Mono', 'Cascadia Mono', 'Fira Code', ui-monospace, 'SFMono-Regular', monospace;
 
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-  --shadow-glow: 0 0 0 1px rgba(2, 132, 199, 0.25), 0 10px 24px rgba(2, 132, 199, 0.12);
+    --t-micro: 11px;
+    --t-xs: 12px;
+    --t-sm: 13px;
+    --t-md: 14px;
+    --t-lg: 16px;
+    --t-xl: 20px;
+    --t-num: 28px;
+
+    --text-2xs: var(--t-micro);
+    --text-xs: var(--t-xs);
+    --text-sm: var(--t-sm);
+    --text-base: var(--t-sm);
+    --text-md: var(--t-md);
+    --text-lg: var(--t-lg);
+    --text-xl: var(--t-xl);
+    --text-kpi: var(--t-num);
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 8px;
+    --radius-pill: 999px;
+
+    --ctrl-sm: 24px;
+    --ctrl-md: 28px;
+    --ctrl-lg: 32px;
+
+    --shadow-sm: none;
+    --shadow: var(--elev-1);
+    --shadow-glow: none;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-theme='paper'] {
+    --n-0: oklch(0.97 0.003 255);
+    --n-1: oklch(0.995 0.001 255);
+    --n-2: oklch(0.945 0.005 255);
+    --n-3: oklch(0.9 0.008 255);
+
+    --line: oklch(0.84 0.008 255);
+    --line-strong: oklch(0.72 0.012 255);
+
+    --fg-1: oklch(0.18 0.015 255);
+    --fg-2: oklch(0.38 0.015 255);
+    --fg-3: oklch(0.52 0.012 255);
+    --fg-disabled: oklch(0.6 0.01 255);
+
+    --accent: oklch(0.55 0.14 235);
+    --accent-strong: oklch(0.48 0.15 235);
+    --accent-fg: oklch(0.99 0.002 255);
+    --accent-wash: oklch(0.55 0.14 235 / 0.1);
+
+    --ok: oklch(0.55 0.14 160);
+    --warn: oklch(0.62 0.15 70);
+    --danger: oklch(0.55 0.19 22);
+    --replay: oklch(0.52 0.15 280);
+
+    --class-0: oklch(0.52 0.02 255);
+    --class-1: oklch(0.55 0.14 235);
+    --class-2: oklch(0.56 0.12 180);
+    --class-3: oklch(0.53 0.16 295);
+    --class-4: oklch(0.64 0.15 70);
+
+    --action-accumulate: oklch(0.52 0.02 255);
+    --action-ascend: oklch(0.55 0.14 235);
+    --action-descend: oklch(0.6 0.16 50);
+    --action-compete: oklch(0.54 0.16 300);
+
+    --elev-1: 0 2px 10px oklch(0.2 0.01 255 / 0.08);
+    --elev-2: 0 10px 28px oklch(0.2 0.01 255 / 0.14);
+
+    --bg-canvas: var(--n-0);
+    --bg-canvas-glow: none;
+    --bg-panel: var(--n-1);
+    --bg-panel-subtle: oklch(0.98 0.002 255);
+    --bg-elevated: var(--n-2);
+    --bg-interactive: var(--n-3);
+    --bg-glass: oklch(0.995 0.001 255 / 0.9);
+    --bg-card-header: oklch(0.975 0.003 255);
+
+    --border-subtle: var(--line);
+    --border-strong: var(--line-strong);
+    --border-highlight: oklch(0.55 0.14 235 / 0.42);
+    --border-focus: var(--accent);
+
+    --text-primary: var(--fg-1);
+    --text-secondary: var(--fg-2);
+    --text-muted: var(--fg-3);
+
+    --accent-soft: var(--accent-wash);
+    --accent-glow: oklch(0.55 0.14 235 / 0.14);
+    --violet: var(--class-3);
+    --violet-soft: oklch(0.53 0.16 295 / 0.1);
+    --gold: var(--class-4);
+    --gold-soft: oklch(0.64 0.15 70 / 0.11);
+
+    --class-0-color: var(--class-0);
+    --class-1-color: var(--class-1);
+    --class-2-color: var(--class-2);
+    --class-3-color: var(--class-3);
+    --class-4-color: var(--class-4);
+
+    --status-ok: var(--ok);
+    --status-warn: var(--warn);
+    --status-danger: var(--danger);
+    --status-replay: var(--replay);
+
+    --shadow-sm: none;
+    --shadow: var(--elev-1);
+    --shadow-glow: none;
+  }
 }

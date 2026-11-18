@@ -250,18 +250,36 @@ export class LivingArenaCanvas {
     this.tooltip.hidden = false;
   }
 
-  private laneGeometry(classCount: number): {
+  private laneGeometry(
+    classCount: number,
+    classAlive: readonly number[],
+  ): {
     left: number;
     right: number;
     top: number;
-    laneH: number;
+    lanes: readonly { readonly y0: number; readonly h: number }[];
   } {
     const left = 88;
     const right = this.width - 84;
     const top = 16;
     const usableH = this.height - 32;
-    const laneH = usableH / Math.max(1, classCount);
-    return { left, right, top, laneH };
+    const emptyCount = classAlive.filter((n) => n === 0).length;
+    const collapsedH = 24;
+    const activeCount = Math.max(0, classCount - emptyCount);
+    const activeH =
+      activeCount > 0
+        ? Math.max(collapsedH, (usableH - emptyCount * collapsedH) / activeCount)
+        : usableH / Math.max(1, classCount);
+
+    const lanes: { y0: number; h: number }[] = new Array(classCount);
+    let cursorY = top;
+    for (let visualRow = 0; visualRow < classCount; visualRow += 1) {
+      const c = classCount - 1 - visualRow;
+      const h = activeCount > 0 && (classAlive[c] ?? 0) === 0 ? collapsedH : activeH;
+      lanes[c] = { y0: cursorY, h };
+      cursorY += h;
+    }
+    return { left, right, top, lanes };
   }
 
   private recomputeTargets(): void {
@@ -271,7 +289,11 @@ export class LivingArenaCanvas {
     }
     const agents = this.state.society.agents;
     const classCount = this.state.config.population.classCount;
-    const { left, right, top, laneH } = this.laneGeometry(classCount);
+    const classAlive = new Array<number>(classCount).fill(0);
+    for (const agent of agents) {
+      if (agent.alive) classAlive[agent.classIndex] = (classAlive[agent.classIndex] ?? 0) + 1;
+    }
+    const { left, right, lanes } = this.laneGeometry(classCount, classAlive);
     const innerW = Math.max(60, right - left - 24);
 
     // 计算最大 log(1+value) 以便财富轴平滑映射
@@ -295,9 +317,9 @@ export class LivingArenaCanvas {
     for (let idx = 0; idx < agents.length; idx += 1) {
       const agent = agents[idx];
       if (agent === undefined) continue;
-      const visualRow = classCount - 1 - agent.classIndex;
-      const laneCenterY = top + visualRow * laneH + laneH * 0.5;
-      const jitterY = (goldenPhase(idx, 3) - 0.5) * Math.max(8, laneH * 0.56);
+      const lane = lanes[agent.classIndex] ?? { y0: 16, h: 48 };
+      const laneCenterY = lane.y0 + lane.h * 0.5;
+      const jitterY = (goldenPhase(idx, 3) - 0.5) * Math.max(8, lane.h * 0.56);
       const ty = laneCenterY + jitterY;
 
       let tx: number;
@@ -497,8 +519,7 @@ export class LivingArenaCanvas {
 
     const config = this.state.config;
     const classCount = config.population.classCount;
-    const { left, right, top, laneH } = this.laneGeometry(classCount);
-    const innerW = Math.max(60, right - left - 24);
+    const innerWRef = { val: 0 };
 
     // 统计每层存活数与最大 logVal（用于画升阶门槛线）
     const classAlive = new Array<number>(classCount).fill(0);
@@ -509,6 +530,9 @@ export class LivingArenaCanvas {
       const lv = Math.log1p(Math.max(0, agent.value));
       if (lv > maxLogVal) maxLogVal = lv;
     }
+    const { left, right, lanes } = this.laneGeometry(classCount, classAlive);
+    const innerW = Math.max(60, right - left - 24);
+    innerWRef.val = innerW;
     for (let c = 0; c < classCount - 1; c += 1) {
       const th = this.classAscendThreshold(c);
       if (th !== null) {
@@ -517,10 +541,13 @@ export class LivingArenaCanvas {
       }
     }
 
-    // 1. 绘制五条阶级水平生态泳道
+    // 1. 绘制五条阶级水平生态泳道（空泳道自动折叠为紧凑条）
     for (let c = 0; c < classCount; c += 1) {
       const visualRow = classCount - 1 - c;
-      const y0 = top + visualRow * laneH;
+      const lane = lanes[c] ?? { y0: 16, h: 48 };
+      const y0 = lane.y0;
+      const laneH = lane.h;
+      const compact = laneH < 34;
       const color = palette[c] ?? '#38bdf8';
 
       ctx.fillStyle =
@@ -535,17 +562,23 @@ export class LivingArenaCanvas {
 
       // 左侧阶级色标条与标题
       ctx.fillStyle = color;
-      ctx.fillRect(left - 4, y0 + 6, 3, laneH - 12);
+      ctx.fillRect(left - 4, y0 + 4, 3, laneH - 8);
 
       ctx.font = '600 11.5px Inter, system-ui, sans-serif';
       ctx.textAlign = 'right';
       ctx.fillStyle = isPaper ? '#0f172a' : '#e2e8f0';
-      ctx.fillText(`${classSymbol(c)} C${c}`, left - 12, y0 + laneH * 0.44);
+      ctx.fillText(
+        `${classSymbol(c)} C${c}`,
+        left - 12,
+        compact ? y0 + laneH * 0.65 : y0 + laneH * 0.44,
+      );
 
-      ctx.font = '10.5px JetBrains Mono, monospace';
-      ctx.fillStyle = isPaper ? '#64748b' : '#94a3b8';
-      const envVal = this.state.society.eByClass[c] ?? 1;
-      ctx.fillText(`E=${envVal.toFixed(2)}`, left - 12, y0 + laneH * 0.44 + 14);
+      if (!compact) {
+        ctx.font = '10.5px JetBrains Mono, monospace';
+        ctx.fillStyle = isPaper ? '#64748b' : '#94a3b8';
+        const envVal = this.state.society.eByClass[c] ?? 1;
+        ctx.fillText(`E=${envVal.toFixed(2)}`, left - 12, y0 + laneH * 0.44 + 14);
+      }
 
       // 右侧存活人数统计与迷你占比柱
       const count = classAlive[c] ?? 0;
@@ -553,11 +586,13 @@ export class LivingArenaCanvas {
         this.state.society.agents.length > 0 ? count / this.state.society.agents.length : 0;
       ctx.textAlign = 'left';
       ctx.fillStyle = isPaper ? '#334155' : '#cbd5e1';
-      ctx.fillText(`${count}人`, right + 10, y0 + laneH * 0.46);
-      ctx.fillStyle = isPaper ? 'rgba(15,23,42,0.08)' : 'rgba(148,163,184,0.15)';
-      ctx.fillRect(right + 10, y0 + laneH * 0.46 + 6, 54, 5);
-      ctx.fillStyle = color;
-      ctx.fillRect(right + 10, y0 + laneH * 0.46 + 6, Math.round(54 * Math.min(1, share)), 5);
+      ctx.fillText(`${count}人`, right + 10, compact ? y0 + laneH * 0.65 : y0 + laneH * 0.46);
+      if (!compact) {
+        ctx.fillStyle = isPaper ? 'rgba(15,23,42,0.08)' : 'rgba(148,163,184,0.15)';
+        ctx.fillRect(right + 10, y0 + laneH * 0.46 + 6, 54, 5);
+        ctx.fillStyle = color;
+        ctx.fillRect(right + 10, y0 + laneH * 0.46 + 6, Math.round(54 * Math.min(1, share)), 5);
+      }
 
       // 财富模式下画出该阶级向上跨越门槛虚线
       if (this.layoutMode === 'wealth' && c < classCount - 1) {

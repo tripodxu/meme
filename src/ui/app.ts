@@ -1,15 +1,8 @@
 import { computeConfigHash, computeParamsHash } from '../core/config/hash.js';
 import type { RunConfig } from '../core/config/types.js';
-import { validateRunConfig } from '../core/config/validate.js';
 import type { AgentId } from '../core/control/ids.js';
 import type { PromptStyle } from '../decision/types.js';
-import {
-  findPreset,
-  SANDBOX_SCENARIOS,
-  WEB_PRESETS,
-  type SandboxScenario,
-  type WebPreset,
-} from '../app/presets.js';
+import { findPreset, SANDBOX_SCENARIOS, type SandboxScenario } from '../app/presets.js';
 import { RunController } from '../app/run-controller.js';
 import { IdbRunStore, type StoredRunMeta } from '../app/idb-store.js';
 import { exceedsLiveSuggestion, type BrowserLiveOptions } from '../app/live-policy.js';
@@ -22,7 +15,28 @@ import {
   type PairedBatchForestSummary,
   type WindowKey,
 } from '../app/view-model.js';
+import { CommandPalette } from './components/command-palette.js';
+import { confirmDialog } from './components/dialog.js';
+import { icon } from './components/icon.js';
+import { ToastStack } from './components/toast.js';
+import { CLAIMS } from './copy/claims.js';
 import { append, badge, clear, h, setTextIfChanged } from './dom.js';
+import {
+  persistLastConfigFromDraft,
+  persistRecentRunsMeta,
+  persistSettingsToStorage,
+  restoreLastConfigToDraft,
+  restoreSettingsFromStorage,
+} from './services/persistence.js';
+import { DraftStore } from './state/draft-store.js';
+import {
+  UiStore,
+  type AgentAliveFilter,
+  type EventFilter,
+  type SurfaceId,
+  type TabId,
+  type ThemeId,
+} from './state/ui-store.js';
 import { InspectorView, type AgentSortMode } from './workspaces/inspector.js';
 import { renderManager } from './workspaces/manager.js';
 import { renderOverview } from './workspaces/overview.js';
@@ -30,8 +44,7 @@ import { renderReplay } from './workspaces/replay.js';
 import { SandboxView } from './workspaces/sandbox.js';
 import { renderSetup } from './workspaces/setup.js';
 
-export type SurfaceId = 'testbench' | 'sandbox';
-export type TabId = 'setup' | 'overview' | 'inspector' | 'replay' | 'manager';
+export type { SurfaceId, TabId } from './state/ui-store.js';
 
 const TABS: readonly { id: TabId; label: string; hint: string }[] = [
   { id: 'setup', label: '① 实验设置', hint: '预设、七维参数与预检' },
@@ -85,6 +98,8 @@ interface ShellRefs {
   readonly hudStateLine: HTMLElement;
   readonly modeSandboxBtn: HTMLButtonElement;
   readonly modeBenchBtn: HTMLButtonElement;
+  readonly navDivider: HTMLElement;
+  readonly tabList: HTMLElement;
   readonly tabButtons: ReadonlyMap<TabId, HTMLButtonElement>;
   readonly noticeHost: HTMLElement;
   readonly sandboxHost: HTMLElement;
@@ -100,41 +115,184 @@ interface ShellRefs {
 export class StratifyApp {
   readonly controller = new RunController();
   readonly store = new IdbRunStore();
+  readonly ui = new UiStore();
+  readonly draft = new DraftStore();
+  readonly toasts = new ToastStack();
+  private readonly palette = new CommandPalette();
   recentRuns: readonly StoredRunMeta[] = [];
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSavedSignature = '';
 
-  surface: SurfaceId = 'testbench';
-  activeTab: TabId = 'setup';
-  overviewWindow: WindowKey = 'all';
-  overviewTableMode = false;
-  wealthLogScale = false;
-  zoomRange: readonly [number, number] = [0, 100];
-  eventFilter: 'all' | 'mobility' | 'compete' | 'death' = 'all';
+  get surface(): SurfaceId {
+    return this.ui.surface.get();
+  }
+  set surface(v: SurfaceId) {
+    this.ui.surface.set(v);
+  }
+  get activeTab(): TabId {
+    return this.ui.activeTab.get();
+  }
+  set activeTab(v: TabId) {
+    this.ui.activeTab.set(v);
+  }
+  get overviewWindow(): WindowKey {
+    return this.ui.overviewWindow.get();
+  }
+  set overviewWindow(v: WindowKey) {
+    this.ui.overviewWindow.set(v);
+  }
+  get overviewTableMode(): boolean {
+    return this.ui.overviewTableMode.get();
+  }
+  set overviewTableMode(v: boolean) {
+    this.ui.overviewTableMode.set(v);
+  }
+  get wealthLogScale(): boolean {
+    return this.ui.wealthLogScale.get();
+  }
+  set wealthLogScale(v: boolean) {
+    this.ui.wealthLogScale.set(v);
+  }
+  get zoomRange(): readonly [number, number] {
+    return this.ui.zoomRange.get();
+  }
+  set zoomRange(v: readonly [number, number]) {
+    this.ui.zoomRange.set(v);
+  }
+  get eventFilter(): EventFilter {
+    return this.ui.eventFilter.get();
+  }
+  set eventFilter(v: EventFilter) {
+    this.ui.eventFilter.set(v);
+  }
+  get selectedAgentId(): string | null {
+    return this.ui.selectedAgentId.get();
+  }
+  set selectedAgentId(v: string | null) {
+    this.ui.selectedAgentId.set(v);
+  }
+  get agentQuery(): string {
+    return this.ui.agentQuery.get();
+  }
+  set agentQuery(v: string) {
+    this.ui.agentQuery.set(v);
+  }
+  get agentFilter(): AgentAliveFilter {
+    return this.ui.agentFilter.get();
+  }
+  set agentFilter(v: AgentAliveFilter) {
+    this.ui.agentFilter.set(v);
+  }
+  get agentClass(): number {
+    return this.ui.agentClass.get();
+  }
+  set agentClass(v: number) {
+    this.ui.agentClass.set(v);
+  }
+  get agentSort(): AgentSortMode {
+    return this.ui.agentSort.get();
+  }
+  set agentSort(v: AgentSortMode) {
+    this.ui.agentSort.set(v);
+  }
+  get theme(): ThemeId {
+    return this.ui.theme.get();
+  }
+  set theme(v: ThemeId) {
+    this.ui.theme.set(v);
+  }
+  get speed(): number {
+    return this.ui.speed.get();
+  }
+  set speed(v: number) {
+    this.ui.speed.set(v);
+  }
+  get notice(): string | null {
+    return this.ui.notice.get();
+  }
+  set notice(v: string | null) {
+    this.ui.notice.set(v);
+  }
+  get importedBundle(): WebRunBundle | null {
+    return this.ui.importedBundle.get();
+  }
+  set importedBundle(v: WebRunBundle | null) {
+    this.ui.importedBundle.set(v);
+  }
+  get batchForestSummary(): PairedBatchForestSummary | null {
+    return this.ui.batchForestSummary.get();
+  }
+  set batchForestSummary(v: PairedBatchForestSummary | null) {
+    this.ui.batchForestSummary.set(v);
+  }
 
-  draftConfig: RunConfig;
-  draftSeed: string;
-  draftPolicy: OfflinePolicyId;
-  /** live Key 只驻留内存；不写 localStorage/IndexedDB/导出 bundle。 */
-  liveApiKey = '';
-  liveModel = 'jev-1.13.0';
-  livePromptStyle: PromptStyle = 'neutral';
-  liveMaxCalls = 200;
-  liveMaxInputTokens = 200_000;
-  liveMaxMinutes = 30;
-  /** 超出 06 建议规模时，必须显式勾选后才能启动 live。 */
-  liveScaleConfirmed = false;
-  selectedPresetId: string;
-  notice: string | null = null;
-  importedBundle: WebRunBundle | null = null;
-  batchForestSummary: PairedBatchForestSummary | null = null;
-  selectedAgentId: string | null = null;
-  agentQuery = '';
-  agentFilter: 'all' | 'alive' | 'dead' = 'all';
-  agentClass = -1;
-  agentSort: AgentSortMode = 'id';
-  theme: 'obsidian' | 'paper' = 'obsidian';
-  speed = 1;
+  get draftConfig(): RunConfig {
+    return this.draft.draftConfig.get();
+  }
+  set draftConfig(v: RunConfig) {
+    this.draft.draftConfig.set(v);
+  }
+  get draftSeed(): string {
+    return this.draft.draftSeed.get();
+  }
+  set draftSeed(v: string) {
+    this.draft.draftSeed.set(v);
+  }
+  get draftPolicy(): OfflinePolicyId {
+    return this.draft.draftPolicy.get();
+  }
+  set draftPolicy(v: OfflinePolicyId) {
+    this.draft.draftPolicy.set(v);
+  }
+  get selectedPresetId(): string {
+    return this.draft.selectedPresetId.get();
+  }
+  set selectedPresetId(v: string) {
+    this.draft.selectedPresetId.set(v);
+  }
+  get liveApiKey(): string {
+    return this.draft.liveApiKey;
+  }
+  set liveApiKey(v: string) {
+    this.draft.liveApiKey = v;
+  }
+  get liveModel(): string {
+    return this.draft.liveModel;
+  }
+  set liveModel(v: string) {
+    this.draft.liveModel = v;
+  }
+  get livePromptStyle(): PromptStyle {
+    return this.draft.livePromptStyle;
+  }
+  set livePromptStyle(v: PromptStyle) {
+    this.draft.livePromptStyle = v;
+  }
+  get liveMaxCalls(): number {
+    return this.draft.liveMaxCalls;
+  }
+  set liveMaxCalls(v: number) {
+    this.draft.liveMaxCalls = v;
+  }
+  get liveMaxInputTokens(): number {
+    return this.draft.liveMaxInputTokens;
+  }
+  set liveMaxInputTokens(v: number) {
+    this.draft.liveMaxInputTokens = v;
+  }
+  get liveMaxMinutes(): number {
+    return this.draft.liveMaxMinutes;
+  }
+  set liveMaxMinutes(v: number) {
+    this.draft.liveMaxMinutes = v;
+  }
+  get liveScaleConfirmed(): boolean {
+    return this.draft.liveScaleConfirmed;
+  }
+  set liveScaleConfirmed(v: boolean) {
+    this.draft.liveScaleConfirmed = v;
+  }
+
   private lastSnapshotOptionsSig = '';
 
   private root: HTMLElement | null = null;
@@ -147,12 +305,7 @@ export class StratifyApp {
   private snapshot: ControllerSnapshot;
 
   constructor() {
-    const preset = WEB_PRESETS[0] as WebPreset;
-    this.selectedPresetId = preset.id;
-    this.draftConfig = preset.config;
-    this.draftSeed = preset.seed;
-    this.draftPolicy = preset.policy;
-    this.restoreLastConfigFromStorage();
+    restoreLastConfigToDraft(this.draft);
     this.snapshot = this.controller.snapshot();
     this.controller.subscribe((snapshot) => {
       this.snapshot = snapshot;
@@ -173,96 +326,24 @@ export class StratifyApp {
     this.root = root;
     clear(root);
     root.classList.add('app-shell');
-    this.restoreSettingsFromStorage();
+    const restored = restoreSettingsFromStorage();
+    this.theme = restored.theme;
+    this.speed = restored.speed;
+    this.controller.setSpeed(restored.speed);
     this.buildPersistentShell(root);
+    root.append(this.toasts.el);
     this.bindKeyboard();
     void this.refreshRuns();
     void this.tryAutoRestoreLastSession();
     this.render(true);
   }
 
-  private restoreSettingsFromStorage(): void {
-    try {
-      const settingsRaw = localStorage.getItem('stratify.settings.v1');
-      if (settingsRaw !== null) {
-        const parsed = JSON.parse(settingsRaw) as Record<string, unknown>;
-        if (parsed['theme'] === 'paper' || parsed['theme'] === 'obsidian') {
-          this.theme = parsed['theme'];
-        }
-        if (typeof parsed['speed'] === 'number' && [0, 1, 5, 20].includes(parsed['speed'])) {
-          this.speed = parsed['speed'];
-          this.controller.setSpeed(this.speed);
-        }
-      } else {
-        const legacyTheme = localStorage.getItem('stratify.theme.v1');
-        if (legacyTheme === 'paper' || legacyTheme === 'obsidian') {
-          this.theme = legacyTheme;
-        }
-      }
-      document.documentElement.dataset['theme'] = this.theme;
-    } catch {
-      // 忽略本地偏好读取异常
-    }
-  }
-
   private persistSettingsToStorage(): void {
-    try {
-      localStorage.setItem(
-        'stratify.settings.v1',
-        JSON.stringify({ theme: this.theme, speed: this.speed }),
-      );
-      localStorage.setItem('stratify.theme.v1', this.theme);
-    } catch {
-      // 本地存储受限时忽略
-    }
-  }
-
-  private restoreLastConfigFromStorage(): void {
-    try {
-      const raw = localStorage.getItem('stratify.lastConfig.v1');
-      if (raw === null) return;
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      const check = validateRunConfig(parsed['config']);
-      if (!check.ok) return;
-      this.draftConfig = check.config;
-      if (typeof parsed['seed'] === 'string' && parsed['seed'].trim() !== '') {
-        this.draftSeed = parsed['seed'];
-      }
-      if (
-        parsed['policy'] === 'mock-weighted-v1' ||
-        parsed['policy'] === 'mock-weighted-v2' ||
-        parsed['policy'] === 'random-uniform-v1' ||
-        parsed['policy'] === 'jev_live'
-      ) {
-        this.draftPolicy = parsed['policy'];
-      }
-      if (parsed['promptStyle'] === 'neutral' || parsed['promptStyle'] === 'survival_hint') {
-        this.livePromptStyle = parsed['promptStyle'];
-      }
-      if (typeof parsed['presetId'] === 'string') {
-        this.selectedPresetId = parsed['presetId'];
-      }
-    } catch {
-      // 忽略损坏草案
-    }
+    persistSettingsToStorage(this.theme, this.speed);
   }
 
   private persistLastConfigToStorage(): void {
-    try {
-      // 严格禁止写入 liveApiKey 等任何密钥字段（06 §8）
-      localStorage.setItem(
-        'stratify.lastConfig.v1',
-        JSON.stringify({
-          presetId: this.selectedPresetId,
-          seed: this.draftSeed,
-          policy: this.draftPolicy,
-          promptStyle: this.livePromptStyle,
-          config: this.draftConfig,
-        }),
-      );
-    } catch {
-      // 本地存储受限时忽略
-    }
+    persistLastConfigFromDraft(this.draft);
   }
 
   private async tryAutoRestoreLastSession(): Promise<void> {
@@ -411,6 +492,15 @@ export class StratifyApp {
       onClick: () => this.setTheme(this.theme === 'obsidian' ? 'paper' : 'obsidian'),
     }) as HTMLButtonElement;
 
+    const btnPalette = h('button', {
+      class: 'btn btn-ghost btn-sm',
+      type: 'button',
+      title: '打开命令面板 (⌘K / Ctrl+K)',
+      ariaLabel: '命令面板',
+      onClick: () => this.openCommandPalette(),
+    }) as HTMLButtonElement;
+    btnPalette.append(icon('command', 13), h('span', { text: 'K' }));
+
     const transport = h('div', { class: 'transport', role: 'toolbar', ariaLabel: '仿真控制' }, [
       btnStart,
       btnPause,
@@ -421,6 +511,7 @@ export class StratifyApp {
       snapshotSelect,
       speedGroup,
       btnTheme,
+      btnPalette,
     ]);
 
     const hudPolicy = h('div', { class: 'hash-line' });
@@ -437,8 +528,8 @@ export class StratifyApp {
             h('span', { class: 'brand-sub', text: 'Sociology Observatory' }),
           ]),
           h('div', { class: 'brand-meta' }, [
-            badge('rules-v18', 'info'),
-            badge('G6 已通过（D1 两体制）', 'ok'),
+            badge(CLAIMS.rulesVersion, 'info'),
+            badge(CLAIMS.g6Badge, 'ok'),
           ]),
         ]),
       ]),
@@ -485,12 +576,13 @@ export class StratifyApp {
       tabList.append(btn);
     }
 
+    const navDivider = h('span', { class: 'nav-divider', ariaLabel: '分隔线' });
     const navBar = h('nav', { class: 'workspace-tabs', ariaLabel: '视图与工作区导航' }, [
       h('div', { class: 'mode-switcher', role: 'group', ariaLabel: '界面模式切换' }, [
         modeSandboxBtn,
         modeBenchBtn,
       ]),
-      h('span', { class: 'nav-divider', ariaLabel: '分隔线' }),
+      navDivider,
       tabList,
     ]);
 
@@ -523,7 +615,7 @@ export class StratifyApp {
       footerConfig,
       footerPop,
       footerDecisions,
-      h('span', { class: 'muted', text: '仅本地 · 未上传 · 结构结论未通过 G6' }),
+      h('span', { class: 'muted', text: `仅本地 · 未上传 · ${CLAIMS.g6Footer}` }),
     ]);
 
     root.append(header, navBar, main, footer);
@@ -548,6 +640,8 @@ export class StratifyApp {
       hudStateLine,
       modeSandboxBtn,
       modeBenchBtn,
+      navDivider,
+      tabList,
       tabButtons,
       noticeHost,
       sandboxHost,
@@ -565,6 +659,12 @@ export class StratifyApp {
     if (this.keyboardBound) return;
     this.keyboardBound = true;
     window.addEventListener('keydown', (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        if (this.palette.isOpen()) this.palette.close();
+        else this.openCommandPalette();
+        return;
+      }
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target;
       if (target instanceof HTMLElement) {
@@ -650,13 +750,76 @@ export class StratifyApp {
     return true;
   }
 
+  openCommandPalette(): void {
+    this.palette.open(() => [
+      {
+        id: 'tab-setup',
+        label: '前往 ① 实验设置',
+        shortcut: '1',
+        icon: 'sliders',
+        run: () => this.setTab('setup'),
+      },
+      {
+        id: 'tab-overview',
+        label: '前往 ② 实时总览',
+        shortcut: '2',
+        icon: 'activity',
+        run: () => this.setTab('overview'),
+      },
+      {
+        id: 'tab-inspector',
+        label: '前往 ③ 个体检查器',
+        shortcut: '3',
+        icon: 'users',
+        run: () => this.setTab('inspector'),
+      },
+      {
+        id: 'tab-replay',
+        label: '前往 ④ 回放与对比',
+        shortcut: '4',
+        icon: 'git-compare',
+        run: () => this.setTab('replay'),
+      },
+      {
+        id: 'tab-manager',
+        label: '前往 ⑤ 实验管理',
+        shortcut: '5',
+        icon: 'archive',
+        run: () => this.setTab('manager'),
+      },
+      {
+        id: 'surface-sandbox',
+        label: '切至交互沙盒剧场',
+        shortcut: '0',
+        icon: 'sparkles',
+        run: () => this.setSurface('sandbox'),
+      },
+      {
+        id: 'run-step',
+        label: '单步推进 +1 Tick',
+        shortcut: 'N',
+        icon: 'step-forward',
+        run: () => this.step(),
+      },
+      {
+        id: 'export-bundle',
+        label: '导出完整离线 Bundle',
+        shortcut: 'E',
+        icon: 'download',
+        run: () => this.downloadBundle(),
+      },
+      {
+        id: 'toggle-theme',
+        label: this.theme === 'obsidian' ? '切换为 Paper 浅色主题' : '切换为 Obsidian 深色主题',
+        icon: this.theme === 'obsidian' ? 'sun' : 'moon',
+        run: () => this.setTheme(this.theme === 'obsidian' ? 'paper' : 'obsidian'),
+      },
+    ]);
+  }
+
   async refreshRuns(): Promise<void> {
     this.recentRuns = await this.store.list();
-    try {
-      localStorage.setItem('stratify.recentRuns.v1', JSON.stringify(this.recentRuns.slice(0, 10)));
-    } catch {
-      // ignore
-    }
+    persistRecentRunsMeta(this.recentRuns);
     if (this.surface === 'testbench' && this.activeTab === 'manager') {
       this.render(true);
     }
@@ -707,9 +870,14 @@ export class StratifyApp {
   }
 
   async clearStoredRuns(): Promise<void> {
-    if (!window.confirm('清除全部本地实验？该操作只影响浏览器 IndexedDB，不影响服务器数据。')) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: '清除全部本地实验',
+      message: '该操作只影响浏览器 IndexedDB，不影响服务器数据。确认继续？',
+      confirmLabel: '确认清除',
+      cancelLabel: '取消',
+      danger: true,
+    });
+    if (!ok) return;
     await this.store.clear();
     this.recentRuns = [];
     this.notify('已清除本地实验记录。');
@@ -829,7 +997,7 @@ export class StratifyApp {
     this.draftPolicy = preset.policy;
     this.persistLastConfigToStorage();
     this.notice = preset.calibrated
-      ? `已载入 G6 校准预设「${preset.name}」（D1 两体制，rules-v16）。`
+      ? CLAIMS.calibratedPresetNotice(preset.name, preset.config.rulesVersion)
       : `已载入预设「${preset.name}」（未校准）。`;
     this.render(true);
   }
@@ -978,6 +1146,7 @@ export class StratifyApp {
   notify(message: string): void {
     this.notice = message;
     this.updateNoticeHost();
+    this.toasts.push(message, 'info');
   }
 
   setTheme(theme: 'obsidian' | 'paper'): void {
@@ -1203,6 +1372,8 @@ export class StratifyApp {
     s.modeSandboxBtn.className = `mode-pill ${inSandbox ? 'is-active' : ''}`.trim();
     s.modeBenchBtn.setAttribute('aria-pressed', String(!inSandbox));
     s.modeBenchBtn.className = `mode-pill ${!inSandbox ? 'is-active' : ''}`.trim();
+    s.navDivider.hidden = inSandbox;
+    s.tabList.hidden = inSandbox;
 
     for (const [id, btn] of s.tabButtons) {
       btn.setAttribute('aria-selected', String(!inSandbox && this.activeTab === id));

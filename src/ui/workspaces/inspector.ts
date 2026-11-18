@@ -272,7 +272,7 @@ export class InspectorView {
               ]),
               h('span', {
                 class: 'roster-item-sub',
-                text: `V ${formatNumber(row.value, 1)} · need ${row.needRatio === null ? '—' : formatPercent(row.needRatio, 0)} · life ${Math.round(row.remainingLife)}d · ties ${row.ties}`,
+                text: `V ${formatNumber(row.value, 1)} · ${row.needRatio === null ? '—' : formatPercent(row.needRatio, 0)} · ${Math.round(row.remainingLife)}d · ${row.ties}边`,
               }),
             ],
           ),
@@ -347,7 +347,7 @@ export class InspectorView {
               class: `btn btn-sm ${isAvatar ? 'btn-primary' : ''}`.trim(),
               type: 'button',
               disabled: !detail.alive,
-              text: isAvatar ? '★ 已设为沙盒化身' : '🎮 设为沙盒化身',
+              text: isAvatar ? '已设为化身' : '设为化身',
               onClick: () => {
                 this.app.possessAgent(detail.id as AgentId, true);
                 this.app.setSurface('sandbox');
@@ -357,7 +357,8 @@ export class InspectorView {
               class: 'btn btn-sm',
               type: 'button',
               disabled: !detail.alive,
-              text: '🌿 微扰克隆 (+0.0001)',
+              title: '从当前检查点对该个体施加 ΔValue=+0.0001 微扰克隆',
+              text: '微扰克隆',
               onClick: () => this.app.forkFocusedAgent(0.0001),
             }),
           ],

@@ -1,5 +1,6 @@
 import { IdbRunStore } from '../../app/idb-store.js';
 import { detectRuntimeAuthority } from '../../app/view-model.js';
+import { CLAIMS } from '../copy/claims.js';
 import { append, badge, card, h, table } from '../dom.js';
 import type { StratifyApp } from '../app.js';
 
@@ -33,7 +34,7 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
   }
 
   const runRows = app.recentRuns.map((run) => [
-    h('span', { class: 'mono', text: run.runId }),
+    h('span', { class: 'mono', title: run.runId, text: shortRunId(run.runId) }),
     badge(run.status, run.status === 'completed' ? 'ok' : 'muted'),
     `${run.tick}/${run.totalTicks}`,
     run.seed,
@@ -190,13 +191,13 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
       card('协议版本与运行时权威边界', [
         h('dl', { class: 'detail-list' }, [
           h('dt', { text: '规则版本' }),
-          h('dd', { text: 'rules-v18' }),
+          h('dd', { text: CLAIMS.rulesVersion }),
           h('dt', { text: '配置 / 状态 Schema' }),
-          h('dd', { text: 'stratify-config-v12 / stratify-state-v5' }),
+          h('dd', { text: CLAIMS.schemaSummary }),
           h('dt', { text: '浏览器引擎权威性' }),
           h('dd', {}, [badge(authority.label, authority.authoritative ? 'ok' : 'warn')]),
           h('dt', { text: '统计校准闸门' }),
-          h('dd', { text: 'G6 已通过（D1 两体制 · P6-09 + R4）' }),
+          h('dd', { text: CLAIMS.g6Detail }),
         ]),
         h('p', {
           class: 'muted',
@@ -206,6 +207,11 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
       ]),
     ]),
   ]);
+}
+
+function shortRunId(runId: string): string {
+  if (runId.length <= 16) return runId;
+  return `${runId.slice(0, 10)}…${runId.slice(-4)}`;
 }
 
 function formatBytes(bytes: number): string {

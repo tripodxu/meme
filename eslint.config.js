@@ -38,6 +38,29 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/ui/**/*.ts'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Math',
+          property: 'random',
+          message: '禁止使用 Math.random()。',
+        },
+        {
+          object: 'window',
+          property: 'confirm',
+          message: '请使用 src/ui/components/dialog.ts 的 confirmDialog 替代 window.confirm。',
+        },
+        {
+          object: 'window',
+          property: 'alert',
+          message: '请使用 ToastStack 或 Dialog 替代 window.alert。',
+        },
+      ],
+    },
+  },
+  {
     files: ['src/core/**/*.ts'],
     rules: {
       'no-restricted-imports': [

@@ -77,6 +77,7 @@ test.describe('P3-07 真实浏览器自动化 E2E（Chromium）', () => {
     await page.getByRole('button', { name: '暂停', exact: true }).click();
     await page.getByRole('button', { name: '🌿 微扰分叉', exact: true }).click();
 
+    await page.getByRole('button', { name: '◈ 精密科研试验台' }).click();
     await page.locator('#tab-replay').click();
     await expect(page.locator('body')).toContainText('平行宇宙微扰分叉溯源');
     await expect(page.locator('body')).toContainText('种子已配对');

@@ -190,12 +190,14 @@ export class SandboxView {
         ),
       );
     }
+    const goalMessage =
+      snapshot.status === 'completed'
+        ? `探索已收口（Tick ${snapshot.tick}/${snapshot.totalTicks}）：可点击「微扰分叉」对照平行宇宙，或切换上方剧本开启新局。`
+        : (scenario?.challengeGoal ?? '点击任意个体观察其社会关系，双击即可化身接管其决策。');
     this.goalBanner.replaceChildren(
       h('div', { class: 'goal-text' }, [
-        h('strong', { text: '✦ 沙盒探索导引：' }),
-        h('span', {
-          text: scenario?.challengeGoal ?? '点击任意个体观察其社会关系，双击即可化身接管其决策。',
-        }),
+        h('strong', { text: '沙盒探索导引：' }),
+        h('span', { text: goalMessage }),
       ]),
       h('div', { class: 'actions-row' }, progressBadges),
     );

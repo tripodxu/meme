@@ -1,4 +1,6 @@
+import { hoveredTick } from './crosshair.js';
 import { lttb, pixelThreshold, type Point } from './lttb.js';
+import { bandScale } from './scale.js';
 
 export interface Series {
   readonly label: string;
@@ -161,8 +163,10 @@ function addFrame(
   options: ChartOptions,
   boundsValue: ReturnType<typeof bounds>,
   box: Box,
+  frameOptions: { readonly showXGrid?: boolean } = {},
 ): void {
   const height = options.height ?? 180;
+  const showXGrid = frameOptions.showXGrid ?? true;
   const grid = svgEl('g', { class: 'chart-grid' });
   for (let index = 0; index <= 4; index += 1) {
     const y = box.top + (box.height * index) / 4;
@@ -181,28 +185,30 @@ function addFrame(
       ),
     );
   }
-  for (let index = 0; index <= 4; index += 1) {
-    const x = box.left + (box.width * index) / 4;
-    const value = boundsValue.xMin + ((boundsValue.xMax - boundsValue.xMin) * index) / 4;
-    grid.append(
-      svgEl('line', {
-        x1: x,
-        y1: box.top,
-        x2: x,
-        y2: box.top + box.height,
-        class: 'chart-grid-line',
-      }),
-      svgEl(
-        'text',
-        {
-          x,
-          y: box.top + box.height + 15,
-          'text-anchor': 'middle',
-          class: 'chart-axis',
-        },
-        formatAxis(value),
-      ),
-    );
+  if (showXGrid) {
+    for (let index = 0; index <= 4; index += 1) {
+      const x = box.left + (box.width * index) / 4;
+      const value = boundsValue.xMin + ((boundsValue.xMax - boundsValue.xMin) * index) / 4;
+      grid.append(
+        svgEl('line', {
+          x1: x,
+          y1: box.top,
+          x2: x,
+          y2: box.top + box.height,
+          class: 'chart-grid-line',
+        }),
+        svgEl(
+          'text',
+          {
+            x,
+            y: box.top + box.height + 15,
+            'text-anchor': 'middle',
+            class: 'chart-axis',
+          },
+          formatAxis(value),
+        ),
+      );
+    }
   }
   svg.append(grid);
   if (options.xLabel !== undefined) {
@@ -224,10 +230,9 @@ function addFrame(
       svgEl(
         'text',
         {
-          x: 12,
-          y: box.top + box.height / 2,
-          'text-anchor': 'middle',
-          transform: `rotate(-90 12 ${box.top + box.height / 2})`,
+          x: box.left,
+          y: 11,
+          'text-anchor': 'start',
           class: 'chart-label',
         },
         options.yLabel,
@@ -291,23 +296,21 @@ function bindHoverReadout(
     style: 'cursor:crosshair',
   });
 
-  hitRect.addEventListener('mousemove', (event: MouseEvent) => {
-    const ctm = svg.getScreenCTM();
-    if (ctm === null) return;
-    const svgX = (event.clientX - ctm.e) / ctm.a;
-    const ratio = Math.min(1, Math.max(0, (svgX - box.left) / (box.width || 1)));
-    const targetX = boundsValue.xMin + ratio * (boundsValue.xMax - boundsValue.xMin);
-    // 二分定位最近点
+  const showAtTick = (tick: number | null): void => {
+    if (tick === null) {
+      overlay.style.display = 'none';
+      return;
+    }
     const pts = first.points;
     let lo = 0;
     let hi = pts.length - 1;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if ((pts[mid]?.x ?? 0) < targetX) lo = mid + 1;
+      if ((pts[mid]?.x ?? 0) < tick) lo = mid + 1;
       else hi = mid;
     }
     const chosenIdx =
-      lo > 0 && Math.abs((pts[lo - 1]?.x ?? 0) - targetX) < Math.abs((pts[lo]?.x ?? 0) - targetX)
+      lo > 0 && Math.abs((pts[lo - 1]?.x ?? 0) - tick) < Math.abs((pts[lo]?.x ?? 0) - tick)
         ? lo - 1
         : lo;
     const chosenPoint = pts[chosenIdx];
@@ -330,10 +333,29 @@ function bindHoverReadout(
     labelBg.setAttribute('width', approxWidth.toFixed(1));
     labelText.setAttribute('x', (Math.max(box.left + 2, bx) + 6).toFixed(1));
     overlay.style.display = '';
+  };
+
+  let unsub: (() => void) | null = null;
+  unsub = hoveredTick.subscribe((tick) => {
+    if (!svg.isConnected) {
+      unsub?.();
+      unsub = null;
+      return;
+    }
+    showAtTick(tick);
+  });
+
+  hitRect.addEventListener('mousemove', (event: MouseEvent) => {
+    const ctm = svg.getScreenCTM();
+    if (ctm === null) return;
+    const svgX = (event.clientX - ctm.e) / ctm.a;
+    const ratio = Math.min(1, Math.max(0, (svgX - box.left) / (box.width || 1)));
+    const targetX = boundsValue.xMin + ratio * (boundsValue.xMax - boundsValue.xMin);
+    hoveredTick.set(Math.round(targetX));
   });
 
   hitRect.addEventListener('mouseleave', () => {
-    overlay.style.display = 'none';
+    hoveredTick.set(null);
   });
 
   svg.append(overlay, hitRect);
@@ -468,11 +490,15 @@ export function renderBarChart(
     role: 'img',
     'aria-label': options.title ?? '柱状图',
   });
-  addFrame(svg, options, { xMin: 0, xMax: 1, yMin: 0, yMax: max }, box);
-  const slot = box.width / bars.length;
-  bars.forEach((bar, index) => {
-    const x = box.left + slot * index + slot * 0.16;
-    const barWidth = Math.max(4, slot * 0.68);
+  addFrame(svg, options, { xMin: 0, xMax: 1, yMin: 0, yMax: max }, box, { showXGrid: false });
+  const scale = bandScale(
+    bars.map((b) => b.label),
+    [box.left, box.left + box.width],
+    0.26,
+  );
+  bars.forEach((bar) => {
+    const x = scale.x(bar.label);
+    const barWidth = scale.bandwidth;
     const y = yOf(bar.value, { xMin: 0, xMax: 1, yMin: 0, yMax: max }, box);
     svg.append(
       svgEl('rect', {
@@ -487,7 +513,7 @@ export function renderBarChart(
       svgEl(
         'text',
         {
-          x: x + barWidth / 2,
+          x: scale.center(bar.label),
           y: box.top + box.height + 15,
           'text-anchor': 'middle',
           class: 'chart-axis',

@@ -56,18 +56,20 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
   const windowToolbar = h('div', { class: 'window-toolbar span-12' }, [
     h('div', { class: 'actions-row' }, [
       h('span', { class: 'muted', style: 'font-size:12px', text: '观察窗：' }),
-      ...OVERVIEW_WINDOWS.map((spec) =>
-        h('button', {
+      ...OVERVIEW_WINDOWS.map((spec) => {
+        const outOfRange = snapshot.totalTicks > 0 && snapshot.totalTicks <= spec.startTick;
+        return h('button', {
           class: `btn btn-sm ${app.overviewWindow === spec.id ? 'btn-primary' : ''}`.trim(),
           type: 'button',
+          disabled: outOfRange,
           ariaPressed: String(app.overviewWindow === spec.id),
           text: spec.label,
           onClick: () => {
             app.overviewWindow = spec.id;
             app.render();
           },
-        }),
-      ),
+        });
+      }),
       h('span', { class: 'muted', style: 'font-size:12px;margin-left:6px', text: '缩放：' }),
       ...zoomPresets.map((zp) => {
         const active = app.zoomRange[0] === zp.range[0] && app.zoomRange[1] === zp.range[1];
@@ -210,9 +212,22 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
       ),
     ]),
     h('div', { class: 'span-4' }, [
-      card('开放度与动态机会 E', [opennessChart(plotRows, classCount)], {
-        subtitle: '实线 O 为制度开放度慢变量；虚线为五阶层动态环境系数 E[c]',
-      }),
+      card(
+        '开放度与动态机会 E',
+        [
+          opennessChart(plotRows, classCount),
+          legend([
+            ['O (制度开放度)', 'var(--accent)'],
+            ...Array.from(
+              { length: classCount },
+              (_, c) => [`E[C${c}]`, CLASS_COLORS[c] ?? 'var(--accent)'] as const,
+            ),
+          ]),
+        ],
+        {
+          subtitle: '实线 O 为制度开放度慢变量；虚线为五阶层动态环境系数 E[c]',
+        },
+      ),
     ]),
     h('div', { class: 'span-4' }, [
       card(

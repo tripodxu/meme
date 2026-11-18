@@ -11,6 +11,7 @@ import { WEB_PRESETS } from '../../app/presets.js';
 import { exceedsLiveSuggestion, LIVE_SUGGESTED_LIMITS } from '../../app/live-policy.js';
 import { detectRuntimeAuthority, formatNumber } from '../../app/view-model.js';
 import { renderSparkline } from '../charts/core.js';
+import { CLAIMS } from '../copy/claims.js';
 import { badge, card, field, h, table } from '../dom.js';
 import { configPreview, numeric, type StratifyApp } from '../app.js';
 
@@ -43,7 +44,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
       h('div', { class: 'actions-row' }, [
         badge('双引擎工作台', 'info'),
         badge(authority.label, authority.authoritative ? 'ok' : 'warn'),
-        badge('G6 已通过（D1 两体制）', 'ok'),
+        badge(CLAIMS.g6Badge, 'ok'),
       ]),
       h('h2', {
         class: 'setup-hero-title',
@@ -825,7 +826,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
           h('div', { class: 'notice notice-warn' }, [
             h('strong', { text: '科学验收边界：' }),
             h('span', {
-              text: 'D1“2 体制 + 连续统”已在 rules-v16 / N=200 / mock-weighted-v1 下通过 P6-09 与 R4 闭环；传统 k≥3 离散结构与 Jev 因果对照仍未通过，不得外推为“三态涌现”或现实因果。',
+              text: CLAIMS.g6BoundaryNote,
             }),
           ]),
           h('div', { style: 'height:12px' }),
