@@ -46,6 +46,16 @@ export function fail(
   return c.json(errorBody(code, message, c.get('requestId'), details), status as never);
 }
 
+/** 429 统一带标准 Retry-After 秒数响应头（05 §9）。 */
+export function rateLimited(
+  c: Context<WorkerBindings>,
+  message: string,
+  retryAfterSeconds: number,
+): Response {
+  c.header('Retry-After', String(Math.max(1, Math.ceil(retryAfterSeconds))));
+  return fail(c, 429, 'rate_limited', message);
+}
+
 export async function requestIdMiddleware(c: Context<WorkerBindings>, next: Next): Promise<void> {
   const id = `req_${crypto.randomUUID().replaceAll('-', '').slice(0, 24)}`;
   c.set('requestId', id);

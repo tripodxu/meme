@@ -44,7 +44,7 @@ const { DEFAULT_RUN_CONFIG, mergeConfig } = await import(
 const { nodeCheckpointHost, nodeCheckpointHostSync } = await import(
   `file://${join(here, '..', 'dist', 'runner', 'checkpoint-fs.js').replace(/\\/g, '/')}`
 );
-const { writeUploadBundle } = await import(
+const { createStreamingBundleWriter, uploadBundleExists, writeUploadBundle } = await import(
   `file://${join(here, '..', 'dist', 'runner', 'upload-export.js').replace(/\\/g, '/')}`
 );
 
@@ -236,25 +236,41 @@ try {
   await host.writeTemp(`${manifestOutPath}.tmp`, `${JSON.stringify(manifest, null, 2)}\n`);
   await host.promote(`${manifestOutPath}.tmp`, manifestOutPath);
 
+  const codeSha = process.env.STRATIFY_CODE_SHA ?? 'local-batch';
   const summary = await runBatch(manifest, {
     ...(baseConfig !== undefined ? { baseConfig } : {}),
-    ...(args.artifactProfile === 'full' ? { captureArtifacts: true } : {}),
     ...(args.snapshotStride !== null ? { snapshotStride: args.snapshotStride } : {}),
     ledger: { host, path: ledgerPath },
     ...(uploadBundlesDir !== null
       ? {
-          onRunComplete: ({ task, outcome }) => {
-            writeUploadBundle({
-              outDir: uploadBundlesDir,
-              cellKey: task.cellKey,
-              seed: task.seed,
-              config: task.config,
-              outcome,
-              runtimeVersion: process.version,
-              codeSha: process.env.STRATIFY_CODE_SHA ?? 'local-batch',
-              artifactProfile: args.artifactProfile,
-            });
-          },
+          shouldBackfillResumedTask: (task) =>
+            !uploadBundleExists(uploadBundlesDir, task.cellKey, task.seed),
+          ...(args.artifactProfile === 'full'
+            ? {
+                createArtifactSink: (task) =>
+                  createStreamingBundleWriter({
+                    outDir: uploadBundlesDir,
+                    cellKey: task.cellKey,
+                    seed: task.seed,
+                    config: task.config,
+                    runtimeVersion: process.version,
+                    codeSha,
+                  }),
+              }
+            : {
+                onRunComplete: ({ task, outcome }) => {
+                  writeUploadBundle({
+                    outDir: uploadBundlesDir,
+                    cellKey: task.cellKey,
+                    seed: task.seed,
+                    config: task.config,
+                    outcome,
+                    runtimeVersion: process.version,
+                    codeSha,
+                    artifactProfile: 'metrics-only',
+                  });
+                },
+              }),
         }
       : {}),
     ...(args.checkpointTicks !== null

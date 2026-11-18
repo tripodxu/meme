@@ -10,9 +10,12 @@ import {
 import { asSeed } from '../../../src/core/control/ids.js';
 import { computeInitialPopulationHash } from '../../../src/core/hash/state-hash.js';
 import { deriveInitialPopulation } from '../../../src/core/init/population.js';
+import { StratifyError, errorCodes } from '../../../src/core/control/errors.js';
 import { memoryCheckpointHost } from '../../../src/runner/checkpoint.js';
 import {
   UPLOAD_LEDGER_SCHEMA,
+  UploadError,
+  asUploadError,
   plannedStatsTicks,
   uploadRun,
   type RunUploadBundle,
@@ -290,5 +293,88 @@ describe('P5b 上传器', () => {
       }),
     ).rejects.toMatchObject({ code: 'create_ambiguous' });
     expect(calls).toBe(1);
+  });
+
+  it('覆盖校验分支、损坏 ledger、5xx 退避重试、4xx 立即终止与 asUploadError', async () => {
+    const env = createTestEnv();
+    const fetchW = workerFetch(env);
+
+    // 校验各类非法 bundle 字段
+    for (const invalid of [
+      makeBundle({ schemaVersion: 'bad' as never }),
+      makeBundle({ artifactProfile: 'bad' as never }),
+      makeBundle({ finalTick: -1 }),
+      makeBundle({ endReason: 'bad' as never }),
+      makeBundle({ expectedDueDecisions: -1 }),
+      makeBundle({ finalStateHash: 'bad' }),
+      makeBundle({ artifacts: [] }),
+      makeBundle({ artifactProfile: 'full' }),
+      makeBundle({ agents: [makeAgent('dup'), makeAgent('dup')], finalAliveCount: 2 }),
+    ]) {
+      await expect(uploadRun(invalid, { baseUrl: BASE, fetchImpl: fetchW })).rejects.toBeInstanceOf(
+        UploadError,
+      );
+    }
+
+    // 损坏 ledger 拒绝恢复
+    const host = memoryCheckpointHost();
+    host.files.set('corrupt.json', '{not-json');
+    await expect(
+      uploadRun(makeBundle(), {
+        baseUrl: BASE,
+        fetchImpl: fetchW,
+        ledger: { host, path: 'corrupt.json' },
+      }),
+    ).rejects.toMatchObject({ code: 'ledger_corrupt' });
+
+    // 503 可重试后成功，409 不可重试立即抛错
+    let hit503 = false;
+    const okAfter503 = await uploadRun(makeBundle(), {
+      baseUrl: BASE,
+      retryDelayMs: 1,
+      fetchImpl: async (url, init) => {
+        if (!hit503 && url.endsWith('/complete')) {
+          hit503 = true;
+          return new Response(JSON.stringify({ error: 'busy' }), { status: 503 });
+        }
+        return app.request(url, init, env);
+      },
+    });
+    expect(okAfter503.status).toBe('completed');
+
+    await expect(
+      uploadRun(makeBundle(), {
+        baseUrl: BASE,
+        retryDelayMs: 1,
+        fetchImpl: async (url, init) => {
+          if (url.endsWith('/complete')) {
+            return new Response('conflict', { status: 409 });
+          }
+          return app.request(url, init, env);
+        },
+      }),
+    ).rejects.toMatchObject({ status: 409, retryable: false });
+
+    // asUploadError 统一包装
+    const e1 = new UploadError('u', { code: 'x' });
+    expect(asUploadError(e1)).toBe(e1);
+    expect(asUploadError(new StratifyError(errorCodes.CONFIG_INVALID, 'cfg')).code).toBe(
+      errorCodes.CONFIG_INVALID,
+    );
+    expect(asUploadError('plain').code).toBe(errorCodes.CONFIG_INVALID);
+
+    await expect(
+      uploadRun(makeBundle(), {
+        baseUrl: BASE,
+        fetchImpl: async () => new Response('bad', { status: 500 }),
+      }),
+    ).rejects.toMatchObject({ code: 'create_failed', status: 500 });
+
+    await expect(
+      uploadRun(makeBundle(), {
+        baseUrl: BASE,
+        fetchImpl: async () => new Response(JSON.stringify({ runId: 123 }), { status: 201 }),
+      }),
+    ).rejects.toMatchObject({ code: 'create_failed' });
   });
 });

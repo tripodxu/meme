@@ -39,6 +39,18 @@ export interface R2ObjectBody extends R2Object {
   text(): Promise<string>;
 }
 
+export interface R2ListOptions {
+  readonly prefix?: string;
+  readonly limit?: number;
+  readonly cursor?: string;
+}
+
+export interface R2Objects {
+  readonly objects: readonly R2Object[];
+  readonly truncated: boolean;
+  readonly cursor?: string;
+}
+
 export interface R2Bucket {
   put(
     key: string,
@@ -48,6 +60,7 @@ export interface R2Bucket {
   get(key: string, options?: { onlyIf?: { etagMatches?: string } }): Promise<R2ObjectBody | null>;
   head(key: string): Promise<R2Object | null>;
   delete(key: string): Promise<void>;
+  list?(options?: R2ListOptions): Promise<R2Objects>;
 }
 
 export interface Env {
@@ -65,6 +78,11 @@ export interface Env {
   /** 保留天数（字符串来自 wrangler vars）；缺省 browser=7、runner=90。 */
   readonly BROWSER_RUN_RETENTION_DAYS?: string;
   readonly RUNNER_RUN_RETENTION_DAYS?: string;
+  /** running 状态静默超时分钟数（05 §8）；缺省 browser=60、runner=720。 */
+  readonly BROWSER_IDLE_TIMEOUT_MINUTES?: string;
+  readonly RUNNER_IDLE_TIMEOUT_MINUTES?: string;
+  /** R2 孤儿对象清理宽限分钟数；缺省 120（避开在途上传）。 */
+  readonly ORPHAN_GRACE_MINUTES?: string;
 }
 
 export type WorkerBindings = { Bindings: Env; Variables: { requestId: string } };

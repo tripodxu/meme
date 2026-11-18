@@ -14,6 +14,7 @@ import {
 import type { CheckpointHost, SyncCheckpointHost } from './checkpoint.js';
 import {
   runSingle,
+  type ArtifactStreamSink,
   type RunCheckpointOptions,
   type RunOptions,
   type RunOutcome,
@@ -155,6 +156,17 @@ export interface BatchRunOptions {
   readonly baseConfig?: RunConfig;
   /** P5b：为 full 上传导出收集 events/executions/snapshots。 */
   readonly captureArtifacts?: boolean;
+  /** P5b 流式导出工厂：为每个任务创建逐 tick 磁盘接收器，避免全程驻留内存。 */
+  readonly createArtifactSink?: (
+    task: BatchTask,
+    index: number,
+  ) => {
+    readonly sink: ArtifactStreamSink;
+    finalize(outcome: RunOutcome): void;
+    abort?(): void;
+  };
+  /** P5b：resume 复用 ledger 已完成任务时，若缺失本地上传 bundle 可确定性补导出。 */
+  readonly shouldBackfillResumedTask?: (task: BatchTask, record: BatchRunRecord) => boolean;
   readonly snapshotStride?: number;
 }
 
@@ -490,6 +502,38 @@ export async function runBatch(
           `ledger run ${task.cellKey}/${task.seed} 的 configHash/paramsHash 与当前任务不一致；不得复用`,
         );
       }
+      if (options.shouldBackfillResumedTask?.(task, reuse) === true) {
+        const startedAt = performance.now();
+        const runImpl = options.runSingleImpl ?? runSingle;
+        const sinkHandle = options.createArtifactSink?.(task, index);
+        try {
+          const outcome = runImpl(task.config, task.seed, {
+            policy: manifest.policy,
+            ...(options.maxTicksPerRun !== undefined ? { maxTicks: options.maxTicksPerRun } : {}),
+            ...(options.captureArtifacts === true ? { captureArtifacts: true } : {}),
+            ...(sinkHandle !== undefined ? { artifactSink: sinkHandle.sink } : {}),
+            ...(options.snapshotStride !== undefined
+              ? { snapshotStride: options.snapshotStride }
+              : {}),
+          });
+          if (outcome.report.finalStateHash !== reuse.report.finalStateHash) {
+            throw new StratifyError(
+              errorCodes.INVARIANT_VIOLATED,
+              `resume 补导出状态哈希不一致: ${outcome.report.finalStateHash} ≠ ${reuse.report.finalStateHash}`,
+            );
+          }
+          sinkHandle?.finalize(outcome);
+          options.onRunComplete?.({
+            index,
+            task,
+            outcome,
+            elapsedMs: performance.now() - startedAt,
+          });
+        } catch (err) {
+          sinkHandle?.abort?.();
+          throw err;
+        }
+      }
       runs.push(reuse);
       resumed += 1;
       options.onProgress?.({
@@ -505,6 +549,7 @@ export async function runBatch(
     }
 
     let record: BatchRunRecord;
+    const sinkHandle = options.createArtifactSink?.(task, index);
     try {
       const startedAt = performance.now();
       const runImpl = options.runSingleImpl ?? runSingle;
@@ -522,10 +567,12 @@ export async function runBatch(
         ...(options.maxTicksPerRun !== undefined ? { maxTicks: options.maxTicksPerRun } : {}),
         ...(runCheckpoint !== undefined ? { runCheckpoint } : {}),
         ...(options.captureArtifacts === true ? { captureArtifacts: true } : {}),
+        ...(sinkHandle !== undefined ? { artifactSink: sinkHandle.sink } : {}),
         ...(options.snapshotStride !== undefined ? { snapshotStride: options.snapshotStride } : {}),
       };
       const outcome = runImpl(task.config, task.seed, runOptions);
       const elapsedMs = performance.now() - startedAt;
+      sinkHandle?.finalize(outcome);
       options.onRunComplete?.({ index, task, outcome, elapsedMs });
       record = {
         cellKey: task.cellKey,
@@ -541,6 +588,7 @@ export async function runBatch(
         },
       };
     } catch (error) {
+      sinkHandle?.abort?.();
       const code = error instanceof StratifyError ? error.code : errorCodes.INVARIANT_VIOLATED;
       const message = error instanceof Error ? error.message : String(error);
       const attempt = (attemptCounts.get(key) ?? 0) + 1;

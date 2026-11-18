@@ -62,6 +62,18 @@ export interface RunCheckpointOptions {
   readonly cellKey: string;
 }
 
+export interface ArtifactStreamSink {
+  onInitialSnapshot(snapshot: Snapshot): void;
+  onTickSettled(payload: {
+    readonly tick: number;
+    readonly decisions: readonly DecisionRecord[];
+    readonly executions: readonly ExecutionRecord[];
+    readonly events: readonly TickEvent[];
+    readonly periodicSnapshot: Snapshot | null;
+  }): void;
+  onFinalState(finalSnapshot: Snapshot): void;
+}
+
 export interface RunOptions {
   /** 决策策略；P1.5 只用 mock/random；live/replay 通过 `policyImpl` 注入。 */
   readonly policy: 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1';
@@ -79,8 +91,10 @@ export interface RunOptions {
   readonly initialState?: SimState;
   /** P5-03：run 内进度检查点；与 `initialState` 不得同时给出（起点歧义）。 */
   readonly runCheckpoint?: RunCheckpointOptions;
-  /** P5b：收集 full profile 所需的 events/executions/periodic snapshots。 */
+  /** P5b：收集 full profile 所需的 events/executions/periodic snapshots（内存模式）。 */
   readonly captureArtifacts?: boolean;
+  /** P5b 流式落盘接收器：逐 tick 写出 decisions/events/snapshots，不驻留全程大数组。 */
+  readonly artifactSink?: ArtifactStreamSink;
   /** 快照间隔；缺省 `config.schedule.snapshotStride`。 */
   readonly snapshotStride?: number;
 }
@@ -94,8 +108,10 @@ export interface RunOutcome {
     number,
     { readonly due: number; readonly fallbacks: number }
   >;
-  /** P2-06：逐决策记录（run 级日志；mock/random 的 requestedAction 为 null）。 */
+  /** P2-06：逐决策记录（流式 artifactSink 启用时为空数组，总数见 dueDecisionCount）。 */
   readonly decisions: readonly DecisionRecord[];
+  /** 全程实际到期决策总数（流式与内存模式均准确记录）。 */
+  readonly dueDecisionCount?: number;
   readonly report: RunWindowReport;
   /** run 结束时的权威状态（G-D own 逐位对照、微扰克隆等用途）。 */
   readonly finalState: SimState;
@@ -176,7 +192,10 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
       'initialState 与 runCheckpoint 不得同时给出（起点歧义）',
     );
   }
-  if (options.captureArtifacts === true && runCheckpoint !== undefined) {
+  if (
+    (options.captureArtifacts === true || options.artifactSink !== undefined) &&
+    runCheckpoint !== undefined
+  ) {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
       'full artifact 捕获与 runCheckpoint 不能同时启用（恢复段缺少 events/snapshots）',
@@ -249,11 +268,16 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
         ? new MockPolicyV2()
         : new RandomPolicy());
   const decisionRecords: DecisionRecord[] = [];
+  let dueDecisionCount = 0;
   const capture = options.captureArtifacts === true;
+  const sink = options.artifactSink;
   const snapshotStride = Math.max(1, options.snapshotStride ?? config.schedule.snapshotStride);
   const capturedEvents: TickEvent[] = [];
   const executionsByTick = new Map<number, readonly ExecutionRecord[]>();
   const snapshots: Snapshot[] = capture ? [captureSnapshot(state)] : [];
+  if (sink !== undefined) {
+    sink.onInitialSnapshot(captureSnapshot(state));
+  }
   let endReason: string | null = null;
   // 初值 = 已完成 tick（P5-03 恢复路径可能无需再跑任何 tick，endTick 仍是检查点位置）。
   let endTick = state.society.tick;
@@ -261,6 +285,7 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     const tick = state.society.tick;
     const isDecisionTick = tick % config.decision.interval === 0;
     const decisions = new Map<AgentId, { selectedAction: string; isFallback?: boolean }>();
+    const tickDecisionRecords: DecisionRecord[] = [];
     let due = 0;
     let fallbacks = 0;
     if (isDecisionTick) {
@@ -269,6 +294,7 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
           continue;
         }
         due += 1;
+        dueDecisionCount += 1;
         const legal = enumerateLegalActions(state, agent.id);
         const input: DecisionInput = {
           runId: 'local-batch',
@@ -294,7 +320,12 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
             '同步 run 不支持异步策略；live/replay 请使用 runSingleWithPolicy',
           );
         }
-        decisionRecords.push(decision);
+        if (sink === undefined || capture) {
+          decisionRecords.push(decision);
+        }
+        if (sink !== undefined) {
+          tickDecisionRecords.push(decision);
+        }
         const isFallback = decision.source === 'fallback';
         if (isFallback) {
           fallbacks += 1;
@@ -309,12 +340,24 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
     flowsByTick.set(tick, flowsFromEvents(result.events, classCount));
     endTick = tick;
     endReason = result.endReason;
+    const needPeriodicSnap = (tick + 1) % snapshotStride === 0;
+    const periodicSnap =
+      (capture || sink !== undefined) && needPeriodicSnap ? captureSnapshot(state) : null;
     if (capture) {
       capturedEvents.push(...result.events);
       executionsByTick.set(tick, result.executions);
-      if ((tick + 1) % snapshotStride === 0) {
-        snapshots.push(captureSnapshot(state));
+      if (periodicSnap !== null) {
+        snapshots.push(periodicSnap);
       }
+    }
+    if (sink !== undefined) {
+      sink.onTickSettled({
+        tick,
+        decisions: tickDecisionRecords,
+        executions: result.executions,
+        events: result.events,
+        periodicSnapshot: periodicSnap,
+      });
     }
     if (
       runCheckpoint !== undefined &&
@@ -358,12 +401,16 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
   ) {
     removeRunProgress(runCheckpoint.host, runCheckpoint.path);
   }
+  if (sink !== undefined) {
+    sink.onFinalState(captureSnapshot(state));
+  }
   return finalizeRun({
     config,
     stats,
     flowsByTick,
     decisionsByTick,
     decisions: decisionRecords,
+    dueDecisionCount,
     state,
     endReason,
     endTick,
@@ -386,6 +433,7 @@ interface FinalizeInput {
     { readonly due: number; readonly fallbacks: number }
   >;
   readonly decisions: readonly DecisionRecord[];
+  readonly dueDecisionCount?: number;
   readonly state: SimState;
   readonly endReason: string | null;
   readonly endTick: number;
@@ -436,6 +484,7 @@ function finalizeRun(input: FinalizeInput): RunOutcome {
     flowsByTick,
     decisionsByTick,
     decisions,
+    ...(input.dueDecisionCount === undefined ? {} : { dueDecisionCount: input.dueDecisionCount }),
     report: {
       windows,
       labelsByWindow,

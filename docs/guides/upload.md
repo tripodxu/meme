@@ -106,11 +106,26 @@ node scripts/upload-run.mjs my-run/bundle.json \
   run 列表，避免复制实验。
 - 服务器 409（同键不同 hash、状态冲突）是终止错误，不重试。
 
-## 3. 当前边界
+## 3. 独立验证与回放核验（`pnpm verify:run`）
 
-- 批跑已可自动导出 metrics-only 或 full bundle（changes/0075/0080）；full 捕获
-  events/executions/周期快照会显著增加内存，且不能与 `--checkpoint-ticks` 同用。
-- `--resume` 复用的已完成 run 不会重新触发 bundle 导出；需要换输出目录或上游单独导出。
-- 未执行真实 Cloudflare preview 部署；本地上传与 workerd 冒烟已通过（P4-07 远程部分未做）。
-- 上传成功只代表技术完整（`verificationStatus=uploaded`），不代表内容已验证，
-  也不构成校准或结构证据。
+`complete` 成功仅将服务器 `verificationStatus` 置为 `uploaded`。独立验证器（`src/runner/verifier.ts`）负责核验压缩/未压缩双 SHA-256、`artifactManifestHash`、NDJSON schema、单调连续性与 `full` 模式下的完整确定性回放：
+
+```bash
+pnpm build
+# 1) 验证本地导出包
+pnpm verify:run my-run/bundle.json
+
+# 2) 下载验证远端 Worker 已完成 run，并用 RUNNER_TOKEN 回写 verified / rejected
+RUNNER_TOKEN=... pnpm verify:run --run-id run_xxx --base-url http://127.0.0.1:8787 --submit
+```
+
+- `metrics-only` 验证通过时报告明确标记 `replayable: false`；`full` 模式从 `tick=0` 初始权威快照逐 tick 执行 `step()` 直至终局，核对每步指标、周期快照 `stateHash`、事件计数与 `finalStateHash`。
+- 一旦被标记为 `rejected`，Worker 拒绝后续任何改为 `verified` 的请求（`409 state_conflict`）。
+
+## 4. 当前边界
+
+- 批跑 `--artifact-profile full` 已升级为流式分块落盘（`createStreamingBundleWriter`，changes/0085），不在内存中驻留全程大数组；仍不能与 `--checkpoint-ticks` 同时开启（恢复段缺少前半程 events/snapshots）。
+- `--resume` 搭配 `--upload-bundles` 时会自动检测并确定性补导出缺失 `bundle.json` 的已完成 run（核对重算 `finalStateHash` 与 ledger 一致），已存在的 bundle 直接跳过。
+- 远端 Cloudflare preview 因平台侧 1101 尚未完成公网冒烟；本地上传、workerd 冒烟与独立验证器全链路已通过。
+- 上传与独立回放验证通过只代表工程与确定性回放完整（`verificationStatus=verified`），
+  不构成校准或结构证据。

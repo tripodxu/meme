@@ -5,10 +5,23 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { createDemoConfig } from '../../../src/core/config/defaults.js';
 import { asSeed } from '../../../src/core/control/ids.js';
+import {
+  DECISION_SCHEMA_VERSION,
+  ENGINE_VERSION,
+  RULES_VERSION,
+} from '../../../src/core/control/versions.js';
+import { memoryCheckpointHost } from '../../../src/runner/checkpoint.js';
+import { validateBatchManifest } from '../../../src/runner/batch.js';
+import { runBatch } from '../../../src/runner/batch-cli.js';
 import { runSingle } from '../../../src/runner/run-cell.js';
 import { loadUploadBundle } from '../../../src/runner/upload-bundle.js';
-import { writeUploadBundle } from '../../../src/runner/upload-export.js';
+import {
+  createStreamingBundleWriter,
+  uploadBundleExists,
+  writeUploadBundle,
+} from '../../../src/runner/upload-export.js';
 import { uploadRun } from '../../../src/runner/uploader.js';
+import { verifyUploadBundle } from '../../../src/runner/verifier.js';
 import { app } from '../../../src/worker/index.js';
 import type { Env } from '../../../src/worker/types.js';
 import { BASE, createTestEnv } from '../../helpers/worker-env.js';
@@ -168,5 +181,97 @@ describe('P5b 批跑上传 bundle 导出', () => {
     } else {
       expect(written.endReason).toBe('scheduled');
     }
+  });
+
+  it('流式 full 写出器（createStreamingBundleWriter）不驻留全程大数组且产出可通过独立验证器回放的 bundle', () => {
+    const config = createDemoConfig({
+      population: { initialPopulation: 10 },
+      schedule: { totalTicks: 10, statsStride: 2, snapshotStride: 4 },
+      decision: { interval: 2 },
+    });
+    const seed = asSeed('seed-stream-full');
+    const outDir = tempDir();
+    const writer = createStreamingBundleWriter({
+      outDir,
+      cellKey: 'stream-cell',
+      seed,
+      config,
+      runtimeVersion: `node-${process.versions.node}`,
+    });
+    const outcome = runSingle(config, seed, {
+      policy: 'mock-weighted-v1',
+      artifactSink: writer.sink,
+      snapshotStride: 4,
+    });
+    // 流式路径不向 outcome.decisions 堆积全量记录，但准确统计 dueDecisionCount
+    expect(outcome.decisions).toHaveLength(0);
+    expect(outcome.dueDecisionCount).toBeGreaterThan(0);
+
+    const written = writer.finalize(outcome);
+    expect(uploadBundleExists(outDir, 'stream-cell', seed)).toBe(true);
+    const loaded = loadUploadBundle(written.bundlePath);
+    const verified = verifyUploadBundle(loaded);
+    expect(verified.status).toBe('verified');
+    expect(verified.report.replayable).toBe(true);
+    expect(verified.report.replayFinalStateHash).toBe(outcome.report.finalStateHash);
+    expect(DECISION_SCHEMA_VERSION).toBeTruthy();
+
+    // 验证异常中止时 abort() 清理 .stream.tmp 临时文件且不残留 bundle.json
+    const abortedWriter = createStreamingBundleWriter({
+      outDir,
+      cellKey: 'aborted-cell',
+      seed,
+      config,
+      runtimeVersion: `node-${process.versions.node}`,
+    });
+    runSingle(config, seed, { policy: 'mock-weighted-v1', artifactSink: abortedWriter.sink });
+    abortedWriter.abort();
+    expect(uploadBundleExists(outDir, 'aborted-cell', seed)).toBe(false);
+  });
+
+  it('runBatch 在 --resume 复用已完成任务时自动补导出缺失的上传 bundle 并校验状态哈希一致', async () => {
+    const manifest = validateBatchManifest({
+      schemaVersion: 'batch-v1',
+      rulesVersion: RULES_VERSION,
+      engineVersion: ENGINE_VERSION,
+      populationSize: 40,
+      totalTicks: 10,
+      policy: 'mock-weighted-v1',
+      seeds: ['resume-backfill-1', 'resume-backfill-2'],
+      cells: [{ cellKey: 'base', overrides: {} }],
+    });
+    const host = memoryCheckpointHost();
+    // 首轮运行：只写 ledger，未启用上传导出
+    const first = await runBatch(manifest, { ledger: { host, path: 'ledger.json' } });
+    expect(first.totals.ok).toBe(2);
+
+    // 次轮 resume：开启流式 full 导出与缺失检测，自动为已完成的 2 个任务补导出并通过验证！
+    const bundlesDir = tempDir();
+    const second = await runBatch(manifest, {
+      ledger: { host, path: 'ledger.json' },
+      shouldBackfillResumedTask: (task) => !uploadBundleExists(bundlesDir, task.cellKey, task.seed),
+      createArtifactSink: (task) =>
+        createStreamingBundleWriter({
+          outDir: bundlesDir,
+          cellKey: task.cellKey,
+          seed: task.seed,
+          config: task.config,
+          runtimeVersion: `node-${process.versions.node}`,
+        }),
+    });
+    expect(second.totals.resumed).toBe(2);
+    expect(uploadBundleExists(bundlesDir, 'base', asSeed('resume-backfill-1'))).toBe(true);
+    expect(uploadBundleExists(bundlesDir, 'base', asSeed('resume-backfill-2'))).toBe(true);
+
+    // 再次 resume：因 bundle 已存在，不再重复补跑
+    let backfillCalls = 0;
+    await runBatch(manifest, {
+      ledger: { host, path: 'ledger.json' },
+      shouldBackfillResumedTask: (task) => !uploadBundleExists(bundlesDir, task.cellKey, task.seed),
+      onRunComplete: () => {
+        backfillCalls += 1;
+      },
+    });
+    expect(backfillCalls).toBe(0);
   });
 });

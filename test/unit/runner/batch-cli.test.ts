@@ -455,5 +455,32 @@ describe('批量 ledger 断点续跑（G5a）', () => {
     await expect(
       runBatch(manifest, { ledger: { host, path: 'ledger2.json' } }),
     ).rejects.toThrowError(/ledger\.runs\[0\]\.seed/);
+
+    for (const [name, badPayload] of [
+      ['l3.json', { schemaVersion: 'batch-ledger-v1', manifestHash, runs: 'nope' }],
+      ['l4.json', { schemaVersion: 'batch-ledger-v1', manifestHash, runs: [], failures: 'nope' }],
+      ['l5.json', { schemaVersion: 'batch-ledger-v1', manifestHash, runs: [], failures: [null] }],
+      [
+        'l6.json',
+        {
+          schemaVersion: 'batch-ledger-v1',
+          manifestHash,
+          runs: [],
+          failures: [{ cellKey: '', seed: 's', code: 'c', error: 'e' }],
+        },
+      ],
+      [
+        'l7.json',
+        {
+          schemaVersion: 'batch-ledger-v1',
+          manifestHash,
+          runs: [],
+          failures: [{ cellKey: 'a', seed: 's', code: 'c', error: 'e', attempt: 0 }],
+        },
+      ],
+    ] as const) {
+      host.files.set(name, JSON.stringify(badPayload));
+      await expect(runBatch(manifest, { ledger: { host, path: name } })).rejects.toThrow();
+    }
   });
 });

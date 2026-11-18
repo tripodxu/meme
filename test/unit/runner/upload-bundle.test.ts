@@ -125,4 +125,64 @@ describe('P5b 上传清单加载器', () => {
     );
     expect(() => loadUploadBundle(join(dir, 'bundle.json'))).toThrow(/schemaVersion/);
   });
+
+  it('支持内联 agents 与 {agents:[]} 包装，并拒绝损坏 JSON 或空 artifact', () => {
+    const dir = makeDir();
+    expect(() => loadUploadBundle(join(dir, 'nope.json'))).toThrow(/不存在/);
+    writeFileSync(join(dir, 'bad.json'), '{broken');
+    expect(() => loadUploadBundle(join(dir, 'bad.json'))).toThrow(/合法 JSON/);
+    writeFileSync(join(dir, 'arr.json'), '[]');
+    expect(() => loadUploadBundle(join(dir, 'arr.json'))).toThrow(/对象/);
+
+    writeFileSync(join(dir, 'metrics.ndjson'), '{"tick":0}\n');
+    writeFileSync(join(dir, 'final.ndjson'), '{"schemaVersion":"final-state-v1"}\n');
+    writeFileSync(join(dir, 'agents-wrapped.json'), JSON.stringify({ agents: [] }));
+
+    const wrapped = {
+      ...baseFile(),
+      finalAliveCount: 0,
+      agents: { path: 'agents-wrapped.json' },
+    };
+    writeFileSync(join(dir, 'wrapped.json'), JSON.stringify(wrapped));
+    expect(loadUploadBundle(join(dir, 'wrapped.json')).agents).toEqual([]);
+
+    const inline = { ...baseFile(), finalAliveCount: 0, agents: [] };
+    writeFileSync(join(dir, 'inline.json'), JSON.stringify(inline));
+    expect(loadUploadBundle(join(dir, 'inline.json')).agents).toEqual([]);
+
+    writeFileSync(join(dir, 'empty.ndjson'), '   \n');
+    const emptyArt = {
+      ...inline,
+      artifacts: [{ kind: 'metrics', chunkId: 'm0', path: 'empty.ndjson' }],
+    };
+    writeFileSync(join(dir, 'empty-bundle.json'), JSON.stringify(emptyArt));
+    expect(() => loadUploadBundle(join(dir, 'empty-bundle.json'))).toThrow(/为空/);
+
+    // 覆盖 agents 非法格式与空 artifacts 分支
+    writeFileSync(join(dir, 'bad-agents.json'), '{nope');
+    writeFileSync(
+      join(dir, 'b1.json'),
+      JSON.stringify({ ...baseFile(), agents: { path: 'bad-agents.json' } }),
+    );
+    expect(() => loadUploadBundle(join(dir, 'b1.json'))).toThrow(/agents 文件不是合法 JSON/);
+
+    writeFileSync(join(dir, 'obj-agents.json'), '{"foo":1}');
+    writeFileSync(
+      join(dir, 'b2.json'),
+      JSON.stringify({ ...baseFile(), agents: { path: 'obj-agents.json' } }),
+    );
+    expect(() => loadUploadBundle(join(dir, 'b2.json'))).toThrow(/agents 文件必须是数组/);
+
+    writeFileSync(join(dir, 'b3.json'), JSON.stringify({ ...baseFile(), agents: 123 }));
+    expect(() => loadUploadBundle(join(dir, 'b3.json'))).toThrow(/agents 必须是数组或 \{path\}/);
+
+    writeFileSync(join(dir, 'b4.json'), JSON.stringify({ ...baseFile(), artifacts: [] }));
+    expect(() => loadUploadBundle(join(dir, 'b4.json'))).toThrow(/artifacts 不得为空/);
+
+    writeFileSync(
+      join(dir, 'b5.json'),
+      JSON.stringify({ ...baseFile(), artifacts: [{ kind: 'metrics', chunkId: 'm0' }] }),
+    );
+    expect(() => loadUploadBundle(join(dir, 'b5.json'))).toThrow(/缺少 path/);
+  });
 });
