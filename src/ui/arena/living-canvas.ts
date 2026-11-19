@@ -63,6 +63,7 @@ export class LivingArenaCanvas {
   private layoutMode: ArenaLayoutMode = 'wealth';
   private showAllEdges = true;
   private hoveredAgentId: string | null = null;
+  private previewTargetId: string | null = null;
   private state: SimState | null = null;
   private selectedAgentId: string | null = null;
   private avatarId: string | null = null;
@@ -99,6 +100,12 @@ export class LivingArenaCanvas {
 
   getShowAllEdges(): boolean {
     return this.showAllEdges;
+  }
+
+  setPreviewTarget(targetId: string | null): void {
+    if (this.previewTargetId === targetId) return;
+    this.previewTargetId = targetId;
+    this.scheduleDraw();
   }
 
   update(
@@ -326,7 +333,8 @@ export class LivingArenaCanvas {
       let tx: number;
       if (this.layoutMode === 'wealth') {
         const ratio = Math.min(1, Math.log1p(Math.max(0, agent.value)) / maxLogVal);
-        tx = left + 12 + ratio * innerW;
+        const zeroJitter = agent.value <= 0.01 ? goldenPhase(idx, 5) * 28 : 0;
+        tx = left + 12 + ratio * innerW + zeroJitter;
       } else {
         const phaseX = goldenPhase(idx, 1);
         const degreeShift =
@@ -805,6 +813,30 @@ export class LivingArenaCanvas {
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 2;
         ctx.stroke();
+      }
+    }
+
+    // 6. 竞争瞄准预演弧线（悬停底部竞争卡时高亮目标）
+    if (this.previewTargetId !== null && this.avatarId !== null) {
+      const src = this.sprites.get(this.avatarId);
+      const dst = this.sprites.get(this.previewTargetId);
+      if (src !== undefined && dst !== undefined && src.alive && dst.alive) {
+        ctx.save();
+        const midX = (src.x + dst.x) * 0.5;
+        const midY = (src.y + dst.y) * 0.5 - Math.max(24, Math.abs(src.x - dst.x) * 0.18);
+        ctx.beginPath();
+        ctx.moveTo(src.x, src.y);
+        ctx.quadraticCurveTo(midX, midY, dst.x, dst.y);
+        ctx.strokeStyle = isPaper ? '#7c3aed' : '#c084fc';
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(dst.x, dst.y, dst.radius + 7, 0, Math.PI * 2);
+        ctx.setLineDash([]);
+        ctx.stroke();
+        ctx.restore();
       }
     }
 

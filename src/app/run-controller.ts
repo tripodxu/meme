@@ -365,6 +365,52 @@ export class RunController {
     }
   }
 
+  /**
+   * 同源双生制度对照：锁定当前 seed 与策略，仅将 `openness.updateMode` 切换为 `fixed`（或 `dynamic`），
+   * 保留原世界作为 Baseline 供幽灵轨迹与相空间对比。
+   */
+  forkOpennessTwin(): ForkPerturbationResult {
+    if (this.config === null || this.seed === null || this.runId === null) {
+      return { ok: false, message: '尚未初始化世界，无法创建制度对照。', baselineBundle: null };
+    }
+    if (this.status === 'running' || this.status === 'replaying') {
+      this.pause();
+    }
+    const baselineBundle = this.exportBundle(true);
+    const prevMode = this.config.openness.updateMode;
+    const nextMode = prevMode === 'fixed' ? 'dynamic' : 'fixed';
+    const nextConfig: RunConfig = {
+      ...this.config,
+      openness: { ...this.config.openness, updateMode: nextMode },
+    };
+    const pid = this.policy.id;
+    const policyForPrepare =
+      pid === 'mock-weighted-v1' || pid === 'mock-weighted-v2' || pid === 'random-uniform-v1'
+        ? pid
+        : 'mock-weighted-v1';
+    const res = this.prepare(nextConfig, this.seed, policyForPrepare);
+    if (!res.ok) {
+      return {
+        ok: false,
+        message: `制度对照配置未通过校验：${res.issues[0]?.message ?? '未知错误'}`,
+        baselineBundle: null,
+      };
+    }
+    this.forkProvenance = {
+      parentRunId: baselineBundle?.runId ?? this.runId,
+      forkTick: 0,
+      checkpointStateHash: baselineBundle?.initialSnapshot?.stateHash ?? '',
+      changedField: 'openness.updateMode',
+      description: `同源双生制度对照：seed=${this.seed}，仅将 openness.updateMode 由 ${prevMode} 切换为 ${nextMode}`,
+    };
+    this.emit();
+    return {
+      ok: true,
+      message: `已创建同源制度对照（openness.updateMode=${nextMode}），原世界已锁定为对比基准。`,
+      baselineBundle,
+    };
+  }
+
   subscribe(listener: (snapshot: ControllerSnapshot) => void): () => void {
     this.listeners.add(listener);
     listener(this.snapshot());

@@ -52,7 +52,7 @@ export function renderReplay(root: HTMLElement, app: StratifyApp): void {
     snapshot.forkProvenance === null
       ? null
       : h('div', { class: 'notice', style: 'margin-bottom:10px' }, [
-          h('strong', { text: '🌿 平行宇宙微扰分叉溯源：' }),
+          h('strong', { text: '平行宇宙微扰分叉溯源：' }),
           h('span', { text: `${snapshot.forkProvenance.description} · ` }),
           h('span', {
             class: 'mono muted',

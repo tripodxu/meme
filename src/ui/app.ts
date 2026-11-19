@@ -1051,6 +1051,33 @@ export class StratifyApp {
     this.render(true);
   }
 
+  forkWealthShock(ratio: number): void {
+    const state = this.controller.getState();
+    if (state === null) return;
+    const targetId =
+      (this.selectedAgentId as AgentId | null) ??
+      this.controller.snapshot().avatarId ??
+      state.society.agents.find((a) => a.alive)?.id ??
+      null;
+    if (targetId === null) return;
+    const agent = state.society.agents.find((a) => a.id === targetId);
+    if (agent === undefined) return;
+    const delta =
+      ratio >= 0
+        ? Math.max(5, Math.round(agent.value * ratio))
+        : -Math.max(1, Math.round(agent.value * Math.abs(ratio)));
+    this.forkFocusedAgent(delta);
+  }
+
+  forkOpennessTwin(): void {
+    const outcome = this.controller.forkOpennessTwin();
+    if (outcome.ok && outcome.baselineBundle !== null) {
+      this.importedBundle = outcome.baselineBundle;
+    }
+    this.notify(outcome.message);
+    this.render(true);
+  }
+
   private prepareScenarioWithoutAutoRun(scenario: SandboxScenario): void {
     this.draftConfig = scenario.config;
     this.draftSeed = scenario.seed;

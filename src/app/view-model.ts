@@ -4,10 +4,18 @@ import type { TickEvent } from '../core/events.js';
 import {
   computeNeedClass,
   computeNeedOwn,
+  computeOpportunity,
   effortFunction,
   median,
+  resolveCompetition,
 } from '../core/engine/settlement.js';
-import { computeAscendCost, computeDescendCost } from '../core/legal-actions.js';
+import {
+  computeAscendBarrier,
+  computeAscendCost,
+  computeAscendCrossBase,
+  computeAscendCushion,
+  computeDescendCost,
+} from '../core/legal-actions.js';
 import type { TickStats } from '../core/macros/tick-metrics.js';
 import { agentIndexFromId, type AgentState } from '../core/model/agent.js';
 import type { SimState } from '../core/model/state.js';
@@ -844,4 +852,276 @@ export function parsePairedBatchForest(raw: unknown): PairedBatchForestSummary |
     eligibleForInference: pairedSeeds >= 30,
     metrics,
   };
+}
+
+export interface AgentMechanismAnatomy {
+  readonly agentId: string;
+  readonly classIndex: number;
+  readonly value: number;
+  readonly eClass: number;
+  readonly ge: number;
+  readonly effortFactor: number;
+  readonly opportunity: number;
+  readonly expectedDailyGain: number;
+  readonly canAscendFurther: boolean;
+  readonly ascendCost: number;
+  readonly ascendCushion: number;
+  readonly ascendBarrier: number;
+  readonly ascendTotalRequired: number;
+  readonly ascendGap: number;
+}
+
+/**
+ * 个体单日产出因子与升阶门槛瀑布拆解（纯只读，直接复用 core 纯函数）。
+ */
+export function agentMechanismAnatomy(
+  state: SimState | null,
+  agentId: string,
+): AgentMechanismAnatomy | null {
+  if (state === null) return null;
+  let agent: AgentState | undefined;
+  try {
+    agent = state.society.agents[agentIndexFromId(asAgentId(agentId))];
+  } catch {
+    agent = state.society.agents.find((a) => a.id === agentId);
+  }
+  if (agent === undefined) return null;
+
+  const eClass = state.society.eByClass[agent.classIndex] ?? 0;
+  const effortFactor = effortFunction(state.config.effort.shape, agent.hard);
+  const allAliveValues: number[] = [];
+  for (const a of state.society.agents) {
+    if (a.alive) allAliveValues.push(a.value);
+  }
+  const neighborValues: number[] = [];
+  for (const nid of agent.ties) {
+    const nb = state.society.agents[agentIndexFromId(nid)];
+    if (nb !== undefined && nb.alive) neighborValues.push(nb.value);
+  }
+  const opportunity =
+    allAliveValues.length === 0
+      ? 1
+      : computeOpportunity(state.config, neighborValues, allAliveValues);
+  const expectedDailyGain = eClass * agent.ge * effortFactor * opportunity;
+
+  const canAscendFurther = agent.classIndex < state.config.population.classCount - 1;
+  let ascendCost = 0;
+  let ascendCushion = 0;
+  let ascendBarrier = 0;
+  if (canAscendFurther) {
+    ascendCost =
+      computeAscendCost(
+        state.config,
+        agent,
+        state.society.eByClass,
+        state.society.openness,
+        state.society.refIncome,
+      ) ?? 0;
+    ascendCushion = computeAscendCushion(
+      state.config,
+      agent.classIndex + 1,
+      state.society.eByClass,
+      state.society.refIncome,
+    );
+    const crossBase = computeAscendCrossBase(
+      state.config,
+      agent,
+      state.society.eByClass,
+      state.society.refIncome,
+    );
+    ascendBarrier =
+      crossBase === null
+        ? 0
+        : computeAscendBarrier(
+            state.config,
+            agent.classIndex,
+            crossBase.crossBase,
+            state.society.occupancyPressure,
+          );
+  }
+  const ascendTotalRequired = ascendCost + ascendCushion + ascendBarrier;
+  return {
+    agentId: agent.id,
+    classIndex: agent.classIndex,
+    value: agent.value,
+    eClass,
+    ge: agent.ge,
+    effortFactor,
+    opportunity,
+    expectedDailyGain,
+    canAscendFurther,
+    ascendCost,
+    ascendCushion,
+    ascendBarrier,
+    ascendTotalRequired,
+    ascendGap: Math.max(0, ascendTotalRequired - agent.value),
+  };
+}
+
+export interface CompetitionPreview {
+  readonly initiatorId: string;
+  readonly targetId: string;
+  readonly direction: 'same_class' | 'high_to_low' | 'low_to_high';
+  readonly pWin: number;
+  readonly winGain: number;
+  readonly winNetLoss: number;
+  readonly loseLoss: number;
+  readonly loseOpponentGain: number;
+}
+
+/**
+ * 竞争发起前真实期望胜率与双方损益预演（直接调用 core `resolveCompetition`，零公式复制）。
+ */
+export function previewCompetition(
+  state: SimState | null,
+  initiatorId: string,
+  targetId: string,
+): CompetitionPreview | null {
+  if (state === null) return null;
+  const initiator = state.society.agents.find((a) => a.id === initiatorId);
+  const target = state.society.agents.find((a) => a.id === targetId);
+  if (initiator === undefined || target === undefined || !initiator.alive || !target.alive) {
+    return null;
+  }
+  const winOutcome = resolveCompetition(state.config, initiator, target, 0);
+  const loseOutcome = resolveCompetition(state.config, initiator, target, 0.999999999999);
+  return {
+    initiatorId: initiator.id,
+    targetId: target.id,
+    direction: winOutcome.direction,
+    pWin: winOutcome.pInitiator,
+    winGain: winOutcome.gain,
+    winNetLoss: Math.max(0, winOutcome.loss - winOutcome.gain),
+    loseLoss: loseOutcome.loss,
+    loseOpponentGain: loseOutcome.gain,
+  };
+}
+
+export interface LifeTimelinePoint {
+  readonly tick: number;
+  readonly classIndex: number;
+  readonly kind: 'ascend' | 'descend' | 'compete_win' | 'compete_loss' | 'born' | 'died';
+  readonly label: string;
+}
+
+export function agentLifeTimeline(
+  events: readonly TickEvent[],
+  agentId: string,
+  initialClassIndex = 0,
+): readonly LifeTimelinePoint[] {
+  const pts: LifeTimelinePoint[] = [
+    { tick: 0, classIndex: initialClassIndex, kind: 'born', label: `初始 C${initialClassIndex}` },
+  ];
+  let currentClass = initialClassIndex;
+  for (const ev of events) {
+    if (ev.type === 'agent_born' && ev.agentId === agentId) {
+      currentClass = ev.classIndex;
+      pts.push({
+        tick: ev.tick,
+        classIndex: currentClass,
+        kind: 'born',
+        label: `新生继承 C${currentClass} (来自 ${ev.parentId})`,
+      });
+    } else if (ev.type === 'class_ascended' && ev.agentId === agentId) {
+      currentClass = ev.to;
+      pts.push({
+        tick: ev.tick,
+        classIndex: currentClass,
+        kind: 'ascend',
+        label: `跃升 C${ev.from}→C${ev.to}`,
+      });
+    } else if (ev.type === 'class_descended' && ev.agentId === agentId) {
+      currentClass = ev.to;
+      pts.push({
+        tick: ev.tick,
+        classIndex: currentClass,
+        kind: 'descend',
+        label: `${ev.reason === 'passive' ? '被动跌落' : '主动降阶'} C${ev.from}→C${ev.to}`,
+      });
+    } else if (
+      ev.type === 'competition_resolved' &&
+      (ev.initiatorId === agentId || ev.targetId === agentId)
+    ) {
+      const won =
+        (ev.winner === 'initiator' && ev.initiatorId === agentId) ||
+        (ev.winner === 'target' && ev.targetId === agentId);
+      pts.push({
+        tick: ev.tick,
+        classIndex: currentClass,
+        kind: won ? 'compete_win' : 'compete_loss',
+        label: won
+          ? `竞争胜 (+${formatNumber(ev.gain, 1)})`
+          : `竞争负 (-${formatNumber(ev.loss, 1)})`,
+      });
+    } else if (ev.type === 'agent_died' && ev.agentId === agentId) {
+      pts.push({ tick: ev.tick, classIndex: currentClass, kind: 'died', label: '寿元耗尽离世' });
+    }
+  }
+  return pts;
+}
+
+export interface AgentLineage {
+  readonly parent: { readonly id: string; readonly classIndex: number; readonly ge: number } | null;
+  readonly children: readonly {
+    readonly id: string;
+    readonly tick: number;
+    readonly classIndex: number;
+    readonly value: number;
+  }[];
+}
+
+export function agentLineage(
+  events: readonly TickEvent[],
+  state: SimState | null,
+  agentId: string,
+): AgentLineage {
+  let parentId: string | null = null;
+  const children: { id: string; tick: number; classIndex: number; value: number }[] = [];
+  for (const ev of events) {
+    if (ev.type !== 'agent_born') continue;
+    if (ev.agentId === agentId) parentId = ev.parentId;
+    if (ev.parentId === agentId) {
+      children.push({
+        id: ev.agentId,
+        tick: ev.tick,
+        classIndex: ev.classIndex,
+        value: ev.value,
+      });
+    }
+  }
+  const parentAgent =
+    parentId === null || state === null
+      ? undefined
+      : state.society.agents.find((a) => a.id === parentId);
+  return {
+    parent:
+      parentAgent === undefined
+        ? null
+        : { id: parentAgent.id, classIndex: parentAgent.classIndex, ge: parentAgent.ge },
+    children,
+  };
+}
+
+/**
+ * 定位两套时间序列（如微扰分叉 vs 原宇宙）首次出现宏观统计分叉的 tick。
+ */
+export function firstDivergenceTick(
+  current: readonly TickStats[],
+  baseline: readonly TickStats[],
+): number | null {
+  const len = Math.min(current.length, baseline.length);
+  for (let i = 0; i < len; i += 1) {
+    const a = current[i];
+    const b = baseline[i];
+    if (a === undefined || b === undefined) continue;
+    if (
+      Math.abs(a.gini - b.gini) > 1e-9 ||
+      Math.abs(a.openness - b.openness) > 1e-9 ||
+      Math.abs(a.segregation - b.segregation) > 1e-9 ||
+      Math.abs(a.medianValue - b.medianValue) > 1e-9
+    ) {
+      return a.tick;
+    }
+  }
+  return null;
 }

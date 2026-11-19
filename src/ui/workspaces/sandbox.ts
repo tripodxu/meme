@@ -1,8 +1,16 @@
 import type { AgentId } from '../../core/control/ids.js';
 import { SANDBOX_SCENARIOS, type SandboxScenario } from '../../app/presets.js';
 import type { AvatarDecisionPrompt, ControllerSnapshot } from '../../app/types.js';
-import { agentDetail, eventViews, formatNumber, formatPercent } from '../../app/view-model.js';
+import {
+  agentDetail,
+  agentMechanismAnatomy,
+  eventViews,
+  formatNumber,
+  formatPercent,
+  previewCompetition,
+} from '../../app/view-model.js';
 import { LivingArenaCanvas } from '../arena/living-canvas.js';
+import { renderAccumulationAnatomy, renderAscentWaterfall } from '../charts/mechanism-mini.js';
 import { icon } from '../components/icon.js';
 import { badge, card, classSymbol, classTitle, h } from '../dom.js';
 import type { StratifyApp } from '../app.js';
@@ -26,7 +34,7 @@ export class SandboxView {
   private readonly avatarBody: HTMLElement;
   private readonly chronicleBody: HTMLElement;
   private drawerOpen = true;
-  private activeScenarioId = SANDBOX_SCENARIOS[0]?.id ?? 'ascend-odyssey';
+  private activeScenarioId: string | null = null;
   private lastPromptKey = '';
 
   constructor(private readonly app: StratifyApp) {
@@ -133,6 +141,40 @@ export class SandboxView {
       [icon('fork', 13), h('span', { text: '微扰分叉' })],
     );
 
+    const cfMenu = h('div', { class: 'popover-panel', hidden: true });
+    const cfItems: readonly { label: string; run: () => void }[] = [
+      { label: '微观微扰 (ΔV=+0.0001)', run: () => this.app.forkFocusedAgent(0.0001) },
+      { label: '外生财富冲击 (+50%)', run: () => this.app.forkWealthShock(0.5) },
+      { label: '外生财富冲击 (-50%)', run: () => this.app.forkWealthShock(-0.5) },
+      { label: '同源制度对照 (切换 O 固定)', run: () => this.app.forkOpennessTwin() },
+    ];
+    cfMenu.replaceChildren(
+      ...cfItems.map((item) =>
+        h('button', {
+          class: 'cmd-item',
+          type: 'button',
+          text: item.label,
+          onClick: () => {
+            cfMenu.hidden = true;
+            item.run();
+          },
+        }),
+      ),
+    );
+    const btnCounterfactual = h(
+      'button',
+      {
+        class: 'btn btn-sm btn-ghost',
+        type: 'button',
+        title: '反事实干预实验（财富冲击 / 同源制度对照）',
+        onClick: () => {
+          cfMenu.hidden = !cfMenu.hidden;
+        },
+      },
+      [h('span', { text: '反事实' }), icon('chevron-down', 12)],
+    );
+    const cfWrap = h('div', { class: 'popover-wrap' }, [btnCounterfactual, cfMenu]);
+
     const stagePanel = h('section', { class: 'field-stage-panel' }, [
       h('header', { class: 'field-toolbar' }, [
         h('div', { class: 'card-title-group' }, [
@@ -148,6 +190,7 @@ export class SandboxView {
           this.toggleEdgesBtn,
           btnCycle,
           btnFork,
+          cfWrap,
           this.toggleDrawerBtn,
         ]),
       ]),
@@ -228,10 +271,25 @@ export class SandboxView {
       snapshot.status === 'completed'
         ? `探索已收口（Tick ${snapshot.tick}/${snapshot.totalTicks}）：可点击「微扰分叉」对照平行宇宙，或切换上方剧本开启新局。`
         : (scenario?.challengeGoal ?? '点击任意个体观察其社会关系，双击即可化身接管其决策。');
+    const missionSteps = buildMissionProgress(
+      snapshot,
+      avatarAgent,
+      this.app.importedBundle !== null,
+    );
     this.goalBanner.replaceChildren(
       h('div', { class: 'goal-text' }, [
-        h('strong', { text: '沙盒探索导引：' }),
+        h('strong', { text: '探索导引：' }),
         h('span', { text: goalMessage }),
+        h(
+          'div',
+          { class: 'mission-strip' },
+          missionSteps.map((step) =>
+            h('span', { class: `mission-step ${step.done ? 'is-done' : ''}`.trim() }, [
+              icon(step.done ? 'check' : 'chevron-right', 11),
+              h('span', { text: step.label }),
+            ]),
+          ),
+        ),
       ]),
       h('div', { class: 'actions-row' }, progressBadges),
     );
@@ -373,41 +431,82 @@ export class SandboxView {
       );
     }
 
-    // 竞争挑战候选卡（最多展示前 4 名高区分度合法候选，其余通过紧凑按钮列出）
-    for (const target of prompt.targets) {
+    // 竞争挑战候选卡（默认展示前 3 名，其余折叠在「更多候选」中，悬停触发画布瞄准弧线与真实胜率标尺）
+    const currentState = this.app.controller.getState();
+    const visibleTargets = prompt.targets.slice(0, 3);
+    const hiddenTargets = prompt.targets.slice(3);
+
+    const makeCompeteCard = (target: (typeof prompt.targets)[number]): HTMLElement => {
       const key = `compete:${target.id}`;
       const prob = prompt.advisorProbabilities[key] ?? 0;
+      const preview = previewCompetition(currentState, prompt.agentId, target.id);
       const diffLabel =
         target.classIndex > prompt.classIndex
-          ? '跨层向上挑战'
+          ? '跨层向上'
           : target.classIndex < prompt.classIndex
-            ? '跨层向下博弈'
-            : '同层博弈';
-      cards.push(
-        h(
-          'button',
-          {
-            class: 'choice-card choice-compete',
-            type: 'button',
-            onClick: () => this.app.controller.submitAvatarAction(key),
+            ? '跨层向下'
+            : '同层';
+      const cardEl = h(
+        'button',
+        {
+          class: 'choice-card choice-compete',
+          type: 'button',
+          onClick: () => {
+            this.arena.setPreviewTarget(null);
+            this.app.controller.submitAvatarAction(key);
           },
-          [
-            h('div', { class: 'choice-head' }, [
-              h('span', { class: 'choice-icon', text: '▲▼' }),
-              badge(target.isNeighbor ? `邻居 · ${diffLabel}` : diffLabel, 'violet'),
-            ]),
-            h('strong', {
-              class: 'choice-title',
-              text: `竞争 ${target.id} (C${target.classIndex})`,
-            }),
-            h('span', {
-              class: 'choice-desc',
-              text: `对手财富 ${formatNumber(target.value, 2)} vs 你 ${formatNumber(prompt.value, 2)} · 先验 ${formatPercent(prob, 0)}`,
-            }),
-          ],
-        ),
+        },
+        [
+          h('div', { class: 'choice-head' }, [
+            h('span', { class: 'choice-icon', text: '▲▼' }),
+            badge(target.isNeighbor ? `邻居 · ${diffLabel}` : diffLabel, 'violet'),
+          ]),
+          h('strong', {
+            class: 'choice-title',
+            text: `竞争 ${target.id} (C${target.classIndex})`,
+          }),
+          preview === null
+            ? h('span', {
+                class: 'choice-desc',
+                text: `对手 ${formatNumber(target.value, 1)} vs 你 ${formatNumber(prompt.value, 1)} · 权重 ${formatPercent(prob, 0)}`,
+              })
+            : h('div', { class: 'comp-preview-bar' }, [
+                h('span', { text: `胜率 ${formatPercent(preview.pWin, 0)}` }),
+                h('span', {
+                  text: `+${formatNumber(preview.winGain, 1)} / -${formatNumber(preview.loseLoss, 1)}`,
+                }),
+                h('span', { class: 'muted', text: `耗 ${formatNumber(preview.winNetLoss, 1)}` }),
+              ]),
+        ],
       );
+      cardEl.addEventListener('mouseenter', () => this.arena.setPreviewTarget(target.id));
+      cardEl.addEventListener('mouseleave', () => this.arena.setPreviewTarget(null));
+      return cardEl;
+    };
+
+    for (const target of visibleTargets) {
+      cards.push(makeCompeteCard(target));
     }
+
+    const extraHost = h(
+      'div',
+      { class: 'choice-grid', hidden: true, style: 'margin-top:8px' },
+      hiddenTargets.map(makeCompeteCard),
+    );
+    const moreBtn =
+      hiddenTargets.length === 0
+        ? null
+        : h('button', {
+            class: 'btn btn-sm btn-ghost',
+            type: 'button',
+            text: `更多竞争候选 (+${hiddenTargets.length})`,
+            onClick: () => {
+              extraHost.hidden = !extraHost.hidden;
+              moreBtn!.textContent = extraHost.hidden
+                ? `更多竞争候选 (+${hiddenTargets.length})`
+                : '收起候选';
+            },
+          });
 
     this.decisionOverlay.replaceChildren(
       h('div', { class: 'destiny-header' }, [
@@ -421,14 +520,21 @@ export class SandboxView {
             text: `当前财富 ${formatNumber(prompt.value, 2)} · 需求线 ${formatNumber(prompt.need, 2)} (${formatPercent(prompt.needRatio, 0)}) · 连续低于阈值 ${prompt.belowNeedStreak} 天`,
           }),
         ]),
-        h('button', {
-          class: 'btn btn-sm btn-ghost',
-          type: 'button',
-          text: '切回 AI 托管本局',
-          onClick: () => this.app.controller.setAvatar(prompt.agentId, false),
-        }),
+        h('div', { class: 'actions-row' }, [
+          moreBtn,
+          h('button', {
+            class: 'btn btn-sm btn-ghost',
+            type: 'button',
+            text: '切回 AI 托管本局',
+            onClick: () => {
+              this.arena.setPreviewTarget(null);
+              this.app.controller.setAvatar(prompt.agentId, false);
+            },
+          }),
+        ]),
       ]),
       h('div', { class: 'choice-grid' }, cards),
+      extraHost,
     );
   }
 
@@ -474,6 +580,8 @@ export class SandboxView {
       Math.round((detail.belowNeedStreak / Math.max(1, limit)) * 100),
     );
 
+    const anatomy = agentMechanismAnatomy(state, detail.id);
+
     this.avatarBody.replaceChildren(
       h('div', { class: 'avatar-header-row' }, [
         h('div', {}, [
@@ -494,7 +602,7 @@ export class SandboxView {
             ? h('button', {
                 class: `btn btn-sm ${snapshot.avatarInteractive ? 'btn-primary' : ''}`.trim(),
                 type: 'button',
-                text: snapshot.avatarInteractive ? '🎮 手动出牌中' : '🤖 切换手动出牌',
+                text: snapshot.avatarInteractive ? '手动出牌中' : '切换手动出牌',
                 onClick: () =>
                   this.app.controller.setAvatar(detail.id as AgentId, !snapshot.avatarInteractive),
               })
@@ -537,6 +645,9 @@ export class SandboxView {
           }),
         ]),
       ]),
+      ...(anatomy === null
+        ? []
+        : [renderAccumulationAnatomy(anatomy), renderAscentWaterfall(anatomy)]),
       h('div', { class: 'actions-row', style: 'margin-top:12px' }, [
         h(
           'button',
@@ -641,4 +752,22 @@ export class SandboxView {
     }
     this.chronicleBody.replaceChildren(list);
   }
+}
+
+function buildMissionProgress(
+  snapshot: ControllerSnapshot,
+  avatarAgent: { readonly classIndex: number; readonly maxClassIndex: number } | undefined,
+  hasBaseline: boolean,
+): readonly { readonly label: string; readonly done: boolean }[] {
+  return [
+    { label: '推进演化 (t≥10)', done: snapshot.tick >= 10 },
+    {
+      label: '突破初始阶层 / 跃升',
+      done:
+        avatarAgent !== undefined && avatarAgent.maxClassIndex > avatarAgent.classIndex
+          ? true
+          : snapshot.events.some((e) => e.type === 'class_ascended'),
+    },
+    { label: '创建反事实对照', done: snapshot.forkProvenance !== null || hasBaseline },
+  ];
 }

@@ -3,6 +3,9 @@ import type { AgentRow } from '../../app/view-model.js';
 import {
   agentDetail,
   agentEvents,
+  agentLifeTimeline,
+  agentLineage,
+  agentMechanismAnatomy,
   agentRows,
   agentWealthLedger,
   decisionsForAgent,
@@ -11,6 +14,11 @@ import {
   latestExecution,
 } from '../../app/view-model.js';
 import { renderEgoNetwork } from '../charts/core.js';
+import {
+  renderAccumulationAnatomy,
+  renderAscentWaterfall,
+  renderLifeTrajectoryStrip,
+} from '../charts/mechanism-mini.js';
 import { badge, card, classSymbol, classTitle, h, table } from '../dom.js';
 import type { StratifyApp } from '../app.js';
 
@@ -42,13 +50,13 @@ export class InspectorView {
       card('个体显微镜检查器', [
         h('p', {
           class: 'muted',
-          text: '尚未初始化世界。可先在「① 实验设置」或「✦ 交互沙盒」启动一次运行。',
+          text: '尚未初始化世界。可先在「实验台」或「生态场」启动一次运行。',
         }),
         h('div', { class: 'actions-row', style: 'margin-top:10px' }, [
           h('button', {
             class: 'btn btn-primary',
             type: 'button',
-            text: '▶ 用当前草稿配置立即启动',
+            text: '用当前草稿配置立即启动',
             onClick: () => this.app.start(),
           }),
         ]),
@@ -296,7 +304,45 @@ export class InspectorView {
     const execution = latestExecution(snapshot, agentId);
     const ledger = agentWealthLedger(snapshot.events, agentId, 20);
     const events = agentEvents(snapshot.events, agentId, 20);
+    const anatomy = agentMechanismAnatomy(state, agentId);
+    const lifePts = agentLifeTimeline(snapshot.events, agentId, detail.classIndex);
+    const lineage = agentLineage(snapshot.events, state, agentId);
     const isAvatar = snapshot.avatarId === detail.id;
+
+    const lineageStrip =
+      lineage.parent === null && lineage.children.length === 0
+        ? null
+        : h('div', { class: 'anatomy-block' }, [
+            h('div', { class: 'anatomy-head' }, [
+              h('span', { class: 'muted', text: '代际血脉谱系 (rules-v16/v18)' }),
+            ]),
+            h('div', { class: 'actions-row' }, [
+              lineage.parent === null
+                ? null
+                : h('button', {
+                    class: 'btn btn-sm btn-ghost',
+                    type: 'button',
+                    text: `父代 ${lineage.parent.id} (C${lineage.parent.classIndex}, ge=${formatNumber(lineage.parent.ge, 2)})`,
+                    onClick: () => {
+                      this.app.selectedAgentId = lineage.parent!.id;
+                      this.refreshRosterOnly();
+                      this.renderDetail();
+                    },
+                  }),
+              ...lineage.children.map((ch) =>
+                h('button', {
+                  class: 'btn btn-sm btn-ghost',
+                  type: 'button',
+                  text: `子代 ${ch.id} (t${ch.tick}, C${ch.classIndex})`,
+                  onClick: () => {
+                    this.app.selectedAgentId = ch.id;
+                    this.refreshRosterOnly();
+                    this.renderDetail();
+                  },
+                }),
+              ),
+            ]),
+          ]);
 
     this.detailContainer.append(
       // 象限 A：核心生存与阶级状态
@@ -370,10 +416,25 @@ export class InspectorView {
         subtitle: '枚举候选 → 策略概率 → 选定行动 → 核心结算实际执行',
       }),
 
-      // 象限 C：财富变动复式账本与事件
-      card('财富复式账本与事件记录', [wealthLedgerView(ledger), eventLedger(events)], {
-        subtitle: '逐笔追踪 Value 增减原因（日常积累 / 跨越成本 / 竞争得失）',
-      }),
+      // 象限 C：人生阶梯带、代际血脉与复式账本
+      card(
+        '人生轨迹与财富复式账本',
+        [
+          renderLifeTrajectoryStrip(
+            lifePts,
+            Math.max(1, snapshot.tick),
+            state.config.population.classCount,
+          ),
+          lineageStrip,
+          anatomy === null ? null : renderAccumulationAnatomy(anatomy),
+          anatomy === null ? null : renderAscentWaterfall(anatomy),
+          wealthLedgerView(ledger),
+          eventLedger(events),
+        ],
+        {
+          subtitle: '阶层升降阶梯带 · 代际血脉 · 机制因子 · 逐笔 Value 复式账本',
+        },
+      ),
 
       // 象限 D：自我中心关系网拓扑
       card(

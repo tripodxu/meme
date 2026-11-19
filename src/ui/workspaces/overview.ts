@@ -4,10 +4,10 @@ import {
   buildKpis,
   competitionByDirection,
   eventViews,
+  firstDivergenceTick,
   formatNumber,
   formatPercent,
   lorenzCurvePoints,
-  OVERVIEW_WINDOWS,
   remainingLifeBins,
   statsToCsv,
   summarizeWindowStats,
@@ -25,6 +25,7 @@ import {
 } from '../charts/core.js';
 import { renderFlowRibbon } from '../charts/flow-ribbon.js';
 import { sampleRows } from '../charts/lttb.js';
+import { renderPhasePortrait, type PhaseYAxis } from '../charts/phase-portrait.js';
 import { chartFrame } from '../components/chart-frame.js';
 import { icon } from '../components/icon.js';
 import { badge, card, CLASS_SYMBOLS, h, table } from '../dom.js';
@@ -67,24 +68,14 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
     { label: '末 25%', range: [75, 100] },
   ];
 
+  const divTick =
+    app.importedBundle === null
+      ? null
+      : firstDivergenceTick(snapshot.stats, app.importedBundle.stats);
+
   const windowToolbar = h('div', { class: 'window-toolbar span-12' }, [
     h('div', { class: 'actions-row' }, [
-      h('span', { class: 'muted', style: 'font-size:12px', text: '观察窗：' }),
-      ...OVERVIEW_WINDOWS.map((spec) => {
-        const outOfRange = snapshot.totalTicks > 0 && snapshot.totalTicks <= spec.startTick;
-        return h('button', {
-          class: `btn btn-sm ${app.overviewWindow === spec.id ? 'btn-primary' : ''}`.trim(),
-          type: 'button',
-          disabled: outOfRange,
-          ariaPressed: String(app.overviewWindow === spec.id),
-          text: spec.label,
-          onClick: () => {
-            app.overviewWindow = spec.id;
-            app.render();
-          },
-        });
-      }),
-      h('span', { class: 'muted', style: 'font-size:12px;margin-left:6px', text: '缩放：' }),
+      h('span', { class: 'muted', style: 'font-size:12px', text: '区间缩放：' }),
       ...zoomPresets.map((zp) => {
         const active = app.zoomRange[0] === zp.range[0] && app.zoomRange[1] === zp.range[1];
         return h('button', {
@@ -100,7 +91,12 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
       }),
     ]),
     h('div', { class: 'actions-row' }, [
-      ghostRows.length > 0 ? badge('幽灵对照虚线已叠加', 'violet') : null,
+      ghostRows.length > 0
+        ? badge(
+            divTick === null ? '幽灵对照（尚未偏离）' : `幽灵对照 · 首次偏离 t${divTick}`,
+            'violet',
+          )
+        : null,
       h(
         'button',
         {
@@ -293,17 +289,18 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
       }),
     ]),
     h('div', { class: 'span-4' }, [
-      card('窗口阶级转移矩阵', [flowMatrix(snapshot)], {
+      chartFrame('窗口阶级转移矩阵', [flowMatrix(snapshot)], {
         subtitle: `最近 ${snapshot.config?.metrics.flowWindowDays ?? 365} 日窗口计数（行=来源层，列=目标层）`,
       }),
     ]),
-    h('div', { class: 'span-5' }, [
-      card('行动分布与决策遥测', [decisionChart(snapshot)], {
+    h('div', { class: 'span-4' }, [phasePortraitCard(plotRows, ghostRows)]),
+    h('div', { class: 'span-4' }, [
+      chartFrame('行动分布与决策遥测', [decisionChart(snapshot)], {
         subtitle: '最近 500 条个体决策统计；离线策略不伪造模型 Token 成本',
       }),
     ]),
-    h('div', { class: 'span-7' }, [
-      card('实时审计事件流（最近有界 500 条）', [eventList(snapshot, app)], {
+    h('div', { class: 'span-12' }, [
+      chartFrame('实时审计事件流（最近有界 500 条）', [eventList(snapshot, app)], {
         subtitle: '点击带个体编号的事件可直接选中对应个体；完整日志请通过 Bundle 导出保存',
       }),
     ]),
@@ -783,6 +780,35 @@ function deathChart(snapshot: ControllerSnapshot, app: StratifyApp): HTMLElement
     ),
     renderBarChart(lifeBins, { height: 95, title: '存活个体剩余寿命直方图' }),
   ]);
+}
+
+function phasePortraitCard(
+  rows: readonly TickStats[],
+  ghostRows: readonly TickStats[],
+): HTMLElement {
+  let yAxis: PhaseYAxis = 'segregation';
+  const body = h('div', {});
+  const toggleBtn = h('button', {
+    class: 'btn btn-sm btn-ghost',
+    type: 'button',
+    text: '纵轴: S / 切至 Gini',
+    onClick: () => {
+      yAxis = yAxis === 'segregation' ? 'gini' : 'segregation';
+      toggleBtn.textContent =
+        yAxis === 'segregation' ? '纵轴: S / 切至 Gini' : '纵轴: Gini / 切至 S';
+      renderBody();
+    },
+  });
+  const renderBody = (): void => {
+    body.replaceChildren(renderPhasePortrait(rows, { yAxis, ghostRows }));
+  };
+  renderBody();
+  return chartFrame('体制相空间轨迹 (O × S/G)', [body], {
+    subtitle: '开放度 O 与隔离度 S（或基尼 G）的动力学吸引域轨迹；虚圈为 D1 参考质心',
+    definition:
+      '横轴为制度开放度 O，纵轴为隔离度 S 或基尼 G；空心圆为起点，实心圆为当前状态；D1 参考质心仅限 rules-v16 / N=200 / mock 口径。',
+    actions: [toggleBtn],
+  });
 }
 
 function flowMatrix(snapshot: ControllerSnapshot): HTMLElement {
