@@ -14,11 +14,12 @@ test.describe('P3-07 真实浏览器自动化 E2E（Chromium）', () => {
     await page.goto('/');
     await expect(page.locator('.command-hud')).toBeVisible();
 
-    // 调整为轻量规模 (N=12, T=8, Δt=2) 并启动运行
+    // 切至参数实验台，调整为轻量规模 (N=12, T=8, Δt=2) 并启动运行
+    await page.locator('#tab-setup').click();
     await page.locator('#setup-population').fill('12');
     await page.locator('#setup-ticks').fill('8');
     await page.locator('#setup-interval').fill('2');
-    await page.getByRole('button', { name: '▶ 冻结配置并开始' }).click();
+    await page.getByRole('button', { name: '冻结配置并开始' }).click();
 
     await expect(page.locator('.status-beacon')).toContainText('已完成', { timeout: 10_000 });
     await expect(page.locator('svg[aria-label="阶级结构堆叠"]')).toBeVisible();
@@ -42,42 +43,42 @@ test.describe('P3-07 真实浏览器自动化 E2E（Chromium）', () => {
     await expect(page.locator('.notice-host')).toContainText('已自动恢复同标签页会话', {
       timeout: 8_000,
     });
-    await expect(page.locator('.hud-right')).toContainText(savedRunId ?? 'local-');
+    await page.locator('#tab-replay').click();
+    await expect(page.locator('body')).toContainText(savedRunId ?? 'local-');
 
-    // 测试历史周期快照点回滚跳转
-    const snapSelect = page.locator('.snapshot-select');
-    await expect(snapSelect).toBeEnabled();
-    await snapSelect.selectOption('0');
+    // 测试历史周期快照点回滚跳转（时间轴快照 Popover）
+    const snapBtn = page.getByRole('button', { name: /快照 \(/ });
+    await expect(snapBtn).toBeEnabled();
+    await snapBtn.click();
+    await page.getByRole('button', { name: '跳转 Tick 0', exact: true }).click();
     await expect(page.locator('.status-beacon')).toContainText('已暂停');
     await expect(page.locator('.status-beacon')).toContainText('Tick 0 / 8');
 
     expect(errors).toEqual([]);
   });
 
-  test('交互沙盒剧场 Canvas 生态舞台、玩家化身命运抉择卡与平行宇宙微扰分叉', async ({ page }) => {
+  test('生态场 Canvas 舞台、玩家化身命运抉择卡与平行宇宙微扰分叉', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
 
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
-    await page.getByRole('button', { name: '✦ 交互沙盒剧场' }).click();
+    // 默认首屏即为生态场，点击第一套探索卷宗开启手动化身探索
     const canvas = page.locator('canvas.arena-canvas');
     await expect(canvas).toBeVisible();
     const box = await canvas.boundingBox();
     expect(box?.width ?? 0).toBeGreaterThan(300);
     expect(box?.height ?? 0).toBeGreaterThan(250);
 
-    // 启动手动化身探索，等待决策日弹出命运抉择卡并出牌
-    await page.getByRole('button', { name: '开始', exact: true }).click();
+    await page.locator('.scenario-card').first().click();
     const choiceBtn = page.locator('.choice-accumulate');
     await expect(choiceBtn).toBeVisible({ timeout: 8_000 });
     await choiceBtn.click();
 
     await page.getByRole('button', { name: '暂停', exact: true }).click();
-    await page.getByRole('button', { name: '🌿 微扰分叉', exact: true }).click();
+    await page.getByRole('button', { name: '微扰分叉', exact: true }).click();
 
-    await page.getByRole('button', { name: '◈ 精密科研试验台' }).click();
     await page.locator('#tab-replay').click();
     await expect(page.locator('body')).toContainText('平行宇宙微扰分叉溯源');
     await expect(page.locator('body')).toContainText('种子已配对');
@@ -95,6 +96,8 @@ test.describe('P3-07 真实浏览器自动化 E2E（Chromium）', () => {
     const page = await context.newPage();
     await page.goto('/');
 
+    await page.locator('#tab-setup').click();
+
     // Firefox UA 必须触发 nonAuthoritativeRuntime 提示
     await expect(page.locator('body')).toContainText('nonAuthoritativeRuntime');
 
@@ -108,7 +111,7 @@ test.describe('P3-07 真实浏览器自动化 E2E（Chromium）', () => {
     await page.locator('#setup-population').fill('50');
     await page.locator('#setup-policy').selectOption('jev_live');
     await page.locator('#setup-live-key').fill('pw-never-persist-secret-key');
-    await page.getByRole('button', { name: '▶ 冻结配置并开始' }).click();
+    await page.getByRole('button', { name: '冻结配置并开始' }).click();
     await expect(page.locator('.notice-host')).toContainText('建议上限');
 
     const storageDump = await page.evaluate(() =>

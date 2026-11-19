@@ -10,6 +10,7 @@ import { agentIndexFromId, type AgentState } from '../../core/model/agent.js';
 import type { SimState } from '../../core/model/state.js';
 import { formatNumber, formatPercent, needOf } from '../../app/view-model.js';
 import { classSymbol, classTitle, h } from '../dom.js';
+import { separateLaneNodes } from './physics.js';
 
 export type ArenaLayoutMode = 'wealth' | 'network';
 
@@ -352,6 +353,47 @@ export class LivingArenaCanvas {
         existing.radius = baseR;
         existing.alive = agent.alive;
         existing.classIndex = agent.classIndex;
+      }
+    }
+
+    // 每层泳道内运行轻量碰撞分离，消除低阶层节点堆叠重叠
+    for (let c = 0; c < classCount; c += 1) {
+      const lane = lanes[c] ?? { y0: 16, h: 48 };
+      const laneSprites: {
+        sprite: NodeSprite;
+        node: {
+          x: number;
+          y: number;
+          radius: number;
+          minX: number;
+          maxX: number;
+          minY: number;
+          maxY: number;
+        };
+      }[] = [];
+      for (const agent of agents) {
+        if (!agent.alive || agent.classIndex !== c) continue;
+        const sp = this.sprites.get(agent.id);
+        if (sp === undefined) continue;
+        laneSprites.push({
+          sprite: sp,
+          node: {
+            x: sp.tx,
+            y: sp.ty,
+            radius: sp.radius,
+            minX: left + sp.radius + 4,
+            maxX: right - sp.radius - 4,
+            minY: lane.y0 + sp.radius + 4,
+            maxY: lane.y0 + lane.h - sp.radius - 4,
+          },
+        });
+      }
+      if (laneSprites.length > 1 && laneSprites.length <= 180) {
+        separateLaneNodes(laneSprites.map((item) => item.node));
+        for (const item of laneSprites) {
+          item.sprite.tx = item.node.x;
+          item.sprite.ty = item.node.y;
+        }
       }
     }
   }
@@ -705,7 +747,12 @@ export class LivingArenaCanvas {
       }
     }
 
-    // 5. 绘制智能体精灵节点与生命弧
+    // 5. 绘制智能体精灵节点与生命弧（支持 Focus Dimming 聚光灯）
+    const focusAgent =
+      focusId === null ? undefined : this.state.society.agents.find((a) => a.id === focusId);
+    const focusNeighbors = new Set<string>(focusAgent?.ties ?? []);
+    const hasFocus = focusId !== null && focusAgent !== undefined && focusAgent.alive;
+
     for (const agent of this.state.society.agents) {
       const sp = this.sprites.get(agent.id);
       if (sp === undefined || !agent.alive) continue;
@@ -713,9 +760,13 @@ export class LivingArenaCanvas {
       const isSelected = agent.id === this.selectedAgentId;
       const isHovered = agent.id === this.hoveredAgentId;
       const isAvatar = agent.id === this.avatarId;
+      const inFocusScope = !hasFocus || agent.id === focusId || focusNeighbors.has(agent.id);
 
       // 濒临跌落琥珀预警光环
-      if (agent.belowNeedStreak >= Math.max(3, Math.floor(config.need.belowNeedLimit * 0.5))) {
+      if (
+        inFocusScope &&
+        agent.belowNeedStreak >= Math.max(3, Math.floor(config.need.belowNeedLimit * 0.5))
+      ) {
         ctx.beginPath();
         ctx.arc(sp.x, sp.y, sp.radius + 4, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(251, 146, 60, 0.65)';
@@ -727,7 +778,7 @@ export class LivingArenaCanvas {
       ctx.beginPath();
       ctx.arc(sp.x, sp.y, sp.radius, 0, Math.PI * 2);
       ctx.fillStyle = color;
-      ctx.globalAlpha = isSelected || isHovered || isAvatar ? 1 : 0.84;
+      ctx.globalAlpha = !inFocusScope ? 0.24 : isSelected || isHovered || isAvatar ? 1 : 0.88;
       ctx.fill();
       ctx.globalAlpha = 1;
 

@@ -102,14 +102,14 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
           h('button', {
             class: 'btn btn-primary',
             type: 'button',
-            text: '⬇ 导出完整离线 Bundle',
+            text: '导出完整 Bundle',
             disabled: snapshot.runId === null,
             onClick: () => app.downloadBundle(),
           }),
           h('button', {
             class: 'btn',
             type: 'button',
-            text: '☁ 云端上传说明',
+            text: '云端上传说明',
             onClick: () =>
               app.notify(
                 '离线 run (local-*) 仅限本地导出与回放；为防篡改，MVP 不支持将浏览器离线结果直接采纳为云端权威记录，受控上传请使用本地 runner + pnpm upload。',
@@ -118,14 +118,14 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
           h('button', {
             class: 'btn',
             type: 'button',
-            text: '🩺 下载失败诊断包',
+            text: '下载失败诊断包',
             disabled: snapshot.failure === null,
             onClick: () => downloadDiagnostics(app),
           }),
           h('button', {
             class: 'btn btn-danger',
             type: 'button',
-            text: '🗑 清除本地实验库',
+            text: '清除本地实验库',
             onClick: () => void app.clearStoredRuns(),
           }),
         ]),
@@ -153,7 +153,7 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
             h('button', {
               class: 'btn btn-sm',
               type: 'button',
-              text: '↻ 刷新注册表',
+              text: '刷新注册表',
               onClick: () => void app.refreshRuns(),
             }),
           ]),
@@ -169,16 +169,16 @@ export function renderManager(root: HTMLElement, app: StratifyApp): void {
           h('label', { class: 'field-label', text: '精密观测站主题 (Theme)' }),
           h('div', { class: 'actions-row' }, [
             h('button', {
-              class: `btn ${app.theme === 'obsidian' ? 'btn-primary' : ''}`.trim(),
-              type: 'button',
-              text: '🌙 Obsidian Lab (深空黑曜)',
-              onClick: () => app.setTheme('obsidian'),
-            }),
-            h('button', {
               class: `btn ${app.theme === 'paper' ? 'btn-primary' : ''}`.trim(),
               type: 'button',
-              text: '☀ Paper Lab (学术出版)',
+              text: 'Editorial Paper (暖纸)',
               onClick: () => app.setTheme('paper'),
+            }),
+            h('button', {
+              class: `btn ${app.theme === 'obsidian' ? 'btn-primary' : ''}`.trim(),
+              type: 'button',
+              text: 'Graphite Dark (暗房)',
+              onClick: () => app.setTheme('obsidian'),
             }),
           ]),
         ]),

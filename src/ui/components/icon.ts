@@ -28,9 +28,16 @@ export type IconName =
   | 'more-horizontal'
   | 'chevron-down'
   | 'chevron-right'
+  | 'chevron-left'
   | 'trash'
   | 'refresh'
-  | 'fork';
+  | 'fork'
+  | 'layers'
+  | 'pin'
+  | 'lock'
+  | 'help-circle'
+  | 'table'
+  | 'sidebar';
 
 const ICON_PATHS: Record<IconName, readonly string[]> = {
   play: ['M6 4l11 6-11 6V4z'],
@@ -80,6 +87,7 @@ const ICON_PATHS: Record<IconName, readonly string[]> = {
   'more-horizontal': ['M5 10h.5', 'M10 10h.5', 'M15 10h.5'],
   'chevron-down': ['M5 7.5l5 5 5-5'],
   'chevron-right': ['M7.5 5l5 5-5 5'],
+  'chevron-left': ['M12.5 5l-5 5 5 5'],
   trash: ['M4 5h12', 'M7 5V3h6v2', 'M6 5l1 12h6l1-12'],
   refresh: ['M16 10a6 6 0 1 1-1.8-4.3L16 7.5', 'M16 3v4.5h-4.5'],
   fork: [
@@ -89,6 +97,18 @@ const ICON_PATHS: Record<IconName, readonly string[]> = {
     'M6 5v2.5a2.5 2.5 0 0 0 2.5 2.5h3A2.5 2.5 0 0 0 14 7.5V5',
     'M10 10v5',
   ],
+  layers: ['M10 3l7 4-7 4-7-4 7-4z', 'M3 10l7 4 7-4', 'M3 13.5l7 4 7-4'],
+  pin: [
+    'M12 3l5 5-2 2-1.5-.5-3 3 .5 2.5-1.5 1.5-3-3-3 3-1-1 3-3-3-3 1.5-1.5 2.5.5 3-3-.5-1.5 2-2z',
+  ],
+  lock: ['M5 9h10v8H5z', 'M7 9V6a3 3 0 0 1 6 0v3'],
+  'help-circle': [
+    'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14z',
+    'M8 7.5a2 2 0 1 1 2.8 1.8c-.6.3-.8.7-.8 1.4',
+    'M10 14v.3',
+  ],
+  table: ['M3 5h14v10H3z', 'M3 9h14', 'M8 5v10'],
+  sidebar: ['M3 4h14v12H3z', 'M12 4v12'],
 };
 
 export function icon(name: IconName, size = 14): SVGSVGElement {
@@ -98,7 +118,7 @@ export function icon(name: IconName, size = 14): SVGSVGElement {
   svg.setAttribute('height', String(size));
   svg.setAttribute('fill', 'none');
   svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '1.6');
+  svg.setAttribute('stroke-width', '1.5');
   svg.setAttribute('stroke-linecap', 'round');
   svg.setAttribute('stroke-linejoin', 'round');
   svg.setAttribute('aria-hidden', 'true');

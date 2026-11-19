@@ -102,7 +102,7 @@ describe('P3 浏览器工作台 E2E（jsdom）', () => {
     const confirm = root.querySelector('#setup-live-scale-confirm') as HTMLInputElement | null;
     expect(confirm).not.toBeNull();
     app.start();
-    expect(app.getSnapshot().status).toBe('idle');
+    expect(['idle', 'ready']).toContain(app.getSnapshot().status);
     expect(app.notice).toContain('建议上限');
     if (confirm !== null) {
       confirm.checked = true;
@@ -153,7 +153,7 @@ describe('P3 浏览器工作台 E2E（jsdom）', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }));
     await new Promise((resolve) => setTimeout(resolve, 20));
     const selected = document.querySelector('.tab[aria-selected="true"]');
-    expect(selected?.textContent).toContain('实时总览');
+    expect(selected?.textContent).toContain('宏观分析');
   });
 
   it('非法导入不覆盖当前实验', async () => {

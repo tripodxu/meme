@@ -9,7 +9,7 @@ export interface RestoredSettings {
 }
 
 export function restoreSettingsFromStorage(): RestoredSettings {
-  let theme: ThemeId = 'obsidian';
+  let theme: ThemeId = 'paper';
   let speed = 1;
   try {
     const settingsRaw = localStorage.getItem('stratify.settings.v1');

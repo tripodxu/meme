@@ -23,7 +23,10 @@ import {
   renderRadarChart,
   renderStackedArea,
 } from '../charts/core.js';
+import { renderFlowRibbon } from '../charts/flow-ribbon.js';
 import { sampleRows } from '../charts/lttb.js';
+import { chartFrame } from '../components/chart-frame.js';
+import { icon } from '../components/icon.js';
 import { badge, card, CLASS_SYMBOLS, h, table } from '../dom.js';
 import type { StratifyApp } from '../app.js';
 
@@ -45,6 +48,17 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
   const zoomedRows = sliceZoomRange(winSummary.rows, app.zoomRange[0], app.zoomRange[1]);
   // 绘图序列仅对窗口内已过滤行做预降采样，指标均值仍由全量原始序列计算
   const plotRows = sampleRows(zoomedRows, PRE_SAMPLE_LIMIT);
+  const ghostRows =
+    app.importedBundle === null
+      ? []
+      : sampleRows(
+          sliceZoomRange(
+            summarizeWindowStats(app.importedBundle.stats, app.overviewWindow, classCount).rows,
+            app.zoomRange[0],
+            app.zoomRange[1],
+          ),
+          PRE_SAMPLE_LIMIT,
+        );
 
   const zoomPresets: readonly { label: string; range: readonly [number, number] }[] = [
     { label: '全区间', range: [0, 100] },
@@ -86,43 +100,56 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
       }),
     ]),
     h('div', { class: 'actions-row' }, [
-      h('button', {
-        class: 'btn btn-sm btn-ghost',
-        type: 'button',
-        disabled: winSummary.rows.length === 0,
-        text: '⬇ 导出窗口 CSV',
-        onClick: () => downloadStatsCsv(snapshot.runId, app.overviewWindow, winSummary.rows),
-      }),
-      h('button', {
-        class: `btn btn-sm ${app.overviewTableMode ? 'btn-primary' : 'btn-ghost'}`.trim(),
-        type: 'button',
-        text: app.overviewTableMode ? '📊 返回图形视图' : '📋 查看窗口聚合数据表',
-        onClick: () => {
-          app.overviewTableMode = !app.overviewTableMode;
-          app.render();
+      ghostRows.length > 0 ? badge('幽灵对照虚线已叠加', 'violet') : null,
+      h(
+        'button',
+        {
+          class: 'btn btn-sm btn-ghost',
+          type: 'button',
+          disabled: winSummary.rows.length === 0,
+          onClick: () => downloadStatsCsv(snapshot.runId, app.overviewWindow, winSummary.rows),
         },
-      }),
-      h('button', {
-        class: 'btn btn-sm btn-ghost',
-        type: 'button',
-        text: '✦ 切至生态沙盒视角',
-        onClick: () => app.setSurface('sandbox'),
-      }),
+        [icon('download', 13), h('span', { text: '导出 CSV' })],
+      ),
+      h(
+        'button',
+        {
+          class: `btn btn-sm ${app.overviewTableMode ? 'btn-primary' : 'btn-ghost'}`.trim(),
+          type: 'button',
+          onClick: () => {
+            app.overviewTableMode = !app.overviewTableMode;
+            app.render();
+          },
+        },
+        [icon('table', 13), h('span', { text: app.overviewTableMode ? '图形视图' : '聚合数据表' })],
+      ),
+      h(
+        'button',
+        {
+          class: 'btn btn-sm btn-ghost',
+          type: 'button',
+          onClick: () => app.setSurface('sandbox'),
+        },
+        [icon('layers', 13), h('span', { text: '生态场视角' })],
+      ),
     ]),
   ]);
 
   root.append(
     windowToolbar,
     h('div', { class: 'span-8' }, [
-      card(
+      chartFrame(
         '结构指纹与核心指标',
         [kpiGrid(snapshot), app.overviewTableMode ? windowSummaryTable(winSummary) : null],
         {
-          subtitle: `${winSummary.spec.label}（已观测 ${winSummary.sampleCount} tick）· 实时值来自最新 tick，不把终局值冒充窗口均值`,
+          windowLabel: winSummary.spec.shortLabel,
+          subtitle: `${winSummary.spec.label}（已观测 ${winSummary.sampleCount} tick）· 实时值来自最新 tick`,
+          definition:
+            '结构指纹包含 8 个核心宏观量；实时 KPI 取最新已结算 tick，窗口聚合均值在下方数据表与右侧五维雷达图独立呈报，绝不混用。',
           actions: [
             badge(`alive ${snapshot.aliveCount}`, 'info'),
             snapshot.aliveCount === 0 && snapshot.tick > 0
-              ? badge('⚠ 全死亡：不可用于结构判异', 'danger')
+              ? badge('全死亡：不可用于结构判异', 'danger')
               : badge(
                   snapshot.endReason === null ? snapshot.status : snapshot.endReason,
                   snapshot.status === 'failed' ? 'danger' : 'muted',
@@ -132,22 +159,27 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
       ),
     ]),
     h('div', { class: 'span-4' }, [
-      card('五维窗口均值指纹', [fingerprintRadar(winSummary)], {
-        subtitle: `${winSummary.spec.shortLabel} 窗口内存活日算术均值（未校准描述）`,
+      chartFrame('五维窗口均值指纹', [fingerprintRadar(winSummary)], {
+        windowLabel: winSummary.spec.shortLabel,
+        subtitle: '窗口内存活日算术均值（未校准描述）',
+        definition:
+          '在所选观察窗（w1/w2/w3 或全周期）内对存活日取算术均值，映射至 Gini、Top10、Mup、Open O、Seg S 五轴。',
       }),
     ]),
     h('div', { class: 'span-6' }, [
-      card('阶级结构堆叠', [classChart(plotRows, classCount), classLegend()], {
+      chartFrame('阶级结构堆叠', [classChart(plotRows, classCount), classLegend()], {
+        windowLabel: winSummary.spec.shortLabel,
         subtitle: `各阶级存活人口占比；当前存活总数 N=${snapshot.aliveCount}（死亡不折算为流动）`,
+        definition: 'P[c] = aliveInClass[c] / aliveTotal，分母仅含存活个体。',
       }),
     ]),
     h('div', { class: 'span-6' }, [
-      card(
+      chartFrame(
         '财富与不平等',
         [
           h('div', { class: 'wealth-split' }, [
             h('div', { class: 'wealth-main-col' }, [
-              wealthChart(plotRows, app.wealthLogScale),
+              wealthChart(plotRows, app.wealthLogScale, ghostRows),
               legend(
                 app.wealthLogScale
                   ? [['log10(中位数财富+1)', 'var(--gold)']]
@@ -166,12 +198,15 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
           ]),
         ],
         {
+          windowLabel: winSummary.spec.shortLabel,
           subtitle: `最新中位数财富 ${formatNumber(snapshot.latestStats?.medianValue)} · 含实时洛伦兹曲线`,
+          definition:
+            '基尼系数 G 与前 10% 财富占比基于存活个体当前 Value 计算；虚线为对照基准幽灵轨迹。',
           actions: [
             h('button', {
               class: `btn btn-sm ${app.wealthLogScale ? 'btn-primary' : 'btn-ghost'}`.trim(),
               type: 'button',
-              text: app.wealthLogScale ? 'log₁₀ 中位数财富' : 'Gini / Top10%',
+              text: app.wealthLogScale ? 'log10 中位数' : 'Gini / Top10%',
               onClick: () => {
                 app.wealthLogScale = !app.wealthLogScale;
                 app.render();
@@ -182,40 +217,45 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
       ),
     ]),
     h('div', { class: 'span-4' }, [
-      card(
+      chartFrame(
         '双向流动',
         [
-          mobilityChart(plotRows),
+          mobilityChart(plotRows, ghostRows),
           legend([
             ['Mup (上升参与率)', 'var(--action-ascend)'],
             ['Mdown (下降参与率)', 'var(--action-descend)'],
           ]),
         ],
         {
-          subtitle: `${snapshot.config?.metrics.mobilityWindowDays ?? 365} 日滑动参与率（仅计存活者）`,
+          windowLabel: `${snapshot.config?.metrics.mobilityWindowDays ?? 365}d`,
+          subtitle: '滑动窗口参与率（仅计存活者）',
+          definition: 'Mup / Mdown 为滑动窗口内至少完成一次向上/向下跨层的存活者比例。',
         },
       ),
     ]),
     h('div', { class: 'span-4' }, [
-      card(
+      chartFrame(
         '网络结构',
         [
-          networkChart(snapshot, plotRows),
+          networkChart(snapshot, plotRows, ghostRows),
           legend([
             ['跨层边占比', 'var(--class-2-color)'],
             ['调整后隔离度 S', 'var(--class-3-color)'],
           ]),
         ],
         {
+          windowLabel: winSummary.spec.shortLabel,
           subtitle: `边数 ${snapshot.latestStats?.edgeCount ?? 0} · 均度 ${formatNumber(snapshot.latestStats?.avgDegree, 2)} · 连通分量 ${snapshot.latestStats?.connectedComponents ?? 0}`,
+          definition:
+            '调整后网络隔离度 S ∈ [-1, 1]；当存活连边为 0 时 S 显式置 0 并标注 edgeCount=0。',
         },
       ),
     ]),
     h('div', { class: 'span-4' }, [
-      card(
+      chartFrame(
         '开放度与动态机会 E',
         [
-          opennessChart(plotRows, classCount),
+          opennessChart(plotRows, classCount, ghostRows),
           legend([
             ['O (制度开放度)', 'var(--accent)'],
             ...Array.from(
@@ -225,7 +265,9 @@ export function renderOverview(root: HTMLElement, app: StratifyApp): void {
           ]),
         ],
         {
+          windowLabel: winSummary.spec.shortLabel,
           subtitle: '实线 O 为制度开放度慢变量；虚线为五阶层动态环境系数 E[c]',
+          definition: 'O 随制度慢变量更新；E[c] 决定各阶层每日产出基准与跨越门槛参考。',
         },
       ),
     ]),
@@ -431,7 +473,11 @@ function downloadStatsCsv(
   setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
 }
 
-function wealthChart(rows: readonly TickStats[], logMedianMode = false): SVGSVGElement {
+function wealthChart(
+  rows: readonly TickStats[],
+  logMedianMode = false,
+  ghostRows: readonly TickStats[] = [],
+): SVGSVGElement {
   if (rows.length === 0) return emptyChart('尚无该窗口 tick 数据');
   if (logMedianMode) {
     const logSeries: Series = {
@@ -442,12 +488,26 @@ function wealthChart(rows: readonly TickStats[], logMedianMode = false): SVGSVGE
         y: Math.log10(Math.max(0, row.medianValue) + 1),
       })),
     };
+    const ghostLog: Series[] =
+      ghostRows.length === 0
+        ? []
+        : [
+            {
+              label: '对照 log10',
+              color: 'var(--gold)',
+              points: ghostRows.map((row) => ({
+                x: row.tick + 1,
+                y: Math.log10(Math.max(0, row.medianValue) + 1),
+              })),
+            },
+          ];
     return renderLineChart([logSeries], {
       height: 215,
       yMin: 0,
       xLabel: 'tick',
       yLabel: 'log10(V+1)',
       title: '中位数财富对数轨迹',
+      ghostSeries: ghostLog,
     });
   }
   const gini: Series = {
@@ -461,6 +521,16 @@ function wealthChart(rows: readonly TickStats[], logMedianMode = false): SVGSVGE
     points: rows.map((row) => ({ x: row.tick + 1, y: row.topWealthShare })),
     dashed: true,
   };
+  const ghostSeries: Series[] =
+    ghostRows.length === 0
+      ? []
+      : [
+          {
+            label: '对照 Gini',
+            color: 'var(--class-4-color)',
+            points: ghostRows.map((row) => ({ x: row.tick + 1, y: row.gini })),
+          },
+        ];
   return renderLineChart([gini, top10], {
     height: 215,
     yMin: 0,
@@ -468,11 +538,30 @@ function wealthChart(rows: readonly TickStats[], logMedianMode = false): SVGSVGE
     xLabel: 'tick',
     yLabel: '[0,1]',
     title: '财富基尼与前 10% 占比',
+    ghostSeries,
   });
 }
 
-function mobilityChart(rows: readonly TickStats[]): SVGSVGElement {
+function mobilityChart(
+  rows: readonly TickStats[],
+  ghostRows: readonly TickStats[] = [],
+): SVGSVGElement {
   if (rows.length === 0) return emptyChart('尚无该窗口 tick 数据');
+  const ghostSeries: Series[] =
+    ghostRows.length === 0
+      ? []
+      : [
+          {
+            label: '对照 Mup',
+            color: 'var(--action-ascend)',
+            points: ghostRows.map((row) => ({ x: row.tick + 1, y: row.mUp })),
+          },
+          {
+            label: '对照 Mdown',
+            color: 'var(--action-descend)',
+            points: ghostRows.map((row) => ({ x: row.tick + 1, y: row.mDown })),
+          },
+        ];
   return renderLineChart(
     [
       {
@@ -487,17 +576,39 @@ function mobilityChart(rows: readonly TickStats[]): SVGSVGElement {
         dashed: true,
       },
     ],
-    { height: 185, yMin: 0, yMax: 1, xLabel: 'tick', yLabel: '窗口参与率', title: '双向流动' },
+    {
+      height: 185,
+      yMin: 0,
+      yMax: 1,
+      xLabel: 'tick',
+      yLabel: '窗口参与率',
+      title: '双向流动',
+      ghostSeries,
+    },
   );
 }
 
-function networkChart(snapshot: ControllerSnapshot, rows: readonly TickStats[]): SVGSVGElement {
+function networkChart(
+  snapshot: ControllerSnapshot,
+  rows: readonly TickStats[],
+  ghostRows: readonly TickStats[] = [],
+): SVGSVGElement {
   const latest = snapshot.latestStats;
   if (latest === null || rows.length === 0)
     return emptyChart('尚无该窗口 tick 数据', { height: 185 });
   if (latest.edgeCount === 0) {
     return emptyChart('edgeCount = 0（无存活连边；S 置 0，不代表完全隔离）', { height: 185 });
   }
+  const ghostSeries: Series[] =
+    ghostRows.length === 0
+      ? []
+      : [
+          {
+            label: '对照 S',
+            color: 'var(--class-3-color)',
+            points: ghostRows.map((row) => ({ x: row.tick + 1, y: row.segregation })),
+          },
+        ];
   return renderLineChart(
     [
       {
@@ -512,11 +623,23 @@ function networkChart(snapshot: ControllerSnapshot, rows: readonly TickStats[]):
         dashed: true,
       },
     ],
-    { height: 185, yMin: -1, yMax: 1, xLabel: 'tick', yLabel: '比例 / S', title: '网络结构' },
+    {
+      height: 185,
+      yMin: -1,
+      yMax: 1,
+      xLabel: 'tick',
+      yLabel: '比例 / S',
+      title: '网络结构',
+      ghostSeries,
+    },
   );
 }
 
-function opennessChart(rows: readonly TickStats[], classCount: number): SVGSVGElement {
+function opennessChart(
+  rows: readonly TickStats[],
+  classCount: number,
+  ghostRows: readonly TickStats[] = [],
+): SVGSVGElement {
   if (rows.length === 0) return emptyChart('尚无该窗口 tick 数据', { height: 185 });
   const series: Series[] = [
     {
@@ -539,6 +662,16 @@ function opennessChart(rows: readonly TickStats[], classCount: number): SVGSVGEl
       dashed: true,
     });
   }
+  const ghostSeries: Series[] =
+    ghostRows.length === 0
+      ? []
+      : [
+          {
+            label: '对照 O',
+            color: 'var(--accent)',
+            points: ghostRows.map((row) => ({ x: row.tick + 1, y: row.openness })),
+          },
+        ];
   return renderLineChart(series, {
     height: 185,
     yMin: 0,
@@ -546,6 +679,8 @@ function opennessChart(rows: readonly TickStats[], classCount: number): SVGSVGEl
     xLabel: 'tick',
     yLabel: 'O / E',
     title: '开放度与动态机会',
+    ghostSeries,
+    directLabels: false,
   });
 }
 
@@ -656,9 +791,34 @@ function flowMatrix(snapshot: ControllerSnapshot): HTMLElement {
     return h('div', {}, [emptyChart('窗口内尚无阶级转移', { height: 240 })]);
   }
   const labels = latest.flowMatrix.map((_, index) => `C${index}`);
-  return h('div', {}, [
-    renderHeatmap(latest.flowMatrix, labels, labels, { height: 245, title: '阶级转移矩阵' }),
-  ]);
+  let showMatrix = false;
+  const host = h('div', {});
+  const toggleBtn = h('button', {
+    class: 'btn btn-sm btn-ghost',
+    type: 'button',
+    text: '切换 5×5 矩阵',
+    onClick: () => {
+      showMatrix = !showMatrix;
+      toggleBtn.textContent = showMatrix ? '切换流带图' : '切换 5×5 矩阵';
+      renderBody();
+    },
+  });
+  const body = h('div', {});
+  const renderBody = (): void => {
+    body.replaceChildren(
+      showMatrix
+        ? renderHeatmap(latest.flowMatrix, labels, labels, { height: 220, title: '阶级转移矩阵' })
+        : renderFlowRibbon(latest.flowMatrix, labels, { height: 210, title: '阶层流动流带图' }),
+    );
+  };
+  renderBody();
+  host.append(
+    h('div', { class: 'actions-row', style: 'justify-content:flex-end;margin-bottom:4px' }, [
+      toggleBtn,
+    ]),
+    body,
+  );
+  return host;
 }
 
 function decisionChart(snapshot: ControllerSnapshot): HTMLElement {

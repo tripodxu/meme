@@ -11,13 +11,14 @@ import {
   buildKpis,
   formatNumber,
   formatTick,
+  OVERVIEW_WINDOWS,
   parsePairedBatchForest,
   type PairedBatchForestSummary,
   type WindowKey,
 } from '../app/view-model.js';
 import { CommandPalette } from './components/command-palette.js';
 import { confirmDialog } from './components/dialog.js';
-import { icon } from './components/icon.js';
+import { icon, type IconName } from './components/icon.js';
 import { ToastStack } from './components/toast.js';
 import { CLAIMS } from './copy/claims.js';
 import { append, badge, clear, h, setTextIfChanged } from './dom.js';
@@ -46,27 +47,62 @@ import { renderSetup } from './workspaces/setup.js';
 
 export type { SurfaceId, TabId } from './state/ui-store.js';
 
-const TABS: readonly { id: TabId; label: string; hint: string }[] = [
-  { id: 'setup', label: '① 实验设置', hint: '预设、七维参数与预检' },
-  { id: 'overview', label: '② 实时总览', hint: '结构指纹、窗口曲线与事件' },
-  { id: 'inspector', label: '③ 个体检查器', hint: '花名册、决策 X 光与复式账本' },
-  { id: 'replay', label: '④ 回放与对比', hint: '归档导入、逐帧回放与双宇宙对比' },
-  { id: 'manager', label: '⑤ 实验管理', hint: '本地注册表、配额与权威诊断' },
+const RAIL_ITEMS: readonly {
+  id: 'field' | TabId;
+  label: string;
+  hint: string;
+  icon: IconName;
+  domId: string;
+}[] = [
+  {
+    id: 'field',
+    domId: 'tab-field',
+    label: '生态场',
+    hint: '社会分层生态场与化身博弈 (1 / 0)',
+    icon: 'layers',
+  },
+  {
+    id: 'overview',
+    domId: 'tab-overview',
+    label: '宏观分析',
+    hint: '结构指纹、窗口曲线与流动流带 (2)',
+    icon: 'activity',
+  },
+  {
+    id: 'inspector',
+    domId: 'tab-inspector',
+    label: '个体',
+    hint: '花名册、决策 X 光与复式账本 (3)',
+    icon: 'users',
+  },
+  {
+    id: 'setup',
+    domId: 'tab-setup',
+    label: '实验台',
+    hint: '11 套预设、七维参数与成本预检 (4)',
+    icon: 'sliders',
+  },
+  {
+    id: 'replay',
+    domId: 'tab-replay',
+    label: '归档',
+    hint: '双宇宙对比、回放、森林图与本地存储 (5)',
+    icon: 'archive',
+  },
 ];
 
 const KEYBOARD_TABS: Record<string, TabId> = {
-  '1': 'setup',
   '2': 'overview',
   '3': 'inspector',
-  '4': 'replay',
-  '5': 'manager',
+  '4': 'setup',
+  '5': 'replay',
 };
 
 const STATUS_TEXT: Record<ControllerSnapshot['status'], string> = {
   idle: '未配置',
   validating: '校验中',
   invalid: '校验失败',
-  ready: '就绪（种子已派生）',
+  ready: '就绪',
   running: '运行中',
   awaiting_decision: '等待决策',
   settling_tick: '结算中',
@@ -83,6 +119,10 @@ interface ShellRefs {
   readonly statusLabel: HTMLElement;
   readonly extraStatusHost: HTMLElement;
   readonly progressFill: HTMLElement;
+  readonly snapDotsHost: HTMLElement;
+  readonly snapPopoverBtn: HTMLButtonElement;
+  readonly snapPopoverMenu: HTMLElement;
+  readonly winButtons: ReadonlyMap<WindowKey, HTMLButtonElement>;
   readonly btnStart: HTMLButtonElement;
   readonly btnPause: HTMLButtonElement;
   readonly btnStep: HTMLButtonElement;
@@ -90,26 +130,17 @@ interface ShellRefs {
   readonly btnStop: HTMLButtonElement;
   readonly btnReset: HTMLButtonElement;
   readonly btnTheme: HTMLButtonElement;
-  readonly snapshotSelect: HTMLSelectElement;
   readonly speedButtons: ReadonlyMap<number, HTMLButtonElement>;
   readonly hudPolicy: HTMLElement;
-  readonly hudRun: HTMLElement;
-  readonly hudHashes: HTMLElement;
-  readonly hudStateLine: HTMLElement;
-  readonly modeSandboxBtn: HTMLButtonElement;
-  readonly modeBenchBtn: HTMLButtonElement;
-  readonly navDivider: HTMLElement;
-  readonly tabList: HTMLElement;
-  readonly tabButtons: ReadonlyMap<TabId, HTMLButtonElement>;
+  readonly railButtons: ReadonlyMap<string, HTMLButtonElement>;
   readonly noticeHost: HTMLElement;
   readonly sandboxHost: HTMLElement;
   readonly inspectorHost: HTMLElement;
+  readonly setupHost: HTMLElement;
   readonly dynamicTabHost: HTMLElement;
-  readonly footerStatus: HTMLElement;
   readonly footerGini: HTMLElement;
-  readonly footerConfig: HTMLElement;
-  readonly footerPop: HTMLElement;
-  readonly footerDecisions: HTMLElement;
+  readonly footerConfig: HTMLButtonElement;
+  readonly footerPop: HTMLButtonElement;
 }
 
 export class StratifyApp {
@@ -333,6 +364,24 @@ export class StratifyApp {
     this.buildPersistentShell(root);
     root.append(this.toasts.el);
     this.bindKeyboard();
+    // 默认首屏进入生态场；仅在未自定义草稿时预备默认生态场状态，且不启用阻断自动运行的手动托管
+    if (this.controller.snapshot().status === 'idle') {
+      const prepared = this.controller.prepare(
+        this.draftConfig,
+        this.draftSeed,
+        this.draftPolicy,
+        this.liveOptions(),
+      );
+      if (prepared.ok) {
+        const state = this.controller.getState();
+        const firstAlive = state?.society.agents.find((a) => a.alive);
+        if (firstAlive !== undefined) {
+          this.selectedAgentId = firstAlive.id;
+          this.controller.setAvatar(firstAlive.id, false);
+        }
+      }
+      this.surface = 'sandbox';
+    }
     void this.refreshRuns();
     void this.tryAutoRestoreLastSession();
     this.render(true);
@@ -357,7 +406,8 @@ export class StratifyApp {
     if (!IdbRunStore.available()) return;
     const bundle = await this.store.load(lastRunId);
     // 若异步加载期间用户已主动启动新实验，绝不覆盖用户操作
-    if (this.controller.snapshot().status !== 'idle') return;
+    const current = this.controller.snapshot();
+    if (current.status !== 'idle' && !(current.status === 'ready' && current.tick === 0)) return;
     if (bundle === null) {
       try {
         sessionStorage.removeItem('stratify.lastRunId.v1');
@@ -390,69 +440,78 @@ export class StratifyApp {
     statusBeacon.append(statusDot, statusLabel);
     const extraStatusHost = h('span', { class: 'actions-row' });
 
-    const progressFill = h('div', { class: 'timeline-progress-fill', style: 'width:0%' });
-    const progressBar = h('div', { class: 'timeline-progress-track', ariaLabel: '实验进度条' }, [
-      progressFill,
-    ]);
-
-    const btnStart = h('button', {
-      class: 'btn btn-primary',
-      type: 'button',
-      text: '开始',
-      title: '开始/继续（快捷键 Space）',
-      onClick: () => {
-        const snap = this.controller.snapshot();
-        if (snap.status === 'paused' && snap.generation > 0) {
-          if (snap.replay !== null) this.controller.startReplay();
-          else this.controller.start();
-        } else {
-          this.start(this.surface);
-        }
+    const btnStart = h(
+      'button',
+      {
+        class: 'btn btn-primary btn-sm',
+        type: 'button',
+        title: '开始/继续（快捷键 Space）',
+        onClick: () => {
+          const snap = this.controller.snapshot();
+          if (snap.status === 'paused' && snap.generation > 0) {
+            if (snap.replay !== null) this.controller.startReplay();
+            else this.controller.start();
+          } else {
+            this.start(this.surface);
+          }
+        },
       },
-    }) as HTMLButtonElement;
+      [icon('play', 12), h('span', { text: '开始' })],
+    ) as HTMLButtonElement;
 
-    const btnPause = h('button', {
-      class: 'btn',
-      type: 'button',
-      text: '暂停',
-      onClick: () => this.controller.pause(),
-    }) as HTMLButtonElement;
+    const btnPause = h(
+      'button',
+      {
+        class: 'btn btn-sm',
+        type: 'button',
+        onClick: () => this.controller.pause(),
+      },
+      [icon('pause', 12), h('span', { text: '暂停' })],
+    ) as HTMLButtonElement;
 
     const btnStep = h('button', {
-      class: 'btn',
+      class: 'btn btn-sm hud-step-extra',
       type: 'button',
-      text: '单步 +1',
+      text: '+1',
       title: '推进 1 个 tick（快捷键 N）',
       onClick: () => this.step(),
     }) as HTMLButtonElement;
 
     const btnCycle = h('button', {
-      class: 'btn',
+      class: 'btn btn-sm hud-step-extra',
       type: 'button',
       text: '决策步',
       title: '推进至下一个决策周期',
       onClick: () => void this.stepDecision(),
     }) as HTMLButtonElement;
 
-    const btnStop = h('button', {
-      class: 'btn btn-danger',
-      type: 'button',
-      text: '停止',
-      onClick: () => this.controller.stop(),
-    }) as HTMLButtonElement;
-
-    const btnReset = h('button', {
-      class: 'btn btn-ghost',
-      type: 'button',
-      text: '重置',
-      onClick: () => {
-        this.controller.reset();
-        if (this.surface === 'testbench') {
-          this.activeTab = 'setup';
-        }
-        this.render(true);
+    const btnStop = h(
+      'button',
+      {
+        class: 'btn btn-danger btn-sm',
+        type: 'button',
+        title: '停止运行',
+        onClick: () => this.controller.stop(),
       },
-    }) as HTMLButtonElement;
+      [icon('square', 11)],
+    ) as HTMLButtonElement;
+
+    const btnReset = h(
+      'button',
+      {
+        class: 'btn btn-ghost btn-sm',
+        type: 'button',
+        title: '重置世界',
+        onClick: () => {
+          this.controller.reset();
+          if (this.surface === 'testbench') {
+            this.activeTab = 'setup';
+          }
+          this.render(true);
+        },
+      },
+      [icon('rotate-ccw', 12)],
+    ) as HTMLButtonElement;
 
     const speedButtons = new Map<number, HTMLButtonElement>();
     const speedGroup = h('div', { class: 'speed', role: 'group', ariaLabel: '速度' });
@@ -467,40 +526,6 @@ export class StratifyApp {
       speedGroup.append(btn);
     }
 
-    const snapshotSelect = h('select', {
-      class: 'snapshot-select',
-      ariaLabel: '跳转已存历史快照点',
-      title: '回滚/跳转至已记录的周期快照点（暂停态）',
-      disabled: true,
-      onChange: (event) => {
-        const val = (event.target as HTMLSelectElement).value;
-        if (val === '') return;
-        const tick = Number(val);
-        if (Number.isFinite(tick)) {
-          this.jumpToSnapshot(tick);
-        }
-        (event.target as HTMLSelectElement).value = '';
-      },
-    }) as HTMLSelectElement;
-    snapshotSelect.append(h('option', { value: '', text: '⏱ 快照点' }));
-
-    const btnTheme = h('button', {
-      class: 'btn btn-ghost btn-sm',
-      type: 'button',
-      title: '切换深色/浅色科研主题',
-      text: this.theme === 'obsidian' ? '☀ Paper' : '🌙 Obsidian',
-      onClick: () => this.setTheme(this.theme === 'obsidian' ? 'paper' : 'obsidian'),
-    }) as HTMLButtonElement;
-
-    const btnPalette = h('button', {
-      class: 'btn btn-ghost btn-sm',
-      type: 'button',
-      title: '打开命令面板 (⌘K / Ctrl+K)',
-      ariaLabel: '命令面板',
-      onClick: () => this.openCommandPalette(),
-    }) as HTMLButtonElement;
-    btnPalette.append(icon('command', 13), h('span', { text: 'K' }));
-
     const transport = h('div', { class: 'transport', role: 'toolbar', ariaLabel: '仿真控制' }, [
       btnStart,
       btnPause,
@@ -508,90 +533,78 @@ export class StratifyApp {
       btnCycle,
       btnStop,
       btnReset,
-      snapshotSelect,
       speedGroup,
-      btnTheme,
-      btnPalette,
     ]);
 
-    const hudPolicy = h('div', { class: 'hash-line' });
-    const hudRun = h('div', { class: 'hash-line' });
-    const hudHashes = h('div', { class: 'hash-line' });
-    const hudStateLine = h('div', { class: 'hash-line' });
+    const hudPolicy = h('span', { class: 'hud-policy-pill' });
+
+    const btnPalette = h(
+      'button',
+      {
+        class: 'btn btn-ghost btn-sm',
+        type: 'button',
+        title: '打开命令面板 (⌘K / Ctrl+K)',
+        ariaLabel: '命令面板',
+        onClick: () => this.openCommandPalette(),
+      },
+      [icon('command', 13)],
+    );
+
+    const btnTheme = h(
+      'button',
+      {
+        class: 'btn btn-ghost btn-sm',
+        type: 'button',
+        title: '切换暖纸/石墨暗房主题',
+        onClick: () => this.setTheme(this.theme === 'obsidian' ? 'paper' : 'obsidian'),
+      },
+      [icon(this.theme === 'obsidian' ? 'sun' : 'moon', 13)],
+    ) as HTMLButtonElement;
 
     const header = h('header', { class: 'command-hud' }, [
-      h('div', { class: 'brand' }, [
-        h('div', { class: 'brand-mark', text: 'S' }),
-        h('div', {}, [
-          h('div', { class: 'brand-title-row' }, [
-            h('h1', { text: 'Stratify' }),
-            h('span', { class: 'brand-sub', text: 'Sociology Observatory' }),
-          ]),
-          h('div', { class: 'brand-meta' }, [
-            badge(CLAIMS.rulesVersion, 'info'),
-            badge(CLAIMS.g6Badge, 'ok'),
-          ]),
+      h('div', { class: 'hud-left' }, [
+        h('div', { class: 'brand' }, [
+          h('div', { class: 'brand-mark', text: 'S' }),
+          h('h1', { text: 'Stratify' }),
         ]),
+        statusBeacon,
+        extraStatusHost,
       ]),
-      h('div', { class: 'hud-center' }, [
-        h('div', { class: 'status-row' }, [statusBeacon, extraStatusHost]),
-        progressBar,
-        transport,
-      ]),
-      h('div', { class: 'hud-right' }, [hudPolicy, hudRun, hudHashes, hudStateLine]),
+      h('div', { class: 'hud-center' }, [transport]),
+      h('div', { class: 'hud-right' }, [hudPolicy, btnPalette, btnTheme]),
     ]);
 
-    const modeSandboxBtn = h('button', {
-      class: 'mode-pill',
-      type: 'button',
-      ariaPressed: 'false',
-      text: '✦ 交互沙盒剧场',
-      title: '沉浸式五阶层动态舞台 · 主角化身抉择 · 微扰分叉（快捷键 0）',
-      onClick: () => this.setSurface('sandbox'),
-    }) as HTMLButtonElement;
-
-    const modeBenchBtn = h('button', {
-      class: 'mode-pill',
-      type: 'button',
-      ariaPressed: 'true',
-      text: '◈ 精密科研试验台',
-      title: '五大专业工作区：参数、曲线、检查器、回放对比与存储诊断',
-      onClick: () => this.setSurface('testbench'),
-    }) as HTMLButtonElement;
-
-    const tabButtons = new Map<TabId, HTMLButtonElement>();
-    const tabList = h('div', { class: 'tabs-group', role: 'tablist', ariaLabel: '工作区' });
-    for (const tab of TABS) {
-      const btn = h('button', {
-        class: 'tab',
-        type: 'button',
-        role: 'tab',
-        id: `tab-${tab.id}`,
-        ariaSelected: String(this.activeTab === tab.id),
-        text: tab.label,
-        title: tab.hint,
-        onClick: () => this.setTab(tab.id),
-      }) as HTMLButtonElement;
-      tabButtons.set(tab.id, btn);
-      tabList.append(btn);
+    const railButtons = new Map<string, HTMLButtonElement>();
+    const navRail = h('nav', { class: 'nav-rail', role: 'tablist', ariaLabel: '主工作区导航' });
+    for (const item of RAIL_ITEMS) {
+      const btn = h(
+        'button',
+        {
+          class: 'rail-item tab',
+          type: 'button',
+          role: 'tab',
+          id: item.domId,
+          title: item.hint,
+          ariaSelected: 'false',
+          onClick: () => {
+            if (item.id === 'field') this.setSurface('sandbox');
+            else this.setTab(item.id);
+          },
+        },
+        [icon(item.icon, 16), h('span', { class: 'rail-label', text: item.label })],
+      ) as HTMLButtonElement;
+      railButtons.set(item.id, btn);
+      navRail.append(btn);
     }
-
-    const navDivider = h('span', { class: 'nav-divider', ariaLabel: '分隔线' });
-    const navBar = h('nav', { class: 'workspace-tabs', ariaLabel: '视图与工作区导航' }, [
-      h('div', { class: 'mode-switcher', role: 'group', ariaLabel: '界面模式切换' }, [
-        modeSandboxBtn,
-        modeBenchBtn,
-      ]),
-      navDivider,
-      tabList,
-    ]);
 
     const noticeHost = h('div', { class: 'notice-host' });
     this.sandboxView = new SandboxView(this);
     this.inspectorView = new InspectorView(this);
     const sandboxHost = h('div', { hidden: true }, [this.sandboxView.root]);
     const inspectorHost = h('div', { hidden: true }, [this.inspectorView.root]);
-    const dynamicTabHost = h('div', { class: 'workspace' });
+    const setupHost = h('div', { class: 'workspace', hidden: true });
+    renderSetup(setupHost, this);
+    const dynamicTabHost = h('div', { class: 'workspace', hidden: true });
 
     const main = h(
       'main',
@@ -600,31 +613,97 @@ export class StratifyApp {
         id: 'main-viewport',
         tabIndex: -1,
       },
-      [noticeHost, sandboxHost, inspectorHost, dynamicTabHost],
+      [noticeHost, sandboxHost, inspectorHost, setupHost, dynamicTabHost],
     );
 
-    const footerStatus = h('span', {});
-    const footerGini = h('span', {});
-    const footerConfig = h('span', {});
-    const footerPop = h('span', {});
-    const footerDecisions = h('span', {});
+    const shellBody = h('div', { class: 'shell-body' }, [navRail, main]);
 
-    const footer = h('footer', { class: 'footer-bar' }, [
-      footerStatus,
-      footerGini,
-      footerConfig,
-      footerPop,
-      footerDecisions,
-      h('span', { class: 'muted', text: `仅本地 · 未上传 · ${CLAIMS.g6Footer}` }),
+    // 底部精密时间轴 & 审计状态栏
+    const winButtons = new Map<WindowKey, HTMLButtonElement>();
+    const winBar = h('div', { class: 'timeline-windows', role: 'group', ariaLabel: '观察窗口' });
+    for (const spec of OVERVIEW_WINDOWS) {
+      const btn = h('button', {
+        class: 'win-pill',
+        type: 'button',
+        text: spec.shortLabel,
+        title: spec.label,
+        ariaPressed: String(this.overviewWindow === spec.id),
+        onClick: () => {
+          this.overviewWindow = spec.id;
+          this.render(false);
+        },
+      }) as HTMLButtonElement;
+      winButtons.set(spec.id, btn);
+      winBar.append(btn);
+    }
+
+    const progressFill = h('div', { class: 'timeline-progress-fill', style: 'width:0%' });
+    const snapDotsHost = h('div', {});
+    const progressTrack = h('div', { class: 'timeline-progress-track', ariaLabel: '实验时间轴' }, [
+      progressFill,
+      snapDotsHost,
     ]);
 
-    root.append(header, navBar, main, footer);
+    const snapPopoverMenu = h('div', { class: 'popover-panel', hidden: true });
+    const snapPopoverBtn = h('button', {
+      class: 'hash-chip',
+      type: 'button',
+      text: '快照 (0)',
+      title: '选择并跳转历史周期快照',
+      onClick: () => {
+        snapPopoverMenu.hidden = !snapPopoverMenu.hidden;
+      },
+    }) as HTMLButtonElement;
+    const snapWrap = h('div', { class: 'popover-wrap' }, [snapPopoverBtn, snapPopoverMenu]);
+
+    const footerGini = h('span', {});
+    const footerConfig = h('button', {
+      class: 'hash-chip',
+      type: 'button',
+      text: 'cfg —',
+      onClick: () => copyHashToast(this, this.snapshot.configHash, 'configHash'),
+    }) as HTMLButtonElement;
+    const footerPop = h('button', {
+      class: 'hash-chip',
+      type: 'button',
+      text: 'pop —',
+      onClick: () =>
+        copyHashToast(this, this.snapshot.initialPopulationHash, 'initialPopulationHash'),
+    }) as HTMLButtonElement;
+
+    const claimsBtn = h('button', {
+      class: 'claims-pill',
+      type: 'button',
+      text: '声明范围',
+      onClick: () =>
+        void confirmDialog({
+          title: `${CLAIMS.rulesVersion} · ${CLAIMS.g6Badge}`,
+          message: `${CLAIMS.g6BoundaryNote}（Schema: ${CLAIMS.schemaSummary}）`,
+          confirmLabel: '已知晓',
+          cancelLabel: '关闭',
+        }),
+    });
+
+    const footer = h('footer', { class: 'timeline-bar' }, [
+      h('div', { class: 'timeline-track-group' }, [
+        winBar,
+        h('div', { class: 'timeline-scrubber' }, [progressTrack]),
+        snapWrap,
+      ]),
+      h('div', { class: 'timeline-meta' }, [footerGini, footerConfig, footerPop, claimsBtn]),
+    ]);
+
+    root.append(header, shellBody, footer);
 
     this.shell = {
       statusBeacon,
       statusLabel,
       extraStatusHost,
       progressFill,
+      snapDotsHost,
+      snapPopoverBtn,
+      snapPopoverMenu,
+      winButtons,
       btnStart,
       btnPause,
       btnStep,
@@ -632,26 +711,17 @@ export class StratifyApp {
       btnStop,
       btnReset,
       btnTheme,
-      snapshotSelect,
       speedButtons,
       hudPolicy,
-      hudRun,
-      hudHashes,
-      hudStateLine,
-      modeSandboxBtn,
-      modeBenchBtn,
-      navDivider,
-      tabList,
-      tabButtons,
+      railButtons,
       noticeHost,
       sandboxHost,
       inspectorHost,
+      setupHost,
       dynamicTabHost,
-      footerStatus,
       footerGini,
       footerConfig,
       footerPop,
-      footerDecisions,
     };
   }
 
@@ -673,7 +743,22 @@ export class StratifyApp {
           return;
         }
       }
-      if (event.key === '0') {
+      if (
+        this.surface === 'sandbox' &&
+        this.snapshot.pendingAvatarPrompt !== null &&
+        ['1', '2', '3', '4'].includes(event.key)
+      ) {
+        const cards = this.shell?.sandboxHost.querySelectorAll(
+          '.choice-card:not(.choice-disabled)',
+        );
+        const chosen = cards?.[Number(event.key) - 1] as HTMLButtonElement | undefined;
+        if (chosen !== undefined) {
+          event.preventDefault();
+          chosen.click();
+          return;
+        }
+      }
+      if (event.key === '0' || event.key === '1') {
         event.preventDefault();
         this.setSurface('sandbox');
         return;
@@ -886,7 +971,12 @@ export class StratifyApp {
 
   setSurface(surface: SurfaceId): void {
     this.surface = surface;
-    if (surface === 'sandbox' && this.controller.snapshot().status === 'idle') {
+    const snap = this.controller.snapshot();
+    if (
+      surface === 'sandbox' &&
+      (snap.status === 'idle' ||
+        (snap.status === 'ready' && snap.tick === 0 && !snap.avatarInteractive))
+    ) {
       const first = SANDBOX_SCENARIOS[0];
       if (first !== undefined) {
         this.prepareScenarioWithoutAutoRun(first);
@@ -1239,6 +1329,13 @@ export class StratifyApp {
     return this.snapshot;
   }
 
+  private isActiveLoopStatus(): boolean {
+    const s = this.snapshot.status;
+    return (
+      s === 'running' || s === 'awaiting_decision' || s === 'settling_tick' || s === 'replaying'
+    );
+  }
+
   private queueRender(): void {
     if (this.renderQueued) return;
     this.renderQueued = true;
@@ -1281,8 +1378,6 @@ export class StratifyApp {
     if (s === null) return;
     const snap = this.snapshot;
     const status = snap.status;
-    const active =
-      status === 'running' || status === 'awaiting_decision' || status === 'settling_tick';
     const canStart =
       status === 'ready' ||
       status === 'paused' ||
@@ -1318,7 +1413,7 @@ export class StratifyApp {
         : badge(`${snap.replay.mode} · 失效 ${snap.replay.replayInvalid}`, 'info'),
       snap.forkProvenance === null
         ? null
-        : badge(`🌿 分叉 @t${snap.forkProvenance.forkTick}`, 'violet'),
+        : badge(`分叉 @t${snap.forkProvenance.forkTick}`, 'violet'),
     ]);
 
     const pct =
@@ -1326,28 +1421,55 @@ export class StratifyApp {
     s.progressFill.style.width = `${pct.toFixed(1)}%`;
 
     s.btnStart.disabled = !canStart;
-    setTextIfChanged(s.btnStart, status === 'paused' ? '继续' : '开始');
+    setTextIfChanged(s.btnStart.lastElementChild, status === 'paused' ? '继续' : '开始');
     s.btnPause.disabled = !canPause;
     s.btnStep.disabled = !canStep;
     s.btnCycle.disabled = !canStep;
     s.btnStop.disabled = !canStop;
     s.btnReset.disabled = status === 'idle';
-    setTextIfChanged(s.btnTheme, this.theme === 'obsidian' ? '☀ Paper' : '🌙 Obsidian');
+    s.btnTheme.replaceChildren(icon(this.theme === 'obsidian' ? 'sun' : 'moon', 13));
+
+    for (const spec of OVERVIEW_WINDOWS) {
+      const btn = s.winButtons.get(spec.id);
+      if (btn !== undefined) {
+        const outOfRange = snap.totalTicks > 0 && snap.totalTicks <= spec.startTick;
+        btn.disabled = outOfRange;
+        btn.setAttribute('aria-pressed', String(this.overviewWindow === spec.id));
+      }
+    }
 
     const snapTicks = snap.availableSnapshotTicks;
     const snapSig = snapTicks.join(',');
-    s.snapshotSelect.disabled = snapTicks.length === 0;
+    s.snapPopoverBtn.disabled = snapTicks.length === 0;
+    setTextIfChanged(s.snapPopoverBtn, `快照 (${snapTicks.length})`);
     if (snapSig !== this.lastSnapshotOptionsSig) {
       this.lastSnapshotOptionsSig = snapSig;
-      s.snapshotSelect.replaceChildren(
-        h('option', {
-          value: '',
-          text: snapTicks.length === 0 ? '⏱ 无快照' : `⏱ 快照 (${snapTicks.length})`,
+      s.snapDotsHost.replaceChildren(
+        ...snapTicks.map((t) => {
+          const leftPct = snap.totalTicks > 0 ? Math.min(100, (t / snap.totalTicks) * 100) : 0;
+          return h('button', {
+            class: 'timeline-snap-dot',
+            type: 'button',
+            style: `left:${leftPct.toFixed(1)}%`,
+            title: `跳转快照 Tick ${t}`,
+            ariaLabel: `跳转快照 Tick ${t}`,
+            onClick: () => this.jumpToSnapshot(t),
+          });
         }),
       );
-      for (const t of snapTicks) {
-        s.snapshotSelect.append(h('option', { value: String(t), text: `跳转 Tick ${t}` }));
-      }
+      s.snapPopoverMenu.replaceChildren(
+        ...snapTicks.map((t) =>
+          h('button', {
+            class: 'cmd-item',
+            type: 'button',
+            text: `跳转 Tick ${t}`,
+            onClick: () => {
+              s.snapPopoverMenu.hidden = true;
+              this.jumpToSnapshot(t);
+            },
+          }),
+        ),
+      );
     }
 
     for (const [spd, btn] of s.speedButtons) {
@@ -1355,42 +1477,25 @@ export class StratifyApp {
     }
 
     const policyLabel = snap.runId === null ? this.draftPolicy : snap.policy;
-    setTextIfChanged(s.hudPolicy, `policy ${policyLabel}`);
-    setTextIfChanged(s.hudRun, `run ${snap.runId ?? '—'}`);
-    setTextIfChanged(
-      s.hudHashes,
-      `config ${shortHash(snap.configHash)} · params ${shortHash(snap.paramsHash)}`,
-    );
-    s.hudHashes.title = snap.configHash ?? '';
-    setTextIfChanged(
-      s.hudStateLine,
-      active ? `alive ${snap.aliveCount} · deaths ${snap.cumulativeDeaths}` : '本地权威 · 未上传',
-    );
+    setTextIfChanged(s.hudPolicy, policyLabel);
 
     const inSandbox = this.surface === 'sandbox';
-    s.modeSandboxBtn.setAttribute('aria-pressed', String(inSandbox));
-    s.modeSandboxBtn.className = `mode-pill ${inSandbox ? 'is-active' : ''}`.trim();
-    s.modeBenchBtn.setAttribute('aria-pressed', String(!inSandbox));
-    s.modeBenchBtn.className = `mode-pill ${!inSandbox ? 'is-active' : ''}`.trim();
-    s.navDivider.hidden = inSandbox;
-    s.tabList.hidden = inSandbox;
-
-    for (const [id, btn] of s.tabButtons) {
-      btn.setAttribute('aria-selected', String(!inSandbox && this.activeTab === id));
+    const selectedRailId = inSandbox
+      ? 'field'
+      : this.activeTab === 'manager'
+        ? 'replay'
+        : this.activeTab;
+    for (const [id, btn] of s.railButtons) {
+      btn.setAttribute('aria-selected', String(id === selectedRailId));
     }
 
     const kpis = buildKpis(snap);
     const gini = kpis.find((kpi) => kpi.id === 'gini')?.value ?? '—';
-    setTextIfChanged(s.footerStatus, `状态 ${snap.status}`);
     setTextIfChanged(s.footerGini, `G ${gini}`);
-    setTextIfChanged(s.footerConfig, `config ${shortHash(snap.configHash)}`);
+    setTextIfChanged(s.footerConfig, `cfg ${shortHash(snap.configHash)}`);
     s.footerConfig.title = snap.configHash ?? '';
-    setTextIfChanged(s.footerPop, `initPop ${shortHash(snap.initialPopulationHash)}`);
+    setTextIfChanged(s.footerPop, `pop ${shortHash(snap.initialPopulationHash)}`);
     s.footerPop.title = snap.initialPopulationHash ?? '';
-    setTextIfChanged(
-      s.footerDecisions,
-      snap.decisionsTruncated ? '决策日志已截断' : '决策日志完整',
-    );
   }
 
   render(forceTabRebuild = true): void {
@@ -1398,47 +1503,52 @@ export class StratifyApp {
     this.updateShellChrome();
     this.updateNoticeHost();
 
-    if (this.surface === 'sandbox') {
-      this.shell.sandboxHost.hidden = false;
-      this.shell.inspectorHost.hidden = true;
-      this.shell.dynamicTabHost.hidden = true;
+    const inSandbox = this.surface === 'sandbox';
+    const inInspector = !inSandbox && this.activeTab === 'inspector';
+    const inSetup = !inSandbox && this.activeTab === 'setup';
+    const inDynamic = !inSandbox && !inInspector && !inSetup;
+
+    this.shell.sandboxHost.hidden = !inSandbox;
+    this.shell.inspectorHost.hidden = !inInspector;
+    this.shell.setupHost.hidden = !inSetup;
+    this.shell.dynamicTabHost.hidden = !inDynamic;
+
+    if (forceTabRebuild && (inSetup || !this.isActiveLoopStatus())) {
+      this.shell.setupHost.replaceChildren();
+      renderSetup(this.shell.setupHost, this);
+    }
+
+    if (inSandbox) {
       this.sandboxView?.update(this.snapshot);
       return;
     }
-
-    this.shell.sandboxHost.hidden = true;
-
-    if (this.activeTab === 'inspector') {
-      this.shell.inspectorHost.hidden = false;
-      this.shell.dynamicTabHost.hidden = true;
+    if (inInspector) {
       this.inspectorView?.update();
       return;
     }
-
-    this.shell.inspectorHost.hidden = true;
-    this.shell.dynamicTabHost.hidden = false;
-
-    if (this.activeTab === 'setup' && this.renderedDynamicTab === 'setup' && !forceTabRebuild) {
+    if (inSetup) {
       return;
     }
 
     this.renderedDynamicTab = this.activeTab;
     this.shell.dynamicTabHost.replaceChildren();
     switch (this.activeTab) {
-      case 'setup':
-        renderSetup(this.shell.dynamicTabHost, this);
-        break;
       case 'overview':
         renderOverview(this.shell.dynamicTabHost, this);
         break;
       case 'replay':
-        renderReplay(this.shell.dynamicTabHost, this);
-        break;
       case 'manager':
+        renderReplay(this.shell.dynamicTabHost, this);
         renderManager(this.shell.dynamicTabHost, this);
         break;
     }
   }
+}
+
+function copyHashToast(app: StratifyApp, hash: string | null, label: string): void {
+  if (hash === null || hash === '') return;
+  void navigator.clipboard?.writeText(hash).catch(() => undefined);
+  app.toasts.push(`已复制 ${label}: ${hash.slice(0, 18)}…`, 'ok');
 }
 
 function shortHash(hash: string | null): string {

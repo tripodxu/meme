@@ -65,7 +65,7 @@ export function renderReplay(root: HTMLElement, app: StratifyApp): void {
       snapshot.replay === null
         ? null
         : h('div', { class: 'replay-banner', style: 'margin-bottom:10px' }, [
-            h('strong', { text: `🎬 回放模式：${snapshot.replay.mode}` }),
+            h('strong', { text: `回放模式：${snapshot.replay.mode}` }),
             h('span', {
               text: ` · 原始策略 ${snapshot.replay.policyVersion} · 起点 tick ${snapshot.replay.fromTick} · 核心失效回退 replay_invalid=${snapshot.replay.replayInvalid}`,
             }),
@@ -76,36 +76,36 @@ export function renderReplay(root: HTMLElement, app: StratifyApp): void {
           h('button', {
             class: 'btn btn-primary',
             type: 'button',
-            text: '⬇ 导出当前完整 Bundle',
+            text: '导出完整 Bundle',
             disabled: snapshot.runId === null,
             onClick: () => app.downloadBundle(),
           }),
-          h('label', { class: 'btn', for: 'replay-file', text: '📂 导入并载入回放' }),
+          h('label', { class: 'btn', for: 'replay-file', text: '导入并载入回放' }),
           fileInput,
           h('label', {
             class: 'btn',
             for: 'compare-only-file',
-            text: '⚖ 导入作为右栏对照基准（不覆盖当前）',
+            text: '导入对照基准（不覆盖）',
           }),
           compareFileInput,
           h('button', {
             class: 'btn',
             type: 'button',
-            text: '📌 将当前实验锁定为对照基准',
+            text: '锁定当前为基准',
             disabled: snapshot.runId === null,
             onClick: () => app.pinCurrentAsBaseline(),
           }),
           h('button', {
             class: 'btn',
             type: 'button',
-            text: '▶ 从头回放',
+            text: '从头回放',
             disabled: snapshot.replay === null,
             onClick: () => app.controller.startReplay(),
           }),
           h('button', {
             class: 'btn',
             type: 'button',
-            text: '⏸ 暂停回放',
+            text: '暂停回放',
             disabled: snapshot.status !== 'replaying',
             onClick: () => app.controller.pause(),
           }),

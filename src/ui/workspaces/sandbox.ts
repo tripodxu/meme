@@ -3,6 +3,7 @@ import { SANDBOX_SCENARIOS, type SandboxScenario } from '../../app/presets.js';
 import type { AvatarDecisionPrompt, ControllerSnapshot } from '../../app/types.js';
 import { agentDetail, eventViews, formatNumber, formatPercent } from '../../app/view-model.js';
 import { LivingArenaCanvas } from '../arena/living-canvas.js';
+import { icon } from '../components/icon.js';
 import { badge, card, classSymbol, classTitle, h } from '../dom.js';
 import type { StratifyApp } from '../app.js';
 
@@ -19,9 +20,12 @@ export class SandboxView {
   private readonly layoutWealthBtn: HTMLButtonElement;
   private readonly layoutNetworkBtn: HTMLButtonElement;
   private readonly toggleEdgesBtn: HTMLButtonElement;
+  private readonly toggleDrawerBtn: HTMLButtonElement;
+  private readonly drawerHost: HTMLElement;
   private readonly decisionOverlay: HTMLElement;
   private readonly avatarBody: HTMLElement;
   private readonly chronicleBody: HTMLElement;
+  private drawerOpen = true;
   private activeScenarioId = SANDBOX_SCENARIOS[0]?.id ?? 'ascend-odyssey';
   private lastPromptKey = '';
 
@@ -36,7 +40,7 @@ export class SandboxView {
     });
 
     this.scenarioBar = h('div', { class: 'scenario-deck', role: 'group', ariaLabel: '探索剧本' });
-    this.goalBanner = h('div', { class: 'sandbox-goal-banner' });
+    this.goalBanner = h('div', { class: 'field-dossier-bar' });
     this.stageSubtitle = h('p', { class: 'card-subtitle' });
 
     this.layoutWealthBtn = h('button', {
@@ -78,13 +82,63 @@ export class SandboxView {
 
     this.avatarBody = h('div', { class: 'avatar-console-body' });
     this.chronicleBody = h('div', { class: 'chronicle-body' });
+    this.drawerHost = h('aside', { class: 'context-drawer', ariaLabel: '生态场情境抽屉' }, [
+      card('探索卷宗', [this.scenarioBar], {
+        subtitle: '点击即刻重置并开局（完整 11 预设与 7 维参数在实验台）',
+      }),
+      card('玩家化身与焦点档案', [this.avatarBody], {
+        subtitle: '只从核心合法行动集中做 Choice；不篡改任何结算公式',
+      }),
+      card('社会演化编年史', [this.chronicleBody], {
+        subtitle: '近期关键阶层跨越、竞争博弈与重连播报',
+      }),
+    ]);
 
-    const stageCard = h('section', { class: 'card arena-card' }, [
-      h('header', { class: 'card-header' }, [
+    this.toggleDrawerBtn = h(
+      'button',
+      {
+        class: 'btn btn-sm btn-ghost',
+        type: 'button',
+        title: '展开或收起右侧情境抽屉',
+        ariaExpanded: 'true',
+        onClick: () => {
+          this.drawerOpen = !this.drawerOpen;
+          this.drawerHost.hidden = !this.drawerOpen;
+          this.root.classList.toggle('is-drawer-collapsed', !this.drawerOpen);
+          this.toggleDrawerBtn.setAttribute('aria-expanded', String(this.drawerOpen));
+        },
+      },
+      [icon('sidebar', 13), h('span', { text: '抽屉' })],
+    ) as HTMLButtonElement;
+
+    const btnCycle = h(
+      'button',
+      {
+        class: 'btn btn-sm',
+        type: 'button',
+        title: '按确定性顺序切换至下一位存活个体作为化身',
+        onClick: () => this.app.cycleAvatar(),
+      },
+      [icon('refresh', 13), h('span', { text: '换人附身' })],
+    );
+
+    const btnFork = h(
+      'button',
+      {
+        class: 'btn btn-sm',
+        type: 'button',
+        title: '克隆当前权威状态并对焦点个体施加 ΔValue=+0.0001 微扰，生成平行宇宙对照',
+        onClick: () => this.app.forkFocusedAgent(0.0001),
+      },
+      [icon('fork', 13), h('span', { text: '微扰分叉' })],
+    );
+
+    const stagePanel = h('section', { class: 'field-stage-panel' }, [
+      h('header', { class: 'field-toolbar' }, [
         h('div', { class: 'card-title-group' }, [
           h('h3', {
             class: 'card-title',
-            text: '五阶层动态生态剧场 · Living Stratification Arena',
+            text: '社会分层生态场',
           }),
           this.stageSubtitle,
         ]),
@@ -92,37 +146,17 @@ export class SandboxView {
           this.layoutWealthBtn,
           this.layoutNetworkBtn,
           this.toggleEdgesBtn,
-          h('button', {
-            class: 'btn btn-sm',
-            type: 'button',
-            text: '🎲 换人附身',
-            title: '按确定性顺序切换至下一位存活个体作为化身',
-            onClick: () => this.app.cycleAvatar(),
-          }),
-          h('button', {
-            class: 'btn btn-sm',
-            type: 'button',
-            text: '🌿 微扰分叉',
-            title: '克隆当前权威状态并对焦点个体施加 ΔValue=+0.0001 微扰，生成平行宇宙对照',
-            onClick: () => this.app.forkFocusedAgent(0.0001),
-          }),
+          btnCycle,
+          btnFork,
+          this.toggleDrawerBtn,
         ]),
       ]),
-      h('div', { class: 'card-body arena-card-body' }, [this.arena.root, this.decisionOverlay]),
+      this.goalBanner,
+      this.arena.root,
+      this.decisionOverlay,
     ]);
 
-    this.root = h('div', { class: 'workspace sandbox-workspace' }, [
-      h('div', { class: 'span-12' }, [this.scenarioBar, this.goalBanner]),
-      h('div', { class: 'span-8' }, [stageCard]),
-      h('div', { class: 'span-4 sandbox-sidebar' }, [
-        card('玩家化身与焦点档案', [this.avatarBody], {
-          subtitle: '只从核心合法行动集中做 Choice；不篡改任何结算公式',
-        }),
-        card('社会演化编年史', [this.chronicleBody], {
-          subtitle: '近期关键阶层跨越、竞争博弈与重连播报',
-        }),
-      ]),
-    ]);
+    this.root = h('div', { class: 'field-layout' }, [stagePanel, this.drawerHost]);
 
     this.renderScenarioCards();
     this.syncStageButtons();
@@ -250,7 +284,7 @@ export class SandboxView {
         },
         [
           h('div', { class: 'choice-head' }, [
-            h('span', { class: 'choice-icon', text: '🌱' }),
+            h('span', { class: 'cmd-kbd', text: '1' }),
             badge(`参谋权重 ${formatPercent(accProb, 0)}`, 'muted'),
           ]),
           h('strong', { class: 'choice-title', text: '日常积累 (accumulate)' }),
@@ -299,10 +333,7 @@ export class SandboxView {
             title: '当前财富尚未满足跨越费用 + 持有裕度 + 占用壁垒门槛',
           },
           [
-            h('div', { class: 'choice-head' }, [
-              h('span', { class: 'choice-icon', text: '🔒' }),
-              badge('门槛未达', 'muted'),
-            ]),
+            h('div', { class: 'choice-head' }, [icon('lock', 13), badge('门槛未达', 'muted')]),
             h('strong', { class: 'choice-title', text: `向上跨越 → C${prompt.classIndex + 1}` }),
             h('span', {
               class: 'choice-desc',
@@ -362,7 +393,7 @@ export class SandboxView {
           },
           [
             h('div', { class: 'choice-head' }, [
-              h('span', { class: 'choice-icon', text: '⚡' }),
+              h('span', { class: 'choice-icon', text: '▲▼' }),
               badge(target.isNeighbor ? `邻居 · ${diffLabel}` : diffLabel, 'violet'),
             ]),
             h('strong', {
@@ -383,7 +414,7 @@ export class SandboxView {
         h('div', {}, [
           h('strong', {
             class: 'destiny-title',
-            text: `🎮 命运抉择时刻 · Tick ${prompt.tick} · 化身 ${prompt.agentId} (${classTitle(prompt.classIndex)})`,
+            text: `命运抉择 · Tick ${prompt.tick} · 化身 ${prompt.agentId} (${classTitle(prompt.classIndex)})`,
           }),
           h('p', {
             class: 'destiny-sub',
@@ -507,22 +538,28 @@ export class SandboxView {
         ]),
       ]),
       h('div', { class: 'actions-row', style: 'margin-top:12px' }, [
-        h('button', {
-          class: 'btn btn-sm',
-          type: 'button',
-          text: '🔍 在检查器展开完整 X 光档案',
-          onClick: () => {
-            this.app.selectedAgentId = detail.id;
-            this.app.setTab('inspector');
+        h(
+          'button',
+          {
+            class: 'btn btn-sm',
+            type: 'button',
+            onClick: () => {
+              this.app.selectedAgentId = detail.id;
+              this.app.setTab('inspector');
+            },
           },
-        }),
-        h('button', {
-          class: 'btn btn-sm btn-ghost',
-          type: 'button',
-          disabled: snapshot.status !== 'ready' && snapshot.status !== 'paused',
-          text: '⏩ 快进至下一决策日',
-          onClick: () => void this.app.controller.stepDecisionCycle(),
-        }),
+          [icon('search', 13), h('span', { text: '检查器档案' })],
+        ),
+        h(
+          'button',
+          {
+            class: 'btn btn-sm btn-ghost',
+            type: 'button',
+            disabled: snapshot.status !== 'ready' && snapshot.status !== 'paused',
+            onClick: () => void this.app.controller.stepDecisionCycle(),
+          },
+          [icon('fast-forward', 13), h('span', { text: '下一决策日' })],
+        ),
       ]),
     );
   }
@@ -566,7 +603,7 @@ export class SandboxView {
         actorId = ev.agentId;
         desc = `${ev.agentId} 从 C${ev.from} 跌入 C${ev.to} (${ev.reason === 'passive' ? '被动跌落' : '主动止损'})`;
       } else if (ev.type === 'competition_resolved') {
-        tagText = '⚡ 博弈';
+        tagText = '博弈';
         tone = 'violet';
         actorId = ev.initiatorId;
         const winId = ev.winner === 'initiator' ? ev.initiatorId : ev.targetId;

@@ -38,37 +38,13 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
     configJsonPre.textContent = JSON.stringify(latest, null, 2);
   };
 
-  // 顶部沙盒快捷入口横幅
-  const heroBanner = h('div', { class: 'span-12 setup-hero' }, [
-    h('div', { class: 'setup-hero-copy' }, [
-      h('div', { class: 'actions-row' }, [
-        badge('双引擎工作台', 'info'),
-        badge(authority.label, authority.authoritative ? 'ok' : 'warn'),
-        badge(CLAIMS.g6Badge, 'ok'),
-      ]),
-      h('h2', {
-        class: 'setup-hero-title',
-        text: '精密计算社会学试验台 × 沉浸式社会演化沙盒',
-      }),
-      h('p', {
-        class: 'setup-hero-desc',
-        text: '在此配置七维规则参数并启动对照试验，或一键切入「✦ 交互沙盒剧场」化身个体亲历阶层跃迁、社交重构与平行宇宙微扰分叉。',
-      }),
-    ]),
-    h('div', { class: 'setup-hero-actions' }, [
-      h('button', {
-        class: 'btn btn-accent-glow',
-        type: 'button',
-        text: '✦ 进入交互沙盒剧场',
-        onClick: () => app.setSurface('sandbox'),
-      }),
-      h('button', {
-        class: 'btn btn-primary',
-        type: 'button',
-        text: '▶ 冻结配置并启动试验',
-        onClick: () => app.start(),
-      }),
-    ]),
+  const anchorNav = h('nav', { class: 'lab-anchor-nav', ariaLabel: '参数分组索引' }, [
+    h('a', { class: 'lab-anchor-link', href: '#lab-presets', text: '实验预设 (11)' }),
+    h('a', { class: 'lab-anchor-link', href: '#lab-sec-1', text: '01 基础与决策' }),
+    h('a', { class: 'lab-anchor-link', href: '#lab-sec-2', text: '02 努力与寿命' }),
+    h('a', { class: 'lab-anchor-link', href: '#lab-sec-3', text: '03 需求与缓冲' }),
+    h('a', { class: 'lab-anchor-link', href: '#lab-sec-4', text: '04 竞争与网络' }),
+    h('a', { class: 'lab-anchor-link', href: '#lab-sec-5', text: '05 高阶旋钮' }),
   ]);
 
   const form = h(
@@ -740,11 +716,12 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
   );
 
   root.append(
-    heroBanner,
-    h('div', { class: 'span-8' }, [
+    h('div', { class: 'lab-shell span-12' }, [
+      anchorNav,
       card('实验预设与七维参数台', [
         h('p', {
           class: 'muted',
+          id: 'lab-presets',
           style: 'margin-top:0',
           text: 'D1“2 体制 + 连续统”已通过 P6-09 + R4 校准；带“已校准 (D1)”徽章的预设已冻结（仅限 mock-weighted-v1 / N=200），其余预设仍为未校准探索。修改任何字段会自动标记为自定义。',
         }),
@@ -755,22 +732,23 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
             h(
               'button',
               {
-                class: 'preset',
+                class: 'preset-btn',
                 type: 'button',
                 ariaPressed: String(app.selectedPresetId === preset.id),
                 onClick: () => app.selectPreset(preset.id),
               },
               [
-                h('div', { class: 'preset-top' }, [
+                h('div', { class: 'preset-btn-head' }, [
                   h('strong', { text: preset.name }),
                   badge(
                     preset.calibrated ? '已校准 (D1)' : '未校准',
                     preset.calibrated ? 'ok' : 'warn',
                   ),
                 ]),
-                h('span', { text: preset.description }),
+                h('span', { class: 'muted', style: 'font-size:11px', text: preset.description }),
                 h('span', {
-                  class: 'mono',
+                  class: 'mono muted',
+                  style: 'font-size:11px',
                   text: `${preset.policy} · N=${preset.config.population.initialPopulation} · T=${preset.config.schedule.totalTicks}`,
                 }),
               ],
@@ -783,19 +761,19 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
           h('button', {
             class: 'btn btn-primary',
             type: 'button',
-            text: '▶ 冻结配置并开始',
+            text: '冻结配置并开始',
             onClick: () => app.start(),
           }),
           h('button', {
             class: 'btn',
             type: 'button',
-            text: '⏭ 单步 +1',
+            text: '单步 +1',
             onClick: () => app.step(),
           }),
           h('button', {
             class: 'btn',
             type: 'button',
-            text: '✦ 在沙盒剧场启动',
+            text: '在生态场启动',
             onClick: () => {
               app.start('sandbox');
             },
@@ -803,14 +781,12 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
           h('button', {
             class: 'btn btn-ghost',
             type: 'button',
-            text: '↺ 重置当前 run',
+            text: '重置当前 run',
             onClick: () => app.controller.reset(),
           }),
         ]),
         issuesHost,
       ]),
-    ]),
-    h('div', { class: 'span-4' }, [
       h('div', { class: 'sticky-cockpit' }, [
         card('预检舱与权威指纹摘要', [
           previewHost,

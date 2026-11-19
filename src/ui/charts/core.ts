@@ -21,6 +21,10 @@ export interface ChartOptions {
   readonly title?: string;
   /** 显式声明窗口/单位，避免把终局值冒名窗口均值（06 §5）。 */
   readonly windowLabel?: string;
+  /** 平行宇宙对照幽灵轨迹（细虚线叠加原世界曲线）。 */
+  readonly ghostSeries?: readonly Series[];
+  /** 是否在少于等于 3 条线时于末端直接标注数值。 */
+  readonly directLabels?: boolean;
 }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -380,6 +384,20 @@ export function renderLineChart(
   addFrame(svg, options, boundsValue, box);
   const group = svgEl('g', { class: 'chart-series' });
   const threshold = pixelThreshold(box.width);
+  for (const ghost of options.ghostSeries ?? []) {
+    if (ghost.points.length === 0) continue;
+    group.append(
+      svgEl('path', {
+        d: pathOf(ghost.points, boundsValue, box, threshold),
+        fill: 'none',
+        stroke: ghost.color,
+        'stroke-width': 1.3,
+        'stroke-opacity': 0.42,
+        'stroke-dasharray': '3 3',
+        'stroke-linejoin': 'round',
+      }),
+    );
+  }
   for (const entry of populated) {
     group.append(
       svgEl('path', {
@@ -392,6 +410,25 @@ export function renderLineChart(
         'stroke-linecap': 'round',
       }),
     );
+    const last = entry.points[entry.points.length - 1];
+    if (options.directLabels !== false && populated.length <= 3 && last !== undefined) {
+      const lx = xOf(last.x, boundsValue, box);
+      const ly = yOf(last.y, boundsValue, box);
+      group.append(
+        svgEl('circle', { cx: lx, cy: ly, r: 2.5, fill: entry.color }),
+        svgEl(
+          'text',
+          {
+            x: Math.min(box.left + box.width - 2, lx - 4),
+            y: Math.max(box.top + 10, ly - 5),
+            'text-anchor': 'end',
+            fill: entry.color,
+            class: 'chart-direct-label',
+          },
+          formatAxis(last.y),
+        ),
+      );
+    }
   }
   svg.append(group);
   bindHoverReadout(svg, populated, boundsValue, box);
