@@ -1,27 +1,15 @@
 # Stratify 施工文档入口
 
-> 状态（2026-11-11）
+> **当前状态速览（2026-11-19）**
 >
-> - **规则**：`rules-v15`（个体行为异质性：不可变 `riskTolerance`/`crossClassOpenness`、`mock-weighted-v2`；默认全 0 与 v13/v14 逐位一致，config schema v9、state schema v5；ADR 0007、changes/0067）。v13 的显式制度状态机（`continuous`/θR=0 默认）仍保留；P6-05c/P6-05d 未通过，制度机旋钮按预注册停止。
-> - **目标（D1，2026-11-11）**：G6 从“≥3 类结构”修订为**“2 体制 + 连续统”**（ADR 0006、rule.md v14、07 §8.2）：k=2 稳定 + k=3 无稳定第三簇；旧 k=3 结果不得追认通过。P6-06 已跑完但**未通过**：k=2 [30,150]、ARI 1.000、silhouette 0.661、同簇率 1.000、两体制差异 0.723（两体制证据很强），但 k=3 [30,66,84] ARI 0.768、同簇率 0.850，按预注册“无稳定第三簇”检查失败；G6 仍未通过（changes/0066）。未通过 `07` 统计验收，不得声称已校准或结构已涌现。
-> - **闸门**：W4 已通过 G1.5（≥2 类）；W5 在 3650 tick 未通过；W6 在 10950 tick 终态给出 class-share 三类候选（仅 `mock`、仅单特征，非 P6-05 正式验收）。
-> - **工程**：P0/P1 完成、P2 收口 7/7（真实冒烟经自建网关跑通）、P5a 五项全完成（批跑 CLI/检查点/微扰/共享预算/systemd）。
-> - **P6-01**：Stage A 840 run 完成；Stage B 六单元已全部跑完并按 07 严格口径判读：**1 个确认（needThreshold=0.9）**，5 个未确认/exploratory（env0 expanded/compressed、crossDays half/double、psi=1）；G6 仍未通过。
-> - **P6-02**：多参数 factorial 已完成（`p6-factorial-eaf53b7b`，32 cell × 30 新种子 × 200 人 × 730 tick，960/960、0 失败）；top 联合条件 `threshold=0.9+psi=flat+env0=expanded+crossDays=half` TV(P)=0.2484（CI [0.2376,0.2555]），不含 threshold 的格点最高 0.0988。**仅 exploratory，不构成确认或校准**（changes/0046）。
-> - **P6-03**：微扰克隆与正常波动区间已完成（`p6-perturbation-6bd61532`，2 体制 × 10 扰动 cell × 30 新种子，600 对全部有效）；**无结构证据**：最大 TV 0.00727、最大 D 0.0299，均低于 0.10 与 baseline D95；唯一 30/30 翻转事件的 `needMultiplier[1]×1e-2` 仍为 trajectory-only，其余 absorbed。**仅 exploratory，不构成确认或校准**（changes/0050）。
-> - **P6-04a**：五个必跑消融已完成（`p6-ablation-c46c2aff`，baseline + β=0/O 固定/η=0/κ=0/ψ=1 × 30 新种子，180/180）；TV(P) 中位数 beta=0 0.0195、openness=fixed 0.0080、eta=0 0.0063、kappa=0 0.0106、psi=1 0.0824，**均未达 `mechanismExplained`**；ψ=1 的 P4 下降预测不成立。**仅 exploratory，不构成现实因果或校准**（changes/0051）；P6-04b 20 次重测信度已通过（top-1 0.70、ICC(2,1) 0.9886、平均 TV 0.0565）；1-seed live pilot 通过（993/993、0 回退、18.6 min；`liveVsMock` TV 0.0152/D 0.0186、`liveVsRandom` TV 0.3226/D 0.1619），正式 live 对照已完成（10 新 seed × 4 组 = 40 run、0 剔除；TV(P) 中位数 0.0175/0.0248 vs mock、0.3781/0.3839 vs random；五个比较均未同时满足 07 §8，`verdict=no-structural-evidence`；changes/0056）；VPS `2zhou` runner 标准部署已完成（只读代码/专用用户/600 env/systemd，live 冒烟与跨机器哈希已复核；runbook §4.6）。
-> - **P6-05**：全特征结构指纹聚类已跑完但**未通过**（`p6-05-9718860c`，6 cell × 30 新 seed × 10950 tick；240/240、0 排除；k=3 簇 [30,118,32]，ARI median 0.491、silhouette 0.344、14600 同簇率 0.667；二簇稳健、三簇不成立）；随后的 **P6-05b** 机制筛选（θS∈{4,8,12} × H∈{0,180}，6 cell × 30 新 seed）**也未通过**：k=3 簇 [136,17,27]、三簇均混全部 cell，ARI 0.291、silhouette 0.297、同簇率 0.550；H1/H2 均不成立；按预注册停止调参、转 **rules-v12 ADR**；G6 仍未通过（changes/0057/0058）。
-> - **参数搜索（P6-05s）**：粗筛 9,600/9,600、0 失败；验证 `p6-search-val-ef550c09` 240/240，k=3 簇 [74,97,9]、ARI median 0.157、silhouette 0.241、14600 同簇率 0.683 → `no-stable-region-found`；不启动 confirm，支持转 rules-v12（changes/0059）。
-> - **P6-05c（rules-v12/θH）**：160/160、0 排除、0 灭绝；k=3 簇 [72,39,9]、ARI median 0.182、silhouette 0.215、14600 同簇率 0.675；k=2 [111,9]、silhouette 0.505，二簇稳健、第三簇不成立 → A 方案失败，转 B 方案（显式制度状态机；changes/0061/ADR 0004）。
-> - **P6-05d（rules-v13/制度状态机）**：`p6-05d-5cb910dd` **160/160、0 排除、0 灭绝**；k=3 簇 [76,3,41]、三簇均混全部 4 cell、ARI median 0.094、silhouette 0.152、14600 同簇率 0.650，四项判据全部未过；θR>0 的终端 O 几乎全部塌到 0（closed 单态吸收）→ **B 方案失败**，停止制度机调参、转规则设计评审（changes/0063/ADR 0005）。
-> - **P6-05e（D3 测量充分性，规则不变）**：`p6-05e-1b652168` **80/80 完成、0 排除、0 灭绝**；k=3 簇 [41,13,6]，**全部 30 个 pop1000 run 同簇**，另两簇 13/6 仅来自 pop200；ARI 0.527、silhouette 0.282、14600 同簇率 0.300，k=2 [47,13]。第三簇未随人口规模持续存在，更像有限样本噪声；支持“单吸引域/目标修订”方向，但**不构成 G6 确认**（changes/0064）。
-> - **D2（2026-11-11）**：规则负责人选择 D2，新增个体行为异质性（ADR 0007、rule.md v15、changes/0067）。P6-07 为**探索轮**（6 行为 cell × 30 新 seed × 40 人 × 10950 tick，前 10 续跑 14600，`mock-weighted-v2`；A 全零对照、B 特质安慰剂、C–F 逐步打开风险/跨层敏感性），已完成：240/240、0 排除、0 灭绝；A/B 安慰剂 30/30 逐位一致；C–F 相对 A 的 TV(P)≤0.026、|ΔO|≤0.053、|ΔS|≤0.087（均 <0.10）；k=2 [130,50]、ARI 0.178、silhouette 0.175、同簇率 0.650，k=3 [101,50,29] 仍跨全部 cell；`verdict.passes=null`（changes/0068）。D2 未产生可复现的参数区域分离或稳定第三簇；D1 目标（ADR 0006）与 `docs/07` §8.2 验收不变，G6 仍未通过，不得声称已校准或结构已涌现。
-> - **P6 停止（2026-11-11）**：规则负责人选择停止 P6 结构目标（ADR 0008、changes/0069）。不再新增 P6 确认轮，不再调 θ/k/seed/阈值或加同类机制旋钮；**G6 保持未通过**，不追认 P6-06/P6-07，不声称已校准或结构已涌现。P3/P4/P5b/P7 解除 G6 前置，可按 `docs/01` §9/§10 启动；工程产物不得表述为科学验收。
-> - **P3 前端（2026-11-11）**：浏览器工作台 MVP 已落地（changes/0070）：12 态 RunController、五工作区、10 类图表、个体检查器、导入导出与 IndexedDB 回放、LTTB 降采样、双主题/键盘/375px 响应式。`jev_live` 已通过同源 `/api/jev` 代理启用（Key 仅内存，changes/0078）；P3-07 已有 7 项 jsdom DOM E2E，但真实浏览器自动化 E2E 与真实 live 冒烟尚未接入；live 超建议规模需显式确认。G6 未通过，界面不是校准证据。启动见 `docs/guides/web-app.md`。
-> - **P4 Worker/D1/R2（2026-11-11）**：MVP 代码与契约测试已落地（changes/0071）：Hono 统一错误/requestId、D1 迁移、run 创建与 writeToken 哈希、tick/agent 幂等批写、R2 artifact（8 MiB/双 SHA-256/ETag）、complete、keyset 分页、限流、同源 BYOK `/api/jev`（含全局小时保险丝）。按 ADR 0001 新增运行时权威边界（`RUNTIME_VERSION`/`runtime_authority`，changes/0073）；P4-06 保留策略已实现（browser 7d/runner 90d、Cron、R2→D1 级联，changes/0076）；complete 复算 `artifactManifestHash`、cancel/fail 持久化 `diagnosticsHash`（changes/0077）；本地 workerd+D1+R2 全链路上传冒烟已通过。preview 远程部署冒烟、R2 孤儿清理、`expectedDueDecisions` 复算与真实 Jev live 冒烟未完成；`jev_live` 仍禁用，不得声称已部署或 live 验证。
-> - **P5b 上传（2026-11-11）**：`run-upload-bundle-v1` 上传器、分块重试/幂等、`upload-ledger-v1` 断点续传与 `pnpm upload` CLI 已落地（changes/0072）；批跑可通过 `--upload-bundles` 自动导出 bundle，`--artifact-profile full` 额外导出 decisions/events/snapshot（changes/0075/0080，指南 `docs/guides/upload.md`）。preview 远程冒烟、resume 补导出与独立验证器未完成；上传成功只表示技术完整。
-> - **P7 发布硬化（本地可验证部分，2026-11-11）**：部署冒烟（health/首页/创建/读取/取消）、D1 导出静态校验与 `backup:d1`、CI 前端构建与 Worker dry-run、快速开始/指标词典/已知限制已落地（changes/0074）。**未在真实 preview/production 执行部署、冒烟、备份恢复或回滚**；发布后监控未接入。
-> - **未开工 / 未验证**：云端 preview/production 部署与发布演练；P3/P4/P5b/P7 已落地代码但不构成科学验收。P6 已停止（G6 未通过），工程轨道按 `docs/01` §9/§10 推进。
+> | 维度                       | 当前口径与实测状态                                                                                                                                                                              | 依据                                                                                                                                                                                        |
+> | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | **核心版本轴**             | `rules-v18` / `engine-v0.15.0` / `stratify-config-v12` / `stratify-state-v5`（103 项注册参数，新旋钮默认 `0` / 全 `1` / `none` 保持兼容）                                                       | [versions.ts](../src/core/control/versions.ts)、[changes/0092](changes/0092-rules-v18-r2b-probe-result.md)                                                                                  |
+> | **科学校准（D1 两体制）**  | **D1「2 体制 + 连续统」已正式通过 G6**：`N=200` `P6-09`（`k=2 ARI=1.000, sil=0.6129`）+ 阶段 R4（微扰 100% 吸收 + 五消融解释力）+ 预设冻结（`regime1_pyramid` / `regime2_continuum`）           | [ADR 0010](adr/0010-two-regime-continuum-silhouette-criterion.md)、[0089](changes/0089-p6-09-two-regime-confirmation.md)、[0090](changes/0090-p6-r4-calibration-g6-closure.md)              |
+> | **科学边界（k≥3 与 Jev）** | 传统 `k≥3` 离散结构（`P6-05..08`/`P6-10`/R2-B 探针）**均未通过**；阶段 R3（`P6-11` 30-seed 真实 Jev 提示词因果实验）正在 `lhsh` 服务器执行中                                                    | [0091](changes/0091-rules-v17-p6-10-result.md)、[0092](changes/0092-rules-v18-r2b-probe-result.md)、[ADR 0013](adr/0013-p6-11-jev-prompt-causal.md)                                         |
+> | **工程交付（P0–P7）**      | P0–P5a、P3 双界面前端 + Playwright E2E、P4 Worker/D1/R2、P5b 流式上传 + 独立验证器均已落地；Preview（`https://stratify.logicc.top`）公网冒烟、备份恢复与小额 live 代理已实测；Production 未发布 | [0084](changes/0084-frontend-high-order-verifier-playwright.md)、[0086](changes/0086-preview-deploy-rollback-backup-rehearsal.md)、[0087](changes/0087-preview-custom-domain-live-smoke.md) |
+>
+> 完整按时间顺序的变更流水见 [变更记录索引](changes/README.md)；科研规划总览见 [2026-11-18 科研路线图](research/2026-11-18-scientific-research-roadmap.md)。
 
 Stratify 是一个可交互、可回放、可批量实验的社会仿真系统。Jev 负责从合法行动中做结构化选择，确定性 TypeScript 引擎负责全部数值结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 
@@ -73,32 +61,27 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 
 - [总体施工计划与契约总览](guides/plan-and-contracts.md)：架构铁律、阶段表、核心公式、哈希与 API 的一页式汇总。
 - [快速开始](guides/quick-start.md)：本地浏览器、批跑、Worker、上传与门禁命令。
+- [浏览器工作台快速开始](guides/web-app.md)：P3 启动、双界面、五个工作区、键盘快捷键、离线/回放限制。
 - [前端设计指南](guides/frontend-design.md)：设计令牌、五大工作区、帧预算调度与降采样方案。
 - [本地 run 上传](guides/upload.md)：`run-upload-bundle-file-v1` 格式、CLI 与断点续传。
 - [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)：端点实测结论、密钥处理、冒烟命令、VPS `2zhou` 部署与故障速查。
 
-### 3.3 参考资料（非契约）
+### 3.3 参考资料与基准（非契约）
 
 - [Jev（TypeSafe）简介](reference/jev-overview.md)：System One 三种原语、接口、限制与已知局限。
 - [指标词典](reference/metrics-dictionary.md)：人口、财富、流动、网络、开放度与证据字段。
 - [已知限制](reference/known-limitations.md)：科学结论、确定性、Worker、前端、上传与发布边界。
 - [实验产物登记](reference/artifacts.md)：`out/` 入库白名单、体积上限、重跑程序与当前缺口。
+- 性能基准：[P1 核心基准](benchmarks/2026-11-03-p1-core.md) | [P5a 引擎基准](benchmarks/2026-11-05-p5a-engine.md)
 
-### 3.4 决策与记录
+### 3.4 决策、研究与记录
 
-- [架构决策记录](adr/README.md)：ADR 触发条件、编号规则与模板。
-- [变更记录](changes/README.md)：行为、契约与实验可比性变更的追加式记录。
-- [发布记录](releases/README.md)：每次发布的版本、备份与验证记录。
-- [评审记录](reviews/2026-11-02-p0-review.md)：P0 评审发现、契约漂移与修复顺序。
-- [第二轮契约与架构评审](reviews/2026-11-02-contract-architecture-review.md)：计划依赖、实验方法、运行时可复现性与规模风险。
-- [2026-11-03 zcodes 晚间推送审查](reviews/2026-11-03-zcodes-nightly-audit.md)：证据链、w2b 窗口、聚类空间、P2 越闸门与 P5a 交付缺口。
-- [2026-11-03 提交级审查](reviews/2026-11-03-commit-audit.md)：逐提交核查 27 个提交，6 处高危（窗口统计污染、extinct 漏判、均值场未锚 E、w2b 进不了聚类、预注册哈希缺 6 项、P2 夹带）与修复状态。
-- [2026-11-05 zcodes11.4 逐提交审查](reviews/2026-11-05-zcodes114-commit-audit.md)：Stage A 任意指标筛选（12 个入选对仅 1 个达 TV(P) 门槛）、P5-04 数组扰动/首次偏离、ledger baseConfig 缺哈希、live 检查点未接线等；含逐提交结论与修复顺序。
-- [P6-05 未通过后的规则评审](reviews/2026-11-05-p6-05-rule-review.md)：三簇失败的机制诊断（S/O 相位而非第三吸引子）、开放度–网络迟滞与占用记忆假设、P6-05b 6-cell 预注册草案与“失败则转 rules-v12 ADR”的决策规则。
-- [P6-05 规则设计评审（2026-11-11）](reviews/2026-11-11-p6-05-rule-design-review.md)：P6-05/05b/搜索/05c/05d 五轮证据汇总，诊断“单吸引域 / 双稳态不在全特征空间 / 40 人噪声 / mock 同质策略”四种可能，列出 D1 改目标、D2 引入异质性、D3 先做测量充分性检查三个方向（均未执行，待规则负责人批准）。
-- [计划修订预案（未生效）](plan-revision-proposal.md)：备案 P6-05 再次失败后的决策闸门、P6-05/P6-06 拆分、搜索证据边界与 P4/P5b 并行备选；不改变 01/07/rule.md 或任何验收门槛。
-
-- [浏览器工作台快速开始](guides/web-app.md)：P3 启动、五个工作区、键盘快捷键、离线/回放限制。
+- [架构决策记录（ADR）](adr/README.md)：ADR 触发条件、编号规则、0001–0013 索引与模板。
+- [变更记录（Changes）](changes/README.md)：行为、契约与实验可比性变更的追加式记录（0001–0092）。
+- [科研报告与路线图（Research）](research/README.md)：全阶段实验报告索引与 [2026-11-18 科研路线图](research/2026-11-18-scientific-research-roadmap.md)。
+- [代码与设计评审（Reviews）](reviews/README.md)：各阶段架构、契约、逐提交与规则评审记录索引。
+- [发布记录（Releases）](releases/README.md)：每次发布的版本、备份与验证记录。
+- [计划修订预案（未生效）](plan-revision-proposal.md)：历史备案预案；不改变 01/07/rule.md 或任何验收门槛。
 
 ### 3.5 根目录文件
 

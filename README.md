@@ -4,12 +4,9 @@
 
 Jev 负责从代码枚举的合法行动中做结构化选择，确定性 TypeScript 引擎负责财富、阶级、竞争、寿命、网络与宏观指标的全部结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 
-> **当前状态（2026-11-05）：P0/P1 完成；P1.5 只通过 G1.5（k=2 两类）；P2 收口（7/7）；P5a 五项全完成；P6-01 Stage A 完成、Stage B 6 个确认单元已判读 3 个；P6-02～P6-05、P3/P4/P5b/P7 未开工。**
-> 版本轴 `rules-v11` / `engine-v0.9.0` / `stratify-config-v6` / `stratify-state-v3`。
-> Stage B 结果：`env0=expanded`、`env0=compressed` 按 07 §8 全条件确认通过（镜像效应）；
-> `crossDays=half` 未确认（效应随人口规模消失，诚实负结果）；`crossDays=double` 30/60 run 待续跑。
-> 前端、Worker、上传链路仍为占位，G6 科学验收未通过；默认参数尚未校准，任何“三类结构已涌现”“Jev 行为有效”
-> “性能已达标”“生产可发布”的说法仍不成立。
+> **当前状态（2026-11-19）：P0–P5a、P3/P4/P5b 工程交付与 Preview（[`https://stratify.logicc.top`](https://stratify.logicc.top)）公网冒烟已落地；D1「2 体制 + 连续统」已通过 G6 校准（`P6-09` + 阶段 R4，冻结 `regime1_pyramid` 与 `regime2_continuum`）。**
+> 版本轴：`rules-v18` / `engine-v0.15.0` / `stratify-config-v12` / `stratify-state-v5`（103 项注册参数）。
+> 科学边界：传统 `k≥3` 离散结构（`P6-05..08`/`P6-10`/R2-B 探针）仍未通过；阶段 R3（`P6-11` 30-seed 真实 Jev 提示词因果实验）正在执行中；Production 尚未发布。
 
 ---
 
@@ -72,34 +69,18 @@ VPS Batch CLI ──> 同一 Pure Core + 同一 DecisionPolicy
 
 ---
 
-## 4. 规则当前口径（rules-v11）
+## 4. 规则当前口径（rules-v18）
 
-`rule.md` 仍是社会机制的唯一事实来源（13 章），结算细节以
-[docs/03](docs/03-rules-implementation.md) 为准。`rules-v11` 相对 `rules-v3` 的机制线：
+`rule.md` 仍是社会机制的唯一事实来源，结算细节以 [docs/03-rules-implementation.md](docs/03-rules-implementation.md) 为准。`rules-v18` 相对 `rules-v3` 的核心机制线：
 
-- **需求参照系（v6，D-06 A′）**：`'class'` 模式（默认）需求线 = `refIncome[c] × bufferDays × ψ_eff[c]`，
-  即「在该阶级按人均水平生活 `bufferDays` 天所需的价值」；`'own'` 逐位保留 v3–v5 语义，仅作消融对照。
-  跌落计时改由 `need.graceDays`（默认 30）单独控制，不再与需求线高低耦合。
-- **持有裕度（v5 / v7）**：上升资格从「费用可负担」升级为「费用 + 目标阶级持有裕度可负担」，
-  `ascent.holdingCushionDays` 默认 30；`'class'` 模式下裕度与需求线共用 `refIncome` 参照系。
-- **位移准入（v8 / v9）**：`'class'` 参照系下上升须击败目标阶级在位者，被击败者降级；
-  `ascent.displacementShare`（默认 1）控制走位移而非开放准入的份额。
-- **占用锚定与压力记忆（v10 / v11）**：壁垒按目标阶级占用压力 `p_c = max(0, P_c/target_c − 1)`
-  计费，权重 `ascent.scarcityWeight`；`ascent.occupancyMemoryDays`（默认 0）为该压力的指数记忆，
-  `H=0` 时逐位退回 v10。**H 不改变 10950 终态，第三类在 `H=0` 已出现，因此 rules-v11 不作为三类成因。**
-- **初始年龄 `initialAgeMode`**：`uniform`（默认）时 `remainingLife = initialLife × (1-u_age)`；
-  `newborn` 仅用于演示。两种模式都消费 `init_age` 地址。
-- **365 日流动参与率**：`Mup/Mdown` 为过去 365 日内至少发生一次上升/下降的存活者占比，
-  不使用 EMA，也不做「单日事件数 × 365」。
-- **调整后网络隔离度 `S`**：双侧归一化后恒在 `[-1, 1]`；`edgeCount=0` 时 `S=0` 并单独标记，
-  不得用 `S=1` 冒充完全隔离。
-- **参数注册表**：所有业务常数集中注册（87 条定义，含单位、域、公式引用与接线测试），
-  进入 `paramsHash`；`hardLifeFloor` 标记为 `guardOnly`。
-- **P1.5 可达性闸门**：先用 headless 原型与均值场分析证明规则能产生多于一种可归类结构，
-  未通过不得启动 P2–P6。当前 G1.5 已过（≥2 类），但 ≥3 类只有 W6 候选。
+- **需求参照系与持有裕度（v5–v7）**：`'class'` 模式（默认）需求线 = `refIncome[c] × bufferDays × ψ_eff[c]`；`need.graceDays`（默认 30）与 `ascent.holdingCushionDays`（默认 30）解耦跌落与上升裕度；`'own'` 逐位保留 v3–v5 语义作消融对照。
+- **位移准入与占用锚定（v8–v11）**：`'class'` 参照系下上升须击败目标阶级在位者；`ascent.displacementShare`（默认 1）控制位移份额，`ascent.scarcityWeight` 与 `ascent.occupancyMemoryDays` 控制占用压力壁垒。
+- **制度反馈与行为异质性（v12–v15）**：`openness.selfReinforcement`（θH=0）、显式制度状态机（`regimeMode='continuous'`, θR=0）及不可变个体特质 `riskTolerance`/`crossClassOpenness`（默认 `sigma=0`）均默认关闭以保持向后逐位一致。
+- **代际更替、阶级容量与天赋传递（v16–v18）**：新增 `population.generationalMode`（默认 `'none'`）、`bequestRate`（0）、`classInheritanceRate`（0）、`ascent.classCapacity`（默认全 `1`）与 `population.talentInheritanceWeight`（默认 `0`）；默认配置与 `rules-v15` 保持逐位兼容。
+- **参数注册表**：全部 103 项业务常数集中注册（含单位、域、公式引用与接线测试），进入 `paramsHash`；`hardLifeFloor` 标记为 `guardOnly`。
+- **科学校准状态**：D1「2 体制 + 连续统」已由 `N=200` `P6-09` 与阶段 R4（微扰 100% 吸收 + 五消融）正式通过 G6（`regime1_pyramid` / `regime2_continuum` 已冻结）；传统 `k≥3` 离散结构仍未通过。
 
-完整公式、字段、默认值和不变量见 [docs/03-rules-implementation.md](docs/03-rules-implementation.md)；
-版本沿革见 [docs/changes/](docs/changes/README.md)。
+完整公式、字段、默认值和不变量见 [docs/03-rules-implementation.md](docs/03-rules-implementation.md)；版本沿革见 [docs/changes/](docs/changes/README.md)。
 
 ---
 
@@ -112,18 +93,18 @@ P0 → P1 → P1.5（Go/No-Go）→ P2 → P5a → P6（G6 校准）
                                       └→ P4 / P5b / P3（云端与产品化并行）→ P7
 ```
 
-| 阶段     | 目标                                                       | 闸门                                                              | 当前状态                                                                                          |
-| -------- | ---------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **P0**   | 规格冻结、TS 骨架、配置校验、12 个 hash domain、参数注册表 | G0：配置可 round-trip；`paramsHash` 入 golden；零裸字面量         | 完成                                                                                              |
-| **P1**   | 确定性核心：RNG、8 阶段结算、快照、微扰克隆                | G1：机制规则逐条测试；同输入最终哈希一致；10,000 tick soak 无 NaN | 完成（含 10,000 tick soak）                                                                       |
-| **P1.5** | 涌现可达性预研（**阻断层**）                               | G1.5：至少 2 类非退化、可复现结构聚类；否则回改规则               | 部分：G1.5 过（2 类）；≥3 类仅 W6 候选                                                            |
-| **P2**   | Jev 决策层：Choice 协议、重试、预算、重放                  | G2：故障注入覆盖超时/401/403/429/5xx/非法 JSON；预算与取消有效    | 完成 7/7：P2-07 冒烟经自建网关跑通（官方域名 451）                                                |
-| **P3**   | 前端交互 MVP                                               | G3：离线 mock、live 小额、导入回放三条路径 E2E 通过               | 未开始（`src/ui` 仅占位）                                                                         |
-| **P4**   | Cloudflare 数据服务                                        | G4：幂等、并发、越权、超限测试通过；无密钥泄漏                    | 未开始（`src/worker` 仅占位）                                                                     |
-| **P5a**  | 本地批量 Runner 与检查点                                   | G5a：kill 后恢复最终哈希一致；不依赖云端                          | 完成 5/5：CLI、tick 级检查点、微扰配对、共享预算、systemd 工件                                    |
-| **P5b**  | 分批上传与断点续传                                         | G5b：断网/重复上传不产生虚假 complete                             | 未开始（依赖 P4）                                                                                 |
-| **P6**   | 校准与科学验收                                             | G6：满足 `rule.md` 56–59 条；至少 3 类互异结构指纹聚类            | 进行中：Stage A 840 run 完成；Stage B 6 单元已判读 3 个（2 通过 / 1 未确认），3 个待跑；G6 未通过 |
-| **P7**   | 发布硬化                                                   | 备份/回滚演练、安全扫描、渐进发布                                 | 未开始                                                                                            |
+| 阶段     | 目标                                                       | 闸门                                                              | 当前状态                                                                         |
+| -------- | ---------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **P0**   | 规格冻结、TS 骨架、配置校验、12 个 hash domain、参数注册表 | G0：配置可 round-trip；`paramsHash` 入 golden；零裸字面量         | 完成                                                                             |
+| **P1**   | 确定性核心：RNG、8 阶段结算、快照、微扰克隆                | G1：机制规则逐条测试；同输入最终哈希一致；10,000 tick soak 无 NaN | 完成（含 10,000 tick soak）                                                      |
+| **P1.5** | 涌现可达性预研（**阻断层**）                               | G1.5：至少 2 类非退化、可复现结构聚类；否则回改规则               | 部分：G1.5 过（2 类）；≥3 类仅 W6 候选                                           |
+| **P2**   | Jev 决策层：Choice 协议、重试、预算、重放                  | G2：故障注入覆盖超时/401/403/429/5xx/非法 JSON；预算与取消有效    | 完成 7/7：P2-07 冒烟经自建网关跑通（官方域名 451）                               |
+| **P3**   | 前端交互双界面（沙盒剧场 + 科研试验台）                    | G3：离线 mock、live 小额、导入回放、Chromium Playwright E2E 通过  | 完成（含 IndexedDB v3、LTTB 与 Playwright E2E）                                  |
+| **P4**   | Cloudflare Worker / D1 / R2 数据服务与同源 BYOK 代理       | G4：幂等、并发、越权、超限测试通过；无密钥泄漏                    | 完成（Preview `stratify.logicc.top` 公网冒烟与 live 代理通过）                   |
+| **P5a**  | 本地批量 Runner 与检查点                                   | G5a：kill 后恢复最终哈希一致；不依赖云端                          | 完成 5/5：CLI、tick 级检查点、微扰配对、共享预算、systemd 工件                   |
+| **P5b**  | 分批流式上传、断点续传与独立确定性验证器                   | G5b：断网/重复上传不产生虚假 complete；回放篡改可拦截             | 完成（含 `full` 流式导出与公网 `verified` 闭环）                                 |
+| **P6**   | 校准与科学验收                                             | G6：D1「2 体制 + 连续统」(`07 §8.2`) 与消融/微扰收口              | **D1 已通过 G6**（`P6-09` + R4）；`k≥3` 未通过；**R3（`P6-11` Jev 因果）进行中** |
+| **P7**   | 发布硬化                                                   | 备份/回滚演练、安全扫描、渐进发布                                 | Preview 硬化演练完成（D1 恢复/回滚/审计）；Production 资源与监控待立项           |
 
 任务编号、依赖与验收标准见 [docs/01-implementation-plan.md](docs/01-implementation-plan.md)。
 
