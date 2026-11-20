@@ -581,7 +581,14 @@ function executeAction(input: ExecuteActionInput): void {
   }
   if (parsed.type === 'ascend') {
     // 执行前复核：费用 + 持有裕度与当前 Value（前序竞争可能已消耗）。
-    const cost = computeAscendCost(config, agent, eByClass, openness, state.society.refIncome);
+    const cost = computeAscendCost(
+      config,
+      agent,
+      eByClass,
+      openness,
+      state.society.refIncome,
+      classSharesStart,
+    );
     const cushion =
       cost === null
         ? 0
@@ -896,11 +903,25 @@ function spawnSuccessorsForDeaths(
     const geRaw = sampleTruncatedLognormal(config.attributes.ge, (counter) =>
       draw(RNG_EVENT_TAGS.initGe, counter),
     );
-    const ge =
-      config.population.talentInheritanceWeight === 0
+    // rules-v19（ADR 0014）：代际出身折损，不经过 O。d=0 时直接沿用 geRaw，
+    // 保证与 rules-v18 逐位一致。
+    const lineageDiscount = config.population.lineageDiscount;
+    const geBase =
+      lineageDiscount === 0
         ? geRaw
         : clamp(
             geRaw *
+              (1 -
+                lineageDiscount *
+                  (1 - parent.classIndex / Math.max(1, config.population.classCount - 1))),
+            config.attributes.ge.min,
+            config.attributes.ge.max,
+          );
+    const ge =
+      config.population.talentInheritanceWeight === 0
+        ? geBase
+        : clamp(
+            geBase *
               (1 +
                 config.population.talentInheritanceWeight *
                   (parent.classIndex / Math.max(1, config.population.classCount - 1) - 0.5) *

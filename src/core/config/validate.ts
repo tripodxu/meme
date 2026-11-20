@@ -12,6 +12,7 @@ import {
   CONFIG_SCHEMA_VERSION_V9,
   CONFIG_SCHEMA_VERSION_V10,
   CONFIG_SCHEMA_VERSION_V11,
+  CONFIG_SCHEMA_VERSION_V12,
   RULES_VERSION,
 } from '../control/versions.js';
 /**
@@ -44,6 +45,11 @@ const MIGRATION_DEFAULTS = Object.freeze({
   }),
   /** v11 → v12（rules-v18 天赋传递）：历史默认 0。 */
   v11TalentInheritanceWeight: 0,
+  /** v12 → v13（rules-v19 岗位硬门槛与出身折损）：历史默认 0/0。 */
+  v12R2C: Object.freeze({
+    lineageDiscount: 0,
+    hardGateStrength: 0,
+  }),
 });
 import { errorCodes, type ErrorCode } from '../control/errors.js';
 import { getParamDefinition, readNumericConstant } from '../params.js';
@@ -538,7 +544,26 @@ function migrateConfigInput(input: unknown): unknown {
     if (population['talentInheritanceWeight'] === undefined) {
       population['talentInheritanceWeight'] = MIGRATION_DEFAULTS.v11TalentInheritanceWeight;
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, population };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V12, population };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V12) {
+    const rawPopulation = record['population'];
+    const population =
+      typeof rawPopulation === 'object' && rawPopulation !== null && !Array.isArray(rawPopulation)
+        ? { ...(rawPopulation as Record<string, unknown>) }
+        : {};
+    if (population['lineageDiscount'] === undefined) {
+      population['lineageDiscount'] = MIGRATION_DEFAULTS.v12R2C.lineageDiscount;
+    }
+    const rawAscent = record['ascent'];
+    const ascent =
+      typeof rawAscent === 'object' && rawAscent !== null && !Array.isArray(rawAscent)
+        ? { ...(rawAscent as Record<string, unknown>) }
+        : {};
+    if (ascent['hardGateStrength'] === undefined) {
+      ascent['hardGateStrength'] = MIGRATION_DEFAULTS.v12R2C.hardGateStrength;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, population, ascent };
   }
   return record;
 }
@@ -601,6 +626,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'bequestRate',
       'classInheritanceRate',
       'talentInheritanceWeight',
+      'lineageDiscount',
     ])
   ) {
     checkRegisteredNumber(
@@ -650,6 +676,12 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       population['talentInheritanceWeight'],
       '$.population.talentInheritanceWeight',
       'population.talentInheritanceWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['lineageDiscount'],
+      '$.population.lineageDiscount',
+      'population.lineageDiscount',
     );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(
@@ -841,6 +873,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'scarcityWeight',
       'occupancyMemoryDays',
       'classCapacity',
+      'hardGateStrength',
     ])
   ) {
     const ascent = root['ascent'];
@@ -867,6 +900,12 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       ascent['occupancyMemoryDays'],
       '$.ascent.occupancyMemoryDays',
       'ascent.occupancyMemoryDays',
+    );
+    checkRegisteredNumber(
+      collector,
+      ascent['hardGateStrength'],
+      '$.ascent.hardGateStrength',
+      'ascent.hardGateStrength',
     );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(

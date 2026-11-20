@@ -181,6 +181,22 @@ describe('validateRunConfig', () => {
     }
   });
 
+  it('migrates a v12 config by filling hardGateStrength=0 / lineageDiscount=0 (rules-v19)', () => {
+    const v12 = cloneConfig();
+    v12['schemaVersion'] = 'stratify-config-v12';
+    const ascent = v12['ascent'] as Record<string, unknown>;
+    const pop = v12['population'] as Record<string, unknown>;
+    delete ascent['hardGateStrength'];
+    delete pop['lineageDiscount'];
+    const result = validateRunConfig(v12);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.ascent.hardGateStrength).toBe(0);
+      expect(result.config.population.lineageDiscount).toBe(0);
+    }
+  });
+
   it('migrates a v1 config by filling openness.updateMode=dynamic (P1-10)', () => {
     const v1 = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
     v1['schemaVersion'] = 'stratify-config-v1';

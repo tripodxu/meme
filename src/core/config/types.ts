@@ -40,6 +40,8 @@ export interface PopulationConfig {
   readonly classInheritanceRate: number;
   /** rules-v18（R2-B）：代际天赋传递权重 γ ∈ [0,2]，默认 0（不生效）。 */
   readonly talentInheritanceWeight: number;
+  /** rules-v19（R2-C）：代际出身折损 d ∈ [0,0.8]，默认 0（不生效）。 */
+  readonly lineageDiscount: number;
 }
 
 export interface OpportunityConfig {
@@ -123,6 +125,8 @@ export interface AscentConfig {
    * 期初存活占比 P[target] >= classCapacity[target] 时禁止上升。默认全 1 与 v16 逐位一致。
    */
   readonly classCapacity: readonly number[];
+  /** rules-v19（R2-C）：岗位容量硬门槛强度 g ∈ [0,4]，默认 0（与 v18 逐位一致）。 */
+  readonly hardGateStrength: number;
 }
 
 export interface CompetitionConfig {

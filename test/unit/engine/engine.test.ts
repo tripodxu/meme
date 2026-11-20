@@ -558,6 +558,43 @@ describe('寿命与死亡（03 §6 阶段 E）', () => {
     expect(child1.ge).toBeLessThanOrEqual(child0.ge);
     expect(child1.ge).toBeGreaterThanOrEqual(weightedCfg.attributes.ge.min);
   });
+
+  it('rules-v19 代际出身折损按亲代阶级压低新生儿天赋且不经过 O', () => {
+    const makeCfg = (lineageDiscount: number) =>
+      makeConfig({
+        population: {
+          initialPopulation: 10,
+          generationalMode: 'replace',
+          lineageDiscount,
+        },
+        schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+      });
+    const s0 = createSimulation(makeCfg(0), SEED);
+    const s1 = createSimulation(makeCfg(0.8), SEED);
+    const parent0 = s0.society.agents.find((a) => a.alive);
+    const parent1 = s1.society.agents.find((a) => a.alive);
+    if (!parent0 || !parent1) throw new Error('缺少亲代个体');
+    // 同一亲代、同一开放度：折损只读亲代阶级，不读 O。
+    for (const [state, parent] of [
+      [s0, parent0],
+      [s1, parent1],
+    ] as const) {
+      parent.classIndex = 0;
+      parent.maxClassIndex = 0;
+      parent.remainingLife = 0.5;
+      state.society.openness = 0.3;
+    }
+    const r0 = step(s0, new Map(mockDecisions(s0)), { runId: 'r2c-base' });
+    const r1 = step(s1, new Map(mockDecisions(s1)), { runId: 'r2c-discount' });
+    const child0 = r0.state.society.agents[r0.state.society.agents.length - 1];
+    const child1 = r1.state.society.agents[r1.state.society.agents.length - 1];
+    if (!child0 || !child1) throw new Error('缺少新生个体');
+    // 亲代处于最低层：折损因子为 (1-d)=0.2，公式完全不读 O。
+    expect(child1.ge).toBeLessThanOrEqual(child0.ge);
+    expect(child1.ge).toBeGreaterThanOrEqual(makeCfg(0.8).attributes.ge.min);
+    const cfg = makeCfg(0.8);
+    expect(child1.ge).toBeLessThanOrEqual(Math.max(child0.ge * 0.2, cfg.attributes.ge.min) + 1e-12);
+  });
 });
 
 describe('慢变量更新（03 §6 阶段 H）', () => {

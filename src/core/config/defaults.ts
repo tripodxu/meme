@@ -19,6 +19,8 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     bequestRate: 0,
     classInheritanceRate: 0,
     talentInheritanceWeight: 0,
+    // rules-v19：0 = 无代际出身折损（逐位退回 v18）。
+    lineageDiscount: 0,
   },
   opportunity: {
     dailyBase: 2,
@@ -68,6 +70,8 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     occupancyMemoryDays: 0,
     // rules-v17：全 1 = 无容量上限（逐位退回 v16）。
     classCapacity: [1, 1, 1, 1, 1],
+    // rules-v19：0 = 无岗位容量硬门槛（逐位退回 v18）。
+    hardGateStrength: 0,
   },
   competition: {
     powerValueExponent: 0.35,

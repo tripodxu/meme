@@ -28,10 +28,10 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(fileURLToPath(url), 'utf8'));
 }
 
-const fixture = readJson('../fixtures/config/default-rules-v18.json');
-const golden = readJson('../fixtures/config/default-rules-v18.hashes.json') as GoldenHashes;
+const fixture = readJson('../fixtures/config/default-rules-v19.json');
+const golden = readJson('../fixtures/config/default-rules-v19.hashes.json') as GoldenHashes;
 
-describe('golden: rules-v18 default config', () => {
+describe('golden: rules-v19 default config', () => {
   it('round-trips the fixture through validation and JSON without changing the hash', () => {
     expect(validateRunConfig(fixture).ok).toBe(true);
     const roundTripped = JSON.parse(JSON.stringify(fixture)) as unknown;
@@ -47,7 +47,7 @@ describe('golden: rules-v18 default config', () => {
 
   it('keeps the fixture and DEFAULT_RUN_CONFIG in sync', () => {
     expect(fixture).toEqual(DEFAULT_RUN_CONFIG);
-    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v18.json');
+    expect(golden.fixture).toBe('test/fixtures/config/default-rules-v19.json');
     expect(golden.rulesVersion).toBe(DEFAULT_RUN_CONFIG.rulesVersion);
   });
 
@@ -86,6 +86,11 @@ describe('golden: rules-v18 default config', () => {
     expect(DEFAULT_RUN_CONFIG.openness.regimeExitOpenSegregation).toBe(0.3);
   });
 
+  it('v19 岗位容量硬门槛与代际出身折损默认关闭（逐位退回 v18）', () => {
+    expect(DEFAULT_RUN_CONFIG.ascent.hardGateStrength).toBe(0);
+    expect(DEFAULT_RUN_CONFIG.population.lineageDiscount).toBe(0);
+  });
+
   it('matches the pinned configHash', () => {
     expect(computeConfigHash(DEFAULT_RUN_CONFIG)).toBe(golden.configHash);
   });
@@ -120,6 +125,8 @@ describe('golden: 历史 fixture（v3/v4/v5/v10/v12 只读，累加式）', () =
   const v10Golden = readJson('../fixtures/config/default-rules-v10.hashes.json') as GoldenHashes;
   const v12Fixture = readJson('../fixtures/config/default-rules-v12.json');
   const v12Golden = readJson('../fixtures/config/default-rules-v12.hashes.json') as GoldenHashes;
+  const v18Fixture = readJson('../fixtures/config/default-rules-v18.json');
+  const v18Golden = readJson('../fixtures/config/default-rules-v18.hashes.json') as GoldenHashes;
 
   it('v3/v4/v5/v10/v12 fixture configHash 仍与冻结记录一致（历史证据不被篡改）', () => {
     expect(v3Golden.rulesVersion).toBe('rules-v3');
@@ -127,12 +134,14 @@ describe('golden: 历史 fixture（v3/v4/v5/v10/v12 只读，累加式）', () =
     expect(v5Golden.rulesVersion).toBe('rules-v5');
     expect(v10Golden.rulesVersion).toBe('rules-v10');
     expect(v12Golden.rulesVersion).toBe('rules-v12');
+    expect(v18Golden.rulesVersion).toBe('rules-v18');
     // configHash 只覆盖配置 JSON 本身，不受注册表增长影响。
     expect(computeConfigHash(v3Fixture as RunConfig)).toBe(v3Golden.configHash);
     expect(computeConfigHash(v4Fixture as RunConfig)).toBe(v4Golden.configHash);
     expect(computeConfigHash(v5Fixture as RunConfig)).toBe(v5Golden.configHash);
     expect(computeConfigHash(v10Fixture as RunConfig)).toBe(v10Golden.configHash);
     expect(computeConfigHash(v12Fixture as RunConfig)).toBe(v12Golden.configHash);
+    expect(computeConfigHash(v18Fixture as RunConfig)).toBe(v18Golden.configHash);
     // paramsHash 由参数注册表驱动：注册表随新参数增长后，缺字段的旧配置不再可哈希
     //（canonicalize 拒绝 undefined）；冻结历史值保留在各自记录中供审计。
     expect(() => computeParamsHash(v3Fixture as RunConfig)).toThrowError(/undefined/);
@@ -140,10 +149,11 @@ describe('golden: 历史 fixture（v3/v4/v5/v10/v12 只读，累加式）', () =
     expect(() => computeParamsHash(v5Fixture as RunConfig)).toThrowError(/undefined/);
     expect(() => computeParamsHash(v10Fixture as RunConfig)).toThrowError(/undefined/);
     expect(() => computeParamsHash(v12Fixture as RunConfig)).toThrowError(/undefined/);
+    expect(() => computeParamsHash(v18Fixture as RunConfig)).toThrowError(/undefined/);
   });
 
-  it('v3/v4/v5/v10/v12 fixture 不再被当前版本接受（config_unknown_version）', () => {
-    for (const stale of [v3Fixture, v4Fixture, v5Fixture, v10Fixture, v12Fixture]) {
+  it('v3/v4/v5/v10/v12/v18 fixture 不再被当前版本接受（config_unknown_version）', () => {
+    for (const stale of [v3Fixture, v4Fixture, v5Fixture, v10Fixture, v12Fixture, v18Fixture]) {
       const result = validateRunConfig(stale);
       expect(result.ok).toBe(false);
       if (!result.ok) {

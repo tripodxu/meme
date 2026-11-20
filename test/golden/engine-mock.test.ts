@@ -47,7 +47,7 @@ interface GoldenFixture {
   };
 }
 
-const FIXTURE_PATH = '../fixtures/engine/mock-run-rules-v18.json';
+const FIXTURE_PATH = '../fixtures/engine/mock-run-rules-v19.json';
 const UPDATE = process.env['STRATIFY_UPDATE_GOLDEN'] === '1';
 
 function loadFixture(): GoldenFixture | null {
@@ -146,7 +146,7 @@ function mortality3650(mode: 'uniform' | 'newborn'): number {
   return deathsAtEnd / state.society.agents.length;
 }
 
-describe('golden: 40 人默认 mock 运行（rules-v18）', () => {
+describe('golden: 40 人默认 mock 运行（rules-v19）', () => {
   const fixture = loadFixture();
 
   if (fixture === null || UPDATE) {
@@ -154,7 +154,7 @@ describe('golden: 40 人默认 mock 运行（rules-v18）', () => {
       const checkpoints = runToCheckpoints([0, 1, 10, 120, 400]);
       const generated: GoldenFixture = {
         description:
-          '40 人默认 mock 运行（seed=golden-mock-seed，rules-v18 代际天赋传递默认 0）；更新必须人工审查差异并说明原因。',
+          '40 人默认 mock 运行（seed=golden-mock-seed，rules-v19 岗位容量硬门槛与出身折损默认 0，与 v18 语义一致）；更新必须人工审查差异并说明原因。',
         rulesVersion: RULES_VERSION,
         engineVersion: ENGINE_VERSION,
         paramsHash: computeParamsHash(DEFAULT_RUN_CONFIG),

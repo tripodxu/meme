@@ -10,6 +10,7 @@ import {
   resolveCompetition,
 } from '../core/engine/settlement.js';
 import {
+  cachedClassShareSnapshot,
   computeAscendBarrier,
   computeAscendCost,
   computeAscendCrossBase,
@@ -438,6 +439,7 @@ export function agentDetail(state: SimState | null, agentId: string): AgentDetai
       state.society.eByClass,
       state.society.openness,
       state.society.refIncome,
+      cachedClassShareSnapshot(state.society.agents, config.population.classCount),
     );
     descendCost = computeDescendCost(config, agent, state.society.eByClass);
   } catch {
@@ -916,6 +918,7 @@ export function agentMechanismAnatomy(
         state.society.eByClass,
         state.society.openness,
         state.society.refIncome,
+        cachedClassShareSnapshot(state.society.agents, state.config.population.classCount),
       ) ?? 0;
     ascendCushion = computeAscendCushion(
       state.config,

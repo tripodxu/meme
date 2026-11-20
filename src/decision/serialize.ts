@@ -175,6 +175,7 @@ export function buildDecisionState(
       state.society.eByClass,
       state.society.openness,
       state.society.refIncome,
+      cachedClassShareSnapshot(state.society.agents, config.population.classCount),
     );
   const descendCost =
     legal.descendCost ?? computeDescendCost(config, agent, state.society.eByClass);

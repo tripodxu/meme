@@ -2,13 +2,21 @@
 
 > 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。
 >
-> **当前版本**：`rules-v11`。相对 v10 的修订（changes/0027）：新增占用压力记忆
-> `ascent.occupancyMemoryDays`（默认 0 与 v10 逐位一致；
-> `m_c(t)=max(p_c(t), e^{-1/H}·m_c(t−1))`，上升壁垒改用记忆），
-> 状态 schema 升至 `stratify-state-v3`（SocietyState 增补 `occupancyPressure`）。
+> **当前版本**：`rules-v19`。相对 v18 的修订（ADR 0014、changes/0098）：新增岗位容量
+> 硬门槛 `ascent.hardGateStrength`（默认 0）与代际出身折损 `population.lineageDiscount`
+> （默认 0）；两者为 0 时与 `rules-v18` 运行轨迹逐位一致，详见 §6.12。
 >
 > **版本沿革**：
 >
+> - **v19**（ADR 0014）：岗位容量硬门槛 `M_gate(c)=1+g·o_c²/(1−o_c)`；新生儿天赋按亲代阶级折损 `ge_raw·(1−d·(1−c_parent/(C−1)))`，均不读取 O。
+> - **v18**（ADR 0012）：代际天赋传递 `population.talentInheritanceWeight`（默认 0 与 v17 一致）。
+> - **v17**（ADR 0011）：阶级结构容量上限 `ascent.classCapacity`（默认全 1 与 v16 一致）。
+> - **v16**（ADR 0009）：代际更替 `population.generationalMode='replace'`（默认 `none` 与 v15 一致）与遗产折算 `bequestRate`、出身继承 `classInheritanceRate`。
+> - **v15**（ADR 0007）：个体行为异质性（§6.11）。
+> - **v14**（ADR 0006）：仅目标修订，无结算语义变化。
+> - **v13**（ADR 0005）：显式制度状态机 `openness.regimeMode/regimeBias`（默认 `continuous`/0 与 v12 一致）。
+> - **v12**（ADR 0004）：开放度自反馈 `openness.selfReinforcement`（默认 0）。
+> - **v11**（changes/0027）：占用压力记忆 `ascent.occupancyMemoryDays`（默认 0 与 v10 一致）。
 > - **v10**（changes/0013）：占用锚定 `ascent.scarcityWeight`（默认 0 与 v9 一致；目标阶级超机会隐含份额时抬升上升余额门槛）。
 > - **v9**（changes/0012）：位移准入份额 `ascent.displacementShare`（默认 1 与 v8 一致；<1 时其余份额走开放准入）。
 > - **v8**（changes/0010）：位移准入——`'class'` 参照系下上升须击败目标阶级在位者，被击败者降级（零和下行流）。
@@ -24,7 +32,7 @@
 
 - tick 从 `0` 开始，1 tick = 1 模拟日；`step(t)` 结算 tick t 后生成 tick t+1 的期初状态。
 - 交互演示默认 40 人、120 tick；结构实验默认 3650 tick，舍弃前 365 tick，使用至少 730 tick 窗口。
-- 固定人口，无出生/迁入；死亡个体永久退出，不参与任何后续结算。
+- 默认 `population.generationalMode='none'` 时固定人口、无出生/迁入；`replace`（rules-v16）时每 tick 死亡个体 1:1 替补、ID 不复用。死亡个体永久退出，不参与任何后续结算。
 - 当 tick 末存活人数为 0 且该 tick 早于最后一个计划 tick 时，run 以 `endReason=extinct` 技术完成，不再调用 step；最终状态的 `tick=t+1`。若全死亡恰好发生在最后一个计划 tick（`t=totalTicks-1`），仍记 `scheduled`，但必须置 `finalAliveCount=0` 并标记“不可用于结构判异”。全死亡实验不得用于正常社会结构判异。
 - 所有 Value 变化以事件记录；Value 必须有限且 `>=0`。不得暗中取整财富。
 - 只有到期个体能主动行动。默认 `decisionInterval=10`，当 `tick % 10 == 0` 时全部存活个体到期；其余 tick 仅自动积累与后续管线。
@@ -80,7 +88,7 @@
 | 努力函数     | `F(h)=(1-exp(-FShape×h))/(1-exp(-FShape))`，`FShape=1.2`                                                                                                                         |
 | 需求         | `needThreshold=0.5`，`belowNeedLimit=14`，`bufferDays=30`，`buffer(age)=clamp((age-1)/(bufferDays-1),0,1)`，`needMultiplier=[1.0,1.3,1.8,2.5,3.5]`，`envExponent=1.0`（v4 新增） |
 | 主动降阶     | `descendDays=7`，`descendCost=descendDays×B×E[t,currentClass]`                                                                                                                   |
-| 上升         | `crossDays=[30,40,50,60]`，`crossBase=crossDays[c]×B×E[t,c+1]`                                                                                                                   |
+| 上升         | `crossDays=[30,40,50,60]`（`class` 模式 `crossBase=crossDays[c]×refIncome[c+1]`）；`classCapacity=[1,1,1,1,1]`（v17）、`hardGateStrength=0`（v19）                               |
 | 重返         | 距历史最高阶级 `d=1/2/>=3` 时依次应用 `returnDiscount=[0,0.20,0.40]`；三项都必须可被接线测试观测，默认值允许 `returnDiscount[0]=0`                                               |
 | 竞争能力     | `power=(1+Value)^powerValueExponent×ge^powerGeExponent×hard^powerHardExponent`，默认 `0.35/0.6/0.4`                                                                              |
 | 跨层能力     | 原发起方 ×`crossClassInitiatorMultiplier=0.85`，原被竞争方 ×`crossClassTargetMultiplier=1.15`，同层均 ×1                                                                         |
@@ -471,6 +479,42 @@ w_compete = w_v1 × exp(θrisk×(riskTolerance−0.5) + θcross×(crossClassOpen
 rules-v13/v14 逐位一致；`mock-weighted-v2` 在敏感性为 0 时与 v1 逐位一致。
 配置 v8→v9 补 `behavior` 默认 0；状态 v3/v4→v5 缺特质按 0.5 迁移。
 P6-07 是机制探索轮，不构成 G6 确认（ADR 0007、changes/0067）。
+
+### 6.12 代际更替与出身机制（rules-v16–v19）
+
+**出生（v16，ADR 0009）**：`generationalMode='replace'` 时，阶段 E 结算死亡后按 1:1
+替补，子代 ID 单调递增且永不复用；以 `(seed, tick, childId)` 独立地址抽样
+`init_ge/init_hard/init_life/init_risk_trait/init_cross_class_trait/birth_class/network_birth`。
+遗产为**转移**而非增发：`bequest = parent.value × bequestRate` 先从死者扣除、再给子代
+（`value=bequest`，其余子代 `value=0`）。子代初始阶级：`R(birth_class) < classInheritanceRate`
+时继承亲代阶级，否则为 0。默认 `none` 不消费任何随机数，与 v15 逐位一致。
+
+**代际天赋（v18，ADR 0012）**：`ge_child = ge_raw × (1 + γ·(c_parent/(C−1) − 0.5)·(1−O))`，
+`γ = population.talentInheritanceWeight`；`γ=0` 时 `ge_child=ge_raw`。
+
+**出身折损（v19，ADR 0014）**：先按亲代阶级折损，再叠加 v18 传递：
+
+```text
+ge_base  = clamp(ge_raw × (1 − d·(1 − c_parent/(C−1))), ge.min, ge.max)   // d = population.lineageDiscount
+ge_child = γ = 0 ? ge_base : clamp(ge_base × (1 + γ·(c_parent/(C−1) − 0.5)·(1−O)), ge.min, ge.max)
+```
+
+两个机制都不读取 E；`d=0` 时 `ge_base=ge_raw`，与 v18 逐位一致。
+
+**岗位容量（v17，ADR 0011）**：期初存活占比 `P_c >= classCapacity[c]` 时上升不合法，
+枚举与执行复核使用同一 tick 期初快照。
+
+**岗位容量硬门槛（v19，ADR 0014）**：`o_c = min(P_c / classCapacity[c], 1 − 1e−6)`，
+
+```text
+M_gate(c) = 1 + g · o_c² / (1 − o_c)          // g = ascent.hardGateStrength
+ascendCost = crossBase × (1 − discount) × openMultiplier × M_gate
+```
+
+`P_c` 与 v10 占用压力、v17 容量门共用同一期初快照；`g=0` 时 `M_gate=1`，与 v18
+逐位一致。`classCapacity[c] <= 0` 或占比数组缺项时门槛不生效（配置校验已拒绝非正容量）。
+v19 只增加机制，不改变 `θH/θR/θS/H/share/w/k`；是否具备结构解释力由预注册探针
+（`explore-r2c`）与 07 §11 判读，不构成校准。
 
 ## 7. 不变量
 

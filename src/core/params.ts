@@ -143,6 +143,16 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest: 'replace 模式下 0 与 rules-v17 逐位一致；>0 时低开放度下亲代阶级调节新生儿天赋 ge。',
   },
   {
+    name: 'population.lineageDiscount',
+    unit: 'dimensionless',
+    formulaRef:
+      '03 §6 阶段 E（rules-v19，ADR 0014）：ge_child = ge_raw * (1 - d * (1 - parentClass/(C-1)))',
+    domain: { kind: 'number', min: 0, max: 0.8 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'replace 模式下 0 与 rules-v18 逐位一致；>0 时低阶级亲代的新生儿 ge 被折损。',
+  },
+  {
     name: 'opportunity.dailyBase',
     unit: 'value',
     formulaRef: '03 §6 阶段 C / rule.md 3',
@@ -541,6 +551,16 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     affectsBehavior: true,
     wireTest:
       '全 1 时与 rules-v16 逐位一致；下调 classCapacity[c] 后占比达上限时 ascend 不再合法。',
+  },
+  {
+    name: 'ascent.hardGateStrength',
+    unit: 'dimensionless',
+    formulaRef:
+      '03 §6 阶段 B（rules-v19，ADR 0014）：M_gate = 1 + g * o^2/(1-o)，o = min(P[target]/classCapacity[target], 1-1e-6)',
+    domain: { kind: 'number', min: 0, max: 4 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'g=0 与 rules-v18 逐位一致；>0 时目标层占用接近容量会抬高 ascend 成本。',
   },
   {
     name: 'competition.powerValueExponent',

@@ -189,6 +189,7 @@ export function computeAscendCost(
   eByClass: readonly number[],
   openness: number,
   refIncome: readonly number[],
+  classShares?: readonly number[],
 ): number | null {
   const base = computeAscendCrossBase(config, agent, eByClass, refIncome);
   if (base === null) {
@@ -212,7 +213,21 @@ export function computeAscendCost(
     config.openness.multiplierMin,
     config.openness.multiplierMax,
   );
-  return crossBase * (1 - discount) * openMultiplier;
+  // rules-v19（ADR 0014）：岗位容量硬门槛。目标层占用率 o 越接近容量，成本凸增；
+  // g=0 时 gate 恒为 1，与 v18 逐位一致。占比必须来自同一 tick 期初快照。
+  let gate = 1;
+  if (config.ascent.hardGateStrength > 0 && classShares !== undefined) {
+    const target = agent.classIndex + 1;
+    const capacity = config.ascent.classCapacity[target] ?? 1;
+    const share = classShares[target] ?? 0;
+    if (capacity > 0) {
+      const occupancy = Math.min(share / capacity, 1 - 1e-6);
+      gate =
+        1 +
+        (config.ascent.hardGateStrength * occupancy * occupancy) / Math.max(1e-6, 1 - occupancy);
+    }
+  }
+  return crossBase * (1 - discount) * openMultiplier * gate;
 }
 
 /**
@@ -308,12 +323,19 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `到期个体不存在或已死亡: ${agentId}`);
   }
   const eByClass = state.society.eByClass;
+  // 同一 tick 期初占比同时供 v10 占用压力、v17 容量门与 v19 硬门槛使用；
+  // 禁止按行动顺序逐次重算。
+  const classSharesStart = cachedClassShareSnapshot(
+    state.society.agents,
+    config.population.classCount,
+  );
   const ascendCost = computeAscendCost(
     config,
     agent,
     eByClass,
     state.society.openness,
     state.society.refIncome,
+    classSharesStart,
   );
   const descendCost = computeDescendCost(config, agent, eByClass);
   // v10 占用锚定：目标阶级占比超过机会隐含参照份额时抬升余额门槛。
@@ -331,10 +353,6 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
           crossBaseInfo.crossBase,
           state.society.occupancyPressure,
         );
-  const classSharesStart = cachedClassShareSnapshot(
-    state.society.agents,
-    config.population.classCount,
-  );
   const targetCap =
     ascendCost === null ? 1 : (config.ascent.classCapacity[agent.classIndex + 1] ?? 1);
   const hasCapacity =

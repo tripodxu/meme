@@ -22,6 +22,7 @@ describe('DEFAULT_RUN_CONFIG', () => {
       bequestRate: 0,
       classInheritanceRate: 0,
       talentInheritanceWeight: 0,
+      lineageDiscount: 0,
     });
     expect(DEFAULT_RUN_CONFIG.opportunity).toEqual({
       dailyBase: 2,
@@ -42,6 +43,7 @@ describe('DEFAULT_RUN_CONFIG', () => {
       scarcityWeight: 0,
       occupancyMemoryDays: 0,
       classCapacity: [1, 1, 1, 1, 1],
+      hardGateStrength: 0,
     });
     expect(DEFAULT_RUN_CONFIG.schedule).toEqual({
       totalTicks: 3650,

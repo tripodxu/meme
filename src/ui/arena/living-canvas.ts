@@ -1,6 +1,7 @@
 import { asAgentId, type AgentId } from '../../core/control/ids.js';
 import type { TickEvent } from '../../core/events.js';
 import {
+  cachedClassShareSnapshot,
   computeAscendBarrier,
   computeAscendCost,
   computeAscendCrossBase,
@@ -418,6 +419,7 @@ export class LivingArenaCanvas {
         this.state.society.eByClass,
         this.state.society.openness,
         this.state.society.refIncome,
+        cachedClassShareSnapshot(this.state.society.agents, config.population.classCount),
       );
       if (cost === null) return null;
       const cushion = computeAscendCushion(
