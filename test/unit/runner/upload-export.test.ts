@@ -10,7 +10,7 @@ import {
   ENGINE_VERSION,
   RULES_VERSION,
 } from '../../../src/core/control/versions.js';
-import { memoryCheckpointHost } from '../../../src/runner/checkpoint.js';
+import { memoryCheckpointHost, memoryCheckpointHostSync } from '../../../src/runner/checkpoint.js';
 import { validateBatchManifest } from '../../../src/runner/batch.js';
 import { runBatch } from '../../../src/runner/batch-cli.js';
 import { runSingle } from '../../../src/runner/run-cell.js';
@@ -227,6 +227,58 @@ describe('P5b 批跑上传 bundle 导出', () => {
     runSingle(config, seed, { policy: 'mock-weighted-v1', artifactSink: abortedWriter.sink });
     abortedWriter.abort();
     expect(uploadBundleExists(outDir, 'aborted-cell', seed)).toBe(false);
+  });
+
+  it('流式 full 写出器可从 run 内检查点续跑并保留前段 artifacts', () => {
+    const config = createDemoConfig({
+      population: { initialPopulation: 10 },
+      schedule: { totalTicks: 10, statsStride: 2, snapshotStride: 4 },
+      decision: { interval: 2 },
+    });
+    const seed = asSeed('seed-stream-resume');
+    const outDir = tempDir();
+    const runCheckpoint = {
+      host: memoryCheckpointHostSync(),
+      path: 'run-0.progress.json',
+      everyTicks: 2,
+      cellKey: 'resume-cell',
+    };
+    const writerA = createStreamingBundleWriter({
+      outDir,
+      cellKey: 'resume-cell',
+      seed,
+      config,
+      runtimeVersion: `node-${process.versions.node}`,
+      chunkBytes: 128,
+    });
+    runSingle(config, seed, {
+      policy: 'mock-weighted-v1',
+      artifactSink: writerA.sink,
+      runCheckpoint,
+      maxTicks: 4,
+    });
+    // 模拟进程被 kill：不 finalize、不 abort，分块与 full-export.json 留在磁盘。
+
+    const writerB = createStreamingBundleWriter({
+      outDir,
+      cellKey: 'resume-cell',
+      seed,
+      config,
+      runtimeVersion: `node-${process.versions.node}`,
+      resume: true,
+      chunkBytes: 128,
+    });
+    const full = runSingle(config, seed, {
+      policy: 'mock-weighted-v1',
+      artifactSink: writerB.sink,
+      runCheckpoint,
+    });
+    const written = writerB.finalize(full);
+    expect(written.finalTick).toBe(9);
+    const verified = verifyUploadBundle(loadUploadBundle(written.bundlePath));
+    expect(verified.status).toBe('verified');
+    expect(verified.report.replayable).toBe(true);
+    expect(verified.report.replayFinalStateHash).toBe(full.report.finalStateHash);
   });
 
   it('runBatch 在 --resume 复用已完成任务时自动补导出缺失的上传 bundle 并校验状态哈希一致', async () => {

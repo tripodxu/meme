@@ -78,8 +78,8 @@ node bin/stratify-batch.mjs manifest.json --out out/my-batch \
 
 每个成功 run 输出 `out/my-batch/upload-bundles/<cellKey>-<seed>/`。默认导出
 `metrics-only`（metrics + final_state + agents）；需要可回放时加
-`--artifact-profile full`（会额外收集 events/decisions/snapshot，内存更高，
-且不能与 `--checkpoint-ticks` 同用）：
+`--artifact-profile full`（逐 tick 流式写出 events/decisions/snapshot，不驻留全程内存；
+可与 `--checkpoint-ticks` 同用，续跑时按磁盘分块续写）：
 
 ```bash
 node bin/stratify-batch.mjs manifest.json --out out/my-batch \
@@ -124,8 +124,8 @@ RUNNER_TOKEN=... pnpm verify:run --run-id run_xxx --base-url http://127.0.0.1:87
 
 ## 4. 当前边界
 
-- 批跑 `--artifact-profile full` 已升级为流式分块落盘（`createStreamingBundleWriter`，changes/0085），不在内存中驻留全程大数组；仍不能与 `--checkpoint-ticks` 同时开启（恢复段缺少前半程 events/snapshots）。
+- 批跑 `--artifact-profile full` 已升级为流式分块落盘（`createStreamingBundleWriter`，changes/0085），不在内存中驻留全程大数组；流式路径可与 `--checkpoint-ticks` 同时开启，续跑时按 `full-export.json` 与磁盘分块续写，保留断点前的 decisions/events/snapshots（changes/0096）。内存模式 `captureArtifacts` 仍不接受 checkpoint。
 - `--resume` 搭配 `--upload-bundles` 时会自动检测并确定性补导出缺失 `bundle.json` 的已完成 run（核对重算 `finalStateHash` 与 ledger 一致），已存在的 bundle 直接跳过。
-- 远端 Cloudflare preview 因平台侧 1101 尚未完成公网冒烟；本地上传、workerd 冒烟与独立验证器全链路已通过。
+- Cloudflare preview 已于 2026-11-20 完成公网部署、health/首页/创建读取取消冒烟与匿名上传全链路（changes/0094）；独立回放验证（`verified`）需要 `RUNNER_TOKEN`，本次未执行。
 - 上传与独立回放验证通过只代表工程与确定性回放完整（`verificationStatus=verified`），
   不构成校准或结构证据。

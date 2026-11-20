@@ -160,6 +160,7 @@ export interface BatchRunOptions {
   readonly createArtifactSink?: (
     task: BatchTask,
     index: number,
+    context: { resume: boolean },
   ) => {
     readonly sink: ArtifactStreamSink;
     finalize(outcome: RunOutcome): void;
@@ -505,7 +506,7 @@ export async function runBatch(
       if (options.shouldBackfillResumedTask?.(task, reuse) === true) {
         const startedAt = performance.now();
         const runImpl = options.runSingleImpl ?? runSingle;
-        const sinkHandle = options.createArtifactSink?.(task, index);
+        const sinkHandle = options.createArtifactSink?.(task, index, { resume: false });
         try {
           const outcome = runImpl(task.config, task.seed, {
             policy: manifest.policy,
@@ -549,19 +550,25 @@ export async function runBatch(
     }
 
     let record: BatchRunRecord;
-    const sinkHandle = options.createArtifactSink?.(task, index);
+    const runCheckpoint: RunCheckpointOptions | undefined =
+      runCheckpoints === undefined
+        ? undefined
+        : {
+            host: runCheckpoints.host,
+            path: `${runCheckpoints.dir}/run-${index}.progress.json`,
+            everyTicks: runCheckpoints.everyTicks,
+            cellKey: task.cellKey,
+          };
+    const resumeFromCheckpoint =
+      runCheckpoint !== undefined && runCheckpoints !== undefined
+        ? runCheckpoints.host.exists(runCheckpoint.path)
+        : false;
+    const sinkHandle = options.createArtifactSink?.(task, index, {
+      resume: resumeFromCheckpoint,
+    });
     try {
       const startedAt = performance.now();
       const runImpl = options.runSingleImpl ?? runSingle;
-      const runCheckpoint: RunCheckpointOptions | undefined =
-        runCheckpoints === undefined
-          ? undefined
-          : {
-              host: runCheckpoints.host,
-              path: `${runCheckpoints.dir}/run-${index}.progress.json`,
-              everyTicks: runCheckpoints.everyTicks,
-              cellKey: task.cellKey,
-            };
       const runOptions: RunOptions = {
         policy: manifest.policy,
         ...(options.maxTicksPerRun !== undefined ? { maxTicks: options.maxTicksPerRun } : {}),

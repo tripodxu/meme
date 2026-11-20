@@ -44,7 +44,7 @@
 
 - 上传创建 run 的网络超时标记 `create_ambiguous`，需人工核对服务器列表；不会自动
   重试以避免复制实验。
-- 批跑 `full` 导出已采用逐 tick 流式分块落盘（`createStreamingBundleWriter`），且 `--resume --upload-bundles` 支持缺失 bundle 自动确定性补导出（changes/0085）；但 `full` 捕获仍不能与 run 内 `--checkpoint-ticks` 同时开启。
+- 批跑 `full` 导出已采用逐 tick 流式分块落盘（`createStreamingBundleWriter`），且 `--resume --upload-bundles` 支持缺失 bundle 自动确定性补导出（changes/0085）。流式 `full` 导出现可与 run 内 `--checkpoint-ticks` 同用：续跑时按 `full-export.json` 与磁盘分块续写，保留断点前的 decisions/events/snapshots（changes/0096）；内存模式 `captureArtifacts` 仍不接受 checkpoint。
 - `metrics-only` 不可回放；只有 `full` 才具备 decisions/events/snapshot 全量 artifact。
 - 上传 ledger 含 writeToken，调用方必须保证文件权限（Node 宿主默认 0600）。
 

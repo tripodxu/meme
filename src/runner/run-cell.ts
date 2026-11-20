@@ -192,13 +192,10 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
       'initialState 与 runCheckpoint 不得同时给出（起点歧义）',
     );
   }
-  if (
-    (options.captureArtifacts === true || options.artifactSink !== undefined) &&
-    runCheckpoint !== undefined
-  ) {
+  if (options.captureArtifacts === true && runCheckpoint !== undefined) {
     throw new StratifyError(
       errorCodes.CONFIG_INVALID,
-      'full artifact 捕获与 runCheckpoint 不能同时启用（恢复段缺少 events/snapshots）',
+      '内存 full 捕获与 runCheckpoint 不能同时启用；需要断点续跑时请改用流式 artifactSink',
     );
   }
   let state: SimState;

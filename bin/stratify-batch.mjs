@@ -247,7 +247,7 @@ try {
             !uploadBundleExists(uploadBundlesDir, task.cellKey, task.seed),
           ...(args.artifactProfile === 'full'
             ? {
-                createArtifactSink: (task) =>
+                createArtifactSink: (task, _index, context) =>
                   createStreamingBundleWriter({
                     outDir: uploadBundlesDir,
                     cellKey: task.cellKey,
@@ -255,6 +255,7 @@ try {
                     config: task.config,
                     runtimeVersion: process.version,
                     codeSha,
+                    resume: context?.resume === true,
                   }),
               }
             : {

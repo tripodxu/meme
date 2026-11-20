@@ -1,10 +1,22 @@
 import { createHash } from 'node:crypto';
-import { appendFileSync, existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 
 import type { RunConfig } from '../core/config/types.js';
+import { computeConfigHash } from '../core/config/hash.js';
 import type { SimState } from '../core/model/state.js';
 import type { Seed } from '../core/control/ids.js';
+import { StratifyError, errorCodes } from '../core/control/errors.js';
 import {
   DECISION_SCHEMA_VERSION,
   ENGINE_VERSION,
@@ -334,6 +346,53 @@ export interface StreamingBundleWriter {
   abort(): void;
 }
 
+const STREAM_CHUNK_PATTERN = /^(decisions|events|snapshot)-(\d+)\.ndjson(\.stream\.tmp)?$/;
+
+function tickOfLine(line: string): number | null {
+  try {
+    const value = JSON.parse(line) as { tick?: unknown };
+    return typeof value.tick === 'number' ? value.tick : null;
+  } catch {
+    return null;
+  }
+}
+
+function stateHashOfLine(line: string): string | null {
+  try {
+    const value = JSON.parse(line) as { stateHash?: unknown };
+    return typeof value.stateHash === 'string' ? value.stateHash : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 重启后检查既有分块：kill 可能截断最后一行，按最后一个换行修复；
+ * 首尾 tick 从内容解析，避免额外维护分块清单。
+ */
+function inspectChunk(filePath: string): {
+  bytes: number;
+  startTick: number | null;
+  endTick: number | null;
+  lastStateHash: string | null;
+} {
+  let buffer = readFileSync(filePath);
+  if (buffer.length > 0 && buffer[buffer.length - 1] !== 0x0a) {
+    const lastNewline = buffer.lastIndexOf(0x0a);
+    buffer = buffer.subarray(0, lastNewline + 1);
+    writeFileSync(filePath, buffer);
+  }
+  const lines = buffer
+    .toString('utf8')
+    .split('\n')
+    .filter((line) => line.length > 0);
+  const first = lines[0] === undefined ? null : tickOfLine(lines[0]);
+  const lastLine = lines[lines.length - 1];
+  const last = lastLine === undefined ? null : tickOfLine(lastLine);
+  const lastStateHash = lastLine === undefined ? null : stateHashOfLine(lastLine);
+  return { bytes: buffer.length, startTick: first, endTick: last, lastStateHash };
+}
+
 class RollingNdjsonStream {
   private index = 0;
   private currentBytes = 0;
@@ -348,16 +407,89 @@ class RollingNdjsonStream {
     readonly startTick: number | null;
     readonly endTick: number | null;
   }[] = [];
+  readonly lastStateHash: string | null;
 
   constructor(
     private readonly dir: string,
     private readonly kind: 'decisions' | 'events' | 'snapshot',
-  ) {}
+    private readonly chunkBytes: number,
+    resume: boolean,
+  ) {
+    this.lastStateHash = this.initialize(resume);
+  }
+
+  /** 返回最后一个 snapshot 的 stateHash（非 snapshot 流恒为 null）。 */
+  private initialize(resume: boolean): string | null {
+    if (!resume) {
+      for (const entry of readdirSync(this.dir)) {
+        const match = STREAM_CHUNK_PATTERN.exec(entry);
+        if (match !== null && match[1] === this.kind) {
+          rmSync(join(this.dir, entry), { force: true });
+        }
+      }
+      return null;
+    }
+    const entries: { index: number; tmp: boolean; name: string }[] = [];
+    for (const entry of readdirSync(this.dir)) {
+      const match = STREAM_CHUNK_PATTERN.exec(entry);
+      if (match === null || match[1] !== this.kind) continue;
+      entries.push({ index: Number(match[2]), tmp: match[3] !== undefined, name: entry });
+    }
+    if (entries.length === 0) {
+      // 初始 snapshot 在 tick 循环之前写出；缺失意味着无法重建可回放起点。
+      if (this.kind === 'snapshot') {
+        throw new StratifyError(
+          errorCodes.INVARIANT_VIOLATED,
+          '无法恢复 full artifact：缺少初始 snapshot 分块',
+        );
+      }
+      return null;
+    }
+    entries.sort((a, b) => a.index - b.index);
+    for (const [position, entry] of entries.entries()) {
+      if (entry.index !== position) {
+        throw new StratifyError(
+          errorCodes.INVARIANT_VIOLATED,
+          `${this.kind} 分块序号不连续：期望 ${position}，收到 ${entry.index}`,
+        );
+      }
+    }
+    let lastStateHash: string | null = null;
+    const last = entries[entries.length - 1];
+    for (const entry of entries) {
+      const filePath = join(this.dir, entry.name);
+      const inspected = inspectChunk(filePath);
+      if (this.kind === 'snapshot' && inspected.lastStateHash !== null) {
+        lastStateHash = inspected.lastStateHash;
+      }
+      const finalPath = join(this.dir, `${this.kind}-${entry.index}.ndjson`);
+      const isLast = entry === last;
+      if (isLast && entry.tmp && inspected.bytes < this.chunkBytes) {
+        // 续写被 kill 时尚未封口的当前分块。
+        this.currentTmpPath = filePath;
+        this.currentBytes = inspected.bytes;
+        this.startTick = inspected.startTick;
+        this.endTick = inspected.endTick;
+      } else {
+        if (entry.tmp) renameSync(filePath, finalPath);
+        this.completedChunks.push({
+          kind: this.kind,
+          chunkId: `${this.kind}-${entry.index}`,
+          path: `${this.kind}-${entry.index}.ndjson`,
+          tmpPath: finalPath,
+          startTick: inspected.startTick,
+          endTick: inspected.endTick,
+        });
+      }
+      this.index = entry.index + 1;
+    }
+    return lastStateHash;
+  }
 
   appendLine(line: string, tick: number | null): void {
     const lineWithNl = `${line}\n`;
     const byteLen = Buffer.byteLength(lineWithNl, 'utf8');
-    if (this.currentTmpPath !== null && this.currentBytes + byteLen > UPLOAD_CHUNK_BYTES) {
+    if (this.currentTmpPath !== null && this.currentBytes + byteLen > this.chunkBytes) {
       this.sealCurrentChunk();
     }
     if (this.currentTmpPath === null) {
@@ -403,7 +535,10 @@ class RollingNdjsonStream {
   }[] {
     this.sealCurrentChunk();
     return this.completedChunks.map((c) => {
-      renameSync(c.tmpPath, join(this.dir, c.path));
+      const finalPath = join(this.dir, c.path);
+      if (c.tmpPath !== finalPath) {
+        renameSync(c.tmpPath, finalPath);
+      }
       return {
         kind: c.kind,
         chunkId: c.chunkId,
@@ -415,12 +550,10 @@ class RollingNdjsonStream {
   }
 
   cleanupTmp(): void {
-    if (this.currentTmpPath !== null) {
+    // 保留已写分块以便断点续跑；只清掉空的当前临时文件。
+    if (this.currentTmpPath !== null && statSync(this.currentTmpPath).size === 0) {
       rmSync(this.currentTmpPath, { force: true });
       this.currentTmpPath = null;
-    }
-    for (const c of this.completedChunks) {
-      rmSync(c.tmpPath, { force: true });
     }
   }
 }
@@ -430,18 +563,62 @@ class RollingNdjsonStream {
  * 逐 tick 将 decisions/events/snapshots 直接刷入磁盘 4 MiB 分块临时文件，
  * 不在 V8 堆内存中累积全程大数组，收尾时原子 rename 生成 `run-upload-bundle-file-v1`。
  */
+export interface StreamingBundleWriterOptions extends Omit<
+  WriteUploadBundleOptions,
+  'outcome' | 'artifactProfile'
+> {
+  /** 为 true 时续写已有分块（run 内 checkpoint 恢复）；为 false 时清理旧分块重写。 */
+  readonly resume?: boolean;
+  /** 分块大小上限（测试可调小）；缺省 4 MiB。 */
+  readonly chunkBytes?: number;
+}
+
 export function createStreamingBundleWriter(
-  options: Omit<WriteUploadBundleOptions, 'outcome' | 'artifactProfile'>,
+  options: StreamingBundleWriterOptions,
 ): StreamingBundleWriter {
   const { config, seed } = options;
   const runId = options.runId ?? 'local-batch';
   const dir = resolveUploadBundleDir(options.outDir, options.cellKey, seed);
   mkdirSync(dir, { recursive: true });
+  const chunkBytes = options.chunkBytes ?? UPLOAD_CHUNK_BYTES;
+  const resume = options.resume === true;
+  const identityPath = join(dir, 'full-export.json');
+  const identity = {
+    schemaVersion: 'upload-full-export-v1' as const,
+    runId,
+    cellKey: options.cellKey,
+    seed: String(seed),
+    configHash: computeConfigHash(config),
+    chunkBytes,
+  };
+  if (resume) {
+    if (!existsSync(identityPath)) {
+      throw new StratifyError(
+        errorCodes.INVARIANT_VIOLATED,
+        'resume full 导出缺少 full-export.json，无法确认分块归属',
+      );
+    }
+    const previous = JSON.parse(readFileSync(identityPath, 'utf8')) as Partial<typeof identity>;
+    if (
+      previous.schemaVersion !== identity.schemaVersion ||
+      previous.cellKey !== identity.cellKey ||
+      previous.seed !== identity.seed ||
+      previous.configHash !== identity.configHash
+    ) {
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        'full-export.json 与当前任务不一致，拒绝续写',
+      );
+    }
+  } else {
+    rmSync(identityPath, { force: true });
+    writeFileSync(identityPath, `${JSON.stringify(identity)}\n`, 'utf8');
+  }
 
-  const decStream = new RollingNdjsonStream(dir, 'decisions');
-  const evStream = new RollingNdjsonStream(dir, 'events');
-  const snapStream = new RollingNdjsonStream(dir, 'snapshot');
-  let lastSnapshotHash: string | null = null;
+  const decStream = new RollingNdjsonStream(dir, 'decisions', chunkBytes, resume);
+  const evStream = new RollingNdjsonStream(dir, 'events', chunkBytes, resume);
+  const snapStream = new RollingNdjsonStream(dir, 'snapshot', chunkBytes, resume);
+  let lastSnapshotHash: string | null = snapStream.lastStateHash;
 
   const writeSnapshot = (snapshot: { stateHash: string; state: unknown }): void => {
     if (lastSnapshotHash === snapshot.stateHash) return;
@@ -585,9 +762,12 @@ export function createStreamingBundleWriter(
       };
     },
     abort(): void {
+      // 保留已写分块与 full-export.json，供 checkpoint 续跑继续追加；
+      // 只清理本次会话未写内容的空临时文件与可能残留的 bundle.json。
       decStream.cleanupTmp();
       evStream.cleanupTmp();
       snapStream.cleanupTmp();
+      rmSync(join(dir, 'bundle.json'), { force: true });
     },
   };
 }
