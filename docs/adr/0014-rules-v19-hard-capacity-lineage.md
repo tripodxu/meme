@@ -1,6 +1,6 @@
 # 0014 阶段 R2-C：`rules-v19` 岗位容量硬门槛 + 代际出身折损
 
-- 状态：proposed（2026-11-20，待 30-run 探索探针检验；未通过则按纪律停止）
+- 状态：rejected（2026-11-20 R2-C 探索探针未通过簇规模与消融门槛，按纪律停止；见 [changes/0100](../changes/0100-explore-r2c-hcg-result.md)）
 - 决策者：徐鼎
 - 关联：[0009](0009-rules-v16-generational-succession.md)、[0011](0011-rules-v17-class-capacity.md)、[0012](0012-rules-v18-talent-inheritance.md)、[changes/0090](../changes/0090-p6-r4-calibration-g6-closure.md)
 - 影响：`src/core`（`rules-v19` / `engine-v0.16.0` / `stratify-config-v13`）、`ascent.hardGateStrength`、`population.lineageDiscount`、`legal-actions.ts`、`engine.ts`
