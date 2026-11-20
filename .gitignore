@@ -151,3 +151,4 @@ out/p6-11-jev-causal/*
 !out/p6-11-jev-causal/ledger.ndjson
 !out/p6-11-jev-causal/raw/
 !out/p6-11-jev-causal/raw/*.ndjson.gz
+!out/p6-11-jev-causal-verify.json

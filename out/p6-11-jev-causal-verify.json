@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "p6-11-jev-causal-verify-v1",
+  "experimentId": "p6-11-d40835c4",
+  "designHash": "sha256:d40835c4b47f2bb2b8064cb072995f7a2d4f9edc8ea5c0751751215eabe5f953",
+  "expectedRuns": 90,
+  "liveDecisionPolicyVersion": "jev-choice-v1",
+  "ledgerRuns": 90,
+  "mockRuns": 30,
+  "liveRuns": 60,
+  "decisionsChecked": 58992,
+  "problemCount": 0,
+  "problems": [],
+  "ok": true
+}

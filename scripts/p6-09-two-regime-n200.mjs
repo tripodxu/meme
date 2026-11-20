@@ -179,6 +179,31 @@ if (!isMainThread) {
   const preregistrationHash = hashValue(HASH_DOMAINS.preregistration, prereg);
   const experimentId = `p6-09-${preregistrationHash.slice(7, 15)}`;
 
+  // `--reuse-raw`：只对**已归档的 raw 数据**重算分析与描述性指标，不运行任何仿真。
+  // 口径锚定归档结果的 preregistrationHash，避免 rules 升版后把旧数据伪装成新实验。
+  const reuseRaw = process.argv.includes('--reuse-raw');
+  const archivedResultPath = 'out/p6-09-two-regime-result.json';
+  let effectiveHash = preregistrationHash;
+  let effectiveId = experimentId;
+  let reanalysis = null;
+  let archivedResult = null;
+  if (reuseRaw) {
+    if (!existsSync(archivedResultPath)) {
+      throw new Error('--reuse-raw 需要已归档的 out/p6-09-two-regime-result.json');
+    }
+    archivedResult = JSON.parse(readFileSync(archivedResultPath, 'utf8'));
+    effectiveHash = archivedResult.preregistrationHash;
+    effectiveId = archivedResult.experimentId;
+    reanalysis = {
+      reusedRaw: true,
+      archivedExperimentId: archivedResult.experimentId,
+      archivedPreregistrationHash: archivedResult.preregistrationHash,
+      currentPreregistrationHash: preregistrationHash,
+      currentRulesVersion: DEFAULT_RUN_CONFIG.rulesVersion,
+      note: '仅重算分析与描述性指标，不运行任何仿真；统计口径锚定归档预注册哈希。',
+    };
+  }
+
   const tasks = [];
   for (const cell of CELLS) {
     for (const seed of SEEDS)
@@ -207,9 +232,14 @@ if (!isMainThread) {
   let flat;
   if (existsSync(rawCachePath)) {
     const cached = JSON.parse(readFileSync(rawCachePath, 'utf8'));
-    if (cached.preregistrationHash === preregistrationHash && Array.isArray(cached.runs)) {
+    if (cached.preregistrationHash === effectiveHash && Array.isArray(cached.runs)) {
       flat = cached.runs;
     }
+  }
+  if (reuseRaw && flat === undefined) {
+    throw new Error(
+      '--reuse-raw：raw 缓存与归档预注册哈希不匹配或缺失；拒绝启动仿真（实验必须在 VPS 上跑）',
+    );
   }
   const t0 = Date.now();
   if (flat === undefined) {
@@ -258,6 +288,83 @@ if (!isMainThread) {
   const k2 = evaluateK(2, matrix, zBase, baseRuns, followupRaw, std);
   const k3 = evaluateK(3, matrix, zBase, baseRuns, followupRaw, std);
 
+  // ---------------------------------------------------------------------------
+  // 07 §8.2 的「连续统」操作定义：两个体制内部的连续变化以序参量 IQR、
+  // 质心距离、中间态 run 数描述性报告，**不设额外阈值、不参与 passes**。
+  // ---------------------------------------------------------------------------
+  const quantileSorted = (sorted, q) => {
+    if (sorted.length === 0) return 0;
+    const pos = (sorted.length - 1) * q;
+    const base = Math.floor(pos);
+    const rest = pos - base;
+    return sorted[base] + rest * ((sorted[base + 1] ?? sorted[base]) - sorted[base]);
+  };
+  const round4 = (value) => Number(value.toFixed(4));
+  const FEATURE_NAMES = ['P0', 'P1', 'P2', 'P3', 'P4', 'G', 'top10', 'Mup', 'Mdown', 'S', 'O'];
+
+  const k2Labels = wardCluster(zBase, 2);
+  const centroidsZ = Array.from({ length: 2 }, (_, cluster) => {
+    const points = zBase.filter((_, idx) => k2Labels[idx] === cluster);
+    return Array.from(
+      { length: points[0].length },
+      (_, j) => points.reduce((sum, point) => sum + point[j], 0) / points.length,
+    );
+  });
+  const centroidDistanceZ = euclidean(centroidsZ[0], centroidsZ[1]);
+  const centroidDistanceRaw = euclidean(k2.centroidsRaw[0], k2.centroidsRaw[1]);
+
+  const perCluster = [0, 1].map((cluster) => {
+    const members = baseRuns.filter((_, idx) => k2Labels[idx] === cluster);
+    const featureIqr = FEATURE_NAMES.map((feature, j) => {
+      const sorted = members.map((run) => run.feat[j]).sort((a, b) => a - b);
+      const q1 = quantileSorted(sorted, 0.25);
+      const q3 = quantileSorted(sorted, 0.75);
+      return {
+        feature,
+        q1: round4(q1),
+        q3: round4(q3),
+        iqr: round4(q3 - q1),
+        min: round4(sorted[0] ?? 0),
+        max: round4(sorted[sorted.length - 1] ?? 0),
+      };
+    });
+    return {
+      cluster,
+      size: members.length,
+      cells: [...new Set(members.map((run) => run.cellKey))].sort(),
+      seeds: members.map((run) => run.seed).sort(),
+      featureIqr,
+    };
+  });
+
+  const margins = baseRuns.map((run, idx) => {
+    const d0 = euclidean(zBase[idx], centroidsZ[0]);
+    const d1 = euclidean(zBase[idx], centroidsZ[1]);
+    return { seed: run.seed, cellKey: run.cellKey, cluster: k2Labels[idx], margin: Math.abs(d0 - d1) };
+  });
+  const sortedMargins = [...margins].sort((a, b) => a.margin - b.margin);
+  // 边界带只按**报告分位**定义（裕度最低 10%），不是通过/失败的阈值。
+  const bandSize = Math.ceil(0.1 * sortedMargins.length);
+  const intermediate = sortedMargins.slice(0, bandSize);
+  const continuity = {
+    note: '07 §8.2 描述性报告：不设阈值、不参与 passes；仅用于描述两体制内部/之间的连续程度。',
+    featureNames: FEATURE_NAMES,
+    perCluster,
+    centroidDistanceZ: round4(centroidDistanceZ),
+    centroidDistanceRaw: round4(centroidDistanceRaw),
+    assignmentMargin: {
+      min: round4(sortedMargins[0]?.margin ?? 0),
+      median: round4(quantileSorted(sortedMargins.map((m) => m.margin), 0.5)),
+      max: round4(sortedMargins[sortedMargins.length - 1]?.margin ?? 0),
+    },
+    intermediateBand: {
+      definition: '分配裕度 |d0-d1| 最低 10% 的 base run（报告分位，非阈值）',
+      count: intermediate.length,
+      cells: [...new Set(intermediate.map((m) => m.cellKey))].sort(),
+      seeds: intermediate.map((m) => m.seed).sort(),
+    },
+  };
+
   const tvP =
     0.5 *
     [0, 1, 2, 3, 4].reduce(
@@ -282,9 +389,17 @@ if (!isMainThread) {
 
   const passes =
     k2Stable && !hasDiscreteThirdClusterAdr0010 && excluded === 0 && extinctCount === 0;
+  const verdictChanged =
+    archivedResult !== null &&
+    (archivedResult.passes !== passes ||
+      archivedResult.checks?.k2Stable !== k2Stable ||
+      archivedResult.checks?.hasDiscreteThirdClusterLegacy !== hasDiscreteThirdClusterLegacy ||
+      archivedResult.checks?.hasDiscreteThirdClusterAdr0010 !== hasDiscreteThirdClusterAdr0010);
+
   const result = {
-    experimentId,
-    preregistrationHash,
+    experimentId: effectiveId,
+    preregistrationHash: effectiveHash,
+    ...(reanalysis === null ? {} : { reanalysis: { ...reanalysis, verdictChanged } }),
     wallSeconds: Number(((Date.now() - t0) / 1000).toFixed(2)),
     runs: { base: baseRuns.length, followup: followupRaw.length, excluded, extinctCount },
     k2,
@@ -294,6 +409,7 @@ if (!isMainThread) {
       deltaS: Number(deltaS.toFixed(4)),
       deltaO: Number(deltaO.toFixed(4)),
     },
+    continuity,
     checks: {
       k2Stable,
       hasDiscreteThirdClusterLegacy,

@@ -80,6 +80,15 @@ export function decideMockWeighted(input: MockDecisionInput): DecisionRecord {
     );
   }
   const weights = mockWeights(agent, input.legal);
+  // 先校验权重，再抽样：空合法行动集或全部权重为 0 时给出明确原因，
+  // 而不是让加权抽样返回 -1 后再报「未产生合法行动」。
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  if (!(totalWeight > 0)) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      'mock 权重总和必须为正（accumulate 恒有权重，出现 0 说明合法行动集被破坏）',
+    );
+  }
   const r = rngUnit(
     input.seed,
     input.state.society.tick,
@@ -93,13 +102,6 @@ export function decideMockWeighted(input: MockDecisionInput): DecisionRecord {
   const selected = input.legal.actions[sampledIndex];
   if (selected === undefined) {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'mock 加权抽样未产生合法行动');
-  }
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  if (!(totalWeight > 0)) {
-    throw new StratifyError(
-      errorCodes.INVARIANT_VIOLATED,
-      'mock 权重总和必须为正（accumulate 恒有权重，出现 0 说明合法行动集被破坏）',
-    );
   }
   const probabilities: Record<string, number> = {};
   input.legal.actions.forEach((action, actionIndex) => {
@@ -166,6 +168,13 @@ export function decideMockWeightedV2(input: MockDecisionInput): DecisionRecord {
     );
     weights[index] = (weights[index] ?? 0) * multiplier;
   });
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  if (!(totalWeight > 0)) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      'mock 权重总和必须为正（accumulate 恒有权重，出现 0 说明合法行动集被破坏）',
+    );
+  }
   const r = rngUnit(
     input.seed,
     input.state.society.tick,
@@ -177,13 +186,6 @@ export function decideMockWeightedV2(input: MockDecisionInput): DecisionRecord {
   const selected = input.legal.actions[sampledIndex];
   if (selected === undefined) {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'mock-v2 加权抽样未产生合法行动');
-  }
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  if (!(totalWeight > 0)) {
-    throw new StratifyError(
-      errorCodes.INVARIANT_VIOLATED,
-      'mock 权重总和必须为正（accumulate 恒有权重，出现 0 说明合法行动集被破坏）',
-    );
   }
   const probabilities: Record<string, number> = {};
   input.legal.actions.forEach((action, actionIndex) => {

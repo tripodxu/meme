@@ -8,7 +8,7 @@
  *   --analyze  按 ADR 0013 输出 ΔO（主指标）/ ΔS / ΔMup / ΔG 的 bootstrap 95% CI、置换检验与 BH 校正
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { dirname, join } from 'node:path';
 
 import { createDemoConfig } from '../dist/core/config/defaults.js';
@@ -40,6 +40,11 @@ import {
 
 const SEEDS = Array.from({ length: 30 }, (_, i) => `p6-jev-seed-${String(i + 1).padStart(3, '0')}`);
 const PROMPT_STYLES = ['neutral', 'survival_hint'];
+/**
+ * 逐决策记录里的 policyVersion 是**决策策略实现版本**（`JevLivePolicy.policyVersion`），
+ * 与台账里的实验臂标签 `jev_live` 不是同一字段。核验必须按前者比对。
+ */
+const LIVE_DECISION_POLICY_VERSION = 'jev-choice-v1';
 const REQUESTED_MODEL = process.env.JEV_MODEL ?? 'jev-1.13.0';
 const ENDPOINT = process.env.JEV_ENDPOINT ?? 'https://jev.logicc.top/v1/systemone';
 const PREREG_SCHEMA = 'p6-11-jev-causal-prereg-v1';
@@ -72,6 +77,7 @@ function parseArgs(argv) {
     if (flag === '--freeze') options.mode = 'freeze';
     else if (flag === '--run') options.mode = 'run';
     else if (flag === '--analyze') options.mode = 'analyze';
+    else if (flag === '--verify') options.mode = 'verify';
     else if (flag === '--prereg') options.prereg = next();
     else if (flag === '--dir') options.dir = next();
     else if (flag === '--out') options.analysisOut = next();
@@ -85,7 +91,8 @@ function parseArgs(argv) {
     else if (flag === '--force') options.force = true;
     else throw new Error(`未知参数：${flag}`);
   }
-  if (options.mode === null) throw new Error('必须指定 --freeze、--run 或 --analyze');
+  if (options.mode === null)
+    throw new Error('必须指定 --freeze、--run、--analyze 或 --verify');
   if (!Number.isFinite(options.minIntervalMs) || options.minIntervalMs < 0) {
     throw new Error('--min-interval-ms 必须为非负有限数字');
   }
@@ -662,10 +669,133 @@ function analyze(options) {
   console.log(JSON.stringify(out, null, 2));
 }
 
+/**
+ * 证据链核验（`--verify`）：把台账、原始逐决策记录与冻结设计三方对齐。
+ *
+ * 只读、离线、不调用上游。检查：run 覆盖与分组、状态、due 计数、回退计数、
+ * 缺失 usage、请求模型与提示词风格、服务端返回模型、以及每个 selectedAction
+ * 都在其 legalActions 内。任一不一致即 `ok=false` 并以非零退出码结束。
+ */
+function verify(options) {
+  const artifact = loadPrereg(options);
+  const { design } = artifact;
+  const ledger = readLedger(join(options.dir, 'ledger.ndjson'));
+  const problems = [];
+  const push = (runKey, check, detail) => problems.push({ runKey, check, detail });
+
+  const expected = design.seeds.length * 3;
+  if (ledger.size !== expected) push('(ledger)', 'run-count', `${ledger.size} != ${expected}`);
+
+  let mockRuns = 0;
+  let liveRuns = 0;
+  let decisionsChecked = 0;
+  for (const seed of design.seeds) {
+    const mockKey = runKeyOf('mock-weighted-v1', null, seed);
+    const mock = ledger.get(mockKey);
+    if (mock === undefined) {
+      push(mockKey, 'missing-run', 'mock');
+    } else {
+      mockRuns += 1;
+      if (mock.status !== 'ok') push(mockKey, 'status', mock.status);
+      if (mock.fallbackRate !== 0) push(mockKey, 'fallback', mock.fallbackRate);
+      if ((mock.responseModels ?? []).length !== 0) push(mockKey, 'model', mock.responseModels);
+    }
+
+    for (const promptStyle of PROMPT_STYLES) {
+      const runKey = runKeyOf('jev_live', promptStyle, seed);
+      const record = ledger.get(runKey);
+      if (record === undefined) {
+        push(runKey, 'missing-run', 'live');
+        continue;
+      }
+      liveRuns += 1;
+      if (record.status !== 'ok') push(runKey, 'status', record.status);
+      const safeKey = runKey.replace(/[^A-Za-z0-9-]/g, '_');
+      const rawPath = join(options.dir, 'raw', `${safeKey}.ndjson.gz`);
+      if (!existsSync(rawPath)) {
+        push(runKey, 'missing-raw', rawPath);
+        continue;
+      }
+      const text = gunzipSync(readFileSync(rawPath)).toString('utf8');
+      const decisions = text
+        .split('\n')
+        .filter((line) => line.trim().length > 0)
+        .map((line) => JSON.parse(line));
+      decisionsChecked += decisions.length;
+      if (decisions.length !== record.decisions.due) {
+        push(runKey, 'due-count', `${decisions.length} != ${record.decisions.due}`);
+      }
+      let fallbacks = 0;
+      let missingUsage = 0;
+      const models = new Set();
+      for (const decision of decisions) {
+        if (decision.policyVersion !== LIVE_DECISION_POLICY_VERSION) {
+          push(runKey, 'policy', decision.policyVersion);
+        }
+        if (decision.promptStyle !== promptStyle) {
+          push(runKey, 'prompt-style', decision.promptStyle);
+        }
+        if (
+          decision.requestedModel !== design.requestedModel &&
+          decision.source !== 'fallback'
+        ) {
+          push(runKey, 'requested-model', decision.requestedModel);
+        }
+        if (
+          !Array.isArray(decision.legalActions) ||
+          !decision.legalActions.includes(decision.selectedAction)
+        ) {
+          push(runKey, 'illegal-selection', decision.selectedAction);
+        }
+        if (decision.fallbackReason !== null) fallbacks += 1;
+        if (typeof decision.responseModel === 'string' && decision.responseModel.length > 0) {
+          models.add(decision.responseModel);
+        }
+        if (decision.source === 'jev_live' && decision.usage?.inputTokens === undefined) {
+          missingUsage += 1;
+        }
+      }
+      if (fallbacks !== record.decisions.fallbacks) {
+        push(runKey, 'fallback-count', `${fallbacks} != ${record.decisions.fallbacks}`);
+      }
+      if (missingUsage !== record.missingUsage) {
+        push(runKey, 'missing-usage', `${missingUsage} != ${record.missingUsage}`);
+      }
+      const ledgerModels = [...(record.responseModels ?? [])].sort().join(',');
+      const rawModels = [...models].sort().join(',');
+      if (ledgerModels !== rawModels) {
+        push(runKey, 'model-mismatch', `${rawModels} != ${ledgerModels}`);
+      }
+    }
+  }
+
+  const out = {
+    schemaVersion: 'p6-11-jev-causal-verify-v1',
+    experimentId: artifact.experimentId,
+    designHash: artifact.designHash,
+    expectedRuns: expected,
+    liveDecisionPolicyVersion: LIVE_DECISION_POLICY_VERSION,
+    ledgerRuns: ledger.size,
+    mockRuns,
+    liveRuns,
+    decisionsChecked,
+    problemCount: problems.length,
+    problems,
+    ok: problems.length === 0,
+  };
+  const path = join(dirname(options.analysisOut), 'p6-11-jev-causal-verify.json');
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+  console.log(JSON.stringify(out, null, 2));
+  if (!out.ok) process.exitCode = 1;
+  return out;
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.mode === 'freeze') freeze(opts);
   else if (opts.mode === 'run') await executeRun(opts);
+  else if (opts.mode === 'verify') verify(opts);
   else analyze(opts);
 }
 

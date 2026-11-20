@@ -339,3 +339,29 @@ describe('mock-weighted-v2（D2 行为异质性，ADR 0007）', () => {
     expect(sawSameClass).toBe(true);
   });
 });
+
+describe('mock 加权抽样的权重不变量', () => {
+  const emptyLegal = {
+    actions: [] as string[],
+    ascendCost: null,
+    descendCost: null,
+    targets: [] as never[],
+  };
+
+  it('合法行动集为空时抛 invariant，而不是返回 NaN 概率', () => {
+    const state = makeState();
+    const agent = state.society.agents[0];
+    if (agent === undefined) throw new Error('roster 过小');
+    const base = {
+      runId: 'local-test',
+      seed: SEED,
+      state,
+      agentId: agent.id,
+      stateHash: 'sha256:aa',
+      actionSetHash: 'sha256:bb',
+      legal: emptyLegal,
+    };
+    expect(() => decideMockWeighted(base)).toThrowError(/权重总和必须为正/);
+    expect(() => decideMockWeightedV2(base)).toThrowError(/权重总和必须为正/);
+  });
+});

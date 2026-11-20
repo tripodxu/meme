@@ -91,3 +91,10 @@
 - 汇总台账：`out/p6-11-jev-causal/ledger.ndjson`（90 组有效数据）
 - 统计分析结果：`out/p6-11-jev-causal-analysis.json`
 - 原始决策轨迹压缩包：`out/p6-11-jev-causal/raw/*.ndjson.gz`（60 组真实 live 决策明细）
+- 证据链核验：`node scripts/p6-11-jev-causal.mjs --verify` → `out/p6-11-jev-causal-verify.json`
+
+核验结果（2026-11-20 执行）：`ok = true`，覆盖 90 run / **58,992 条逐决策记录**，一致项包括
+`due` 计数、回退计数、缺失 usage、`promptStyle`、`requestedModel`、服务端 `responseModel`、
+以及每个 `selectedAction` 是否落在其 `legalActions` 内。核验同时确认了字段语义：
+台账的实验臂标签是 `jev_live`，而逐决策记录里的 `policyVersion` 是
+`JevLivePolicy` 的实现版本 `jev-choice-v1`——两者不是同一字段，不能混用。

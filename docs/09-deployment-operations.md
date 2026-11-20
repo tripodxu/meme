@@ -125,6 +125,8 @@ P7 已登记上述脚本并在 Cloudflare Preview（`https://stratify.logicc.top
 
 ## 6. VPS Runner 标准部署
 
+> **实验执行位置（2026-11-20 约定）**：全部实验（批量仿真、live 对照、聚类/微扰/消融）在**上海 VPS** 上执行。本地只允许编译、单元测试与对已归档产物的离线重算（`--reuse-raw` / `--analyze`）；本地不得启动批量仿真。
+
 > 本节是**目标形态**（systemd、路径、权限）。当前实际可用于跑实验的机器、连接方式、
 > 已实测的规格与「如何只推 dist 跑冒烟」见
 > [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md) §4；两者冲突时，本节的部署

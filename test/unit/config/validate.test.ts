@@ -95,6 +95,32 @@ describe('validateRunConfig', () => {
     expect(codesOf(config)).toContain(errorCodes.CONFIG_INVALID);
   });
 
+  it('migrates a v7 config with frozen regime defaults (rules-v13, 不读 DEFAULT_RUN_CONFIG)', () => {
+    const v7 = cloneConfig();
+    v7['schemaVersion'] = 'stratify-config-v7';
+    const openness = v7['openness'] as Record<string, unknown>;
+    for (const key of [
+      'regimeMode',
+      'regimeBias',
+      'regimeEnterOpenMobility',
+      'regimeExitOpenMobility',
+      'regimeEnterOpenSegregation',
+      'regimeExitOpenSegregation',
+    ]) {
+      delete openness[key];
+    }
+    const result = validateRunConfig(v7);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.openness.regimeMode).toBe('continuous');
+      expect(result.config.openness.regimeBias).toBe(0);
+      expect(result.config.openness.regimeEnterOpenMobility).toBe(0.25);
+      expect(result.config.openness.regimeExitOpenMobility).toBe(0.15);
+      expect(result.config.openness.regimeEnterOpenSegregation).toBe(0.2);
+      expect(result.config.openness.regimeExitOpenSegregation).toBe(0.3);
+    }
+  });
+
   it('migrates a v8 config by filling behavior defaults=0 (D2, rules-v15)', () => {
     const v8 = cloneConfig();
     v8['schemaVersion'] = 'stratify-config-v8';
@@ -103,7 +129,12 @@ describe('validateRunConfig', () => {
     expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
     if (result.ok) {
       expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
-      expect(result.config.behavior).toEqual(DEFAULT_RUN_CONFIG.behavior);
+      expect(result.config.behavior).toEqual({
+        riskTraitSigma: 0,
+        crossClassTraitSigma: 0,
+        riskCompeteSensitivity: 0,
+        crossClassCompeteSensitivity: 0,
+      });
     }
   });
 

@@ -14,7 +14,7 @@
    - `out/` 入库总量 > 50 MiB；
    - 任一产物 `git clone` 后无法在 30 分钟内按 §3 重建。
 
-   补登记后当前入库 172 个文件、合计约 46.1 MiB（最大 `out/p6-factorial-slim.json` 4.53 MiB），
+   补登记后当前入库 173 个文件、合计约 46.1 MiB（最大 `out/p6-factorial-slim.json` 4.53 MiB），
    **未达阈值（50 MiB）但余量仅约 3.9 MiB**，故不做 LFS/R2 迁移；下一次新增证据前必须先迁移或清理：迁移只增加运维面，且 LFS 会让「clone 即可复核证据」退化为
    需要额外凭证。阈值本身是可执行判据，不需要在未达标时提前决策。
 
@@ -308,7 +308,7 @@ git worktree add /tmp/stratify-v4 192f551^
 | :--- | ---: | :--- | :--- |
 | `out/p6-08-generational-result.json` | 1,662 | `314634ba4fd4afa8099ef5195034050f6f8d46e22d677870c271a7f3ec86225f` | P6-08 判读（未通过） |
 | `out/p6-08-raw.json` | 89,774 | `0f07655cd191d341a7e6c8429dc68a6814e4c1acb17388c890fe99b28f758090` | P6-08 240 run 原始指标 |
-| `out/p6-09-two-regime-result.json` | 2,462 | `f10882ecb520bde31a0d82a10b60b1fa36d6e1917dba55346ef4bb5824a30f71` | P6-09 判读 |
+| `out/p6-09-two-regime-result.json` | 13,746 | `1b7d2cfddc74fec1c60850f2d6854e51ddf0d76240c464c5884aad2f75290ad6` | P6-09 判读 |
 | `out/p6-09-raw.json` | 67,837 | `18befdf0891d7b29e2b8a1cb8217be9b365b0eaded346648bc4b91fcd3f6ff7a` | P6-09 240 run 原始指标 |
 | `out/p6-10-class-capacity-result.json` | 1,528 | `ba8bad155b0a0ef0cd5a355a084a954d25094ac8385f5d7f8e5a548662cc0558` | P6-10 判读（未通过） |
 | `out/p6-10-raw.json` | 67,688 | `817e1a85686884966b0f555e2c8fc35bf734f09f092980d9a2bd1cce2a2371a3` | P6-10 240 run 原始指标 |
@@ -318,6 +318,7 @@ git worktree add /tmp/stratify-v4 192f551^
 | `out/p6-11-jev-causal-analysis.json` | 2,384 | `7c1867f381ddd4256dca5af262b3fd8c49d42c72009b78012a6584ce53463a03` | P6-11 判读（v2，含完整性/模型字段） |
 | `out/p6-11-jev-causal/ledger.ndjson` | 72,808 | `1038291ee660e5c218065d89e70b99d867739efd3dcdb0fe3e13da628794b063` | P6-11 90 run 台账 |
 | `out/p6-11-jev-causal/raw/*.ndjson.gz` | 60 个 / 10.3 MiB | 目录清单 `9744ad4f8f84ca25b066ddc2546fa14545d02dd932b7a525784dd3b3df8c4a78` | 60 组 live 逐决策原始记录 |
+| `out/p6-11-jev-causal-verify.json` | 387 | `9d2845edb1186d1eec6417bb401c6a17333b02a177e499d9076df8ffd8b98707` | P6-11 台账—原始记录核验（90 run / 58,992 决策，0 problem） |
 
 目录清单哈希 = `sha256(按路径排序的 "path	sha256
 " 串接)`。重建命令：
