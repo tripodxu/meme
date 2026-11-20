@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "scale-runs-manifest-v1",
+  "host": "lhsh (Tencent Shanghai, 43.142.160.84)",
+  "startedAt": "2026-11-20T16:57+08:00",
+  "note": "P6-12 与 P6-14 正在上海 VPS 运行；P6-14 已用 JEV_API_KEY 启动（密钥仅进程环境，未落盘）；P6-13 排队，待两者结束后以 4 worker 启动。scriptSha256 为当前 VPS 副本，executedScriptSha256 为进程实际加载的副本，repoScriptSha256 为仓库版本。",
+  "experiments": {
+    "p6-12": {
+      "path": "~/stratify-scale",
+      "script": "scripts/p6-12-scale-n1000.mjs",
+      "scriptSha256": "sha256:0e2c90640f403682a991982a09e9a20e891320b6f6c70e43d18802599c88e944",
+      "prereg": "out/p6-12-prereg.json",
+      "preregSha256": "sha256:e235795c1ec94bd202d7f816846c43863ab747553bbfe36f2707a7ffee60718f",
+      "experimentId": "p6-12-3f68f043",
+      "population": 1000,
+      "runs": 240,
+      "repoScriptSha256": "sha256:5305178ac8894634acaf4966ec85a5eea7cb74be7aabdf939a94dd439e5d2c4f"
+    },
+    "p6-13": {
+      "script": "scripts/p6-13-scale-r4-n1000.mjs",
+      "scriptSha256": "sha256:ad106ef211b0d7ec41b33724adb1696f663f99685ca965dec0c3c218ab5fb009",
+      "prereg": "out/p6-13-prereg.json",
+      "preregSha256": "sha256:c7a4b9fe794fdcc3f690ff6e591d18b634c48a945e58e6dac98d4ef1be2c3ff4",
+      "experimentId": "p6-13-d9547738",
+      "population": 1000,
+      "runs": 420,
+      "repoScriptSha256": "sha256:1f9a9e25b5584fcf4b0ec002977fcbd873b6eaee41c3934dc2964065faf82af3"
+    },
+    "p6-14": {
+      "script": "scripts/p6-11-jev-causal.mjs",
+      "scriptSha256": "sha256:4bfb5b1bd4b77da89594335651c3db2b280966e1a693b50fdd8336613a1e3a94",
+      "prereg": "out/p6-14-prereg.json",
+      "preregSha256": "sha256:2fd351cafd52fadcc756e6c2543b723a63f283eab1bf10a6b8cbce0226f4e774",
+      "experimentId": "p6-14-c6e7eff3",
+      "status": "frozen-not-run: 缺少 JEV_API_KEY",
+      "repoScriptSha256": "sha256:4bfb5b1bd4b77da89594335651c3db2b280966e1a693b50fdd8336613a1e3a94",
+      "executedScriptSha256": "sha256:4ef0bdc0b275ddf3050e56a2cef9faf2aec5ccde08db2810ecf0e8b9cde24c86",
+      "note": "运行副本与当前脚本仅 verify 输出路径不同（已改为按实验前缀命名），run 模式行为一致。"
+    }
+  }
+}
