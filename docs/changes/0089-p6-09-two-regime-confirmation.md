@@ -59,7 +59,7 @@
 
 **解读边界**：这些数字支持「A 与 B–F 分离清晰、B–F 内部变化连续且窄」，但**不证明**
 存在一维连续流形；「连续统」仍只是「无稳定第三簇」这一零结果的描述性补充。
-重算产物带有 `reanalysis.reusedRaw=true`、`verdictChanged=false`。
+重算产物带有 `reanalysis.reusedRaw=true`、`verdictChanged=false`；`wallSeconds` 保留原始实验耗时 `1384.82s`，本次分析耗时记在 `reanalysis.analysisWallSeconds`。
 
 ## 3. 判定与下一步
 

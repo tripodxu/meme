@@ -38,7 +38,14 @@ import {
   liveRunExclusionReasons,
 } from '../dist/runner/p6-live-comparison.js';
 
-const SEEDS = Array.from({ length: 30 }, (_, i) => `p6-jev-seed-${String(i + 1).padStart(3, '0')}`);
+// 新轮次可用环境变量换独立 seed 集与实验前缀；默认值保持 P6-11 归档口径不变。
+const EXPERIMENT_PREFIX = process.env.P6_11_EXPERIMENT ?? 'p6-11';
+const SEED_PREFIX = process.env.P6_11_SEED_PREFIX ?? 'p6-jev-seed';
+const SEED_COUNT = Number(process.env.P6_11_SEED_COUNT ?? '30');
+const SEEDS = Array.from(
+  { length: Number.isInteger(SEED_COUNT) && SEED_COUNT > 0 ? SEED_COUNT : 30 },
+  (_, i) => `${SEED_PREFIX}-${String(i + 1).padStart(3, '0')}`,
+);
 const PROMPT_STYLES = ['neutral', 'survival_hint'];
 /**
  * 逐决策记录里的 policyVersion 是**决策策略实现版本**（`JevLivePolicy.policyVersion`），
@@ -91,8 +98,7 @@ function parseArgs(argv) {
     else if (flag === '--force') options.force = true;
     else throw new Error(`未知参数：${flag}`);
   }
-  if (options.mode === null)
-    throw new Error('必须指定 --freeze、--run、--analyze 或 --verify');
+  if (options.mode === null) throw new Error('必须指定 --freeze、--run、--analyze 或 --verify');
   if (!Number.isFinite(options.minIntervalMs) || options.minIntervalMs < 0) {
     throw new Error('--min-interval-ms 必须为非负有限数字');
   }
@@ -156,7 +162,7 @@ function freeze(options) {
   }
   const artifact = {
     schemaVersion: PREREG_SCHEMA,
-    experimentId: `p6-11-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
+    experimentId: `${EXPERIMENT_PREFIX}-${designHash.slice('sha256:'.length, 'sha256:'.length + 8)}`,
     createdAt: new Date().toISOString(),
     designHash,
     design,
@@ -403,7 +409,7 @@ async function executeRun(options) {
         try {
           const outcome = await runSingleWithPolicy(config, asSeed(task.seed), {
             policy: tracedPolicy,
-            runId: `p6-11-${task.runKey}`.replace(/[^A-Za-z0-9-]/g, '-'),
+            runId: `${EXPERIMENT_PREFIX}-${task.runKey}`.replace(/[^A-Za-z0-9-]/g, '-'),
             requestedModel: design.requestedModel,
             promptStyle: task.promptStyle,
             maxTicks: design.ticks,
@@ -561,10 +567,7 @@ function analyze(options) {
       ),
     ),
   ].sort();
-  const maxFallbackRate = Math.max(
-    0,
-    ...[...included.values()].map((r) => r.fallbackRate ?? 0),
-  );
+  const maxFallbackRate = Math.max(0, ...[...included.values()].map((r) => r.fallbackRate ?? 0));
   const expectedPerGroup = design.seeds.length;
   const completeness = {
     expectedRuns: expectedPerGroup * 3,
@@ -735,10 +738,7 @@ function verify(options) {
         if (decision.promptStyle !== promptStyle) {
           push(runKey, 'prompt-style', decision.promptStyle);
         }
-        if (
-          decision.requestedModel !== design.requestedModel &&
-          decision.source !== 'fallback'
-        ) {
+        if (decision.requestedModel !== design.requestedModel && decision.source !== 'fallback') {
           push(runKey, 'requested-model', decision.requestedModel);
         }
         if (

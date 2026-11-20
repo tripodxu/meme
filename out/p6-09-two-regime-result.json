@@ -8,9 +8,10 @@
     "currentPreregistrationHash": "sha256:e23b50e97fb805a914a4b3a2d40681783cc5e1cd138b434cb646d38380c3b4ff",
     "currentRulesVersion": "rules-v18",
     "note": "仅重算分析与描述性指标，不运行任何仿真；统计口径锚定归档预注册哈希。",
+    "analysisWallSeconds": 0.07,
     "verdictChanged": false
   },
-  "wallSeconds": 0.09,
+  "wallSeconds": 1384.82,
   "runs": {
     "base": 180,
     "followup": 60,

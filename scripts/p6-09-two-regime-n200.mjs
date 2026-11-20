@@ -340,7 +340,12 @@ if (!isMainThread) {
   const margins = baseRuns.map((run, idx) => {
     const d0 = euclidean(zBase[idx], centroidsZ[0]);
     const d1 = euclidean(zBase[idx], centroidsZ[1]);
-    return { seed: run.seed, cellKey: run.cellKey, cluster: k2Labels[idx], margin: Math.abs(d0 - d1) };
+    return {
+      seed: run.seed,
+      cellKey: run.cellKey,
+      cluster: k2Labels[idx],
+      margin: Math.abs(d0 - d1),
+    };
   });
   const sortedMargins = [...margins].sort((a, b) => a.margin - b.margin);
   // 边界带只按**报告分位**定义（裕度最低 10%），不是通过/失败的阈值。
@@ -354,7 +359,12 @@ if (!isMainThread) {
     centroidDistanceRaw: round4(centroidDistanceRaw),
     assignmentMargin: {
       min: round4(sortedMargins[0]?.margin ?? 0),
-      median: round4(quantileSorted(sortedMargins.map((m) => m.margin), 0.5)),
+      median: round4(
+        quantileSorted(
+          sortedMargins.map((m) => m.margin),
+          0.5,
+        ),
+      ),
       max: round4(sortedMargins[sortedMargins.length - 1]?.margin ?? 0),
     },
     intermediateBand: {
@@ -399,8 +409,20 @@ if (!isMainThread) {
   const result = {
     experimentId: effectiveId,
     preregistrationHash: effectiveHash,
-    ...(reanalysis === null ? {} : { reanalysis: { ...reanalysis, verdictChanged } }),
-    wallSeconds: Number(((Date.now() - t0) / 1000).toFixed(2)),
+    ...(reanalysis === null
+      ? {}
+      : {
+          reanalysis: {
+            ...reanalysis,
+            analysisWallSeconds: Number(((Date.now() - t0) / 1000).toFixed(2)),
+            verdictChanged,
+          },
+        }),
+    // 复算模式必须保留**原始实验**的 wallSeconds，不能把分析耗时冒充实验耗时。
+    wallSeconds:
+      archivedResult !== null
+        ? archivedResult.wallSeconds
+        : Number(((Date.now() - t0) / 1000).toFixed(2)),
     runs: { base: baseRuns.length, followup: followupRaw.length, excluded, extinctCount },
     k2,
     k3,
