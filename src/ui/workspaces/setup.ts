@@ -740,10 +740,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
               [
                 h('div', { class: 'preset-btn-head' }, [
                   h('strong', { text: preset.name }),
-                  badge(
-                    preset.calibrated ? '已校准' : '未校准',
-                    preset.calibrated ? 'ok' : 'warn',
-                  ),
+                  badge(preset.calibrated ? '已校准' : '未校准', preset.calibrated ? 'ok' : 'warn'),
                 ]),
                 h('span', { class: 'muted', style: 'font-size:11px', text: preset.description }),
                 h('span', {

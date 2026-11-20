@@ -292,6 +292,8 @@ function checkPairOrder(
 
 function requireDefinition(name: string): ParamDefinition {
   const definition = getParamDefinition(name);
+  // 注册表缺失属于构建期错误（改 params.ts 才会发生），运行时输入无法触发。
+  /* v8 ignore next 3 */
   if (definition === undefined) {
     throw new Error(`PARAM_DEFINITIONS 缺少登记项：${name}`);
   }
@@ -300,6 +302,8 @@ function requireDefinition(name: string): ParamDefinition {
 
 function requireNumberDomain(name: string): NumericDomain {
   const domain = requireDefinition(name).domain;
+  // 同上：域种类由注册表静态决定。
+  /* v8 ignore next 3 */
   if (domain.kind !== 'number') {
     throw new Error(`参数 ${name} 不是数值域`);
   }
@@ -323,6 +327,8 @@ function checkRegisteredEnum(
   name: string,
 ): string | undefined {
   const domain = requireDefinition(name).domain;
+  // 同上：域种类由注册表静态决定。
+  /* v8 ignore next 3 */
   if (domain.kind !== 'enum') {
     throw new Error(`参数 ${name} 不是枚举域`);
   }
@@ -349,6 +355,8 @@ function checkRegisteredNumberArray(
   classCount?: number,
 ): readonly number[] | undefined {
   const domain = requireDefinition(name).domain;
+  // 同上：域种类由注册表静态决定。
+  /* v8 ignore next 3 */
   if (domain.kind !== 'array') {
     throw new Error(`参数 ${name} 不是数组域`);
   }

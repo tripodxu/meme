@@ -10,7 +10,9 @@ import {
   computeAscendCushion,
   computeDescendCost,
   enumerateLegalActions,
+  occupancyPressureFromShares,
   parseActionKey,
+  scarcityTargetShares,
 } from '../../../src/core/legal-actions.js';
 import type { SimState } from '../../../src/core/model/state.js';
 
@@ -241,5 +243,38 @@ describe('classShareSnapshot（tick 级缓存，防 O(N²)）', () => {
     const rightShares = classShareSnapshot(right.society.agents, 5);
     expect(rightShares).toEqual(leftShares);
     expect(rightShares).not.toBe(leftShares);
+  });
+});
+
+describe('机会隐含参照份额的退化输入（rules-v10）', () => {
+  it('env0 全 0 时退回等分目标', () => {
+    const base = createDemoConfig();
+    const zero = {
+      ...base,
+      opportunity: { ...base.opportunity, env0: [0, 0, 0, 0, 0] },
+    } as typeof base;
+    expect(scarcityTargetShares(zero)).toEqual([0.2, 0.2, 0.2, 0.2, 0.2]);
+  });
+
+  it('参照份额为 0 的阶级压力恒为 0', () => {
+    const base = createDemoConfig();
+    const mixed = {
+      ...base,
+      opportunity: { ...base.opportunity, env0: [0, 1, 1, 1, 1] },
+    } as typeof base;
+    const targets = scarcityTargetShares(mixed);
+    expect(targets[0]).toBe(0);
+    expect(occupancyPressureFromShares(mixed, [0.9, 0.1, 0, 0, 0])[0]).toBe(0);
+  });
+});
+
+describe('classShareSnapshot 缓存的 classCount 失配', () => {
+  it('classCount 变化时重新计算，不复用旧缓存', () => {
+    const state = makeState();
+    const five = classShareSnapshot(state.society.agents, 5);
+    const four = classShareSnapshot(state.society.agents, 4);
+    expect(five).toHaveLength(5);
+    expect(four).toHaveLength(4);
+    expect(four.reduce((sum, value) => sum + value, 0)).toBeCloseTo(1, 12);
   });
 });

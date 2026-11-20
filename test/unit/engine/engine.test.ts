@@ -260,6 +260,54 @@ describe('主动行动与失效（03 §5/§6 阶段 B）', () => {
     expect(a.value).toBeGreaterThanOrEqual(before);
   });
 
+  it('竞争目标不存在时抛 invariant；目标已死亡按 target_dead 失效', () => {
+    const config = makeConfig({
+      schedule: { totalTicks: 11, statsStride: 1, snapshotStride: 100 },
+    });
+
+    // 1) 目标 id 合法但不存在：引擎必须响亮报错，不得静默跳过。
+    const missingState = createSimulation(config, SEED);
+    const missingActor = missingState.society.agents[0];
+    if (missingActor === undefined) throw new Error('roster 过小');
+    const missingDecisions = new Map<AgentId, { selectedAction: string }>([
+      [missingActor.id, { selectedAction: 'compete:a-9999' }],
+    ]);
+    for (const agent of missingState.society.agents) {
+      if (agent.alive && !missingDecisions.has(agent.id)) {
+        missingDecisions.set(agent.id, { selectedAction: 'accumulate' });
+      }
+    }
+    expect(() => step(missingState, missingDecisions, { runId: 'local-engine-test' })).toThrowError(
+      /竞争目标缺失/,
+    );
+
+    // 2) 目标在决策后死亡：按 stale_invalid/target_dead 处理。
+    const deadState = createSimulation(config, SEED);
+    const actor = deadState.society.agents[0];
+    const deadTarget = deadState.society.agents[1];
+    if (actor === undefined || deadTarget === undefined) throw new Error('roster 过小');
+    for (const neighborId of [...deadTarget.ties]) {
+      const neighbor = deadState.society.agents.find((agent) => agent.id === neighborId);
+      if (neighbor !== undefined) {
+        neighbor.ties = neighbor.ties.filter((id) => id !== deadTarget.id);
+      }
+    }
+    deadTarget.ties = [];
+    deadTarget.alive = false;
+    const deadDecisions = new Map<AgentId, { selectedAction: string }>([
+      [actor.id, { selectedAction: `compete:${deadTarget.id}` }],
+    ]);
+    for (const agent of deadState.society.agents) {
+      if (agent.alive && !deadDecisions.has(agent.id)) {
+        deadDecisions.set(agent.id, { selectedAction: 'accumulate' });
+      }
+    }
+    const result = step(deadState, deadDecisions, { runId: 'local-engine-test' });
+    expect(result.executions.find((entry) => entry.agentId === actor.id)?.reason).toBe(
+      'target_dead',
+    );
+  });
+
   it('Value=0 竞争转移为 0 且无负数', () => {
     const config = makeConfig({
       schedule: { totalTicks: 11, statsStride: 1, snapshotStride: 100 },

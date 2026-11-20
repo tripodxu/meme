@@ -75,12 +75,7 @@
             "crossClassOpenness": 0.5
           }
         ],
-        "ties": [
-          [
-            "a-0001",
-            "a-0002"
-          ]
-        ]
+        "ties": [["a-0001", "a-0002"]]
       },
       "hash": "sha256:7a822c3657014937f76d3fdba8c5992d401b98b0d3087c2bcb0e5a9977d1acdc"
     },
@@ -98,11 +93,7 @@
     },
     {
       "domain": "stratify-action-set-v1",
-      "value": [
-        "accumulate",
-        "compete:a-0008",
-        "ascend"
-      ],
+      "value": ["accumulate", "compete:a-0008", "ascend"],
       "hash": "sha256:4cc5c902ed97b0d124156d9e8a3ab54a1ffec381d47e3b54cf996099638d4594"
     },
     {
@@ -135,34 +126,16 @@
           "population": {
             "initialPopulation": 3,
             "classCount": 5,
-            "classShares": [
-              0.5,
-              0.2,
-              0.1,
-              0.1,
-              0.1
-            ],
+            "classShares": [0.5, 0.2, 0.1, 0.1, 0.1],
             "initialValue": 0,
             "initialAgeMode": "uniform"
           },
           "opportunity": {
             "dailyBase": 2,
-            "env0": [
-              1,
-              1.5,
-              2.2,
-              3.2,
-              4.5
-            ]
+            "env0": [1, 1.5, 2.2, 3.2, 4.5]
           },
           "lifespan": {
-            "decay": [
-              1.3,
-              1.15,
-              1,
-              0.88,
-              0.75
-            ],
+            "decay": [1.3, 1.15, 1, 0.88, 0.75],
             "initialLife": {
               "mean": 25550,
               "sigma": 1825,
@@ -193,29 +166,14 @@
             "threshold": 0.5,
             "belowNeedLimit": 14,
             "bufferDays": 30,
-            "needMultiplier": [
-              1,
-              1.3,
-              1.8,
-              2.5,
-              3.5
-            ]
+            "needMultiplier": [1, 1.3, 1.8, 2.5, 3.5]
           },
           "descent": {
             "days": 7
           },
           "ascent": {
-            "crossDays": [
-              30,
-              40,
-              50,
-              60
-            ],
-            "returnDiscount": [
-              0,
-              0.2,
-              0.4
-            ]
+            "crossDays": [30, 40, 50, 60],
+            "returnDiscount": [0, 0.2, 0.4]
           },
           "competition": {
             "powerValueExponent": 0.35,
@@ -303,10 +261,7 @@
               "belowNeedStreak": 0,
               "lastAscentTick": null,
               "lastDescentTick": null,
-              "ties": [
-                "a-0001",
-                "a-0002"
-              ],
+              "ties": ["a-0001", "a-0002"],
               "deathTick": null,
               "deathReason": null
             },
@@ -325,9 +280,7 @@
               "belowNeedStreak": 0,
               "lastAscentTick": null,
               "lastDescentTick": null,
-              "ties": [
-                "a-0000"
-              ],
+              "ties": ["a-0000"],
               "deathTick": null,
               "deathReason": null
             },
@@ -346,28 +299,14 @@
               "belowNeedStreak": 0,
               "lastAscentTick": null,
               "lastDescentTick": null,
-              "ties": [
-                "a-0000"
-              ],
+              "ties": ["a-0000"],
               "deathTick": null,
               "deathReason": null
             }
           ],
-          "eByClass": [
-            1,
-            1.5,
-            2.2,
-            3.2,
-            4.5
-          ],
+          "eByClass": [1, 1.5, 2.2, 3.2, 4.5],
           "openness": 0.5,
-          "initialClassShares": [
-            0.6666666666666666,
-            0.3333333333333333,
-            0,
-            0,
-            0
-          ],
+          "initialClassShares": [0.6666666666666666, 0.3333333333333333, 0, 0, 0],
           "gini": 0,
           "segregation": -0.10000000000000003,
           "mUp": 0,
@@ -408,10 +347,7 @@
       "value": {
         "hypothesis": "openness raises mobility",
         "primaryMetric": "gini",
-        "seeds": [
-          "s1",
-          "s2"
-        ],
+        "seeds": ["s1", "s2"],
         "baseConfigHash": "sha256:00"
       },
       "hash": "sha256:cdb5e4b38850c73e9f1a80da2cd9802af40c2dbc5076c95b16c036debe928328"
@@ -468,10 +404,7 @@
         "populationSize": 40,
         "totalTicks": 40,
         "policy": "mock-weighted-v1",
-        "seeds": [
-          "s1",
-          "s2"
-        ],
+        "seeds": ["s1", "s2"],
         "cells": [
           {
             "cellKey": "baseline",

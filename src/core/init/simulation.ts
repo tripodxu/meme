@@ -18,9 +18,7 @@ import { deriveInitialPopulation } from './population.js';
  * `seed` 不进入 `configHash/paramsHash`。初始宏观值在网络完成后计算，
  * 保证 `S/edgeCount` 与初始网络一致（03 §4.3 步骤 6–7 的实现澄清）。
  */
-const OPENNESS_INITIAL_REGIME_THRESHOLD = readNumericConstant(
-  'OPENNESS_INITIAL_REGIME_THRESHOLD',
-);
+const OPENNESS_INITIAL_REGIME_THRESHOLD = readNumericConstant('OPENNESS_INITIAL_REGIME_THRESHOLD');
 
 export function createSimulation(config: RunConfig, seed: Seed): SimState {
   const result = validateRunConfig(config);

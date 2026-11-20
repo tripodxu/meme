@@ -14,9 +14,7 @@ import { DEATH_REASONS, type AgentState, type DeathReason } from './agent.js';
 import { compareAgentId, type FlowWindowEntry, type SocietyState } from './society.js';
 import type { SimState } from './state.js';
 
-const OPENNESS_INITIAL_REGIME_THRESHOLD = readNumericConstant(
-  'OPENNESS_INITIAL_REGIME_THRESHOLD',
-);
+const OPENNESS_INITIAL_REGIME_THRESHOLD = readNumericConstant('OPENNESS_INITIAL_REGIME_THRESHOLD');
 
 export type SerializedAgent = {
   id: string;
@@ -452,8 +450,7 @@ export function decodeSimState(value: unknown): SimState {
   const regimeRaw = societyRecord['institutionalRegime'];
   let institutionalRegime: InstitutionalRegime;
   if (record['schemaVersion'] === STATE_SCHEMA_VERSION_V3 && regimeRaw === undefined) {
-    institutionalRegime =
-      openness >= OPENNESS_INITIAL_REGIME_THRESHOLD ? 'open' : 'closed';
+    institutionalRegime = openness >= OPENNESS_INITIAL_REGIME_THRESHOLD ? 'open' : 'closed';
   } else if (regimeRaw === 'open' || regimeRaw === 'closed') {
     institutionalRegime = regimeRaw;
   } else {
