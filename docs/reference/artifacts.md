@@ -313,7 +313,7 @@ git worktree add /tmp/stratify-v4 192f551^
 | `out/p6-10-class-capacity-result.json` |            1,528 | `ba8bad155b0a0ef0cd5a355a084a954d25094ac8385f5d7f8e5a548662cc0558`          | P6-10 判读（未通过）                                       |
 | `out/p6-10-raw.json`                   |           67,688 | `817e1a85686884966b0f555e2c8fc35bf734f09f092980d9a2bd1cce2a2371a3`          | P6-10 240 run 原始指标                                     |
 | `out/p6-r4-closure-result.json`        |            3,911 | `d747b6ad06b2ea8d1439a3d1d3a76fa1610dfc6a55b2b0dea7964540a380a614`          | R4 判读（2026-11-20 按 07 §11 重算）                       |
-| `out/p6-r4-raw.json`                   |          135,674 | `292987ffee9bd1a1f4372ee8408b0ca36ab79fb7e7f01e0ef8e90e5a7b28d34e`          | R4 420 run 原始指标                                        |
+| `out/p6-r4-raw.json`                   |          135,674 | `292987ffee9bd1a1f4372ee8408b0ca36ab79fb7e7f01e0ef8e90e5a7b28d34e`          | R4 420 条任务记录（60 微扰对 + 360 消融）原始指标          |
 | `out/p6-11-jev-causal-prereg.json`     |            2,221 | `afc77edc9199660112591e78aa672d9bfa1b499d05af7beab6d521c3a9ab788d`          | P6-11 冻结预注册                                           |
 | `out/p6-11-jev-causal-analysis.json`   |            2,384 | `7c1867f381ddd4256dca5af262b3fd8c49d42c72009b78012a6584ce53463a03`          | P6-11 判读（v2，含完整性/模型字段）                        |
 | `out/p6-11-jev-causal/ledger.ndjson`   |           72,808 | `1038291ee660e5c218065d89e70b99d867739efd3dcdb0fe3e13da628794b063`          | P6-11 90 run 台账                                          |

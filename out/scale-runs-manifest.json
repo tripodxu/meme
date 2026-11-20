@@ -22,8 +22,9 @@
       "preregSha256": "sha256:c7a4b9fe794fdcc3f690ff6e591d18b634c48a945e58e6dac98d4ef1be2c3ff4",
       "experimentId": "p6-13-d9547738",
       "population": 1000,
-      "runs": 420,
-      "repoScriptSha256": "sha256:1f9a9e25b5584fcf4b0ec002977fcbd873b6eaee41c3934dc2964065faf82af3"
+      "repoScriptSha256": "sha256:1f9a9e25b5584fcf4b0ec002977fcbd873b6eaee41c3934dc2964065faf82af3",
+      "tasks": 420,
+      "taskBreakdown": "60 个微扰对（每对含 tick 365 检查点与 baseline/treatment 两段续跑）+ 360 个消融 run"
     },
     "p6-14": {
       "script": "scripts/p6-11-jev-causal.mjs",
