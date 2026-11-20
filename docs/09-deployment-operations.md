@@ -63,7 +63,12 @@ local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_r
   2026-11-18 已部署版本 `bd6cadab-53b9-4b8e-a7a6-0df5c9dd3e7e`，并完成公网 `smoke:worker`、
   真实浏览器在线运行、R2 5 分块 `full` 流式上传与独立回放验证（`verified`）、真实同源 `/api/jev`
   小额 live 代理冒烟（5/5 成功、0 回退）、远端带数据 D1 导出隔离 SQLite 恢复演练与 `wrangler rollback`
-  回滚/前滚演练（changes/0086/0087）。
+  回滚/前滚演练（changes/0086/0087）。2026-11-20 再次部署 P0 门禁修复后的版本
+  `1117ab11-db1d-4f25-94d5-0da855b40970`，完成 health/首页/创建读取取消冒烟、
+  匿名上传全链路（`run_1e1d74eabd7f8582d2f72b87`，completed，120 tick 行/40 agent 行，
+  metrics + final_state）、D1 导出与隔离恢复校验（203 条 INSERT），并再次完成
+  rollback 到 `bd6cadab` 与前滚演练（changes/0094）。独立回放验证需 `RUNNER_TOKEN`，
+  本次未执行。
 - Cron：账户 Workers Free 的 5 个槽位已满（API `10072`），preview 显式
   `triggers.crons = []`，不注册保留任务；production 的每日 Cron 在槽位释放或
   升级计划前无法注册。
