@@ -783,7 +783,8 @@ function verify(options) {
     problems,
     ok: problems.length === 0,
   };
-  const path = join(dirname(options.analysisOut), 'p6-11-jev-causal-verify.json');
+  // 核验产物按实验前缀命名：P6-14 不得覆盖归档的 P6-11 verify 证据。
+  const path = join(dirname(options.analysisOut), `${EXPERIMENT_PREFIX}-jev-causal-verify.json`);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
   console.log(JSON.stringify(out, null, 2));
