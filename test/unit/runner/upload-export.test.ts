@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createDemoConfig } from '../../../src/core/config/defaults.js';
+import { createSimulation } from '../../../src/core/init/simulation.js';
+import { captureSnapshot } from '../../../src/core/replay/snapshot.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import {
   DECISION_SCHEMA_VERSION,
@@ -352,12 +354,10 @@ describe('P5b 批跑上传 bundle 导出', () => {
       seed,
       config,
       runtimeVersion,
-      chunkBytes: 1024,
+      chunkBytes: 1024 * 1024,
     });
-    writer.sink.onInitialSnapshot({
-      stateHash: `sha256:${'b'.repeat(64)}`,
-      state: { tick: 0 },
-    });
+    const snapshot = captureSnapshot(createSimulation(config, seed));
+    writer.sink.onInitialSnapshot(snapshot);
     const dir = resolveUploadBundleDir(outDir, cellKey, seed);
     const tmpPath = join(dir, 'snapshot-0.ndjson.stream.tmp');
     appendFileSync(tmpPath, 'not-json\n{"partial":', 'utf8');
@@ -368,7 +368,7 @@ describe('P5b 批跑上传 bundle 导出', () => {
       config,
       runtimeVersion,
       resume: true,
-      chunkBytes: 1024,
+      chunkBytes: 1024 * 1024,
     });
     const repaired = readFileSync(tmpPath, 'utf8');
     expect(repaired.endsWith('\n')).toBe(true);
@@ -382,7 +382,8 @@ describe('P5b 批跑上传 bundle 导出', () => {
     const outDir = tempDir();
     const runtimeVersion = `node-${process.versions.node}`;
     const cellKey = 'dedupe-cell';
-    const stateHash = `sha256:${'c'.repeat(64)}`;
+    const snapshot = captureSnapshot(createSimulation(config, seed));
+    const stateHash = snapshot.stateHash;
     createStreamingBundleWriter({ outDir, cellKey, seed, config, runtimeVersion }).abort();
     const dir = resolveUploadBundleDir(outDir, cellKey, seed);
     const chunkPath = join(dir, 'snapshot-0.ndjson');
@@ -392,7 +393,7 @@ describe('P5b 批跑上传 bundle 导出', () => {
         schemaVersion: 'snapshot-v1',
         runId: 'local-batch',
         stateHash,
-        snapshot: { tick: 0 },
+        snapshot: snapshot.state,
       })}\n`,
       'utf8',
     );
@@ -405,7 +406,7 @@ describe('P5b 批跑上传 bundle 导出', () => {
       resume: true,
     });
     const before = readFileSync(chunkPath, 'utf8');
-    resumed.sink.onInitialSnapshot({ stateHash, state: { tick: 0 } });
+    resumed.sink.onInitialSnapshot(snapshot);
     expect(readFileSync(chunkPath, 'utf8')).toBe(before);
     resumed.abort();
   });
