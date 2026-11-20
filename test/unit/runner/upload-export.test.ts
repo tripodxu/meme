@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -17,6 +17,7 @@ import { runSingle } from '../../../src/runner/run-cell.js';
 import { loadUploadBundle } from '../../../src/runner/upload-bundle.js';
 import {
   createStreamingBundleWriter,
+  resolveUploadBundleDir,
   uploadBundleExists,
   writeUploadBundle,
 } from '../../../src/runner/upload-export.js';
@@ -279,6 +280,134 @@ describe('P5b 批跑上传 bundle 导出', () => {
     expect(verified.status).toBe('verified');
     expect(verified.report.replayable).toBe(true);
     expect(verified.report.replayFinalStateHash).toBe(full.report.finalStateHash);
+  });
+
+  it('resume 校验 full-export.json 归属并拒绝缺失/不一致', () => {
+    const config = createDemoConfig({ population: { initialPopulation: 10 } });
+    const seed = asSeed('seed-resume-identity');
+    const outDir = tempDir();
+    const runtimeVersion = `node-${process.versions.node}`;
+    expect(() =>
+      createStreamingBundleWriter({
+        outDir,
+        cellKey: 'identity-cell',
+        seed,
+        config,
+        runtimeVersion,
+        resume: true,
+      }),
+    ).toThrowError(/缺少 full-export\.json/);
+    createStreamingBundleWriter({
+      outDir,
+      cellKey: 'identity-cell',
+      seed,
+      config,
+      runtimeVersion,
+    }).abort();
+    expect(() =>
+      createStreamingBundleWriter({
+        outDir,
+        cellKey: 'identity-cell',
+        seed,
+        config: createDemoConfig({ population: { initialPopulation: 11 } }),
+        runtimeVersion,
+        resume: true,
+      }),
+    ).toThrowError(/不一致/);
+  });
+
+  it('resume 缺少初始 snapshot 或分块序号不连续时拒绝', () => {
+    const config = createDemoConfig({ population: { initialPopulation: 10 } });
+    const seed = asSeed('seed-resume-guards');
+    const outDir = tempDir();
+    const runtimeVersion = `node-${process.versions.node}`;
+    const cellKey = 'guard-cell';
+    createStreamingBundleWriter({ outDir, cellKey, seed, config, runtimeVersion }).abort();
+    expect(() =>
+      createStreamingBundleWriter({ outDir, cellKey, seed, config, runtimeVersion, resume: true }),
+    ).toThrowError(/缺少初始 snapshot/);
+    const dir = resolveUploadBundleDir(outDir, cellKey, seed);
+    const line = `${JSON.stringify({
+      schemaVersion: 'snapshot-v1',
+      runId: 'local-batch',
+      stateHash: `sha256:${'a'.repeat(64)}`,
+      snapshot: {},
+    })}\n`;
+    writeFileSync(join(dir, 'snapshot-0.ndjson'), line, 'utf8');
+    writeFileSync(join(dir, 'snapshot-2.ndjson'), line, 'utf8');
+    expect(() =>
+      createStreamingBundleWriter({ outDir, cellKey, seed, config, runtimeVersion, resume: true }),
+    ).toThrowError(/序号不连续/);
+  });
+
+  it('resume 修复 kill 半行并识别已封口分块', () => {
+    const config = createDemoConfig({ population: { initialPopulation: 10 } });
+    const seed = asSeed('seed-resume-repair');
+    const outDir = tempDir();
+    const runtimeVersion = `node-${process.versions.node}`;
+    const cellKey = 'repair-cell';
+    const writer = createStreamingBundleWriter({
+      outDir,
+      cellKey,
+      seed,
+      config,
+      runtimeVersion,
+      chunkBytes: 1024,
+    });
+    writer.sink.onInitialSnapshot({
+      stateHash: `sha256:${'b'.repeat(64)}`,
+      state: { tick: 0 },
+    });
+    const dir = resolveUploadBundleDir(outDir, cellKey, seed);
+    const tmpPath = join(dir, 'snapshot-0.ndjson.stream.tmp');
+    appendFileSync(tmpPath, 'not-json\n{"partial":', 'utf8');
+    const resumed = createStreamingBundleWriter({
+      outDir,
+      cellKey,
+      seed,
+      config,
+      runtimeVersion,
+      resume: true,
+      chunkBytes: 1024,
+    });
+    const repaired = readFileSync(tmpPath, 'utf8');
+    expect(repaired.endsWith('\n')).toBe(true);
+    expect(repaired).not.toContain('partial');
+    resumed.abort();
+  });
+
+  it('resume 复用已封口 snapshot 分块并去重相同 stateHash', () => {
+    const config = createDemoConfig({ population: { initialPopulation: 10 } });
+    const seed = asSeed('seed-resume-dedupe');
+    const outDir = tempDir();
+    const runtimeVersion = `node-${process.versions.node}`;
+    const cellKey = 'dedupe-cell';
+    const stateHash = `sha256:${'c'.repeat(64)}`;
+    createStreamingBundleWriter({ outDir, cellKey, seed, config, runtimeVersion }).abort();
+    const dir = resolveUploadBundleDir(outDir, cellKey, seed);
+    const chunkPath = join(dir, 'snapshot-0.ndjson');
+    writeFileSync(
+      chunkPath,
+      `${JSON.stringify({
+        schemaVersion: 'snapshot-v1',
+        runId: 'local-batch',
+        stateHash,
+        snapshot: { tick: 0 },
+      })}\n`,
+      'utf8',
+    );
+    const resumed = createStreamingBundleWriter({
+      outDir,
+      cellKey,
+      seed,
+      config,
+      runtimeVersion,
+      resume: true,
+    });
+    const before = readFileSync(chunkPath, 'utf8');
+    resumed.sink.onInitialSnapshot({ stateHash, state: { tick: 0 } });
+    expect(readFileSync(chunkPath, 'utf8')).toBe(before);
+    resumed.abort();
   });
 
   it('runBatch 在 --resume 复用已完成任务时自动补导出缺失的上传 bundle 并校验状态哈希一致', async () => {
