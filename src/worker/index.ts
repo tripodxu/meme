@@ -708,6 +708,28 @@ app.post('/api/runs/:id/complete', async (c) => {
   if ((agentCount?.n ?? 0) !== complete['expectedAgentRows']) {
     return fail(c, 409, 'state_conflict', 'agent 行数与 complete 声明不一致');
   }
+  // expectedDueDecisions = Σ_{t % interval = 0, t ≤ finalTick} aliveAtTickStart(t)。
+  // 决策在 tick 开头发生、死亡在其后结算，因此 t 的期初存活集合是
+  // {death_tick === null || death_tick >= t}；该口径不依赖 tick_stats 的采样步长，
+  // 也不接受客户端自报的到期数。
+  const deathRows = await c.env.DB.prepare('SELECT death_tick FROM agent_final WHERE run_id = ?')
+    .bind(id)
+    .all<{ death_tick: number | null }>();
+  const deathTicks = (deathRows.results ?? []).map((row) => row.death_tick);
+  let recomputedDue = 0;
+  for (let tick = 0; tick <= finalTick; tick += config.decision.interval) {
+    for (const deathTick of deathTicks) {
+      if (deathTick === null || deathTick >= tick) recomputedDue += 1;
+    }
+  }
+  if (recomputedDue !== complete['expectedDueDecisions']) {
+    return fail(
+      c,
+      409,
+      'state_conflict',
+      `expectedDueDecisions 与 agent 死亡记录复算不一致: ${String(complete['expectedDueDecisions'])} != ${recomputedDue}`,
+    );
+  }
   if (
     endReason === 'extinct' &&
     (finalTick >= config.schedule.totalTicks - 1 || complete['finalAliveCount'] !== 0)

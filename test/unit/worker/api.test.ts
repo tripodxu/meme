@@ -106,10 +106,13 @@ async function completeBody(
   env: Env,
   run: { runId: string; writeToken: string },
   expectedAgentRows: number,
-  expectedDueDecisions = 0,
+  expectedDueDecisions?: number,
 ): Promise<Record<string, unknown>> {
   const config = createDemoConfig();
   const finalTick = config.schedule.totalTicks - 1;
+  // 测试 fixture 的 agent 行全部 alive；到期数 = 存活数 × 决策 tick 数。
+  const decisionTicks = Math.floor(finalTick / config.decision.interval) + 1;
+  const due = expectedDueDecisions ?? expectedAgentRows * decisionTicks;
   const planned = plannedStatsTicks(config.schedule.totalTicks, config.schedule.statsStride);
   const rows = await env.DB.prepare(
     'SELECT kind, chunk_id, compressed_sha256, bytes FROM artifacts WHERE run_id = ?',
@@ -128,7 +131,7 @@ async function completeBody(
     finalAliveCount: 40,
     expectedTickRows: planned.length,
     expectedAgentRows,
-    expectedDueDecisions,
+    expectedDueDecisions: due,
     endReason: 'scheduled',
     finalStateHash: SHA_ZERO,
     summaryHash: SHA_ZERO,
@@ -356,6 +359,12 @@ describe('P4 Worker API', () => {
       env,
     );
     expect(wrongManifest.status).toBe(409);
+    const wrongDue = await app.request(
+      `${BASE}/api/runs/${run.runId}/complete`,
+      { method: 'POST', headers, body: JSON.stringify(await completeBody(env, run, 1, 0)) },
+      env,
+    );
+    expect(wrongDue.status).toBe(409);
     const complete = await app.request(
       `${BASE}/api/runs/${run.runId}/complete`,
       { method: 'POST', headers, body: JSON.stringify(await completeBody(env, run, 1)) },

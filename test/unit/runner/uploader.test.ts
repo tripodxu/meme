@@ -74,6 +74,10 @@ function makeBundle(overrides: Partial<RunUploadBundle> = {}): RunUploadBundle {
   const config = createDemoConfig();
   const population = deriveInitialPopulation(config, asSeed(TOKEN));
   const ticks = plannedStatsTicks(config, config.schedule.totalTicks - 1, false);
+  const finalTick = config.schedule.totalTicks - 1;
+  // 默认 fixture 只有一个存活 agent；服务端按 death_tick 复算到期数，
+  // 因此 expectedDueDecisions 必须等于「存活数 × 决策 tick 数」。
+  const decisionTicks = Math.floor(finalTick / config.decision.interval) + 1;
   return {
     schemaVersion: 'run-upload-bundle-v1',
     config,
@@ -93,11 +97,11 @@ function makeBundle(overrides: Partial<RunUploadBundle> = {}): RunUploadBundle {
     },
     experiment: null,
     artifactProfile: 'metrics-only',
-    finalTick: config.schedule.totalTicks - 1,
+    finalTick,
     endReason: 'scheduled',
     finalAliveCount: 1,
     agents: [makeAgent(TOKEN)],
-    expectedDueDecisions: 0,
+    expectedDueDecisions: decisionTicks,
     finalStateHash: SHA_ZERO,
     summaryHash: SHA_ZERO,
     artifacts: [
