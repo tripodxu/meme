@@ -69,10 +69,14 @@ local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_r
   metrics + final_state）、D1 导出与隔离恢复校验（203 条 INSERT），并再次完成
   rollback 到 `bd6cadab` 与前滚演练（changes/0094）。独立回放验证需 `RUNNER_TOKEN`，
   本次未执行。
-- Cron：账户 Workers Free 的 5 个槽位已满（API `10072`），preview 显式
-  `triggers.crons = []`，不注册保留任务；production 的每日 Cron 在槽位释放或
-  升级计划前无法注册。
-- production：D1/R2 未创建，`database_id` 仍为占位符，尚未执行生产部署。
+- Cron：账户 Workers Free 的 5 个槽位已满（API `10072`），preview 与 production 均显式
+  `triggers.crons = []`，暂不注册保留任务；生产升级 Workers Paid 或释放槽位后启用。
+- production：D1 `stratify-prod`（ID `b3ac7bff-9983-46ee-bfd4-14d1646405cd`）与
+  R2 `stratify-artifacts-prod` 已于 2026-11-20 创建，0001–0003 已应用；版本
+  `4b79128b` 部署在 `https://stratify-prod.logicc.top`，health/首页/创建读取取消冒烟
+  全绿；D1 导出 9,020 字节、6 条 INSERT，隔离恢复校验通过；rollback 到 `ac795270`
+  与前滚均健康（changes/0097）。`RUNNER_TOKEN`、Cron 保留、R2 孤儿清理与真实
+  Jev live 冒烟尚未在生产执行。
 - 本地 `wrangler dev --local` 与远端 `https://stratify.logicc.top` 均已跑通
   health → 创建 run → artifact 上传/幂等 → tick/agent → complete → 独立回放验证全链路。
 

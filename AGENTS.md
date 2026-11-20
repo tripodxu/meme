@@ -10,7 +10,7 @@ P6-08（代际更替 6 cell）未通过（k=3 ARI 0.565）。ADR 0010 在 P6-06 
 
 P6-11（真实 Jev 提示词因果对照，`rules-v18`、40 人 ×730 tick、30 对同种子）已完成：90/90 有效、0 剔除、单一服务端模型、最大回退率 0.32%；`passesCausalClaim=true`（ΔO 中位数 −0.3752、ΔS +0.2804、ΔMup −0.4097，置换检验 p 触底）。**证据链边界**：预注册请求 `jev-1.13.0`，服务端实际返回 `jev-1.13-free`（analysis 产物中并列记录，属预注册偏离）；`TV(P)` 是阶级份额距离而非行动概率距离；该实验不关闭 G6。
 
-**工程轨道**：P3 前端 MVP（12 态 RunController + 五工作区 + 图表，changes/0070）、P4 Worker/D1/R2 MVP（changes/0071–0077）、P5b 上传器（changes/0072/0075/0080，流式 full 导出已支持 run 检查点续跑，changes/0096）与 P7 本地硬化（changes/0074）已落地并通过本地测试。preview 于 2026-11-20 部署版本 `1117ab11`，完成公网 health/首页/创建读取取消冒烟、匿名上传全链路（`run_1e1d74eabd7f8582d2f72b87`，completed，120 tick 行/40 agent 行）、D1 导出与隔离恢复校验、rollback 到 `bd6cadab` 再前滚演练（changes/0094）。production 部署、生产备份恢复演练、Cron 保留、R2 孤儿清理、真实 Jev live 冒烟仍未执行；独立回放验证因缺少 `RUNNER_TOKEN` 未执行。不得声称已发布或 P7 完成。工程产物不得表述为科学验收。
+**工程轨道**：P3 前端 MVP（12 态 RunController + 五工作区 + 图表，changes/0070）、P4 Worker/D1/R2 MVP（changes/0071–0077）、P5b 上传器（changes/0072/0075/0080，流式 full 导出已支持 run 检查点续跑，changes/0096）与 P7 本地硬化（changes/0074）已落地并通过本地测试。preview 于 2026-11-20 部署版本 `95a4fb2f`，完成公网 health/首页/创建读取取消冒烟、匿名上传全链路（`run_1e1d74eabd7f8582d2f72b87`，completed，120 tick 行/40 agent 行）、D1 导出与隔离恢复校验、rollback 到 `bd6cadab` 再前滚演练（changes/0094）。production 的 D1 `stratify-prod` 与 R2 `stratify-artifacts-prod` 已创建，版本 `4b79128b` 部署在 `https://stratify-prod.logicc.top`，health/首页/创建读取取消冒烟全绿，D1 导出 9,020 字节并完成隔离恢复校验，rollback 到 `ac795270` 与前滚均健康（changes/0097）。Cron 保留任务因 Workers Free 槽位上限未注册，`RUNNER_TOKEN`、R2 孤儿清理、真实 Jev live 冒烟与独立回放验证仍未执行；不得声称已发布或 P7 完成。工程产物不得表述为科学验收。
 
 ## 强制约束
 

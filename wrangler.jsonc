@@ -58,6 +58,11 @@
     },
     "production": {
       "name": "stratify-prod",
+      // 生产绑定独立自定义域名；workers.dev 在该账户不可用/不稳定。
+      "routes": [{ "pattern": "stratify-prod.logicc.top", "custom_domain": true }],
+      // 账户 Workers Free 的 5 个 Cron 槽位已满（API 10072），生产暂不注册保留任务；
+      // 升级 Workers Paid 或释放槽位后再启用每日 runMaintenance。
+      "triggers": { "crons": [] },
       "vars": {
         "ENVIRONMENT": "production",
         "VERSION": "production",
@@ -71,7 +76,7 @@
         {
           "binding": "DB",
           "database_name": "stratify-prod",
-          "database_id": "REPLACE_WITH_PROD_D1_ID",
+          "database_id": "b3ac7bff-9983-46ee-bfd4-14d1646405cd",
           "migrations_dir": "migrations",
         },
       ],
