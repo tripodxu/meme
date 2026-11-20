@@ -291,7 +291,9 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 
 **P6-10（2026-11-18，阶段 R2-A / ADR 0011，changes/0091）**：按 ADR 0011 落地 `rules-v17`（`ascent.classCapacity` 默认全 1 与 v16 一致；`engine-v0.14.0` / `stratify-config-v11`），并以 30 个全新种子执行 240 run 正式 `k=3` 确认轮（`p6-10-80e12386`，240/240 完成、**0 排除、0 灭绝**）：`ARI median=0.8346`、`silhouette=0.5135`、`temporal=0.9833`、`antiPreset=true`，但 **`clusterSizes = [61, 117, 2]`（第三簇 `< 5`）**，判定 `not-accepted-return-to-rule-review`（`passes=false`）。D1 两体制已校准结论不变；传统 `k≥3` 离散结构仍未通过，不调参凑数。
 
-**阶段 R2-B 探索探针（2026-11-18，ADR 0012，changes/0092）**：落地 `rules-v18`（`population.talentInheritanceWeight` 默认 0 与 v17 一致；`engine-v0.15.0` / `stratify-config-v12`），完成 30-run 探索探针（`explore-r2b-seed-001..005` × 6 单元，30/30 有效、0 灭绝）：`k=2` `[10,20]` `ARI=1.000`、`silhouette=0.4576`；`k=3` `[10,16,4]` `ARI median=0.6145 < 0.85`、`silhouette=0.4302 < 0.45`，未达探索门槛并按纪律停止调参。下一步聚焦阶段 R3（30-seed 真实 Jev 提示词风格因果实验）。
+**阶段 R2-B 探索探针（2026-11-18，ADR 0012，changes/0092）**：落地 `rules-v18`（`population.talentInheritanceWeight` 默认 0 与 v17 一致；`engine-v0.15.0` / `stratify-config-v12`），完成 30-run 探索探针（`explore-r2b-seed-001..005` × 6 单元，30/30 有效、0 灭绝）：`k=2` `[10,20]` `ARI=1.000`、`silhouette=0.4576`；`k=3` `[10,16,4]` `ARI median=0.6145 < 0.85`、`silhouette=0.4302 < 0.45`，未达探索门槛并按纪律停止调参。
+
+**阶段 R3 因果确认（2026-11-20，ADR 0013，changes/0093）**：完成预注册 `P6-11`（`p6-11-d40835c4`，30 对全新独立种子 `p6-jev-seed-001..030` × 3 策略组 = `90` run，730 tick、`N=40`、决策间隔 30；**90/90 完成、0 排除、0 灭绝、最大回退率 0.32% $\ll 20\%$**）。`live(survival_hint) - live(neutral)` 实测：主指标 **$\Delta O = -0.3752$**（95% CI $[-0.4393, -0.3376]$，置换检验 $p=0.00006$，BH $q=0.00006 \le 0.05$），次指标 **$\Delta S = +0.2804$**（95% CI $[+0.2541, +0.2894]$，BH $q=0.00006$）、**$\Delta M\_{\text{up}} = -0.4097$**（95% CI $[-0.4423, -0.3721]$，BH $q=0.00006$，上升流动率归零），微观行动分布差异 $TV(P)=0.0255$。**`passesCausalClaim = true`**，阶段 R3 正式确认通过，科研路线图 R1/R2/R3/R4 全部闭环。
 
 **最终发布闸门**：G0–G6 均有可复现证据；P7 不设独立编号闸门，其验收即本节各项。若某非关键项豁免，必须记录负责人、理由、到期日和回滚条件。
 

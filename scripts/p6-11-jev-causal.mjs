@@ -16,6 +16,7 @@ import { asSeed } from '../dist/core/control/ids.js';
 import { hashValue } from '../dist/core/hash/hash.js';
 import { HASH_DOMAINS } from '../dist/core/hash/domains.js';
 import { runSingle, runSingleWithPolicy } from '../dist/runner/run-cell.js';
+import { nodeCheckpointHost } from '../dist/runner/checkpoint-fs.js';
 import { readNdjsonTolerant } from '../dist/runner/ndjson.js';
 import {
   AttemptBudget,
@@ -48,6 +49,11 @@ const DEFAULTS = {
   dir: 'out/p6-11-jev-causal',
   analysisOut: 'out/p6-11-jev-causal-analysis.json',
   concurrency: 6,
+  minIntervalMs: 0,
+  checkpointEveryTicks: 30,
+  quotaWaitMinutes: 0,
+  maxResumeAttempts: 48,
+  maxWallMinutes: null,
   population: 40,
   ticks: 730,
   decisionInterval: 30,
@@ -70,12 +76,31 @@ function parseArgs(argv) {
     else if (flag === '--dir') options.dir = next();
     else if (flag === '--out') options.analysisOut = next();
     else if (flag === '--concurrency') options.concurrency = Number(next());
+    else if (flag === '--min-interval-ms') options.minIntervalMs = Number(next());
+    else if (flag === '--quota-wait-minutes') options.quotaWaitMinutes = Number(next());
+    else if (flag === '--max-resume-attempts') options.maxResumeAttempts = Number(next());
+    else if (flag === '--max-wall-minutes') options.maxWallMinutes = Number(next());
     else if (flag === '--mock-only') options.mockOnly = true;
     else if (flag === '--live-only') options.liveOnly = true;
     else if (flag === '--force') options.force = true;
     else throw new Error(`未知参数：${flag}`);
   }
   if (options.mode === null) throw new Error('必须指定 --freeze、--run 或 --analyze');
+  if (!Number.isFinite(options.minIntervalMs) || options.minIntervalMs < 0) {
+    throw new Error('--min-interval-ms 必须为非负有限数字');
+  }
+  if (!Number.isFinite(options.quotaWaitMinutes) || options.quotaWaitMinutes < 0) {
+    throw new Error('--quota-wait-minutes 必须为非负有限数字');
+  }
+  if (!Number.isInteger(options.maxResumeAttempts) || options.maxResumeAttempts < 1) {
+    throw new Error('--max-resume-attempts 必须为正整数');
+  }
+  if (
+    options.maxWallMinutes !== null &&
+    (!Number.isFinite(options.maxWallMinutes) || options.maxWallMinutes <= 0)
+  ) {
+    throw new Error('--max-wall-minutes 必须为正有限数字');
+  }
   return options;
 }
 
@@ -285,104 +310,180 @@ async function executeRun(options) {
   }
 
   const budget = new AttemptBudget(design.budgets.maxCalls, design.budgets.maxInputTokens);
-  const deadline = Date.now() + design.budgets.maxWallMinutes * 60 * 1000;
+  const wallMinutes = options.maxWallMinutes ?? design.budgets.maxWallMinutes;
+  const deadline = Date.now() + wallMinutes * 60 * 1000;
+  const checkpointsDir = join(options.dir, 'checkpoints');
+  mkdirSync(checkpointsDir, { recursive: true });
+  const checkpointHost = nodeCheckpointHost();
   let done = 0;
+  let nextAllowedAt = 0;
+  const sleepAbortable = (ms, sig) =>
+    new Promise((resolve) => {
+      if (ms <= 0 || sig?.aborted) {
+        resolve();
+        return;
+      }
+      const tm = setTimeout(resolve, ms);
+      sig?.addEventListener(
+        'abort',
+        () => {
+          clearTimeout(tm);
+          resolve();
+        },
+        { once: true },
+      );
+    });
+  const waitPacer = async (sig) => {
+    if (options.minIntervalMs <= 0) return;
+    const now = Date.now();
+    const waitMs = Math.max(0, nextAllowedAt - now);
+    nextAllowedAt = Math.max(now, nextAllowedAt) + options.minIntervalMs;
+    if (waitMs > 0) await sleepAbortable(waitMs, sig);
+  };
 
   await runPool(liveTasks, options.concurrency, async (task) => {
     const t0 = Date.now();
-    const seen = [];
+    const safeKey = task.runKey.replace(/[^A-Za-z0-9-]/g, '_');
+    const checkpointPath = join(checkpointsDir, `${safeKey}.progress.json`);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), Math.max(1000, deadline - Date.now()));
     timer.unref?.();
-    const policy = new JevLivePolicy(
-      apiKey,
-      {
-        endpoint: design.endpoint,
-        requestTimeoutMs: 60_000,
-        maxTotalAttempts: 5,
-        networkRetryLimit: 3,
-        rateLimitRetryLimit: 4,
-        serverErrorRetryLimit: 4,
-        baseBackoffMs: 1500,
-        jitterMs: () => 0,
-        deadlineMs: deadline,
-        budget,
-        failureWindow: new SlidingCircuitWindow(),
-        fallbackRateWindow: new SlidingFallbackRateWindow(),
-      },
-      {
-        fetchImpl: fetch,
-        sleep: (ms, sig) =>
-          new Promise((resolve) => {
-            const tm = setTimeout(resolve, ms);
-            sig.addEventListener('abort', () => {
-              clearTimeout(tm);
-              resolve();
-            });
-          }),
-        nowMs: () => Date.now(),
-      },
-    );
-    const tracedPolicy = {
-      policyVersion: policy.policyVersion,
-      async decide(input, sig) {
-        const rec = await policy.decide(input, sig);
-        seen.push(rec);
-        return rec;
-      },
-    };
+    let seen = [];
     try {
-      const outcome = await runSingleWithPolicy(config, asSeed(task.seed), {
-        policy: tracedPolicy,
-        runId: `p6-11-${task.runKey}`.replace(/[^A-Za-z0-9-]/g, '-'),
-        requestedModel: design.requestedModel,
-        promptStyle: task.promptStyle,
-        maxTicks: design.ticks,
-        signal: controller.signal,
-      });
-      const ds = decisionSummary(seen);
-      const record = {
-        runKey: task.runKey,
-        seed: task.seed,
-        policyVersion: 'jev_live',
-        promptStyle: task.promptStyle,
-        status: 'ok',
-        elapsedMs: Date.now() - t0,
-        extinct: outcome.report.extinct,
-        endReason: outcome.report.endReason,
-        cancelled: outcome.cancelled,
-        finalStateHash: outcome.report.finalStateHash,
-        window: windowOf(outcome.report),
-        decisions: ds,
-        fallbackRate: ds.due === 0 ? null : ds.fallbacks / ds.due,
-        responseModels: ds.responseModels,
-        missingUsage: ds.usage.missingRecords,
-      };
-      appendLedger(ledgerPath, record);
-      ledger.set(task.runKey, record);
-    } catch (err) {
-      const record = {
-        runKey: task.runKey,
-        seed: task.seed,
-        policyVersion: 'jev_live',
-        promptStyle: task.promptStyle,
-        status: 'failed',
-        elapsedMs: Date.now() - t0,
-        error: err instanceof Error ? err.message : String(err),
-        decisions: decisionSummary(seen),
-      };
-      appendLedger(ledgerPath, record);
-      process.stderr.write(`[live] FAILED ${task.runKey}: ${record.error}\n`);
+      for (let attempt = 1; ; attempt += 1) {
+        seen = [];
+        const policy = new JevLivePolicy(
+          apiKey,
+          {
+            endpoint: process.env.JEV_ENDPOINT ?? design.endpoint,
+            requestTimeoutMs: 60_000,
+            maxTotalAttempts: 5,
+            networkRetryLimit: 3,
+            rateLimitRetryLimit: 4,
+            serverErrorRetryLimit: 4,
+            baseBackoffMs: 1500,
+            jitterMs: () => 0,
+            deadlineMs: deadline,
+            budget,
+            failureWindow: new SlidingCircuitWindow(),
+            fallbackRateWindow: new SlidingFallbackRateWindow(),
+          },
+          {
+            fetchImpl: fetch,
+            sleep: (ms, sig) =>
+              new Promise((resolve) => {
+                const tm = setTimeout(resolve, ms);
+                sig.addEventListener('abort', () => {
+                  clearTimeout(tm);
+                  resolve();
+                });
+              }),
+            nowMs: () => Date.now(),
+          },
+        );
+        const tracedPolicy = {
+          policyVersion: policy.policyVersion,
+          async decide(input, sig) {
+            await waitPacer(sig);
+            const rec = await policy.decide(input, sig);
+            if (options.minIntervalMs > 0 && rec.fallbackReason === 'retry_after_exceeded') {
+              nextAllowedAt = Math.max(nextAllowedAt, Date.now() + 65_000);
+            }
+            seen.push(rec);
+            return rec;
+          },
+        };
+        try {
+          const outcome = await runSingleWithPolicy(config, asSeed(task.seed), {
+            policy: tracedPolicy,
+            runId: `p6-11-${task.runKey}`.replace(/[^A-Za-z0-9-]/g, '-'),
+            requestedModel: design.requestedModel,
+            promptStyle: task.promptStyle,
+            maxTicks: design.ticks,
+            signal: controller.signal,
+            runCheckpoint: {
+              host: checkpointHost,
+              path: checkpointPath,
+              everyTicks: options.checkpointEveryTicks,
+              cellKey: task.runKey,
+            },
+          });
+          const allDecisions = outcome.decisions ?? seen;
+          const ds = decisionSummary(allDecisions);
+          const record = {
+            runKey: task.runKey,
+            seed: task.seed,
+            policyVersion: 'jev_live',
+            promptStyle: task.promptStyle,
+            status: 'ok',
+            elapsedMs: Date.now() - t0,
+            extinct: outcome.report.extinct,
+            endReason: outcome.report.endReason,
+            cancelled: outcome.cancelled,
+            finalStateHash: outcome.report.finalStateHash,
+            window: windowOf(outcome.report),
+            decisions: ds,
+            fallbackRate: ds.due === 0 ? null : ds.fallbacks / ds.due,
+            responseModels: ds.responseModels,
+            missingUsage: ds.usage.missingRecords,
+          };
+          appendLedger(ledgerPath, record);
+          ledger.set(task.runKey, record);
+          if (allDecisions.length > 0) {
+            const rawDir = join(options.dir, 'raw');
+            mkdirSync(rawDir, { recursive: true });
+            writeFileSync(
+              join(rawDir, `${safeKey}.ndjson.gz`),
+              gzipSync(allDecisions.map((r) => JSON.stringify(r)).join('\n') + '\n'),
+            );
+          }
+          break;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          const code = err && typeof err === 'object' ? err.code : undefined;
+          const isQuotaPause =
+            code === 'jev_circuit_open' ||
+            code === 'jev_fallback_rate_exceeded' ||
+            /熔断|回退率超过阈值/.test(msg);
+          if (
+            isQuotaPause &&
+            options.quotaWaitMinutes > 0 &&
+            attempt < options.maxResumeAttempts &&
+            Date.now() + 60_000 < deadline
+          ) {
+            process.stderr.write(
+              `[live] PAUSED ${task.runKey} (attempt ${attempt}/${options.maxResumeAttempts}): ${msg}; waiting ${options.quotaWaitMinutes}m to resume from checkpoint...\n`,
+            );
+            await sleepAbortable(options.quotaWaitMinutes * 60_000, controller.signal);
+            if (!controller.signal.aborted) {
+              continue;
+            }
+          }
+          const record = {
+            runKey: task.runKey,
+            seed: task.seed,
+            policyVersion: 'jev_live',
+            promptStyle: task.promptStyle,
+            status: 'failed',
+            elapsedMs: Date.now() - t0,
+            error: msg,
+            decisions: decisionSummary(seen),
+          };
+          appendLedger(ledgerPath, record);
+          process.stderr.write(`[live] FAILED ${task.runKey}: ${record.error}\n`);
+          if (seen.length > 0) {
+            const rawDir = join(options.dir, 'raw');
+            mkdirSync(rawDir, { recursive: true });
+            writeFileSync(
+              join(rawDir, `${safeKey}.ndjson.gz`),
+              gzipSync(seen.map((r) => JSON.stringify(r)).join('\n') + '\n'),
+            );
+          }
+          break;
+        }
+      }
     } finally {
       clearTimeout(timer);
-      if (seen.length > 0) {
-        const rawDir = join(options.dir, 'raw');
-        mkdirSync(rawDir, { recursive: true });
-        writeFileSync(
-          join(rawDir, `${task.runKey.replace(/[^A-Za-z0-9-]/g, '_')}.ndjson.gz`),
-          gzipSync(seen.map((r) => JSON.stringify(r)).join('\n') + '\n'),
-        );
-      }
       done += 1;
       process.stderr.write(`[live] ${done}/${liveTasks.length} ${task.runKey}\n`);
     }

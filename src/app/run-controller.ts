@@ -383,7 +383,7 @@ export class RunController {
       ...this.config,
       openness: { ...this.config.openness, updateMode: nextMode },
     };
-    const pid = this.policy.id;
+    const pid = this.policy.policyVersion;
     const policyForPrepare =
       pid === 'mock-weighted-v1' || pid === 'mock-weighted-v2' || pid === 'random-uniform-v1'
         ? pid
