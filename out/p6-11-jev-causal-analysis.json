@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "p6-11-jev-causal-analysis-v2",
+  "experimentId": "p6-11-d40835c4",
+  "designHash": "sha256:d40835c4b47f2bb2b8064cb072995f7a2d4f9edc8ea5c0751751215eabe5f953",
+  "pairedSeeds": 30,
+  "totalValidRuns": 90,
+  "excludedRuns": [],
+  "fallbackLimit": 0.2,
+  "completeness": {
+    "expectedRuns": 90,
+    "ledgerRuns": 90,
+    "validRuns": 90,
+    "excluded": 0,
+    "groups": {
+      "mock": 30,
+      "live-neutral": 30,
+      "live-survival_hint": 30
+    },
+    "pairedSeeds": 30,
+    "responseModels": [
+      "jev-1.13-free"
+    ],
+    "maxFallbackRate": 0.0031746031746031746,
+    "fallbackLimit": 0.2,
+    "complete": true
+  },
+  "requestedModel": "jev-1.13.0",
+  "observedResponseModels": [
+    "jev-1.13-free"
+  ],
+  "comparison": "live(survival_hint) - live(neutral)",
+  "metrics": [
+    {
+      "metric": "deltaO",
+      "median": -0.3752202723738569,
+      "ci95": [
+        -0.4392978364425553,
+        -0.33756721835315606
+      ],
+      "ciExcludesZero": true,
+      "permutationP": 0.00001999980000199998,
+      "analysisSeed": 20261119,
+      "meetsThreshold05": true,
+      "bhAdjustedP": 0.00004499955000449996,
+      "bhSignificant": true
+    },
+    {
+      "metric": "deltaS",
+      "median": 0.2804305624729059,
+      "ci95": [
+        0.254101343075765,
+        0.2894299579670284
+      ],
+      "ciExcludesZero": true,
+      "permutationP": 0.00004999950000499995,
+      "analysisSeed": 20261120,
+      "meetsThreshold05": true,
+      "bhAdjustedP": 0.00004999950000499995,
+      "bhSignificant": true
+    },
+    {
+      "metric": "deltaMup",
+      "median": -0.40970782426261876,
+      "ci95": [
+        -0.4422989111345277,
+        -0.3721454254709478
+      ],
+      "ciExcludesZero": true,
+      "permutationP": 0.00002999970000299997,
+      "analysisSeed": 20261121,
+      "meetsThreshold05": true,
+      "bhAdjustedP": 0.00004499955000449996,
+      "bhSignificant": true
+    },
+    {
+      "metric": "deltaG",
+      "median": -0.019177971758241708,
+      "ci95": [
+        -0.028363615772371842,
+        -0.013955407483394106
+      ],
+      "ciExcludesZero": true,
+      "permutationP": 0.00002999970000299997,
+      "analysisSeed": 20261122,
+      "meetsThreshold05": false
+    }
+  ],
+  "tvP": {
+    "median": 0.025535651563048732,
+    "ci95": [
+      0.02388479100807834,
+      0.03324025289779207
+    ]
+  },
+  "passesCausalClaim": true
+}

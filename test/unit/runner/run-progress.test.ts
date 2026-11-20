@@ -91,6 +91,10 @@ describe('run 内进度检查点（P5-03，runSingle）', () => {
     expect(JSON.stringify([...resumed.decisionsByTick])).toBe(
       JSON.stringify([...control.decisionsByTick]),
     );
+    // 到期决策总数必须覆盖恢复前的那一段；否则上传清单里的
+    // `expectedDueDecisions` 会只统计恢复后的决策（rules 完整性缺陷）。
+    expect(resumed.dueDecisionCount).toBe(control.dueDecisionCount);
+    expect(resumed.dueDecisionCount).toBeGreaterThan(0);
   });
 
   it('run 正常结束后移除检查点；护栏停止则保留', () => {

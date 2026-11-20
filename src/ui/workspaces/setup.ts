@@ -723,7 +723,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
           class: 'muted',
           id: 'lab-presets',
           style: 'margin-top:0',
-          text: 'D1“2 体制 + 连续统”已通过 P6-09 + R4 校准；带“已校准 (D1)”徽章的预设已冻结（仅限 mock-weighted-v1 / N=200），其余预设仍为未校准探索。修改任何字段会自动标记为自定义。',
+          text: 'P6-09 在 ADR 0010 口径下得到两体制候选，但 R4 消融按 07 §11 的 TV(P) ≥ 0.10 门槛重算后全部未达，结构闸门仍未通过。全部预设均为未校准演示（仅限 mock-weighted-v1 / N=200 的既冻结配置），修改任何字段会自动标记为自定义。',
         }),
         h(
           'div',
@@ -741,7 +741,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
                 h('div', { class: 'preset-btn-head' }, [
                   h('strong', { text: preset.name }),
                   badge(
-                    preset.calibrated ? '已校准 (D1)' : '未校准',
+                    preset.calibrated ? '已校准' : '未校准',
                     preset.calibrated ? 'ok' : 'warn',
                   ),
                 ]),
@@ -872,7 +872,7 @@ function previewContent(app: StratifyApp, config: RunConfig): HTMLElement {
         app.selectedPresetId === 'custom'
           ? '自定义 · 未校准'
           : isCalibratedPreset
-            ? `预设:${app.selectedPresetId} · 已校准 (D1)`
+            ? `预设:${app.selectedPresetId} · 已校准`
             : `预设:${app.selectedPresetId} · 未校准`,
         isCalibratedPreset ? 'ok' : 'warn',
       ),

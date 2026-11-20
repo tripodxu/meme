@@ -60,7 +60,12 @@ export function computeAscendCrossBase(
   return { nextClass, crossBase };
 }
 
-/** 存活者的阶级占比快照（tick 期初调用，禁止在行动循环内逐次重算）。 */
+/**
+ * 存活者的阶级占比快照（tick 期初调用，禁止在行动循环内逐次重算）。
+ *
+ * 纯函数：引擎在**同一个 working agents 数组**上会前后调用两次（行动前 / 死亡后），
+ * 因此这里绝不能按数组身份缓存，否则第二次会拿到行动前的旧值。
+ */
 export function classShareSnapshot(
   agents: readonly Pick<AgentState, 'classIndex' | 'alive'>[],
   classCount: number,
@@ -73,6 +78,32 @@ export function classShareSnapshot(
     alive += 1;
   }
   return counts.map((count) => (alive === 0 ? 0 : count / alive));
+}
+
+/**
+ * `SimState.society.agents` 的 tick 级缓存。
+ *
+ * 引擎每 tick 用新数组重建 society，且**不就地修改**它；而 `enumerateLegalActions`
+ * 会对每个到期个体读同一份期初占比。若每次都扫全量 agents，单个决策 tick 退化为
+ * O(N²)（rules-v17 引入 `classCapacity` 时踩过）。缓存键用数组身份，返回值仍复制，
+ * 调用方可安全持有/修改。
+ */
+const stateShareCache = new WeakMap<
+  readonly Pick<AgentState, 'classIndex' | 'alive'>[],
+  { classCount: number; shares: readonly number[] }
+>();
+
+export function cachedClassShareSnapshot(
+  agents: readonly Pick<AgentState, 'classIndex' | 'alive'>[],
+  classCount: number,
+): number[] {
+  const cached = stateShareCache.get(agents);
+  if (cached !== undefined && cached.classCount === classCount) {
+    return [...cached.shares];
+  }
+  const shares = classShareSnapshot(agents, classCount);
+  stateShareCache.set(agents, { classCount, shares });
+  return [...shares];
 }
 
 /** v10 机会隐含参照份额：`1/env0` 归一化（env0 越高，阶级目标占比越小）。 */
@@ -300,7 +331,10 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
           crossBaseInfo.crossBase,
           state.society.occupancyPressure,
         );
-  const classSharesStart = classShareSnapshot(state.society.agents, config.population.classCount);
+  const classSharesStart = cachedClassShareSnapshot(
+    state.society.agents,
+    config.population.classCount,
+  );
   const targetCap =
     ascendCost === null ? 1 : (config.ascent.classCapacity[agent.classIndex + 1] ?? 1);
   const hasCapacity =

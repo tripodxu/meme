@@ -13,6 +13,14 @@
       "preregistrationHash": "sha256:b9cd2fd95a9d5b8e5c7e9464258bc7c6de6f503159e5552b30b9250526313705",
       "computedPreregistrationHash": "sha256:b9cd2fd95a9d5b8e5c7e9464258bc7c6de6f503159e5552b30b9250526313705",
       "preregistrationHashConsistent": true,
+      "versionDrift": {
+        "frozenRulesVersion": "rules-v11",
+        "frozenEngineVersion": "engine-v0.9.0",
+        "currentRulesVersion": "rules-v18",
+        "currentEngineVersion": "engine-v0.15.0",
+        "liveRederivedHash": "sha256:62689a73fcac31474010691889f044496e1ef42fbf78edaef6ede9d1f9d071b1",
+        "drifted": true
+      },
       "runs": {
         "due": 420,
         "ok": 420,
@@ -1723,6 +1731,14 @@
       "preregistrationHash": "sha256:366198c53560d904bb4358db02244836d68fab6c60db7638c1ef557078e82518",
       "computedPreregistrationHash": "sha256:366198c53560d904bb4358db02244836d68fab6c60db7638c1ef557078e82518",
       "preregistrationHashConsistent": true,
+      "versionDrift": {
+        "frozenRulesVersion": "rules-v11",
+        "frozenEngineVersion": "engine-v0.9.0",
+        "currentRulesVersion": "rules-v18",
+        "currentEngineVersion": "engine-v0.15.0",
+        "liveRederivedHash": "sha256:dba8a4d1a976c44bf8e7d96ce124716288360727c044c4521e6015392a2f9133",
+        "drifted": true
+      },
       "runs": {
         "due": 420,
         "ok": 420,

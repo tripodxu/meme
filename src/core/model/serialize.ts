@@ -2,6 +2,7 @@ import type { InstitutionalRegime, RunConfig } from '../config/types.js';
 import { computeConfigHash, computeParamsHash } from '../config/hash.js';
 import { validateRunConfig } from '../config/validate.js';
 import { canonicalize } from '../hash/jcs.js';
+import { readNumericConstant } from '../params.js';
 import { errorCodes, StratifyError } from '../control/errors.js';
 import { asAgentId, asSeed, type AgentId } from '../control/ids.js';
 import {
@@ -12,6 +13,10 @@ import {
 import { DEATH_REASONS, type AgentState, type DeathReason } from './agent.js';
 import { compareAgentId, type FlowWindowEntry, type SocietyState } from './society.js';
 import type { SimState } from './state.js';
+
+const OPENNESS_INITIAL_REGIME_THRESHOLD = readNumericConstant(
+  'OPENNESS_INITIAL_REGIME_THRESHOLD',
+);
 
 export type SerializedAgent = {
   id: string;
@@ -36,8 +41,9 @@ export type SerializedAgent = {
 };
 
 /**
- * 权威状态的 canonical 序列化形状（`stratify-state-v4`；v4 增补
- * society.institutionalRegime，v3 增补 society.occupancyPressure，v2 增补 society.refIncome）。
+ * 权威状态的 canonical 序列化形状（`stratify-state-v5`；v5 增补 agent 行为特质，
+ * v4 增补 society.institutionalRegime，v3 增补 society.occupancyPressure，
+ * v2 增补 society.refIncome）。
  * 字段集合固定；字段增删或含义变化必须升级 `STATE_SCHEMA_VERSION`。
  */
 export interface SerializedSimState {
@@ -446,7 +452,8 @@ export function decodeSimState(value: unknown): SimState {
   const regimeRaw = societyRecord['institutionalRegime'];
   let institutionalRegime: InstitutionalRegime;
   if (record['schemaVersion'] === STATE_SCHEMA_VERSION_V3 && regimeRaw === undefined) {
-    institutionalRegime = openness >= 0.5 ? 'open' : 'closed';
+    institutionalRegime =
+      openness >= OPENNESS_INITIAL_REGIME_THRESHOLD ? 'open' : 'closed';
   } else if (regimeRaw === 'open' || regimeRaw === 'closed') {
     institutionalRegime = regimeRaw;
   } else {

@@ -215,10 +215,18 @@
   "confirmed": true,
   "claim": "Stage B 确认：主指标 TV(P) 在 w2b 达到预注册门槛，且区间、方向、波动带与完整性条件全部满足（07 §8）。",
   "stageClaim": "确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）。w3 仅作相邻窗口描述，不参与确认。",
-  "experimentId": "p6-stageB-needThreshold-0-9-dbb0b30a",
+  "experimentId": "p6-stageB-needThreshold-0-9-c84b97dd",
   "preregistrationHash": "sha256:dbb0b30a5c40bdc687d983a5e0a4048ac567e5857d905561602dfcc924abe7e2",
   "computedPreregistrationHash": "sha256:dbb0b30a5c40bdc687d983a5e0a4048ac567e5857d905561602dfcc924abe7e2",
   "preregistrationHashConsistent": true,
+  "versionDrift": {
+    "frozenRulesVersion": "rules-v11",
+    "frozenEngineVersion": "engine-v0.9.0",
+    "currentRulesVersion": "rules-v18",
+    "currentEngineVersion": "engine-v0.15.0",
+    "liveRederivedHash": "sha256:c84b97dd446b7452b7a9db99aa56a31159b2ee2bbb8eb30a5f66cd5df13bd032",
+    "drifted": true
+  },
   "sourceArtifact": "out/p6-stageB-slim-needThreshold-0-9.json",
   "runs": {
     "due": 60,

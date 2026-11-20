@@ -4,6 +4,7 @@ import { createDemoConfig } from '../../../src/core/config/defaults.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { createSimulation } from '../../../src/core/init/simulation.js';
 import {
+  classShareSnapshot,
   computeActionSetHash,
   computeAscendCost,
   computeAscendCushion,
@@ -219,5 +220,26 @@ describe('合法行动枚举（03 §5）', () => {
     expect(cost).toBeCloseTo(7 * 2 * 2.2, 9);
     agent.classIndex = 0;
     expect(computeDescendCost(state.config, agent, state.society.eByClass)).toBeNull();
+  });
+});
+
+describe('classShareSnapshot（tick 级缓存，防 O(N²)）', () => {
+  it('同一 agents 数组重复调用返回相同值，且返回值互不共享引用', () => {
+    const state = makeState();
+    const first = classShareSnapshot(state.society.agents, 5);
+    const second = classShareSnapshot(state.society.agents, 5);
+    expect(second).toEqual(first);
+    expect(second).not.toBe(first);
+    second[0] = 0.99;
+    expect(classShareSnapshot(state.society.agents, 5)[0]).toBe(first[0]);
+  });
+
+  it('不同 agents 数组各自计算（缓存以数组身份为键）', () => {
+    const left = makeState();
+    const right = makeState();
+    const leftShares = classShareSnapshot(left.society.agents, 5);
+    const rightShares = classShareSnapshot(right.society.agents, 5);
+    expect(rightShares).toEqual(leftShares);
+    expect(rightShares).not.toBe(leftShares);
   });
 });

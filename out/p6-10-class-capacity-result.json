@@ -1,0 +1,84 @@
+{
+  "experimentId": "p6-10-80e12386",
+  "preregistrationHash": "sha256:80e12386de7f86dd23207eb86330391e8df377912bebea1b8c9b3391ea9822fb",
+  "wallSeconds": 275.92,
+  "runs": {
+    "base": 180,
+    "followup": 60,
+    "excluded": 0,
+    "extinctCount": 0
+  },
+  "k3": {
+    "clusterSizes": [
+      61,
+      117,
+      2
+    ],
+    "clusterComposition": [
+      {
+        "A1_pyramid_share1_w0": 30,
+        "A2_pyramid_share1_w15": 30,
+        "C2_olive_capped_B": 1
+      },
+      {
+        "B1_top_open_share0": 30,
+        "B2_top_open_share01": 29,
+        "C1_olive_capped_A": 29,
+        "C2_olive_capped_B": 29
+      },
+      {
+        "B2_top_open_share01": 1,
+        "C1_olive_capped_A": 1
+      }
+    ],
+    "centroidsRaw": [
+      [
+        0.9144,
+        0.0647,
+        0.0208,
+        0,
+        0,
+        0.4064,
+        0.3425,
+        0.7127,
+        0.7095,
+        0.2135,
+        0.7184
+      ],
+      [
+        0.4013,
+        0.3289,
+        0.246,
+        0.0238,
+        0,
+        0.4188,
+        0.3397,
+        0.9422,
+        0.9398,
+        -0.1105,
+        0.9357
+      ],
+      [
+        0.4022,
+        0.3263,
+        0.2415,
+        0.0122,
+        0.0178,
+        0.5554,
+        0.5085,
+        0.9787,
+        0.9761,
+        -0.1819,
+        0.9225
+      ]
+    ],
+    "ariMedian": 0.8346,
+    "ariMin": 0.4823,
+    "ariMax": 1,
+    "silhouette": 0.5135,
+    "temporalConsistency": 0.9833,
+    "antiPreset": true
+  },
+  "verdict": "not-accepted-return-to-rule-review",
+  "passes": false
+}

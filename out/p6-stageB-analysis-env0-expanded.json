@@ -215,10 +215,18 @@
   "confirmed": false,
   "claim": "Stage B 未确认：主指标 TV(P) 未达预注册门槛，或区间/方向/波动带/完整性条件不满足（07 §8）。",
   "stageClaim": "确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）。w3 仅作相邻窗口描述，不参与确认。",
-  "experimentId": "p6-stageB-env0-expanded-b8aef285",
+  "experimentId": "p6-stageB-env0-expanded-7de621f1",
   "preregistrationHash": "sha256:b8aef285988d6fe08607b485329f77aa01c94c54b947cef1e7f2e76c793e9079",
   "computedPreregistrationHash": "sha256:b8aef285988d6fe08607b485329f77aa01c94c54b947cef1e7f2e76c793e9079",
   "preregistrationHashConsistent": true,
+  "versionDrift": {
+    "frozenRulesVersion": "rules-v11",
+    "frozenEngineVersion": "engine-v0.9.0",
+    "currentRulesVersion": "rules-v18",
+    "currentEngineVersion": "engine-v0.15.0",
+    "liveRederivedHash": "sha256:7de621f13fd4e4e62231d4e1cb000a6ab7a64190a9d4efa081d788ec90eded2b",
+    "drifted": true
+  },
   "sourceArtifact": "out/p6-stageB-slim-env0-expanded.json",
   "runs": {
     "due": 60,

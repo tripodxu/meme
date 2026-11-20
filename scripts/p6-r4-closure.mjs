@@ -198,10 +198,12 @@ if (!isMainThread) {
       valid: valid.length,
       divergedTrajectories: divergedCount,
       baselineD95: Number(d95.toFixed(4)),
-      medianD: Number(quantile(ds, 0.5).toFixed(4)),
-      maxD: Number((ds[ds.length - 1] ?? 0).toFixed(4)),
-      medianTvP: Number(quantile(tvs, 0.5).toFixed(4)),
-      maxTvP: Number((tvs[tvs.length - 1] ?? 0).toFixed(4)),
+      // 不做 4/6 位小数截断：吸收后的 D 可能小到 1e-10 量级，
+      // 截断会把它写成 0，被误读为「完全逐位相同」。JSON 直接保留原值。
+      medianD: quantile(ds, 0.5),
+      maxD: ds[ds.length - 1] ?? 0,
+      medianTvP: quantile(tvs, 0.5),
+      maxTvP: tvs[tvs.length - 1] ?? 0,
       absorbedCount,
       absorbedRate: Number((absorbedCount / valid.length).toFixed(4)),
     };
@@ -226,21 +228,21 @@ if (!isMainThread) {
       }
       const sortNum = (arr) => [...arr].sort((a, b) => a - b);
       const med = (arr) => Number(quantile(sortNum(arr), 0.5).toFixed(4));
+      const medianTvP = med(diffs.map((d) => d.tvP));
       items[abl.key] = {
         pairs: diffs.length,
-        medianTvP: med(diffs.map((d) => d.tvP)),
+        medianTvP,
         medianDG: med(diffs.map((d) => d.dG)),
         medianDMup: med(diffs.map((d) => d.dMup)),
         medianDS: med(diffs.map((d) => d.dS)),
         medianDO: med(diffs.map((d) => d.dO)),
         medianD: med(diffs.map((d) => d.D)),
         overD95Rate: Number((diffs.filter((d) => d.D > d95).length / diffs.length).toFixed(4)),
-        mechanismExplained:
-          med(diffs.map((d) => d.tvP)) >= 0.1 ||
-          med(diffs.map((d) => d.dG)) >= 0.03 ||
-          med(diffs.map((d) => d.dMup)) >= 0.05 ||
-          med(diffs.map((d) => d.dS)) >= 0.05 ||
-          med(diffs.map((d) => d.dO)) >= 0.05,
+        // 07 §11：只有消融后**结构特征显著退化**才可说机制有解释力。
+        // 结构退化的操作化沿用本项目既有门槛（P6-04a、07 §8）：TV(P) >= 0.10。
+        // 不得用单项 ΔO/ΔMup 判「解释」——消融 O 反馈后 ΔO 必然大，属同义反复；
+        // 单项差值只作归因描述，不计入判定。
+        mechanismExplained: medianTvP >= 0.1,
       };
     }
     ablSummary[regime.key] = { baselineD95: Number(d95.toFixed(4)), ablations: items };

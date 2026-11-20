@@ -1,4 +1,5 @@
 import type { Context, Next } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 import type { D1Database, WorkerBindings } from './types.js';
 
@@ -38,12 +39,12 @@ export function errorBody(
 
 export function fail(
   c: Context<WorkerBindings>,
-  status: number,
+  status: ContentfulStatusCode,
   code: ErrorCode,
   message: string,
   details: ErrorDetails = [],
 ): Response {
-  return c.json(errorBody(code, message, c.get('requestId'), details), status as never);
+  return c.json(errorBody(code, message, c.get('requestId'), details), status);
 }
 
 /** 429 统一带标准 Retry-After 秒数响应头（05 §9）。 */
@@ -93,7 +94,21 @@ export async function readJson(
 }
 
 export function hasOnlyKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
-  return Object.keys(value).every((key) => keys.includes(key));
+  const allowed = new Set(keys);
+  return Object.keys(value).every((key) => allowed.has(key));
+}
+
+/**
+ * 常量时间字符串比较（长度差异并入结果位，不提前返回）。
+ * token / 哈希比较必须用它，避免 `!==` 的短路时序泄露前缀信息。
+ */
+export function timingSafeStringEqual(left: string, right: string): boolean {
+  let diff = left.length ^ right.length;
+  const length = Math.max(left.length, right.length);
+  for (let index = 0; index < length; index += 1) {
+    diff |= (left.charCodeAt(index) || 0) ^ (right.charCodeAt(index) || 0);
+  }
+  return diff === 0;
 }
 
 export async function sha256Hex(input: string | ArrayBuffer | Uint8Array): Promise<string> {
@@ -140,7 +155,7 @@ export async function requireWriteToken(
     return { ok: false, response: fail(c, 404, 'not_found', 'run 不存在') };
   }
   const hash = await sha256Hex(token);
-  if (hash !== row.write_token_hash) {
+  if (!timingSafeStringEqual(hash, row.write_token_hash)) {
     return { ok: false, response: fail(c, 403, 'forbidden', 'writeToken 不属于该 run') };
   }
   return { ok: true, row };
@@ -150,7 +165,7 @@ export function requireRunner(c: Context<WorkerBindings>): Response | null {
   const token = parseBearer(c.req.header('authorization'));
   if (token === null) return fail(c, 401, 'unauthorized', '需要 RUNNER_TOKEN');
   const expected = c.env.RUNNER_TOKEN;
-  if (expected === undefined || expected.length === 0 || token !== expected) {
+  if (expected === undefined || expected.length === 0 || !timingSafeStringEqual(token, expected)) {
     return fail(c, 403, 'forbidden', 'RUNNER_TOKEN 无效');
   }
   return null;
@@ -164,7 +179,13 @@ export function clientBucket(c: Context<WorkerBindings>): string {
   return `ip:${ip}`;
 }
 
-/** 固定窗口计数；返回 false 表示超限。 */
+/**
+ * 固定窗口计数；返回 false 表示超限。
+ *
+ * 计数与判定必须是**同一条语句**：先 SELECT 再 INSERT 的写法在并发下会让
+ * 多个请求同时读到旧值而一起放行。这里用条件 UPSERT，
+ * `WHERE count < limit` 不成立时 `meta.changes` 为 0，即为超限。
+ */
 export async function checkRateLimit(
   db: D1Database,
   bucket: string,
@@ -172,20 +193,16 @@ export async function checkRateLimit(
   windowSeconds: number,
   now = Date.now(),
 ): Promise<boolean> {
+  if (!Number.isInteger(limit) || limit < 1) return false;
   const windowStart = Math.floor(now / (windowSeconds * 1000)) * windowSeconds;
-  const row = await db
-    .prepare('SELECT count FROM rate_limits WHERE bucket = ? AND window_start = ?')
-    .bind(bucket, windowStart)
-    .first<{ count: number }>();
-  if ((row?.count ?? 0) >= limit) return false;
-  await db
+  const result = await db
     .prepare(
       `INSERT INTO rate_limits (bucket, window_start, count) VALUES (?, ?, 1)
-       ON CONFLICT(bucket, window_start) DO UPDATE SET count = count + 1`,
+       ON CONFLICT(bucket, window_start) DO UPDATE SET count = count + 1 WHERE count < ?`,
     )
-    .bind(bucket, windowStart)
+    .bind(bucket, windowStart, limit)
     .run();
-  return true;
+  return (result.meta?.changes ?? 0) > 0;
 }
 
 export interface RunRow {

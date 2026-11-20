@@ -5,7 +5,7 @@ import { computeConfigHash } from '../../../src/core/config/hash.js';
 import { HASH_DOMAINS } from '../../../src/core/hash/domains.js';
 import { hashValue } from '../../../src/core/hash/hash.js';
 import { plannedStatsTicks } from '../../../src/worker/contracts.js';
-import { sha256Hex, checkRateLimit } from '../../../src/worker/http.js';
+import { sha256Hex, checkRateLimit, timingSafeStringEqual } from '../../../src/worker/http.js';
 import { app } from '../../../src/worker/index.js';
 import type { Env } from '../../../src/worker/types.js';
 import {
@@ -762,6 +762,22 @@ describe('P4 Worker API', () => {
     expect(await checkRateLimit(db, 'ip:1', 2, 60, 1_001)).toBe(true);
     expect(await checkRateLimit(db, 'ip:1', 2, 60, 1_002)).toBe(false);
     expect(await checkRateLimit(db, 'ip:2', 2, 60, 1_003)).toBe(true);
+  });
+
+  it('限流判定是单条条件 UPSERT：并发超限时只放行 limit 次', async () => {
+    const db = createTestD1();
+    const results = await Promise.all(
+      Array.from({ length: 20 }, () => checkRateLimit(db, 'ip:concurrent', 5, 60, 5_000)),
+    );
+    expect(results.filter(Boolean)).toHaveLength(5);
+  });
+
+  it('timingSafeStringEqual 对内容/长度差异一律返回 false', () => {
+    expect(timingSafeStringEqual('abc', 'abc')).toBe(true);
+    expect(timingSafeStringEqual('abc', 'abd')).toBe(false);
+    expect(timingSafeStringEqual('abc', 'abcd')).toBe(false);
+    expect(timingSafeStringEqual('', '')).toBe(true);
+    expect(timingSafeStringEqual('a'.repeat(64), `${'a'.repeat(63)}b`)).toBe(false);
   });
 
   it('404 统一错误体并带 requestId', async () => {

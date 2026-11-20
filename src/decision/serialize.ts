@@ -8,7 +8,7 @@ import type { TickEvent } from '../core/events.js';
 import type { SimState } from '../core/model/state.js';
 import type { LegalActionSet } from '../core/legal-actions.js';
 import {
-  classShareSnapshot,
+  cachedClassShareSnapshot,
   computeAscendCost,
   computeDescendCost,
 } from '../core/legal-actions.js';
@@ -213,7 +213,10 @@ export function buildDecisionState(
       openness: state.society.openness,
       gini: state.society.gini,
       // 04 §3.2 的 classPopulationShares 是决策时点存活人口的 P[c]，不是初始份额。
-      classPopulationShares: classShareSnapshot(state.society.agents, config.population.classCount),
+      classPopulationShares: cachedClassShareSnapshot(
+        state.society.agents,
+        config.population.classCount,
+      ),
     },
     costs: {
       ascend: ascendCost,

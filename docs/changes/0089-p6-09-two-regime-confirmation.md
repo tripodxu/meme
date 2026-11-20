@@ -1,10 +1,20 @@
 # 0089 — 阶段 R1 `P6-09`（`N=200`）“2 体制 + 连续统”独立确认轮通过
 
-- 日期：2026-11-18
-- 状态：已完成（**`two-regime-candidate` 通过**；240/240 完成、0 排除、0 灭绝；尚待阶段 R4 微扰吸收与五消融收口方可正式通过 G6）
+- 日期：2026-11-18（**2026-11-20 补充适用范围**）
+- 状态：已完成（**`two-regime-candidate` 通过**；240/240 完成、0 排除、0 灭绝；**仍须 R4 通过才可关闭 G6——R4 已按 07 §11 更正为未通过，见 changes/0090**）
 - 关联：[ADR 0010](../adr/0010-two-regime-continuum-silhouette-criterion.md)、[ADR 0006](../adr/0006-target-two-regimes-continuum.md)、[07 §8.2](../07-experiment-calibration.md#L277)、[2026-11-18-scientific-research-roadmap.md](../research/2026-11-18-scientific-research-roadmap.md)
 - 实验：`p6-09-193e28a0`（`preregistrationHash = sha256:193e28a0d0ed04a76bca74e7982af98048901e506b7e9e9888e9b3a27e66ece4`）
 - 复现脚本：[p6-09-two-regime-n200.mjs](../../scripts/p6-09-two-regime-n200.mjs)
+
+## 0. 适用范围（2026-11-20 补充）
+
+本轮的配置是 `rules-v16` + **`generationalMode = 'none'`**，即 **ADR 0009 引入的代际更替机制完全没有启用**。因此：
+
+- 它确认的是「`rules-v13`–`v16` 共有的封闭人口模型」在 `N=200` 下的两体制聚类候选；
+- 它**不**检验「代际更替修复底层抽空」这一 ADR 0009 的核心假设；
+- 不得把本轮结果表述为「代际机制被确认」。
+
+两体制的结构是 `A(share=1)` vs `B–F(share∈{0.3,0.5,0.7})` 的单轴分裂；「连续统」仅由「不存在稳定第三簇」这一零结果支撑，未做连续性检验（如序参量 IQR / 中间态占比），报告措辞不得超出这一范围。
 
 ## 1. 设计
 

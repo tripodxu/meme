@@ -1091,6 +1091,12 @@ export const NUMERIC_CONSTANTS: readonly NumericConstant[] = [
     reason:
       '截断分布拒绝抽样的尝试次数上限（03 §4.2）；sigma 合法域保证期望尝试次数有界，超限抛 invariant_violated。',
   },
+  {
+    name: 'OPENNESS_INITIAL_REGIME_THRESHOLD',
+    value: 0.5,
+    reason:
+      '未显式给出制度初值时，按初始开放度是否达到该阈值推断 closed/open（rules-v13；createSimulation 与 state v3 迁移共用）。',
+  },
 ];
 
 const definitionByName = new Map<string, ParamDefinition>(

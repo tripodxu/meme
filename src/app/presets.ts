@@ -8,9 +8,11 @@ import type { RunConfig } from '../core/config/types.js';
 import type { OfflinePolicyId } from './types.js';
 
 /**
- * 浏览器预设。科学口径见 docs/07：通过 P6-09（ADR 0010）与 R4 微扰/消融闭环后，
- * `regime1_pyramid` 与 `regime2_continuum` 标记为 `calibrated: true`（D1 两体制口径）；
- * 其余探索/轻量演示预设继续严格标记 `calibrated: false`。
+ * 浏览器预设。科学口径见 docs/07：
+ * P6-09 在 ADR 0010 口径下得到 `two-regime-candidate`，但 R4 按 07 §11 的
+ * **结构退化（TV(P) ≥ 0.10）** 口径重算后，五项消融均未达门槛（changes/0090 更正），
+ * 因此 G6 仍未通过、**没有任何预设可标 `calibrated: true`**。
+ * 全部预设（含两体制代表作）一律 `calibrated: false`，只能作为未校准演示。
  */
 export interface WebPreset {
   readonly id: string;
@@ -125,8 +127,8 @@ export const WEB_PRESETS: readonly WebPreset[] = Object.freeze([
   ),
   build(
     'regime1_pyramid',
-    'G6 校准 · 体制 I（位移守恒金字塔）',
-    'P6-09 + R4 确认（N=200, ARI=1.000, 微扰吸收 30/30）；开放度反馈与拥挤抑制主导。',
+    '未校准演示 · 体制 I（位移守恒金字塔）',
+    'P6-09 两体制候选之一（N=200, ARI=1.000；R4 微扰 30/30 吸收）。G6 未通过：消融未达结构退化门槛。',
     'mock-weighted-v1',
     {
       population: { initialPopulation: 200 },
@@ -134,12 +136,12 @@ export const WEB_PRESETS: readonly WebPreset[] = Object.freeze([
       schedule: { totalTicks: 3650 },
     },
     DEFAULT_RUN_CONFIG,
-    true,
+    false,
   ),
   build(
     'regime2_continuum',
-    'G6 校准 · 体制 II（开放连续统代表）',
-    'P6-09 + R4 确认（N=200, TV(P)=0.3471, 微扰吸收 30/30）；开放度反馈 ΔO=0.4021 主导。',
+    '未校准演示 · 体制 II（开放连续统代表）',
+    'P6-09 两体制候选之一（N=200, TV(P)=0.3471；R4 微扰 30/30 吸收）。G6 未通过：消融未达结构退化门槛。',
     'mock-weighted-v1',
     {
       population: { initialPopulation: 200 },
@@ -147,7 +149,7 @@ export const WEB_PRESETS: readonly WebPreset[] = Object.freeze([
       schedule: { totalTicks: 3650 },
     },
     DEFAULT_RUN_CONFIG,
-    true,
+    false,
   ),
   build(
     'ablation-beta0',

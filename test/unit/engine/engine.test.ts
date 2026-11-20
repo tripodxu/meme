@@ -437,6 +437,10 @@ describe('寿命与死亡（03 §6 阶段 E）', () => {
     );
     const delta = accEvent?.type === 'wealth_changed' ? accEvent.delta : 0;
     expect(child?.value).toBeCloseTo((100 + delta) * 0.5, 6);
+    // 遗产守恒：继承额从死者遗产中扣除，二者之和等于死亡时的遗产总额。
+    const deadParent = result.state.society.agents.find((entry) => entry.id === victim.id);
+    expect(deadParent?.value).toBeCloseTo((100 + delta) * 0.5, 6);
+    expect((child?.value ?? 0) + (deadParent?.value ?? 0)).toBeCloseTo(100 + delta, 6);
     expect(result.state.society.agents.filter((a) => a.alive)).toHaveLength(10);
     // 关系对称性与死亡者零边不变量
     for (const a of result.state.society.agents) {

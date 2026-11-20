@@ -13,7 +13,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 
-import { buildBaseConfig } from '../dist/runner/preregistration.js';
+import { buildBaseConfig, computePreregistrationHash } from '../dist/runner/preregistration.js';
+import { ENGINE_VERSION, RULES_VERSION } from '../dist/core/control/versions.js';
 import {
   buildP6StageBManifest,
   computeP6StageBHash,
@@ -198,12 +199,31 @@ function analyze(cellKey) {
     process.exit(2);
   }
   const frozen = JSON.parse(readFileSync(preregPath, 'utf8'));
-  const computedHash = computeP6StageBHash(cellKey);
-  if (frozen.preregistrationHash !== computedHash) {
+  // 完整性 = 冻结 manifest 的**内容**未被改动。不得用「从当前代码重建 manifest」
+  // 来判完整性：rules/engine/参数默认值一升版，重建哈希必然漂移，历史证据会被
+  // 误判为篡改而无法复验。版本漂移单独记录，不阻断分析。
+  const contentHash = computePreregistrationHash(frozen.manifest);
+  if (contentHash !== frozen.preregistrationHash) {
     log(
-      `预注册哈希不一致：${frozen.preregistrationHash} ≠ ${computedHash}；拒绝分析（换实验请新建 experimentId）`,
+      `预注册内容被改动：manifest 内容哈希 ${contentHash} ≠ 冻结值 ${frozen.preregistrationHash}；拒绝分析`,
     );
     process.exit(2);
+  }
+  const liveHash = computeP6StageBHash(cellKey);
+  const versionDrift = {
+    frozenRulesVersion: frozen.manifest.rulesVersion,
+    frozenEngineVersion: frozen.manifest.engineVersion,
+    currentRulesVersion: RULES_VERSION,
+    currentEngineVersion: ENGINE_VERSION,
+    liveRederivedHash: liveHash,
+    drifted: liveHash !== frozen.preregistrationHash,
+  };
+  if (versionDrift.drifted) {
+    log(
+      `[版本漂移] 冻结 manifest 由 ${versionDrift.frozenRulesVersion}/${versionDrift.frozenEngineVersion} 生成；` +
+        `当前为 ${versionDrift.currentRulesVersion}/${versionDrift.currentEngineVersion}。` +
+        '内容哈希已校验，按冻结口径判读，不复用当前代码重建值。',
+    );
   }
   const data = loadAnalysisRuns(cellKey);
   const evaluation = evaluateStageB({
@@ -217,8 +237,9 @@ function analyze(cellKey) {
     ...evaluation,
     experimentId: experimentId(cellKey),
     preregistrationHash: frozen.preregistrationHash,
-    computedPreregistrationHash: computedHash,
+    computedPreregistrationHash: contentHash,
     preregistrationHashConsistent: true,
+    versionDrift,
     sourceArtifact: data.source,
     runs: data.totals,
     isExperimentalEvidence: true,

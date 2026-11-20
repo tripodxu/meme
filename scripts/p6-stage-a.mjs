@@ -22,7 +22,8 @@ import {
   P6_STAGE_A_SEEDS,
   P6_STAGE_A_TICKS,
 } from '../dist/runner/p6-stage-a.js';
-import { buildBaseConfig } from '../dist/runner/preregistration.js';
+import { buildBaseConfig, computePreregistrationHash } from '../dist/runner/preregistration.js';
+import { ENGINE_VERSION, RULES_VERSION } from '../dist/core/control/versions.js';
 import { validateBatchManifest } from '../dist/runner/batch.js';
 import { runBatch } from '../dist/runner/batch-cli.js';
 import { nodeCheckpointHost } from '../dist/runner/checkpoint-fs.js';
@@ -428,12 +429,29 @@ function analyzeStrict() {
       process.exit(2);
     }
     const frozen = JSON.parse(readFileSync(preregPath, 'utf8'));
-    const computedHash = computeP6StageAHash(populationSize);
-    if (frozen.preregistrationHash !== computedHash) {
+    // 完整性按冻结 manifest 的内容判定；当前代码重建值只用于报告版本漂移。
+    const contentHash = computePreregistrationHash(frozen.manifest);
+    if (contentHash !== frozen.preregistrationHash) {
       log(
-        `预注册哈希不一致：${frozen.preregistrationHash} ≠ ${computedHash}；拒绝分析（换实验请新建 experimentId）`,
+        `预注册内容被改动：manifest 内容哈希 ${contentHash} ≠ 冻结值 ${frozen.preregistrationHash}；拒绝分析`,
       );
       process.exit(2);
+    }
+    const liveHash = computeP6StageAHash(populationSize);
+    const versionDrift = {
+      frozenRulesVersion: frozen.manifest.rulesVersion,
+      frozenEngineVersion: frozen.manifest.engineVersion,
+      currentRulesVersion: RULES_VERSION,
+      currentEngineVersion: ENGINE_VERSION,
+      liveRederivedHash: liveHash,
+      drifted: liveHash !== frozen.preregistrationHash,
+    };
+    if (versionDrift.drifted) {
+      log(
+        `[版本漂移] population=${populationSize} 冻结于 ` +
+          `${versionDrift.frozenRulesVersion}/${versionDrift.frozenEngineVersion}，当前 ` +
+          `${versionDrift.currentRulesVersion}/${versionDrift.currentEngineVersion}；按冻结口径判读。`,
+      );
     }
     const slim = JSON.parse(readFileSync(slimPath, 'utf8'));
     const runs = slim.runs.map((run) => ({
@@ -455,12 +473,13 @@ function analyzeStrict() {
         totals: slim.totals,
       }),
     );
-    const computedHash = computeP6StageAHash(populationSize);
+    const computedHash = contentHash;
     return {
       populationSize,
       preregistrationHash: frozen.preregistrationHash,
       computedPreregistrationHash: computedHash,
       preregistrationHashConsistent: true,
+      versionDrift,
       runs: slim.totals,
       cells,
       screenedIn: cells

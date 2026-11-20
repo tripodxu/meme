@@ -95,6 +95,12 @@ export function decideMockWeighted(input: MockDecisionInput): DecisionRecord {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'mock 加权抽样未产生合法行动');
   }
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  if (!(totalWeight > 0)) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      'mock 权重总和必须为正（accumulate 恒有权重，出现 0 说明合法行动集被破坏）',
+    );
+  }
   const probabilities: Record<string, number> = {};
   input.legal.actions.forEach((action, actionIndex) => {
     probabilities[action] = (weights[actionIndex] ?? 0) / totalWeight;
@@ -173,6 +179,12 @@ export function decideMockWeightedV2(input: MockDecisionInput): DecisionRecord {
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, 'mock-v2 加权抽样未产生合法行动');
   }
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  if (!(totalWeight > 0)) {
+    throw new StratifyError(
+      errorCodes.INVARIANT_VIOLATED,
+      'mock 权重总和必须为正（accumulate 恒有权重，出现 0 说明合法行动集被破坏）',
+    );
+  }
   const probabilities: Record<string, number> = {};
   input.legal.actions.forEach((action, actionIndex) => {
     probabilities[action] = (weights[actionIndex] ?? 0) / totalWeight;

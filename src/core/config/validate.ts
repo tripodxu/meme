@@ -14,7 +14,37 @@ import {
   CONFIG_SCHEMA_VERSION_V11,
   RULES_VERSION,
 } from '../control/versions.js';
-import { DEFAULT_RUN_CONFIG } from './defaults.js';
+/**
+ * 历史迁移默认值必须**冻结为字面量**，不得读取 `DEFAULT_RUN_CONFIG`：
+ * 默认值将来一旦调整，旧 schema 的迁移语义必须保持不变，否则同一份旧配置
+ * 会在不同版本下迁移出不同轨迹，而 `configHash` 无法暴露这一点。
+ */
+const MIGRATION_DEFAULTS = Object.freeze({
+  /** v7 → v8（rules-v13 制度状态机）：历史默认与 ADR 0005 冻结值一致。 */
+  v7Regime: Object.freeze({
+    regimeMode: 'continuous',
+    regimeBias: 0,
+    regimeEnterOpenMobility: 0.25,
+    regimeExitOpenMobility: 0.15,
+    regimeEnterOpenSegregation: 0.2,
+    regimeExitOpenSegregation: 0.3,
+  }),
+  /** v8 → v9（rules-v15 行为异质性）：历史默认全 0。 */
+  v8Behavior: Object.freeze({
+    riskTraitSigma: 0,
+    crossClassTraitSigma: 0,
+    riskCompeteSensitivity: 0,
+    crossClassCompeteSensitivity: 0,
+  }),
+  /** v9 → v10（rules-v16 代际更替）：历史默认关闭。 */
+  v9Population: Object.freeze({
+    generationalMode: 'none',
+    bequestRate: 0,
+    classInheritanceRate: 0,
+  }),
+  /** v11 → v12（rules-v18 天赋传递）：历史默认 0。 */
+  v11TalentInheritanceWeight: 0,
+});
 import { errorCodes, type ErrorCode } from '../control/errors.js';
 import { getParamDefinition, readNumericConstant } from '../params.js';
 import type { ArrayDomain, ParamDefinition, ParamDomain } from '../params.js';
@@ -433,15 +463,7 @@ function migrateConfigInput(input: unknown): unknown {
       typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
         ? { ...(rawOpenness as Record<string, unknown>) }
         : {};
-    const defaults = DEFAULT_RUN_CONFIG.openness;
-    const regimeDefaults: Record<string, unknown> = {
-      regimeMode: defaults.regimeMode,
-      regimeBias: defaults.regimeBias,
-      regimeEnterOpenMobility: defaults.regimeEnterOpenMobility,
-      regimeExitOpenMobility: defaults.regimeExitOpenMobility,
-      regimeEnterOpenSegregation: defaults.regimeEnterOpenSegregation,
-      regimeExitOpenSegregation: defaults.regimeExitOpenSegregation,
-    };
+    const regimeDefaults: Record<string, unknown> = { ...MIGRATION_DEFAULTS.v7Regime };
     for (const [key, value] of Object.entries(regimeDefaults)) {
       if (openness[key] === undefined) {
         openness[key] = value;
@@ -455,7 +477,7 @@ function migrateConfigInput(input: unknown): unknown {
       typeof rawBehavior === 'object' && rawBehavior !== null && !Array.isArray(rawBehavior)
         ? { ...(rawBehavior as Record<string, unknown>) }
         : {};
-    const defaults = DEFAULT_RUN_CONFIG.behavior;
+    const defaults = MIGRATION_DEFAULTS.v8Behavior;
     for (const [key, value] of Object.entries(defaults)) {
       if (behavior[key] === undefined) {
         behavior[key] = value;
@@ -469,7 +491,7 @@ function migrateConfigInput(input: unknown): unknown {
       typeof rawPopulation === 'object' && rawPopulation !== null && !Array.isArray(rawPopulation)
         ? { ...(rawPopulation as Record<string, unknown>) }
         : {};
-    const defaults = DEFAULT_RUN_CONFIG.population;
+    const defaults = MIGRATION_DEFAULTS.v9Population;
     if (population['generationalMode'] === undefined) {
       population['generationalMode'] = defaults.generationalMode;
     }
@@ -506,7 +528,7 @@ function migrateConfigInput(input: unknown): unknown {
         ? { ...(rawPopulation as Record<string, unknown>) }
         : {};
     if (population['talentInheritanceWeight'] === undefined) {
-      population['talentInheritanceWeight'] = DEFAULT_RUN_CONFIG.population.talentInheritanceWeight;
+      population['talentInheritanceWeight'] = MIGRATION_DEFAULTS.v11TalentInheritanceWeight;
     }
     record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, population };
   }

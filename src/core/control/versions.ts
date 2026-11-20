@@ -47,7 +47,8 @@ export const CONFIG_SCHEMA_VERSION_V9 = 'stratify-config-v9' as const;
 export const CONFIG_SCHEMA_VERSION_V10 = 'stratify-config-v10' as const;
 export const CONFIG_SCHEMA_VERSION_V11 = 'stratify-config-v11' as const;
 export const PARAMS_SCHEMA_VERSION = 'stratify-params-v1' as const;
-export const INITIAL_POPULATION_SCHEMA_VERSION = 'stratify-initial-population-v1' as const;
+/** v2：rules-v15 起初始个体携带行为特质（与 HASH_DOMAINS.initialPopulation 同步）。 */
+export const INITIAL_POPULATION_SCHEMA_VERSION = 'stratify-initial-population-v2' as const;
 export const PREREGISTRATION_SCHEMA_VERSION = 'stratify-preregistration-v1' as const;
 /** 权威状态序列化 schema；v4 增补 society.institutionalRegime（rules-v13 制度状态机）。 */
 export const STATE_SCHEMA_VERSION = 'stratify-state-v5' as const;

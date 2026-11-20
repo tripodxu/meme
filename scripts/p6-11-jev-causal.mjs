@@ -526,6 +526,16 @@ function analyze(options) {
   }
 
   const pairs = [];
+  const groupCounts = {
+    mock: 0,
+    'live-neutral': 0,
+    'live-survival_hint': 0,
+  };
+  for (const r of included.values()) {
+    if (r.policyVersion === 'mock-weighted-v1') groupCounts.mock += 1;
+    else if (r.promptStyle === 'neutral') groupCounts['live-neutral'] += 1;
+    else if (r.promptStyle === 'survival_hint') groupCounts['live-survival_hint'] += 1;
+  }
   for (const seed of design.seeds) {
     const mock = included.get(runKeyOf('mock-weighted-v1', null, seed));
     const neutral = included.get(runKeyOf('jev_live', 'neutral', seed));
@@ -535,6 +545,42 @@ function analyze(options) {
     }
   }
 
+  // 执行完整性：三臂各 30 组、90/90 有效、0 剔除、0 缺配对、单一服务端模型、
+  // 全部回退率 <= 预注册上限。任一不满足都不得进入因果判定。
+  const responseModels = [
+    ...new Set(
+      [...included.values()].flatMap((r) =>
+        (r.responseModels ?? []).filter((model) => model.length > 0),
+      ),
+    ),
+  ].sort();
+  const maxFallbackRate = Math.max(
+    0,
+    ...[...included.values()].map((r) => r.fallbackRate ?? 0),
+  );
+  const expectedPerGroup = design.seeds.length;
+  const completeness = {
+    expectedRuns: expectedPerGroup * 3,
+    ledgerRuns: ledger.size,
+    validRuns: included.size,
+    excluded: excluded.length,
+    groups: groupCounts,
+    pairedSeeds: pairs.length,
+    responseModels,
+    maxFallbackRate,
+    fallbackLimit: LIVE_FALLBACK_RATE_LIMIT,
+    complete:
+      ledger.size === expectedPerGroup * 3 &&
+      included.size === expectedPerGroup * 3 &&
+      excluded.length === 0 &&
+      groupCounts.mock === expectedPerGroup &&
+      groupCounts['live-neutral'] === expectedPerGroup &&
+      groupCounts['live-survival_hint'] === expectedPerGroup &&
+      pairs.length === expectedPerGroup &&
+      responseModels.length === 1 &&
+      maxFallbackRate <= LIVE_FALLBACK_RATE_LIMIT,
+  };
+
   const dO = pairs.map((p) => p.survival.window.openness - p.neutral.window.openness);
   const dS = pairs.map((p) => p.survival.window.segregation - p.neutral.window.segregation);
   const dMup = pairs.map((p) => p.survival.window.mUp - p.neutral.window.mUp);
@@ -543,19 +589,26 @@ function analyze(options) {
     tvDistance(p.survival.window.classShares, p.neutral.window.classShares),
   );
 
+  // 分析 seed 一律取自预注册（analysisSeed），不再使用未声明的 20261218。
+  const analysisSeed = design.analysis.analysisSeed;
   const summarizeSigned = (vals, name, idxOffset) => {
     const med = median(vals);
+    const seed = analysisSeed + idxOffset;
     const [ciLow, ciHigh] = bootstrapMedianCi(vals, {
-      iterations: 10_000,
-      seed: 20261118 + idxOffset,
+      iterations: design.analysis.bootstrapIterations,
+      seed,
     });
-    const pVal = signFlipPermutationP(vals, { iterations: 100_000, seed: 20261218 + idxOffset });
+    const pVal = signFlipPermutationP(vals, {
+      iterations: design.analysis.permutationIterations,
+      seed,
+    });
     return {
       metric: name,
       median: med,
       ci95: [ciLow, ciHigh],
       ciExcludesZero: ciLow > 0 || ciHigh < 0,
       permutationP: pVal,
+      analysisSeed: seed,
       meetsThreshold05: Math.abs(med) >= 0.05,
     };
   };
@@ -576,22 +629,29 @@ function analyze(options) {
   }
 
   const tvMedian = median(tv);
-  const [tvLow, tvHigh] = bootstrapMedianCi(tv, { iterations: 10_000, seed: 20261118 + 5 });
+  const [tvLow, tvHigh] = bootstrapMedianCi(tv, {
+    iterations: design.analysis.bootstrapIterations,
+    seed: analysisSeed + 5,
+  });
   const primary = metrics[0];
   const passesCausalClaim =
-    pairs.length >= 25 &&
+    completeness.complete &&
     primary.meetsThreshold05 &&
     primary.ciExcludesZero &&
     primary.bhSignificant;
 
   const out = {
-    schemaVersion: 'p6-11-jev-causal-analysis-v1',
+    schemaVersion: 'p6-11-jev-causal-analysis-v2',
     experimentId: artifact.experimentId,
     designHash: artifact.designHash,
     pairedSeeds: pairs.length,
     totalValidRuns: included.size,
     excludedRuns: excluded,
     fallbackLimit: LIVE_FALLBACK_RATE_LIMIT,
+    completeness,
+    // 预注册只声明 requestedModel；实际服务端模型以 ledger 的 responseModels 为准。
+    requestedModel: design.requestedModel,
+    observedResponseModels: responseModels,
     comparison: 'live(survival_hint) - live(neutral)',
     metrics,
     tvP: { median: tvMedian, ci95: [tvLow, tvHigh] },

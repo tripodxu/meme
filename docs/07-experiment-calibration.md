@@ -401,6 +401,8 @@ ARI median 0.178、silhouette 0.175、14600 同簇率 0.650；k=3 簇
 
 只有消融后预期结构特征显著退化，才可说机制“在该实验范围内有解释力”；不能说证明现实因果。
 
+**“结构退化”的操作化**：沿用本项目既有门槛（P6-04a、§8）——`median TV(P) >= 0.10`。单项 `ΔO/ΔMup/ΔS/ΔG` 只作归因描述，**不得**单独作为“机制有解释力”的判据：消融某个反馈后该反馈对应的量必然变化，用 `ΔO` 证明 `O=openness.initial 固定` 有解释力属于同义反复。
+
 Jev 对照至少含 `mock-weighted-v1`、`random-uniform-v1`、jev_live，固定初始人口和规则，并至少比较 `promptStyle=neutral` 与 `promptStyle=survival_hint` 两种提示；规范性提示是 treatment，不得混在同一个 promptVersion 里静默变化。记录 policyVersion、requestedModel、逐决策 responseModel、prompt、原始回答、回退、token、延迟。run 的 responseModels 超过一个时按模型分组并将该批标模型漂移；回退率超闸门或模型漂移批次不参与正式对照合并。
 
 正式 live 对照前先做重测信度：同一组 state 重复 20 次，报告选项分布、top-1 一致率、概率向量的 ICC(2,1) 和重复间平均 TV 距离。进入正式结构对照的门槛为：top-1 一致率 `>=0.70`、ICC `>=0.50`、平均 TV 距离 `<=0.15`；任一项不达标时报告 `model_unstable`，live 只作描述性案例，不作结构差异证据。重复次数少于 20 时只能标 exploratory。按 40 人、730 tick、`decisionInterval=30` 估算，一次 live run 约 40×25=1,000 次到期决策；5–10 个种子约 5,000–10,000 次请求。30 种子×3650 tick 的 14,600 次/run 只适用于 mock/VPS 无模型批量，不得直接套到 live。

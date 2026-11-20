@@ -928,7 +928,12 @@ function spawnSuccessorsForDeaths(
     );
     const uClass = draw(RNG_EVENT_TAGS.birthClass, 0);
     const classIndex = uClass < config.population.classInheritanceRate ? parent.classIndex : 0;
-    const value = parent.value * config.population.bequestRate;
+    // rules-v16：遗产是**从死者遗产中转移**，不是凭空增发。
+    // 先把等额从 parent.value 扣除（死者已退出存活统计），再把同一笔给继承者，
+    // 因此全体个体（含死者）的 Value 总和在出生步骤前后守恒。
+    const bequest = parent.value * config.population.bequestRate;
+    parent.value -= bequest;
+    const value = bequest;
     const child: WorkingAgent = {
       id: childId,
       alive: true,

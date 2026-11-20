@@ -268,7 +268,9 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
         ? new MockPolicyV2()
         : new RandomPolicy());
   const decisionRecords: DecisionRecord[] = [];
-  let dueDecisionCount = 0;
+  // 恢复路径必须把检查点之前已完成的到期数计入，否则 complete 清单的
+  // `expectedDueDecisions` 会只统计恢复之后的段（见 upload-export）。
+  let dueDecisionCount = resumedDecisions.reduce((sum, entry) => sum + entry.due, 0);
   const capture = options.captureArtifacts === true;
   const sink = options.artifactSink;
   const snapshotStride = Math.max(1, options.snapshotStride ?? config.schedule.snapshotStride);
