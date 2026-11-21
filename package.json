@@ -8,8 +8,20 @@
     "node": ">=22.18"
   },
   "packageManager": "pnpm@11.22.0",
+  "bin": {
+    "stratify-batch": "bin/stratify-batch.mjs"
+  },
   "scripts": {
     "check:docs": "node scripts/check-doc-links.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "batch": "node bin/stratify-batch.mjs",
+    "upload": "node scripts/upload-run.mjs",
+    "verify:run": "node scripts/verify-run.mjs",
+    "backup:d1": "node scripts/backup-d1.mjs",
+    "verify:backup": "node scripts/verify-backup.mjs",
+    "smoke:worker": "node scripts/smoke-remote.mjs",
+    "deploy:preview": "wrangler deploy --env preview",
+    "deploy:prod": "wrangler deploy --env production",
     "params:snapshot": "pnpm build && node scripts/generate-param-snapshot.mjs",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
@@ -18,25 +30,40 @@
     "typecheck:core": "tsc --noEmit -p tsconfig.core.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --testTimeout=30000",
     "test:coverage:runner": "vitest run --config vitest.coverage-runner.config.ts --coverage",
     "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
     "test:e2e": "vitest run --config vitest.e2e.config.ts --passWithNoTests",
-    "build": "tsc -p tsconfig.build.json"
+    "test:e2e:browser": "playwright test",
+    "build": "tsc -p tsconfig.build.json",
+    "dev:web": "vite --port 5180 --strictPort",
+    "build:web": "vite build",
+    "preview:web": "vite preview --port 4173",
+    "dev:worker": "wrangler dev",
+    "deploy:worker": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply stratify-local --local",
+    "db:migrate:preview": "wrangler d1 migrations apply stratify-preview --remote --env preview",
+    "db:migrate:prod": "wrangler d1 migrations apply stratify-prod --remote --env production"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261110.1",
+    "@playwright/test": "^1.65.1",
     "@types/node": "22.20.5",
     "@vitest/coverage-v8": "5.0.5",
     "ajv": "^8.20.0",
     "eslint": "10.14.0",
     "fast-check": "4.10.2",
     "globals": "17.14.0",
+    "jsdom": "^31.0.0",
     "prettier": "3.9.10",
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.1",
-    "vitest": "5.0.5"
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "wrangler": "^4.160.0"
   },
   "dependencies": {
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "hono": "^4.13.17"
   }
 }

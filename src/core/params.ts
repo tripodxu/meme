@@ -14,7 +14,8 @@ export type ParamUnit =
   | 'exponent'
   | 'person'
   | 'classCount'
-  | 'count';
+  | 'count'
+  | 'enum';
 
 export type ScalarDomain =
   | {
@@ -103,6 +104,53 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     guardOnly: false,
     affectsBehavior: true,
     wireTest: 'uniform 与 newborn 在同 seed 下产生不同 initialPopulationHash，且都消费 init_age。',
+  },
+  {
+    name: 'population.generationalMode',
+    unit: 'dimensionless',
+    formulaRef: '03 §6 阶段 E（rules-v16，ADR 0009）',
+    domain: { kind: 'enum', values: ['none', 'replace'] },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'none 与 rules-v15 逐位一致；replace 在死亡后生成新个体，长视野下维持人口存活。',
+  },
+  {
+    name: 'population.bequestRate',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 E（rules-v16，ADR 0009）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'replace 模式下改变 bequestRate 会按比例改变新生个体继承的初始 Value。',
+  },
+  {
+    name: 'population.classInheritanceRate',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 E（rules-v16，ADR 0009）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'replace 模式下 0 让新生个体从 0 层起步，1 让其继承亲代阶级。',
+  },
+  {
+    name: 'population.talentInheritanceWeight',
+    unit: 'dimensionless',
+    formulaRef:
+      '03 §6 阶段 E（rules-v18，R2-B）：ge_child = clamp(ge_raw*(1+γ*z[parentClass]*(1-O)), min, max)',
+    domain: { kind: 'number', min: 0, max: 2 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'replace 模式下 0 与 rules-v17 逐位一致；>0 时低开放度下亲代阶级调节新生儿天赋 ge。',
+  },
+  {
+    name: 'population.lineageDiscount',
+    unit: 'dimensionless',
+    formulaRef:
+      '03 §6 阶段 E（rules-v19，ADR 0014）：ge_child = ge_raw * (1 - d * (1 - parentClass/(C-1)))',
+    domain: { kind: 'number', min: 0, max: 0.8 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'replace 模式下 0 与 rules-v18 逐位一致；>0 时低阶级亲代的新生儿 ge 被折损。',
   },
   {
     name: 'opportunity.dailyBase',
@@ -265,6 +313,42 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     guardOnly: false,
     affectsBehavior: true,
     wireTest: '截断上界改变后越界样本被重抽。',
+  },
+  {
+    name: 'behavior.riskTraitSigma',
+    unit: 'dimensionless',
+    formulaRef: '03 §3 行为异质性 / rule.md（rules-v15，ADR 0007）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '改变 sigma 后 riskTolerance 分布扩张；0 时恒为 0.5，mock-v2 与 v1 逐位一致。',
+  },
+  {
+    name: 'behavior.crossClassTraitSigma',
+    unit: 'dimensionless',
+    formulaRef: '03 §3 行为异质性 / rule.md（rules-v15，ADR 0007）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '改变 sigma 后 crossClassOpenness 分布扩张；0 时恒为 0.5。',
+  },
+  {
+    name: 'behavior.riskCompeteSensitivity',
+    unit: 'dimensionless',
+    formulaRef: '04 §2.1 mock-weighted-v2（rules-v15，ADR 0007）',
+    domain: { kind: 'number', min: 0, max: 10 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '提高 θrisk 后高 riskTolerance 个体的竞争权重上升；0 时权重不变。',
+  },
+  {
+    name: 'behavior.crossClassCompeteSensitivity',
+    unit: 'dimensionless',
+    formulaRef: '04 §2.1 mock-weighted-v2（rules-v15，ADR 0007）',
+    domain: { kind: 'number', min: 0, max: 10 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '提高 θcross 后高 crossClassOpenness 个体对跨层目标的竞争权重上升；0 时不变。',
   },
   {
     name: 'effort.shape',
@@ -452,6 +536,31 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest:
       'H=0 时 m_c=p_c，与 rules-v10 逐位一致；H>0 时占比回落后 m_c 按 e^{-1/H} 衰减，' +
       '下一 tick 的 ascend 枚举与引擎复核仍看到正壁垒；改变 H 改变壁垒序列而非当前 tick 的瞬时压力。',
+  },
+  {
+    name: 'ascent.classCapacity',
+    unit: 'ratio',
+    formulaRef:
+      '03 §6 阶段 B / rule.md 9（rules-v17，ADR 0011）：P[target] >= classCapacity[target] 时禁止上升',
+    domain: {
+      kind: 'array',
+      length: 'classCount',
+      element: { kind: 'number', exclusiveMin: 0, max: 1 },
+    },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest:
+      '全 1 时与 rules-v16 逐位一致；下调 classCapacity[c] 后占比达上限时 ascend 不再合法。',
+  },
+  {
+    name: 'ascent.hardGateStrength',
+    unit: 'dimensionless',
+    formulaRef:
+      '03 §6 阶段 B（rules-v19，ADR 0014）：M_gate = 1 + g * o^2/(1-o)，o = min(P[target]/classCapacity[target], 1-1e-6)',
+    domain: { kind: 'number', min: 0, max: 4 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: 'g=0 与 rules-v18 逐位一致；>0 时目标层占用接近容量会抬高 ascend 成本。',
   },
   {
     name: 'competition.powerValueExponent',
@@ -799,6 +908,69 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     wireTest: '改变 λO 后 O 对跨越成本乘子的敏感度改变；上限 100 仅作溢出护栏。',
   },
   {
+    name: 'openness.selfReinforcement',
+    unit: 'dimensionless',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v12）',
+    domain: { kind: 'number', min: 0, max: 20 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '改变 θH 后 O_target 的自反馈项 θH×(O_prev−0.5) 改变；θH=0 与 rules-v11 逐位一致。',
+  },
+  {
+    name: 'openness.regimeMode',
+    unit: 'enum',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'enum', values: ['continuous', 'hysteresis'] },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '切到 hysteresis 后制度状态机参与 O_target；continuous 与 rules-v12 逐位一致。',
+  },
+  {
+    name: 'openness.regimeBias',
+    unit: 'dimensionless',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: 0, max: 20 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '改变 θR 后 open/closed 两个制度对 O_target 的偏置改变。',
+  },
+  {
+    name: 'openness.regimeEnterOpenMobility',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '提高进入阈值后 closed→open 更晚发生。',
+  },
+  {
+    name: 'openness.regimeExitOpenMobility',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: 0, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '降低退出阈值后 open→closed 更晚发生（迟滞带变宽）。',
+  },
+  {
+    name: 'openness.regimeEnterOpenSegregation',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: -1, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '降低进入 S 上界后 closed→open 更严格。',
+  },
+  {
+    name: 'openness.regimeExitOpenSegregation',
+    unit: 'ratio',
+    formulaRef: '03 §6 阶段 H / rule.md 42、45（rules-v13）',
+    domain: { kind: 'number', min: -1, max: 1 },
+    guardOnly: false,
+    affectsBehavior: true,
+    wireTest: '提高退出 S 上界后 open→closed 更晚发生（迟滞带变宽）。',
+  },
+  {
     name: 'openness.multiplierMin',
     unit: 'ratio',
     formulaRef: '03 §3 跨越动态乘子 / rule.md 44',
@@ -838,7 +1010,10 @@ export const PARAM_DEFINITIONS: readonly ParamDefinition[] = [
     name: 'decision.policy',
     unit: 'dimensionless',
     formulaRef: '04 §2.1 默认 mock 与 random 策略',
-    domain: { kind: 'enum', values: ['mock-weighted-v1', 'random-uniform-v1', 'jev_live'] },
+    domain: {
+      kind: 'enum',
+      values: ['mock-weighted-v1', 'mock-weighted-v2', 'random-uniform-v1', 'jev_live'],
+    },
     guardOnly: false,
     affectsBehavior: true,
     wireTest: '切换策略后决策来源与采样地址改变。',
@@ -935,6 +1110,12 @@ export const NUMERIC_CONSTANTS: readonly NumericConstant[] = [
     value: 10000,
     reason:
       '截断分布拒绝抽样的尝试次数上限（03 §4.2）；sigma 合法域保证期望尝试次数有界，超限抛 invariant_violated。',
+  },
+  {
+    name: 'OPENNESS_INITIAL_REGIME_THRESHOLD',
+    value: 0.5,
+    reason:
+      '未显式给出制度初值时，按初始开放度是否达到该阈值推断 closed/open（rules-v13；createSimulation 与 state v3 迁移共用）。',
   },
 ];
 

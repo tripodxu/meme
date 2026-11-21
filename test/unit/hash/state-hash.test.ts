@@ -104,6 +104,17 @@ describe('hash domain 输入 schema 覆盖（02 §8）', () => {
       expect(documented.has(domain)).toBe(true);
     }
   });
+
+  it('v15 行为特质进入 initialPopulationHash', () => {
+    const base = deriveInitialPopulation(DEFAULT_RUN_CONFIG, SEED_A);
+    const heteroConfig = createDemoConfig({
+      behavior: { riskTraitSigma: 0.4, crossClassTraitSigma: 0.3 },
+    });
+    const hetero = deriveInitialPopulation(heteroConfig, SEED_A);
+    expect(computeInitialPopulationHash(SEED_A, hetero)).not.toBe(
+      computeInitialPopulationHash(SEED_A, base),
+    );
+  });
 });
 
 // 测试辅助：避免在多个用例中重复 import

@@ -1,4 +1,4 @@
-import type { RunConfig } from '../config/types.js';
+import type { InstitutionalRegime, RunConfig } from '../config/types.js';
 import { errorCodes, StratifyError } from '../control/errors.js';
 import { clamp } from '../engine/arith.js';
 import { stableSigmoid } from '../engine/settlement.js';
@@ -58,6 +58,34 @@ export function polarizationZ(classIndex: number, classCount: number): number {
 }
 
 /**
+ * rules-v13 显式制度状态机（ADR 0005）：仅 `regimeMode='hysteresis'` 时更新。
+ *
+ * `closed → open` 需要同时满足 `Mup >= enterM` 且 `S <= enterS`；
+ * `open → closed` 需要 `Mup <= exitM` 或 `S >= exitS`。
+ * 进入与退出阈值之间形成滞回带，使制度不会在边界抖动。
+ */
+export function nextInstitutionalRegime(
+  config: RunConfig,
+  current: InstitutionalRegime,
+  mUp: number,
+  segregation: number,
+): InstitutionalRegime {
+  if (config.openness.regimeMode !== 'hysteresis') {
+    return current;
+  }
+  if (current === 'closed') {
+    return mUp >= config.openness.regimeEnterOpenMobility &&
+      segregation <= config.openness.regimeEnterOpenSegregation
+      ? 'open'
+      : 'closed';
+  }
+  return mUp <= config.openness.regimeExitOpenMobility ||
+    segregation >= config.openness.regimeExitOpenSegregation
+    ? 'closed'
+    : 'open';
+}
+
+/**
  * 仅决策周期更新 O（03 §6 阶段 H）：`Δt=tick-lastOpennessUpdateTick`，
  * 更新后写回；tick 0 的 Δt=0，首次更新不改变 O。
  * `openness.updateMode=fixed`（P1-10 消融开关）时跳过整个块，O 恒等于 `openness.initial`。
@@ -71,6 +99,7 @@ export function maybeUpdateOpenness(
     readonly mUp: number;
     readonly gini: number;
     readonly segregation: number;
+    readonly regime: InstitutionalRegime;
   },
 ): { openness: number; lastOpennessUpdateTick: number } {
   if (config.openness.updateMode === 'fixed') {
@@ -80,12 +109,22 @@ export function maybeUpdateOpenness(
     };
   }
   const deltaT = input.tick - input.lastOpennessUpdateTick;
+  // rules-v13：显式制度对 O 目标的偏置；continuous 时 θR 不参与，与 v12 逐位一致。
+  const regimeBias =
+    config.openness.regimeMode === 'hysteresis'
+      ? input.regime === 'open'
+        ? config.openness.regimeBias
+        : -config.openness.regimeBias
+      : 0;
   const oTarget = stableSigmoid(
     config.openness.intercept +
       config.openness.mobilityWeight * (input.mUp - config.openness.mobilityReference) -
       config.openness.giniWeight * (input.gini - config.dynamics.giniReference) -
       config.openness.segregationWeight *
-        (input.segregation - config.openness.segregationReference),
+        (input.segregation - config.openness.segregationReference) +
+      // rules-v12：O 目标的自反馈/迟滞；θH=0 时与 v11 逐位一致。
+      config.openness.selfReinforcement * (input.openness - 0.5) +
+      regimeBias,
   );
   const updated =
     input.openness +

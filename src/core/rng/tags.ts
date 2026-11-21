@@ -14,6 +14,10 @@ export const RNG_EVENT_TAGS = {
   initLife: 'init_life',
   /** 初始年龄；`uniform`/`newborn` 两种模式都消费该地址。 */
   initAge: 'init_age',
+  /** rules-v15：风险特质；sigma=0 时仍消费但结果恒为 0.5。 */
+  initRiskTrait: 'init_risk_trait',
+  /** rules-v15：跨层意愿特质；sigma=0 时仍消费但结果恒为 0.5。 */
+  initCrossClassTrait: 'init_cross_class_trait',
   networkInit: 'network_init',
   actionOrder: 'action_order',
   /** 竞争候选：counter 2k 选 local/global 来源，2k+1 选目标。 */
@@ -31,6 +35,10 @@ export const RNG_EVENT_TAGS = {
   displacementAdmit: 'displacement_admit',
   /** 网络重构判定；counter 1 选旧边、counter 2 选新候选（03 §4.4）。 */
   networkRewire: 'network_rewire',
+  /** rules-v16：代际更替新生儿初始阶级判定。 */
+  birthClass: 'birth_class',
+  /** rules-v16：代际更替新生儿初始关系网络加边。 */
+  networkBirth: 'network_birth',
 } as const;
 
 export type RngEventTag = (typeof RNG_EVENT_TAGS)[keyof typeof RNG_EVENT_TAGS];

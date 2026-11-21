@@ -2,13 +2,21 @@
 
 > 本文把 `rule.md` 的 59 条规则转成唯一结算口径。默认数值用于首轮校准，不代表已验证结论。
 >
-> **当前版本**：`rules-v11`。相对 v10 的修订（changes/0027）：新增占用压力记忆
-> `ascent.occupancyMemoryDays`（默认 0 与 v10 逐位一致；
-> `m_c(t)=max(p_c(t), e^{-1/H}·m_c(t−1))`，上升壁垒改用记忆），
-> 状态 schema 升至 `stratify-state-v3`（SocietyState 增补 `occupancyPressure`）。
+> **当前版本**：`rules-v19`。相对 v18 的修订（ADR 0014、changes/0098）：新增岗位容量
+> 硬门槛 `ascent.hardGateStrength`（默认 0）与代际出身折损 `population.lineageDiscount`
+> （默认 0）；两者为 0 时与 `rules-v18` 运行轨迹逐位一致，详见 §6.12。
 >
 > **版本沿革**：
 >
+> - **v19**（ADR 0014）：岗位容量硬门槛 `M_gate(c)=1+g·o_c²/(1−o_c)`；新生儿天赋按亲代阶级折损 `ge_raw·(1−d·(1−c_parent/(C−1)))`，均不读取 O。
+> - **v18**（ADR 0012）：代际天赋传递 `population.talentInheritanceWeight`（默认 0 与 v17 一致）。
+> - **v17**（ADR 0011）：阶级结构容量上限 `ascent.classCapacity`（默认全 1 与 v16 一致）。
+> - **v16**（ADR 0009）：代际更替 `population.generationalMode='replace'`（默认 `none` 与 v15 一致）与遗产折算 `bequestRate`、出身继承 `classInheritanceRate`。
+> - **v15**（ADR 0007）：个体行为异质性（§6.11）。
+> - **v14**（ADR 0006）：仅目标修订，无结算语义变化。
+> - **v13**（ADR 0005）：显式制度状态机 `openness.regimeMode/regimeBias`（默认 `continuous`/0 与 v12 一致）。
+> - **v12**（ADR 0004）：开放度自反馈 `openness.selfReinforcement`（默认 0）。
+> - **v11**（changes/0027）：占用压力记忆 `ascent.occupancyMemoryDays`（默认 0 与 v10 一致）。
 > - **v10**（changes/0013）：占用锚定 `ascent.scarcityWeight`（默认 0 与 v9 一致；目标阶级超机会隐含份额时抬升上升余额门槛）。
 > - **v9**（changes/0012）：位移准入份额 `ascent.displacementShare`（默认 1 与 v8 一致；<1 时其余份额走开放准入）。
 > - **v8**（changes/0010）：位移准入——`'class'` 参照系下上升须击败目标阶级在位者，被击败者降级（零和下行流）。
@@ -24,7 +32,7 @@
 
 - tick 从 `0` 开始，1 tick = 1 模拟日；`step(t)` 结算 tick t 后生成 tick t+1 的期初状态。
 - 交互演示默认 40 人、120 tick；结构实验默认 3650 tick，舍弃前 365 tick，使用至少 730 tick 窗口。
-- 固定人口，无出生/迁入；死亡个体永久退出，不参与任何后续结算。
+- 默认 `population.generationalMode='none'` 时固定人口、无出生/迁入；`replace`（rules-v16）时每 tick 死亡个体 1:1 替补、ID 不复用。死亡个体永久退出，不参与任何后续结算。
 - 当 tick 末存活人数为 0 且该 tick 早于最后一个计划 tick 时，run 以 `endReason=extinct` 技术完成，不再调用 step；最终状态的 `tick=t+1`。若全死亡恰好发生在最后一个计划 tick（`t=totalTicks-1`），仍记 `scheduled`，但必须置 `finalAliveCount=0` 并标记“不可用于结构判异”。全死亡实验不得用于正常社会结构判异。
 - 所有 Value 变化以事件记录；Value 必须有限且 `>=0`。不得暗中取整财富。
 - 只有到期个体能主动行动。默认 `decisionInterval=10`，当 `tick % 10 == 0` 时全部存活个体到期；其余 tick 仅自动积累与后续管线。
@@ -80,7 +88,7 @@
 | 努力函数     | `F(h)=(1-exp(-FShape×h))/(1-exp(-FShape))`，`FShape=1.2`                                                                                                                         |
 | 需求         | `needThreshold=0.5`，`belowNeedLimit=14`，`bufferDays=30`，`buffer(age)=clamp((age-1)/(bufferDays-1),0,1)`，`needMultiplier=[1.0,1.3,1.8,2.5,3.5]`，`envExponent=1.0`（v4 新增） |
 | 主动降阶     | `descendDays=7`，`descendCost=descendDays×B×E[t,currentClass]`                                                                                                                   |
-| 上升         | `crossDays=[30,40,50,60]`，`crossBase=crossDays[c]×B×E[t,c+1]`                                                                                                                   |
+| 上升         | `crossDays=[30,40,50,60]`（`class` 模式 `crossBase=crossDays[c]×refIncome[c+1]`）；`classCapacity=[1,1,1,1,1]`（v17）、`hardGateStrength=0`（v19）                               |
 | 重返         | 距历史最高阶级 `d=1/2/>=3` 时依次应用 `returnDiscount=[0,0.20,0.40]`；三项都必须可被接线测试观测，默认值允许 `returnDiscount[0]=0`                                               |
 | 竞争能力     | `power=(1+Value)^powerValueExponent×ge^powerGeExponent×hard^powerHardExponent`，默认 `0.35/0.6/0.4`                                                                              |
 | 跨层能力     | 原发起方 ×`crossClassInitiatorMultiplier=0.85`，原被竞争方 ×`crossClassTargetMultiplier=1.15`，同层均 ×1                                                                         |
@@ -91,7 +99,7 @@
 | 网络机会     | `β=0.6`，乘子截断 `[opportunityMin,opportunityMax]=[0.70,1.50]`                                                                                                                  |
 | 动态 E       | `ρE=0.03`、`η=0.35`、`κ=0.8`、`Gref=0.25`                                                                                                                                        |
 | 拥挤/分化    | Congestion 截断 `[congestionMin,congestionMax]=[0.20,1.20]`，Polarization 截断 `[polarizationMin,polarizationMax]=[0.85,1.18]`                                                   |
-| 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=3`（v4 由 8 下调）、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`λO=2`                                                                              |
+| 开放度       | `O0=0.5`、`τO=60`、`θ0=0`、`θM=3`（v4 由 8 下调）、`Mref=0.10`、`θG=6`、`θS=4`、`Sref=0.30`、`θH=0`（v12）、`λO=2`                                                               |
 | 跨越动态乘子 | 截断 `[0.50,2.50]`                                                                                                                                                               |
 | 流动率       | 参与率窗口 `metrics.mobilityWindowDays=365`；`Mup/Mdown` 不使用 EMA、不按日频截断                                                                                                |
 | 转移矩阵     | `metrics.flowWindowDays=365`；窗口内累计阶级转移计数与行暴露量                                                                                                                   |
@@ -127,7 +135,7 @@
 | 数组      | env0/decay/needMultiplier 长度为 C，crossDays 长度为 C-1；env0/crossDays/B>0；`0<=decay<=3`；needMultiplier 非递减、`needMultiplier[0]=1`、每项在 `[1,6]`                                                                                                                                                    |
 | 分布      | ge/hard 的 sigma 在 `[0, ln(max/min)]`、截断满足 `0<min<=median<=max`；寿命 `0<min<=mean<=max`、sigma 在 `[0, max-min]`（sigma 上界是拒绝采样收敛护栏；待议 D-02）                                                                                                                                           |
 | 需求/跨越 | needThreshold 在 `[0,1]`；belowNeedLimit>=1 整数；bufferDays>=2；`envExponent` 在 `[0,4]`（v4 新增；0 为 v3 语义消融值）；`holdingCushionDays` 在 `[0,365]` 整数（v5 新增；0 为 v4 语义消融值）；descendDays>0；重返减免为固定长度 3 的非递减数组，依次对应 `d=1/2/>=3`，每项在 `[0,1]` 且三项都必须参与计算 |
-| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`；`openness.updateMode` 为 `dynamic` 或 `fixed`                                                                                                             |
+| 反馈      | β/η/κ/H/hV>=0（消融值 0 合法）；`0<=λO<=100`；`0<ρE<=1`；τO>0；Gref/Mref 在 `[0,1]`，Sref 在 `[-1,1]`；`0<=θM/θG/θS<=100`，θ0 有限且在 `[-20,20]`，θH 在 `[0,20]`（v12）；`openness.updateMode` 为 `dynamic` 或 `fixed`                                                                                      |
 | 寿命损耗  | `hardLifeFactor` 在 `[0,10]`；`hardLifeFloor` 为 `(0,1]` 的正数且必须 `<= 1+hardLifeFactor×(attributes.hard.min-1)`，保证在合法 `hard` 域内只作数值护栏、不产生业务分支（配置面去留见待议 D-01）                                                                                                             |
 | 网络/候选 | `maxDegree` 为 `[0,6]` 整数；initialDegree 为 `[0,6]` 整数；`competition.candidateCount` 为 `[0,6]` 整数；localTargetProbability 在 `[0,1]`，global 概率恒为 `1-localTargetProbability`                                                                                                                      |
 | 竞争      | 三个 power 指数在 `[0,4]`；lossRate 在 `[0,0.5]`；`baseTransferEfficiency` 在 `[0,1]`（同层与防守方方向乘子恒为 1）；各方向乘子在 `[0,1.25]`；所有 `baseTransferEfficiency×directionMultiplier<=1`（包括隐含乘子 1）                                                                                         |
@@ -437,11 +445,76 @@ E[next,c]=(1-ρE)×E[t,c]+ρE×Eraw
 仅在决策周期更新 O，`Δt=tick-lastOpennessUpdateTick`，更新后写回 `lastOpennessUpdateTick=tick`；tick 0 的 `Δt=0`，首次更新不改变 O：
 
 ```text
-Otarget=sigmoid(θ0+θM×(Mup-Mref)-θG×(G-Gref)-θS×(S-Sref))
+regime' = updateRegime(regime, Mup, S)          # rules-v13；仅 dynamic + hysteresis
+Otarget=sigmoid(θ0+θM×(Mup-Mref)-θG×(G-Gref)-θS×(S-Sref)+θH×(O_prev-0.5)+θR×sign(regime'))
 O=O+(Otarget-O)×(1-exp(-Δt/τO))
 ```
 
-`openness.updateMode=fixed` 时跳过上述 O 更新，O 始终保持 `openness.initial`；该开关必须作为可哈希配置项实现（P1-10），不得用极大 `τO` 近似。同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
+`θH` 是 rules-v12 的 `openness.selfReinforcement`（默认 0、域 [0,20]）；`O_prev` 为本 tick 更新前的 O，不使用同期更新值。`θH=0` 与 rules-v11 逐位一致；`θH>0` 允许两个稳定不动点，但 P6-05c 未产生稳定第三簇（ADR 0004、changes/0060/0061）。
+
+`regime ∈ {closed, open}` 是 rules-v13 的显式制度状态（`society.institutionalRegime`）；`updateRegime` 规则：`closed→open` 需 `Mup >= enterM` 且 `S <= enterS`，`open→closed` 需 `Mup <= exitM` 或 `S >= exitS`，其余保持。`θR` 是 `openness.regimeBias`（默认 0、域 [0,20]），`sign(open)=+1`、`sign(closed)=-1`。`regimeMode='continuous'` 或 `updateMode='fixed'` 时制度不更新；默认 `continuous` 与 rules-v12 逐位一致。`θR>0` 能否形成第三类结构必须由 P6-05d 检验（ADR 0005、changes/0063）。
+
+`openness.updateMode=fixed` 时跳过上述 O 更新，O 始终保持 `openness.initial`，制度也保持初值；该开关必须作为可哈希配置项实现（P1-10），不得用极大 `τO` 近似。同一 tick 不得用新 E/O 回头重算刚完成的 gain/cost/network。
+
+### 6.11 个体行为异质性（rules-v15，ADR 0007）
+
+初始化阶段在 `init_ge`/`init_hard`/`init_life`/`init_age` 之后、网络初始化之前，
+为每个个体派生两个不可变特质（`tick=-1`，地址化随机流）：
+
+```text
+riskTolerance      = clamp(0.5 + behavior.riskTraitSigma      × (2·R(seed,-1,id,'init_risk_trait',0)      − 1), 0, 1)
+crossClassOpenness = clamp(0.5 + behavior.crossClassTraitSigma × (2·R(seed,-1,id,'init_cross_class_trait',0) − 1), 0, 1)
+```
+
+`sigma=0` 时仍消费地址但恒为 `0.5`；特质进入 `initialPopulationHash` 与
+`society.agents[*]`，初始化后不随任何结算阶段改变。**A–H 阶段（需求、
+跌落、流动、竞争结算、网络重构、慢变量）一律不得读取特质**；它们只被
+`mock-weighted-v2` 策略用于 `compete` 权重（docs/04 §2.1）：
+
+```text
+w_compete = w_v1 × exp(θrisk×(riskTolerance−0.5) + θcross×(crossClassOpenness−0.5)×[target.class≠self.class])
+```
+
+默认 `behavior.*=0` 且 `decision.policy='mock-weighted-v1'` 时，结算轨迹与
+rules-v13/v14 逐位一致；`mock-weighted-v2` 在敏感性为 0 时与 v1 逐位一致。
+配置 v8→v9 补 `behavior` 默认 0；状态 v3/v4→v5 缺特质按 0.5 迁移。
+P6-07 是机制探索轮，不构成 G6 确认（ADR 0007、changes/0067）。
+
+### 6.12 代际更替与出身机制（rules-v16–v19）
+
+**出生（v16，ADR 0009）**：`generationalMode='replace'` 时，阶段 E 结算死亡后按 1:1
+替补，子代 ID 单调递增且永不复用；以 `(seed, tick, childId)` 独立地址抽样
+`init_ge/init_hard/init_life/init_risk_trait/init_cross_class_trait/birth_class/network_birth`。
+遗产为**转移**而非增发：`bequest = parent.value × bequestRate` 先从死者扣除、再给子代
+（`value=bequest`，其余子代 `value=0`）。子代初始阶级：`R(birth_class) < classInheritanceRate`
+时继承亲代阶级，否则为 0。默认 `none` 不消费任何随机数，与 v15 逐位一致。
+
+**代际天赋（v18，ADR 0012）**：`ge_child = ge_raw × (1 + γ·(c_parent/(C−1) − 0.5)·(1−O))`，
+`γ = population.talentInheritanceWeight`；`γ=0` 时 `ge_child=ge_raw`。
+
+**出身折损（v19，ADR 0014）**：先按亲代阶级折损，再叠加 v18 传递：
+
+```text
+ge_base  = clamp(ge_raw × (1 − d·(1 − c_parent/(C−1))), ge.min, ge.max)   // d = population.lineageDiscount
+ge_child = γ = 0 ? ge_base : clamp(ge_base × (1 + γ·(c_parent/(C−1) − 0.5)·(1−O)), ge.min, ge.max)
+```
+
+两个机制都不读取 E；`d=0` 时 `ge_base=ge_raw`，与 v18 逐位一致。
+
+**岗位容量（v17，ADR 0011）**：期初存活占比 `P_c >= classCapacity[c]` 时上升不合法，
+枚举与执行复核使用同一 tick 期初快照。
+
+**岗位容量硬门槛（v19，ADR 0014）**：`o_c = min(P_c / classCapacity[c], 1 − 1e−6)`，
+
+```text
+M_gate(c) = 1 + g · o_c² / (1 − o_c)          // g = ascent.hardGateStrength
+ascendCost = crossBase × (1 − discount) × openMultiplier × M_gate
+```
+
+`P_c` 与 v10 占用压力、v17 容量门共用同一期初快照；`g=0` 时 `M_gate=1`，与 v18
+逐位一致。`classCapacity[c] <= 0` 或占比数组缺项时门槛不生效（配置校验已拒绝非正容量）。
+v19 只增加机制，不改变 `θH/θR/θS/H/share/w/k`；是否具备结构解释力由预注册探针
+（`explore-r2c`）与 07 §11 判读，不构成校准。
 
 ## 7. 不变量
 

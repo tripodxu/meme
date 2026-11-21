@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "p6-stageB-analysis-v2",
+  "cellKey": "env0=expanded",
+  "targetCellKey": "env0=expanded",
+  "primaryMetric": "TV(P)",
+  "primaryMetricKey": "tv",
+  "protocolConflict": true,
+  "completeness": {
+    "ok": true,
+    "expectedRuns": 60,
+    "actualRuns": 60,
+    "expectedPairs": 30,
+    "paired": 30,
+    "baselineRuns": 30,
+    "candidateRuns": 30,
+    "extinct": 0,
+    "fallback": 0,
+    "missingWindow": 0,
+    "incompleteWindow": 0,
+    "nonFinite": 0,
+    "totalsOk": true
+  },
+  "baselineD95": 0.019930456262808052,
+  "beyondBandRate": 1,
+  "metrics": {
+    "tv": {
+      "median": 0.06465737333457816,
+      "ci95": [
+        0.05736235340976882,
+        0.069226115664102
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00005999940000599994
+    },
+    "gini": {
+      "median": 0.03390187675982684,
+      "ci95": [
+        0.02814660860137913,
+        0.040987792465391915
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": true,
+      "paired": 30,
+      "permutationP": 0.00003999960000399996
+    },
+    "mUp": {
+      "median": -0.04344827629688708,
+      "ci95": [
+        -0.046365161134979016,
+        -0.04105718078536774
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "mDown": {
+      "median": -0.04555524245920389,
+      "ci95": [
+        -0.04779117785357473,
+        -0.04146419125895967
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "segregation": {
+      "median": 0.008250353301423083,
+      "ci95": [
+        0.004732325282113937,
+        0.01422498605991954
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.9,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "openness": {
+      "median": -0.03370225872688254,
+      "ci95": [
+        -0.04019516595919104,
+        -0.03184476284065613
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00003999960000399996
+    }
+  },
+  "adjacentWindow": {
+    "tv": {
+      "median": 0.06337640858257049,
+      "ci95": [
+        0.05933798893601214,
+        0.06979681201558202
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "gini": {
+      "median": 0.029492931600876626,
+      "ci95": [
+        0.023244239833754815,
+        0.03479852415292306
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mUp": {
+      "median": -0.04094898483201137,
+      "ci95": [
+        -0.043830736535172166,
+        -0.035392116483335234
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mDown": {
+      "median": -0.041120037218494054,
+      "ci95": [
+        -0.043671185066550766,
+        -0.03619516534561684
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "segregation": {
+      "median": 0.004395226651251593,
+      "ci95": [
+        -0.0014258875026765781,
+        0.009701053352281466
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.6,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "openness": {
+      "median": -0.030513114710969513,
+      "ci95": [
+        -0.03329644395206033,
+        -0.02205297340878365
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    }
+  },
+  "primary": {
+    "median": 0.06465737333457816,
+    "ci95": [
+      0.05736235340976882,
+      0.069226115664102
+    ],
+    "ciCrossesZero": false,
+    "directionAgree": 1,
+    "directionApplicable": false,
+    "threshold": 0.1,
+    "overThreshold": false,
+    "paired": 30,
+    "permutationP": 0.00005999940000599994
+  },
+  "criteria": {
+    "complete": true,
+    "artifactFree": true,
+    "primaryPresent": true,
+    "primaryOverThreshold": false,
+    "primaryCiNotCrossingZero": true,
+    "primaryDirectionOk": true,
+    "beyondBaselineBand": true,
+    "beyondBandMinRate": 1
+  },
+  "confirmed": false,
+  "claim": "Stage B 未确认：主指标 TV(P) 未达预注册门槛，或区间/方向/波动带/完整性条件不满足（07 §8）。",
+  "stageClaim": "确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）。w3 仅作相邻窗口描述，不参与确认。",
+  "experimentId": "p6-stageB-env0-expanded-7de621f1",
+  "preregistrationHash": "sha256:b8aef285988d6fe08607b485329f77aa01c94c54b947cef1e7f2e76c793e9079",
+  "computedPreregistrationHash": "sha256:b8aef285988d6fe08607b485329f77aa01c94c54b947cef1e7f2e76c793e9079",
+  "preregistrationHashConsistent": true,
+  "versionDrift": {
+    "frozenRulesVersion": "rules-v11",
+    "frozenEngineVersion": "engine-v0.9.0",
+    "currentRulesVersion": "rules-v18",
+    "currentEngineVersion": "engine-v0.15.0",
+    "liveRederivedHash": "sha256:7de621f13fd4e4e62231d4e1cb000a6ab7a64190a9d4efa081d788ec90eded2b",
+    "drifted": true
+  },
+  "sourceArtifact": "out/p6-stageB-slim-env0-expanded.json",
+  "runs": {
+    "due": 60,
+    "ok": 60,
+    "failed": 0,
+    "resumed": 0,
+    "elapsedMs": 6698409.8803
+  },
+  "isExperimentalEvidence": true
+}

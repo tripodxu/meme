@@ -25,6 +25,16 @@ export interface AgentState {
   readonly ge: number;
   /** 努力，运行期不变，`>0`。 */
   readonly hard: number;
+  /**
+   * rules-v15 / D2：风险特质 `[0,1]`，初始化后不变。
+   * 只被 `mock-weighted-v2` 读取；结算规则不读取。默认 0.5。
+   */
+  readonly riskTolerance: number;
+  /**
+   * rules-v15 / D2：跨层意愿特质 `[0,1]`，初始化后不变。
+   * 只被 `mock-weighted-v2` 读取；结算规则不读取。默认 0.5。
+   */
+  readonly crossClassOpenness: number;
   /** 初始寿命预算（日）。 */
   readonly initialLife: number;
   /** 剩余寿命（日），`>=0`。 */

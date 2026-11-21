@@ -1,0 +1,663 @@
+{
+  "schemaVersion": "p6-factorial-analysis-v1",
+  "isExperimentalEvidence": true,
+  "protocol": "07-strict-exploratory",
+  "primaryMetric": "TV(P)",
+  "thresholds": {
+    "tv": 0.1
+  },
+  "experimentId": "p6-factorial-eaf53b7b",
+  "preregistrationHash": "sha256:eaf53b7b319e10831933de47d586038ca1fd37628f2df318c72a6f599a34d453",
+  "populationSize": 200,
+  "totals": {
+    "due": 960,
+    "ok": 960,
+    "failed": 0,
+    "resumed": 0,
+    "elapsedMs": 3123646.2351000034
+  },
+  "baselineD95": 0.09276028197871358,
+  "claim": "P6-02 多参数探索：描述联合条件与稳定区的 TV(P) 差异；interaction 格点不得单轴归因，结果不构成确认或校准。",
+  "cells": [
+    {
+      "cellKey": "threshold=0.9",
+      "design": "single",
+      "changedPaths": [
+        "need.threshold"
+      ],
+      "tvMedian": 0.16348382930268954,
+      "tvCi95": [
+        0.1484578855030847,
+        0.17377409345709427
+      ],
+      "beyondBandRate": 0.23333333333333334,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat",
+      "design": "single",
+      "changedPaths": [
+        "need.needMultiplier"
+      ],
+      "tvMedian": 0.060584844373288385,
+      "tvCi95": [
+        0.04808330982431628,
+        0.07147436394264217
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat",
+      "design": "interaction",
+      "changedPaths": [
+        "need.needMultiplier",
+        "need.threshold"
+      ],
+      "tvMedian": 0.1961765064592691,
+      "tvCi95": [
+        0.1853625607777813,
+        0.20471601415380986
+      ],
+      "beyondBandRate": 0.7666666666666667,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "env0=expanded",
+      "design": "single",
+      "changedPaths": [
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.0637729434388801,
+      "tvCi95": [
+        0.06114358176253147,
+        0.07021693432402876
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded",
+      "design": "interaction",
+      "changedPaths": [
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.21596776213545837,
+      "tvCi95": [
+        0.20938483779722483,
+        0.22383308424384238
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat+env0=expanded",
+      "design": "interaction",
+      "changedPaths": [
+        "need.needMultiplier",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.09674137381070581,
+      "tvCi95": [
+        0.08873490126065814,
+        0.10745785687567098
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded",
+      "design": "interaction",
+      "changedPaths": [
+        "need.needMultiplier",
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.24412586747814258,
+      "tvCi95": [
+        0.23748152536602274,
+        0.2565777069046019
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "crossDays=half",
+      "design": "single",
+      "changedPaths": [
+        "ascent.crossDays"
+      ],
+      "tvMedian": 0.005821338275866226,
+      "tvCi95": [
+        0.004450877098231606,
+        0.007223949567645811
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+crossDays=half",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "need.threshold"
+      ],
+      "tvMedian": 0.16077343646205344,
+      "tvCi95": [
+        0.14769780499682383,
+        0.17462967721025144
+      ],
+      "beyondBandRate": 0.03333333333333333,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat+crossDays=half",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "need.needMultiplier"
+      ],
+      "tvMedian": 0.05811167539330252,
+      "tvCi95": [
+        0.048723057325939186,
+        0.07016910062952246
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+crossDays=half",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "need.needMultiplier",
+        "need.threshold"
+      ],
+      "tvMedian": 0.19663318178803557,
+      "tvCi95": [
+        0.187908341810256,
+        0.20495212895994747
+      ],
+      "beyondBandRate": 0.1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "env0=expanded+crossDays=half",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.06544751289013101,
+      "tvCi95": [
+        0.059726087294797184,
+        0.07106683772770755
+      ],
+      "beyondBandRate": 0.4666666666666667,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded+crossDays=half",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.21814964090947225,
+      "tvCi95": [
+        0.21071184652709446,
+        0.2233951795254711
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat+env0=expanded+crossDays=half",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "need.needMultiplier",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.09880189933955139,
+      "tvCi95": [
+        0.08984898212276822,
+        0.10725734308933788
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded+crossDays=half",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "need.needMultiplier",
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.24835088394390487,
+      "tvCi95": [
+        0.2375639603314757,
+        0.2554771888889995
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "decay=steeper",
+      "design": "single",
+      "changedPaths": [
+        "lifespan.decay"
+      ],
+      "tvMedian": 0.006388227782575929,
+      "tvCi95": [
+        0.004274353158087037,
+        0.007243773439296091
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "lifespan.decay",
+        "need.threshold"
+      ],
+      "tvMedian": 0.15933084475576845,
+      "tvCi95": [
+        0.14879264093056552,
+        0.17515951652324874
+      ],
+      "beyondBandRate": 0.3,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "lifespan.decay",
+        "need.needMultiplier"
+      ],
+      "tvMedian": 0.05747051025684946,
+      "tvCi95": [
+        0.04714411334243021,
+        0.07124822121025508
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "lifespan.decay",
+        "need.needMultiplier",
+        "need.threshold"
+      ],
+      "tvMedian": 0.19452041371112866,
+      "tvCi95": [
+        0.1833280523591731,
+        0.20382537460049838
+      ],
+      "beyondBandRate": 0.7,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "env0=expanded+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "lifespan.decay",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.06578293208870864,
+      "tvCi95": [
+        0.06190656842358521,
+        0.06909281226596159
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "lifespan.decay",
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.21399810436273925,
+      "tvCi95": [
+        0.20826171981222613,
+        0.22365455096934195
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat+env0=expanded+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "lifespan.decay",
+        "need.needMultiplier",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.09476830449020233,
+      "tvCi95": [
+        0.08694672596003014,
+        0.1045539586885177
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "lifespan.decay",
+        "need.needMultiplier",
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.2445886006799486,
+      "tvCi95": [
+        0.23712994237301305,
+        0.2535566148769552
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay"
+      ],
+      "tvMedian": 0.008522594930665456,
+      "tvCi95": [
+        0.005889923441926099,
+        0.009680360662503756
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay",
+        "need.threshold"
+      ],
+      "tvMedian": 0.16311895414196778,
+      "tvCi95": [
+        0.14722903515555946,
+        0.17632824079693876
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat+crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay",
+        "need.needMultiplier"
+      ],
+      "tvMedian": 0.0615321455468202,
+      "tvCi95": [
+        0.04884957481633469,
+        0.0717446250411351
+      ],
+      "beyondBandRate": 0,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay",
+        "need.needMultiplier",
+        "need.threshold"
+      ],
+      "tvMedian": 0.19569149219672338,
+      "tvCi95": [
+        0.18567610388889297,
+        0.20609577020137226
+      ],
+      "beyondBandRate": 0.1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "env0=expanded+crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.06604676845130704,
+      "tvCi95": [
+        0.05900441145986911,
+        0.07040097634163774
+      ],
+      "beyondBandRate": 0.5666666666666667,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded+crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay",
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.21397229474713636,
+      "tvCi95": [
+        0.2080160887371188,
+        0.22512775939152949
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "psi=flat+env0=expanded+crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay",
+        "need.needMultiplier",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.0983159238625706,
+      "tvCi95": [
+        0.08795665582940115,
+        0.10718650944701297
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded+crossDays=half+decay=steeper",
+      "design": "interaction",
+      "changedPaths": [
+        "ascent.crossDays",
+        "lifespan.decay",
+        "need.needMultiplier",
+        "need.threshold",
+        "opportunity.env0"
+      ],
+      "tvMedian": 0.24646052296252674,
+      "tvCi95": [
+        0.23770113777664836,
+        0.25367886752629687
+      ],
+      "beyondBandRate": 1,
+      "baselineD95": 0.09276028197871358,
+      "paired": 30,
+      "complete": true,
+      "exploratoryOnly": true
+    }
+  ],
+  "criticalCandidates": [
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded+crossDays=half",
+      "tvMedian": 0.24835088394390487,
+      "design": "interaction"
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded+crossDays=half+decay=steeper",
+      "tvMedian": 0.24646052296252674,
+      "design": "interaction"
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded+decay=steeper",
+      "tvMedian": 0.2445886006799486,
+      "design": "interaction"
+    },
+    {
+      "cellKey": "threshold=0.9+psi=flat+env0=expanded",
+      "tvMedian": 0.24412586747814258,
+      "design": "interaction"
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded+crossDays=half",
+      "tvMedian": 0.21814964090947225,
+      "design": "interaction"
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded",
+      "tvMedian": 0.21596776213545837,
+      "design": "interaction"
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded+decay=steeper",
+      "tvMedian": 0.21399810436273925,
+      "design": "interaction"
+    },
+    {
+      "cellKey": "threshold=0.9+env0=expanded+crossDays=half+decay=steeper",
+      "tvMedian": 0.21397229474713636,
+      "design": "interaction"
+    }
+  ],
+  "leastChangedSingleCells": [
+    {
+      "cellKey": "crossDays=half",
+      "tvMedian": 0.005821338275866226
+    },
+    {
+      "cellKey": "decay=steeper",
+      "tvMedian": 0.006388227782575929
+    },
+    {
+      "cellKey": "psi=flat",
+      "tvMedian": 0.060584844373288385
+    },
+    {
+      "cellKey": "env0=expanded",
+      "tvMedian": 0.0637729434388801
+    },
+    {
+      "cellKey": "threshold=0.9",
+      "tvMedian": 0.16348382930268954
+    }
+  ]
+}

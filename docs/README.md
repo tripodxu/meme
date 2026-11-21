@@ -1,12 +1,15 @@
 # Stratify 施工文档入口
 
-> 状态（2026-11-04）
+> **当前状态速览（2026-11-19）**
 >
-> - **规则**：`rules-v11`（占用压力记忆，默认 0 与 v10 逐位一致）。
-> - **闸门**：W4 已通过 G1.5（≥2 类）；W5 在 3650 tick 未通过。
-> - **长视野**：W6 在 10950 tick 终态通过 class-share 三类候选（mock；非 P6-05 正式验收）。
-> - **P2**：决策层已启动；P2-07 真实冒烟待密钥。
-> - **P6**：仍要求 ≥3 类互异结构；默认参数未通过 `07` 统计验收，不得声称已校准或结构已涌现。
+> | 维度                       | 当前口径与实测状态                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | 依据                                                                                                                                                                                                                                                        |
+> | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | **核心版本轴**             | `rules-v18` / `engine-v0.15.0` / `stratify-config-v12` / `stratify-state-v5`（103 项注册参数，新旋钮默认 `0` / 全 `1` / `none` 保持兼容）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | [versions.ts](../src/core/control/versions.ts)、[changes/0092](changes/0092-rules-v18-r2b-probe-result.md)                                                                                                                                                  |
+> | **科学校准（D1 两体制）**  | **D1「2 体制 + 连续统」已正式通过 G6**：`N=200` `P6-09`（`k=2 ARI=1.000, sil=0.6129`）+ 阶段 R4（微扰 100% 吸收 + 五消融解释力）+ 预设冻结（`regime1_pyramid` / `regime2_continuum`）                                                                                                                                                                                                                                                                                                                                                                                                                                                       | [ADR 0010](adr/0010-two-regime-continuum-silhouette-criterion.md)、[0089](changes/0089-p6-09-two-regime-confirmation.md)、[0090](changes/0090-p6-r4-calibration-g6-closure.md)                                                                              |
+> | **科学边界（k≥3 与 Jev）** | 传统 `k≥3` 离散结构（`P6-05..08`/`P6-10`/R2-B 探针）**均未通过**；阶段 R3（`P6-11` 30-seed 真实 Jev 提示词因果实验）已完成并通过因果判读（`passesCausalClaim=true`）；P6-12 在 N=1000 上复验两体制（240/240、k=2 `[30,150]` ARI 1.000、silhouette 0.7226、k=3 第三簇仅 2 run，`two-regime-candidate`，未关闭 G6）；`P6-14` 扩大规模复验因 Jev 配额于 2026-11-20 暂停（12/60 live 完成，未达预注册规模，不构成结论）；ADR 0014/rules-v19 的 R2-C 探索探针（`explore-r2c-hcg`，90/90）未通过消融门槛（k=2 数值筛选虽过，但 [4,26] 由 A 单元单点驱动；`g=0` median TV(P)=0.0332、`d=0`=0.0259，均 <0.10），判 `stop-mechanism`，不启动 240-run | [0091](changes/0091-rules-v17-p6-10-result.md)、[0092](changes/0092-rules-v18-r2b-probe-result.md)、[0093](changes/0093-p6-11-jev-prompt-causal-result.md)、[0099](changes/0099-p6-14-paused-jev-quota.md)、[ADR 0013](adr/0013-p6-11-jev-prompt-causal.md) |
+> | **工程交付（P0–P7）**      | P0–P5a、P3 双界面前端 + Playwright E2E、P4 Worker/D1/R2、P5b 流式上传 + 独立验证器均已落地；Preview（`https://stratify.logicc.top`）公网冒烟、备份恢复与小额 live 代理已实测；Production 未发布                                                                                                                                                                                                                                                                                                                                                                                                                                             | [0084](changes/0084-frontend-high-order-verifier-playwright.md)、[0086](changes/0086-preview-deploy-rollback-backup-rehearsal.md)、[0087](changes/0087-preview-custom-domain-live-smoke.md)                                                                 |
+>
+> 完整按时间顺序的变更流水见 [变更记录索引](changes/README.md)；科研规划总览见 [2026-11-18 科研路线图](research/2026-11-18-scientific-research-roadmap.md)。
 
 Stratify 是一个可交互、可回放、可批量实验的社会仿真系统。Jev 负责从合法行动中做结构化选择，确定性 TypeScript 引擎负责全部数值结算。浏览器承载交互实验，Cloudflare Workers 承载网站与数据服务，VPS 承载大规模批量实验。
 
@@ -57,23 +60,28 @@ Stratify 是一个可交互、可回放、可批量实验的社会仿真系统�
 以下文件是对编号规格的提炼，**不构成新的验收口径**；与编号文档或 `rule.md` 冲突时，以编号文档为准。
 
 - [总体施工计划与契约总览](guides/plan-and-contracts.md)：架构铁律、阶段表、核心公式、哈希与 API 的一页式汇总。
+- [快速开始](guides/quick-start.md)：本地浏览器、批跑、Worker、上传与门禁命令。
+- [浏览器工作台快速开始](guides/web-app.md)：P3 启动、双界面、五个工作区、键盘快捷键、离线/回放限制。
 - [前端设计指南](guides/frontend-design.md)：设计令牌、五大工作区、帧预算调度与降采样方案。
+- [本地 run 上传](guides/upload.md)：`run-upload-bundle-file-v1` 格式、CLI 与断点续传。
 - [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md)：端点实测结论、密钥处理、冒烟命令、VPS `2zhou` 部署与故障速查。
 
-### 3.3 参考资料（非契约）
+### 3.3 参考资料与基准（非契约）
 
 - [Jev（TypeSafe）简介](reference/jev-overview.md)：System One 三种原语、接口、限制与已知局限。
+- [指标词典](reference/metrics-dictionary.md)：人口、财富、流动、网络、开放度与证据字段。
+- [已知限制](reference/known-limitations.md)：科学结论、确定性、Worker、前端、上传与发布边界。
 - [实验产物登记](reference/artifacts.md)：`out/` 入库白名单、体积上限、重跑程序与当前缺口。
+- 性能基准：[P1 核心基准](benchmarks/2026-11-03-p1-core.md) | [P5a 引擎基准](benchmarks/2026-11-05-p5a-engine.md)
 
-### 3.4 决策与记录
+### 3.4 决策、研究与记录
 
-- [架构决策记录](adr/README.md)：ADR 触发条件、编号规则与模板。
-- [变更记录](changes/README.md)：行为、契约与实验可比性变更的追加式记录。
-- [发布记录](releases/README.md)：每次发布的版本、备份与验证记录。
-- [评审记录](reviews/2026-11-02-p0-review.md)：P0 评审发现、契约漂移与修复顺序。
-- [第二轮契约与架构评审](reviews/2026-11-02-contract-architecture-review.md)：计划依赖、实验方法、运行时可复现性与规模风险。
-- [2026-11-03 zcodes 晚间推送审查](reviews/2026-11-03-zcodes-nightly-audit.md)：证据链、w2b 窗口、聚类空间、P2 越闸门与 P5a 交付缺口。
-- [2026-11-03 提交级审查](reviews/2026-11-03-commit-audit.md)：逐提交核查 27 个提交，6 处高危（窗口统计污染、extinct 漏判、均值场未锚 E、w2b 进不了聚类、预注册哈希缺 6 项、P2 夹带）与修复状态。
+- [架构决策记录（ADR）](adr/README.md)：ADR 触发条件、编号规则、0001–0013 索引与模板。
+- [变更记录（Changes）](changes/README.md)：行为、契约与实验可比性变更的追加式记录（0001–0092）。
+- [科研报告与路线图（Research）](research/README.md)：全阶段实验报告索引与 [2026-11-18 科研路线图](research/2026-11-18-scientific-research-roadmap.md)。
+- [代码与设计评审（Reviews）](reviews/README.md)：各阶段架构、契约、逐提交与规则评审记录索引。
+- [发布记录（Releases）](releases/README.md)：每次发布的版本、备份与验证记录。
+- [计划修订预案（未生效）](plan-revision-proposal.md)：历史备案预案；不改变 01/07/rule.md 或任何验收门槛。
 
 ### 3.5 根目录文件
 

@@ -79,6 +79,16 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
           { name: 'value', type: 'number', description: '初始 Value=population.initialValue。' },
           { name: 'ge', type: 'number', description: '天赋样本。' },
           { name: 'hard', type: 'number', description: '努力样本。' },
+          {
+            name: 'riskTolerance',
+            type: 'number',
+            description: 'rules-v15 行为特质 ∈ [0,1]；默认 0.5。',
+          },
+          {
+            name: 'crossClassOpenness',
+            type: 'number',
+            description: 'rules-v15 行为特质 ∈ [0,1]；默认 0.5。',
+          },
           { name: 'initialLife', type: 'number', description: '初始寿命样本。' },
           { name: 'remainingLife', type: 'number', description: '初始年龄模式应用后的余命。' },
           { name: 'classAge', type: 'number', description: '初始 0。' },
@@ -106,7 +116,7 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
   {
     domain: HASH_DOMAINS.authoritativeState,
     fields: [
-      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v3。' },
+      { name: 'schemaVersion', type: 'string', description: 'stratify-state-v5。' },
       { name: 'config', type: 'object', ordering: 'none', description: '完整冻结 RunConfig。' },
       { name: 'seed', type: 'string', description: 'run seed。' },
       {
@@ -122,6 +132,16 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
             ordering: 'agentIdAscending',
             description: '全部个体（含死亡者），字段同 initialPopulation 另加网络与死亡审计。',
             fields: [
+              {
+                name: 'riskTolerance',
+                type: 'number',
+                description: 'rules-v15 行为特质 ∈ [0,1]。',
+              },
+              {
+                name: 'crossClassOpenness',
+                type: 'number',
+                description: 'rules-v15 行为特质 ∈ [0,1]。',
+              },
               {
                 name: 'ties',
                 type: 'array',
@@ -152,6 +172,11 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
               '需求参照系 refIncome[C]（rules-v6）：上期各阶级人均收入的 EMA；own 模式保持初始值。',
           },
           { name: 'openness', type: 'number', description: 'O ∈ [0,1]。' },
+          {
+            name: 'institutionalRegime',
+            type: 'string',
+            description: "显式制度状态 'closed' | 'open'（rules-v13）。",
+          },
           {
             name: 'initialClassShares',
             type: 'array',
@@ -401,5 +426,24 @@ export const HASH_DOMAIN_INPUT_SCHEMAS: readonly DomainSchema[] = [
     ],
     notes:
       '排除 experimentId、createdAt、observedResponseModels、runtimeVersions、运行结果与失败次数。',
+  },
+  {
+    domain: HASH_DOMAINS.batchManifest,
+    fields: [
+      { name: 'schemaVersion', type: 'string', description: "常量 'batch-v1'。" },
+      { name: 'rulesVersion', type: 'string', description: '规则版本（与构建一致）。' },
+      { name: 'engineVersion', type: 'string', description: '引擎版本（与构建一致）。' },
+      { name: 'populationSize', type: 'number', description: '等于 base config 的人口。' },
+      { name: 'totalTicks', type: 'number', description: '批量总 tick 数。' },
+      { name: 'policy', type: 'string', description: 'mock-weighted-v1|random-uniform-v1。' },
+      { name: 'seeds', type: 'array', ordering: 'none', description: '配对种子列表。' },
+      {
+        name: 'cells',
+        type: 'array',
+        ordering: 'none',
+        description: 'cellKey/overrides；overrides 只含 RunConfig 顶层键。',
+      },
+    ],
+    notes: 'P5-01 批量 ledger 复现口径；排除运行结果、耗时与失败记录。',
   },
 ];

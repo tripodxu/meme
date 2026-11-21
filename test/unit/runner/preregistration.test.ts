@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_RUN_CONFIG } from '../../../src/core/config/defaults.js';
 import { diffConfigPaths } from '../../../src/core/config/diff.js';
 import type { RunConfig } from '../../../src/core/config/types.js';
+import { ENGINE_VERSION, RULES_VERSION } from '../../../src/core/control/versions.js';
 import { HASH_DOMAINS } from '../../../src/core/hash/domains.js';
 import { hashValue } from '../../../src/core/hash/hash.js';
 import {
+  assertFrozenVersions,
   buildBaseConfig,
   buildCellConfig,
   buildPreregCells,
@@ -228,7 +230,7 @@ describe('preregistrationHash 预像（07 §3）', () => {
       { ...input, populationSize: 41 },
       { ...input, totalTicks: 3651 },
       { ...input, seeds: [...input.seeds].reverse() },
-      { ...input, warmupTicks: 1826 },
+      { ...input, warmupTicks: 365 },
       { ...input, windows: [...input.windows].reverse() },
       { ...input, labelThresholdsHash: 'sha256:deadbeef' },
       { ...input, clustering: { ...input.clustering, featureWindows: ['w3'] as const } },
@@ -305,5 +307,22 @@ describe('W4（rules-v10）确认轮 manifest', () => {
     expect(computePreregistrationHash(manifest)).toBe(
       'sha256:ece0a98b70444f05769740e3c1b0838bc77d35fec434f897a6f0ef4730a36135',
     );
+  });
+});
+
+describe('assertFrozenVersions', () => {
+  it('拒绝与当前构建不一致的规则/引擎版本', () => {
+    expect(() => assertFrozenVersions({ rulesVersion: 'rules-v10' })).toThrowError(/rulesVersion/);
+    expect(() => assertFrozenVersions({ engineVersion: 'engine-v0.0.0' })).toThrowError(
+      /engineVersion/,
+    );
+  });
+
+  it('接受当前版本与仅记录部分字段的历史 manifest', () => {
+    expect(() =>
+      assertFrozenVersions({ rulesVersion: RULES_VERSION, engineVersion: ENGINE_VERSION }),
+    ).not.toThrow();
+    expect(() => assertFrozenVersions({ rulesVersion: RULES_VERSION })).not.toThrow();
+    expect(() => assertFrozenVersions({})).not.toThrow();
   });
 });

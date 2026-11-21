@@ -1,4 +1,5 @@
 import type { AgentId } from '../control/ids.js';
+import type { InstitutionalRegime } from '../config/types.js';
 import type { AgentState } from './agent.js';
 
 /**
@@ -33,6 +34,8 @@ export interface SocietyState {
   readonly refIncome: number[];
   /** 社会开放度，`[0,1]`。 */
   openness: number;
+  /** rules-v13：显式制度状态（closed/open）。 */
+  institutionalRegime: InstitutionalRegime;
   /** 初始人口占比 P0[C]，按实际人数计算（非配置理想比例）。 */
   readonly initialClassShares: number[];
   /**

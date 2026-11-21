@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "p6-06-prereg-v1",
+  "experimentId": "p6-06-a3c1624e",
+  "createdAt": "2026-11-11T10:53:25.819Z",
+  "hashDomain": "stratify-preregistration-v1",
+  "hashPreimage": "JCS(design)",
+  "designHash": "sha256:a3c1624e7b2c6f47db04f072a5e3d4249e383a244bc5301d5975244423a9e899",
+  "design": {
+    "schemaVersion": "p6-06-prereg-v1",
+    "hypothesis": "P6-06（D1 / ADR 0006）：G6 结构目标已改为“2 体制 + 连续统”。沿用 P6-05 的 6 个参数区域、11 维全特征、终端窗口与 14600 followup，使用 30 个全新 seed × 40 人 × 10950 tick，以 k=2 聚类验收：两簇各 >=5、ARI median >=0.70、silhouette >=0.35、同簇率 >=0.80、至少一个簇含 >=2 个参数区域、序参量 |ΔO|/|ΔS|/TV(P) 至少一项 >=0.10；同时要求 k=3 不形成稳定第三簇。旧 k=3 结果不得追认；本轮不通过则 G6 仍未通过。",
+    "rulesVersion": "rules-v13",
+    "policy": "mock-weighted-v1",
+    "population": 40,
+    "horizon": 10950,
+    "terminalWindow": {
+      "start": 10585,
+      "end": 10949,
+      "days": 365
+    },
+    "followupHorizon": 14600,
+    "followupWindow": {
+      "start": 14235,
+      "end": 14599,
+      "days": 365
+    },
+    "followupSeedsPerCell": 10,
+    "seeds": [
+      "p6-06-seed-001",
+      "p6-06-seed-002",
+      "p6-06-seed-003",
+      "p6-06-seed-004",
+      "p6-06-seed-005",
+      "p6-06-seed-006",
+      "p6-06-seed-007",
+      "p6-06-seed-008",
+      "p6-06-seed-009",
+      "p6-06-seed-010",
+      "p6-06-seed-011",
+      "p6-06-seed-012",
+      "p6-06-seed-013",
+      "p6-06-seed-014",
+      "p6-06-seed-015",
+      "p6-06-seed-016",
+      "p6-06-seed-017",
+      "p6-06-seed-018",
+      "p6-06-seed-019",
+      "p6-06-seed-020",
+      "p6-06-seed-021",
+      "p6-06-seed-022",
+      "p6-06-seed-023",
+      "p6-06-seed-024",
+      "p6-06-seed-025",
+      "p6-06-seed-026",
+      "p6-06-seed-027",
+      "p6-06-seed-028",
+      "p6-06-seed-029",
+      "p6-06-seed-030"
+    ],
+    "cells": [
+      {
+        "cellKey": "A-share100-w0",
+        "overrides": {}
+      },
+      {
+        "cellKey": "B-share50-w15",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15
+          }
+        }
+      },
+      {
+        "cellKey": "C-share50-w60",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 60
+          }
+        }
+      },
+      {
+        "cellKey": "D-share50-w30",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 30
+          }
+        }
+      },
+      {
+        "cellKey": "E-share70-w15",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.7,
+            "scarcityWeight": 15
+          }
+        }
+      },
+      {
+        "cellKey": "F-share30-w60",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.3,
+            "scarcityWeight": 60
+          }
+        }
+      }
+    ],
+    "features": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "G",
+      "top10",
+      "Mup",
+      "Mdown",
+      "S",
+      "O"
+    ],
+    "clustering": {
+      "algorithm": "ward-lw-v1",
+      "distance": "euclidean",
+      "standardization": "z-score(pooled)",
+      "k": 2,
+      "stabilityShuffles": 20,
+      "stabilitySeed": 20261105,
+      "ariMedianMin": 0.7,
+      "silhouetteMin": 0.35,
+      "minClusterRuns": 5
+    },
+    "temporal": {
+      "minSameClusterRate": 0.8
+    },
+    "antiPreset": {
+      "minCellsInAnyCluster": 2
+    },
+    "exclusion": {
+      "excludeExtinct": true,
+      "maxExtinctRate": 0.1
+    },
+    "regimeDifference": {
+      "minOrderParameterDifference": 0.1
+    },
+    "noStableThirdCluster": {
+      "minAri": 0.7,
+      "minTemporalRate": 0.8
+    },
+    "budgets": {
+      "runs": 240,
+      "wallMinutes": 120
+    },
+    "prediction": "若规则族只支持 2 体制 + 连续统：k=2 应稳定，两簇在 O/S/TV(P) 上有 >=0.10 差异，k=3 不应同时达到 ARI/同簇率/最小簇门槛。若 k=2 也不稳定，G6 仍未通过，下一步讨论 D2。",
+    "confirmationStatus": "P6-06 G6 confirmation under 2-regime target; not calibration"
+  }
+}

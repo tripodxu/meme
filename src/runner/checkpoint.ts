@@ -245,7 +245,9 @@ export function memoryCheckpointHost(): CheckpointHost & { files: Map<string, st
         throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `临时文件缺失: ${tempPath}`);
       }
       files.set(path, content);
-      files.delete(tempPath);
+      if (tempPath !== path) {
+        files.delete(tempPath);
+      }
     },
     async read(path) {
       const content = files.get(path);
@@ -258,6 +260,53 @@ export function memoryCheckpointHost(): CheckpointHost & { files: Map<string, st
       return files.has(path);
     },
     async remove(path) {
+      files.delete(path);
+    },
+  };
+}
+
+/**
+ * P5-03：同步检查点宿主。runSingle 的 tick 循环是同步的，run 内检查点
+ * 需要同步写（`run-progress-v1`，见 `run-progress.ts`）；语义与 `CheckpointHost` 相同：
+ * 写临时文件 → promote（rename 原子替换），`.tmp` 残留不被当作有效点。
+ */
+export interface SyncCheckpointHost {
+  readonly writeTemp: (path: string, payload: string) => void;
+  readonly promote: (tempPath: string, path: string) => void;
+  readonly read: (path: string) => string;
+  readonly exists: (path: string) => boolean;
+  readonly remove: (path: string) => void;
+}
+
+/** 内存同步宿主：测试与无盘环境。 */
+export function memoryCheckpointHostSync(): SyncCheckpointHost & { files: Map<string, string> } {
+  const files = new Map<string, string>();
+  return {
+    files,
+    writeTemp(path, payload) {
+      files.set(path, payload);
+    },
+    promote(tempPath, path) {
+      const content = files.get(tempPath);
+      if (content === undefined) {
+        throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `临时文件缺失: ${tempPath}`);
+      }
+      files.set(path, content);
+      if (tempPath !== path) {
+        files.delete(tempPath);
+      }
+    },
+    read(path) {
+      const content = files.get(path);
+      if (content === undefined) {
+        throw new StratifyError(errorCodes.CONFIG_PATH, `文件不存在: ${path}`);
+      }
+      return content;
+    },
+    exists(path) {
+      return files.has(path);
+    },
+    remove(path) {
       files.delete(path);
     },
   };

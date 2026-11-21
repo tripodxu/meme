@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "p6-stageB-analysis-v2",
+  "cellKey": "needThreshold=0.9",
+  "targetCellKey": "needThreshold=0.9",
+  "primaryMetric": "TV(P)",
+  "primaryMetricKey": "tv",
+  "protocolConflict": true,
+  "completeness": {
+    "ok": true,
+    "expectedRuns": 60,
+    "actualRuns": 60,
+    "expectedPairs": 30,
+    "paired": 30,
+    "baselineRuns": 30,
+    "candidateRuns": 30,
+    "extinct": 0,
+    "fallback": 0,
+    "missingWindow": 0,
+    "incompleteWindow": 0,
+    "nonFinite": 0,
+    "totalsOk": true
+  },
+  "baselineD95": 0.019930456262808052,
+  "beyondBandRate": 1,
+  "metrics": {
+    "tv": {
+      "median": 0.15531827915558352,
+      "ci95": [
+        0.1494291363170132,
+        0.15871690764752544
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": true,
+      "paired": 30,
+      "permutationP": 0.00002999970000299997
+    },
+    "gini": {
+      "median": -0.014518977200092681,
+      "ci95": [
+        -0.018486027147712636,
+        -0.010595422904808832
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.9333333333333333,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00004999950000499995
+    },
+    "mUp": {
+      "median": -0.030909703363357355,
+      "ci95": [
+        -0.03318880788737061,
+        -0.026225529181432117
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "mDown": {
+      "median": -0.02949177334241615,
+      "ci95": [
+        -0.033538577049925966,
+        -0.026694546293015375
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.00001999980000199998
+    },
+    "segregation": {
+      "median": -0.0014544267216719288,
+      "ci95": [
+        -0.0032298579263144583,
+        0.00018810260703017168
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.6666666666666666,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.24413755862441375
+    },
+    "openness": {
+      "median": -0.0001603820633192532,
+      "ci95": [
+        -0.0021829390884693933,
+        0.0027226867569016266
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.5,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30,
+      "permutationP": 0.9239507604923951
+    }
+  },
+  "adjacentWindow": {
+    "tv": {
+      "median": 0.1549414646311726,
+      "ci95": [
+        0.15202330864330255,
+        0.15890500408696712
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": false,
+      "threshold": 0.1,
+      "overThreshold": true,
+      "paired": 30
+    },
+    "gini": {
+      "median": -0.009078401312913181,
+      "ci95": [
+        -0.015072597013508243,
+        -0.005507113600603936
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 0.8333333333333334,
+      "directionApplicable": true,
+      "threshold": 0.03,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mUp": {
+      "median": -0.02770844347874063,
+      "ci95": [
+        -0.029452160336219002,
+        -0.025115640749613366
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "mDown": {
+      "median": -0.027383101218225347,
+      "ci95": [
+        -0.028844889934808327,
+        -0.025346042859142937
+      ],
+      "ciCrossesZero": false,
+      "directionAgree": 1,
+      "directionApplicable": true,
+      "threshold": null,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "segregation": {
+      "median": -0.0021760134068990553,
+      "ci95": [
+        -0.004681441422353336,
+        0.0009837600282707297
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.6,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    },
+    "openness": {
+      "median": -0.0018444551652312957,
+      "ci95": [
+        -0.003216752780434984,
+        0.0006865424722882763
+      ],
+      "ciCrossesZero": true,
+      "directionAgree": 0.6666666666666666,
+      "directionApplicable": true,
+      "threshold": 0.05,
+      "overThreshold": false,
+      "paired": 30
+    }
+  },
+  "primary": {
+    "median": 0.15531827915558352,
+    "ci95": [
+      0.1494291363170132,
+      0.15871690764752544
+    ],
+    "ciCrossesZero": false,
+    "directionAgree": 1,
+    "directionApplicable": false,
+    "threshold": 0.1,
+    "overThreshold": true,
+    "paired": 30,
+    "permutationP": 0.00002999970000299997
+  },
+  "criteria": {
+    "complete": true,
+    "artifactFree": true,
+    "primaryPresent": true,
+    "primaryOverThreshold": true,
+    "primaryCiNotCrossingZero": true,
+    "primaryDirectionOk": true,
+    "beyondBaselineBand": true,
+    "beyondBandMinRate": 1
+  },
+  "confirmed": true,
+  "claim": "Stage B 确认：主指标 TV(P) 在 w2b 达到预注册门槛，且区间、方向、波动带与完整性条件全部满足（07 §8）。",
+  "stageClaim": "确认轮效应判定；不构成三类结构结论或校准（P6-05 另有验收，AGENTS #9）。w3 仅作相邻窗口描述，不参与确认。",
+  "experimentId": "p6-stageB-needThreshold-0-9-c84b97dd",
+  "preregistrationHash": "sha256:dbb0b30a5c40bdc687d983a5e0a4048ac567e5857d905561602dfcc924abe7e2",
+  "computedPreregistrationHash": "sha256:dbb0b30a5c40bdc687d983a5e0a4048ac567e5857d905561602dfcc924abe7e2",
+  "preregistrationHashConsistent": true,
+  "versionDrift": {
+    "frozenRulesVersion": "rules-v11",
+    "frozenEngineVersion": "engine-v0.9.0",
+    "currentRulesVersion": "rules-v18",
+    "currentEngineVersion": "engine-v0.15.0",
+    "liveRederivedHash": "sha256:c84b97dd446b7452b7a9db99aa56a31159b2ee2bbb8eb30a5f66cd5df13bd032",
+    "drifted": true
+  },
+  "sourceArtifact": "out/p6-stageB-slim-needThreshold-0-9.json",
+  "runs": {
+    "due": 60,
+    "ok": 60,
+    "failed": 0,
+    "resumed": 0,
+    "elapsedMs": 9679094.146600002
+  },
+  "isExperimentalEvidence": true
+}

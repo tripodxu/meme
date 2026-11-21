@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "p6-04b-formal-analysis-v1",
+  "isExperimentalEvidence": false,
+  "experimentId": "p6-04b-formal-9a8febe2",
+  "preregistration": {
+    "path": "out/p6-04b-formal-prereg.json",
+    "designHash": "sha256:9a8febe2d7374aef638ee89c20a8cd7a154f065dae1846fad7d1726414977dec",
+    "createdAt": "2026-11-05T11:05:17.868Z"
+  },
+  "completedRuns": 40,
+  "expectedRuns": 40,
+  "summary": {
+    "mergeableRunKeys": [
+      "jev_live:neutral:p6-04b-formal-seed-001",
+      "jev_live:neutral:p6-04b-formal-seed-002",
+      "jev_live:neutral:p6-04b-formal-seed-003",
+      "jev_live:neutral:p6-04b-formal-seed-004",
+      "jev_live:neutral:p6-04b-formal-seed-005",
+      "jev_live:neutral:p6-04b-formal-seed-006",
+      "jev_live:neutral:p6-04b-formal-seed-007",
+      "jev_live:neutral:p6-04b-formal-seed-008",
+      "jev_live:neutral:p6-04b-formal-seed-009",
+      "jev_live:neutral:p6-04b-formal-seed-010",
+      "jev_live:survival_hint:p6-04b-formal-seed-001",
+      "jev_live:survival_hint:p6-04b-formal-seed-002",
+      "jev_live:survival_hint:p6-04b-formal-seed-003",
+      "jev_live:survival_hint:p6-04b-formal-seed-004",
+      "jev_live:survival_hint:p6-04b-formal-seed-005",
+      "jev_live:survival_hint:p6-04b-formal-seed-006",
+      "jev_live:survival_hint:p6-04b-formal-seed-007",
+      "jev_live:survival_hint:p6-04b-formal-seed-008",
+      "jev_live:survival_hint:p6-04b-formal-seed-009",
+      "jev_live:survival_hint:p6-04b-formal-seed-010",
+      "mock-weighted-v1:none:p6-04b-formal-seed-001",
+      "mock-weighted-v1:none:p6-04b-formal-seed-002",
+      "mock-weighted-v1:none:p6-04b-formal-seed-003",
+      "mock-weighted-v1:none:p6-04b-formal-seed-004",
+      "mock-weighted-v1:none:p6-04b-formal-seed-005",
+      "mock-weighted-v1:none:p6-04b-formal-seed-006",
+      "mock-weighted-v1:none:p6-04b-formal-seed-007",
+      "mock-weighted-v1:none:p6-04b-formal-seed-008",
+      "mock-weighted-v1:none:p6-04b-formal-seed-009",
+      "mock-weighted-v1:none:p6-04b-formal-seed-010",
+      "random-uniform-v1:none:p6-04b-formal-seed-001",
+      "random-uniform-v1:none:p6-04b-formal-seed-002",
+      "random-uniform-v1:none:p6-04b-formal-seed-003",
+      "random-uniform-v1:none:p6-04b-formal-seed-004",
+      "random-uniform-v1:none:p6-04b-formal-seed-005",
+      "random-uniform-v1:none:p6-04b-formal-seed-006",
+      "random-uniform-v1:none:p6-04b-formal-seed-007",
+      "random-uniform-v1:none:p6-04b-formal-seed-008",
+      "random-uniform-v1:none:p6-04b-formal-seed-009",
+      "random-uniform-v1:none:p6-04b-formal-seed-010"
+    ],
+    "excluded": [],
+    "baselineD95": {
+      "mock": 0.2156392761477262,
+      "random": 0.1183340215168184
+    },
+    "comparisons": [
+      {
+        "name": "live(neutral) vs mock",
+        "candidatePolicy": "jev_live",
+        "baselinePolicy": "mock-weighted-v1",
+        "promptStyle": "neutral",
+        "n": 10,
+        "nRequired": 10,
+        "tvMedian": 0.017482437653670527,
+        "tvCi95": [
+          0.010638391289076465,
+          0.02882766716580723
+        ],
+        "deltaGMedian": -0.0021121206249066493,
+        "deltaGCi95": [
+          -0.018935577179812674,
+          0.009524155825938296
+        ],
+        "deltaGPermutationP": 0.7283827161728382,
+        "directionAgreement": 0.5,
+        "dMedian": 0.033835764848805586,
+        "baselineD95": 0.2156392761477262,
+        "dBeyondBaselineRate": 0,
+        "passes": {
+          "sampleSize": true,
+          "primaryThreshold": false,
+          "ciNotCrossingZero": true,
+          "direction": false,
+          "baselineBand": false,
+          "quality": true
+        },
+        "meetsStructuralCriteria": false
+      },
+      {
+        "name": "live(neutral) vs random",
+        "candidatePolicy": "jev_live",
+        "baselinePolicy": "random-uniform-v1",
+        "promptStyle": "neutral",
+        "n": 10,
+        "nRequired": 10,
+        "tvMedian": 0.37806481430129446,
+        "tvCi95": [
+          0.33171912262215436,
+          0.39270547945205586
+        ],
+        "deltaGMedian": 0.043504324201150274,
+        "deltaGCi95": [
+          0.010696852659542011,
+          0.05371821016348308
+        ],
+        "deltaGPermutationP": 0.03154968450315497,
+        "directionAgreement": 0.8,
+        "dMedian": 0.1494602326950946,
+        "baselineD95": 0.1183340215168184,
+        "dBeyondBaselineRate": 1,
+        "passes": {
+          "sampleSize": true,
+          "primaryThreshold": true,
+          "ciNotCrossingZero": true,
+          "direction": false,
+          "baselineBand": true,
+          "quality": true
+        },
+        "meetsStructuralCriteria": false
+      },
+      {
+        "name": "live(survival_hint) vs mock",
+        "candidatePolicy": "jev_live",
+        "baselinePolicy": "mock-weighted-v1",
+        "promptStyle": "survival_hint",
+        "n": 10,
+        "nRequired": 10,
+        "tvMedian": 0.024759026121678445,
+        "tvCi95": [
+          0.018616087109238018,
+          0.03390410958904148
+        ],
+        "deltaGMedian": -0.010023517872909116,
+        "deltaGCi95": [
+          -0.03683209432112586,
+          -0.0044012908746814405
+        ],
+        "deltaGPermutationP": 0.14257857421425785,
+        "directionAgreement": 0.9,
+        "dMedian": 0.19121349564262474,
+        "baselineD95": 0.2156392761477262,
+        "dBeyondBaselineRate": 0.4,
+        "passes": {
+          "sampleSize": true,
+          "primaryThreshold": false,
+          "ciNotCrossingZero": true,
+          "direction": true,
+          "baselineBand": false,
+          "quality": true
+        },
+        "meetsStructuralCriteria": false
+      },
+      {
+        "name": "live(survival_hint) vs random",
+        "candidatePolicy": "jev_live",
+        "baselinePolicy": "random-uniform-v1",
+        "promptStyle": "survival_hint",
+        "n": 10,
+        "nRequired": 10,
+        "tvMedian": 0.3839041095890422,
+        "tvCi95": [
+          0.33831577098700305,
+          0.3974053019799227
+        ],
+        "deltaGMedian": 0.01339949339187202,
+        "deltaGCi95": [
+          -0.0031639096541934975,
+          0.040950543480312435
+        ],
+        "deltaGPermutationP": 0.12716872831271686,
+        "directionAgreement": 0.7,
+        "dMedian": 0.21211013205513346,
+        "baselineD95": 0.1183340215168184,
+        "dBeyondBaselineRate": 1,
+        "passes": {
+          "sampleSize": true,
+          "primaryThreshold": true,
+          "ciNotCrossingZero": true,
+          "direction": false,
+          "baselineBand": true,
+          "quality": true
+        },
+        "meetsStructuralCriteria": false
+      },
+      {
+        "name": "live(survival_hint) vs live(neutral)",
+        "candidatePolicy": "jev_live",
+        "baselinePolicy": "jev_live",
+        "promptStyle": "survival_hint",
+        "n": 10,
+        "nRequired": 10,
+        "tvMedian": 0.031062614386333107,
+        "tvCi95": [
+          0.02500000000000066,
+          0.05068493150685084
+        ],
+        "deltaGMedian": -0.005795519450718739,
+        "deltaGCi95": [
+          -0.03463789982801055,
+          0.005194120478312608
+        ],
+        "deltaGPermutationP": 0.2958470415295847,
+        "directionAgreement": 0.6,
+        "dMedian": 0.18078454976754688,
+        "baselineD95": null,
+        "dBeyondBaselineRate": 0,
+        "passes": {
+          "sampleSize": true,
+          "primaryThreshold": false,
+          "ciNotCrossingZero": true,
+          "direction": false,
+          "baselineBand": false,
+          "quality": true
+        },
+        "meetsStructuralCriteria": false
+      }
+    ],
+    "family": {
+      "q": 0.05,
+      "pValues": [
+        0.7283827161728382,
+        0.03154968450315497,
+        0.14257857421425785,
+        0.12716872831271686,
+        0.2958470415295847
+      ],
+      "bhAdjusted": [
+        0.7283827161728382,
+        0.15774842251577487,
+        0.23763095702376305,
+        0.23763095702376305,
+        0.36980880191198084
+      ],
+      "names": [
+        "live(neutral) vs mock",
+        "live(neutral) vs random",
+        "live(survival_hint) vs mock",
+        "live(survival_hint) vs random",
+        "live(survival_hint) vs live(neutral)"
+      ]
+    },
+    "verdict": "no-structural-evidence",
+    "confirmationStatus": "not-confirmatory-single-seed-set",
+    "notes": [
+      "单个 10-seed 集合不足以满足 07 §8 第 4 条“独立确认种子集复现”；结果最高只能标 descriptive-structural-candidate。",
+      "TV(P) 非负，未做符号翻转置换检验；置换 p 值只对应有符号 ΔG，BH 族按 5 个比较校正。",
+      "baseline D95 来自同策略不同 seed 的两两 D；候选-基线 D 需 100% 超出该分位（07 §8 严格口径）。"
+    ]
+  }
+}

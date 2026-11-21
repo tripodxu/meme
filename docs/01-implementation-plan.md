@@ -3,7 +3,7 @@
 ## 1. 执行规则
 
 - 按 P0→P1→P1.5→P2→P7 推进；允许并行做无依赖任务，但不得跳过质量闸门。P1.5 未通过不得启动 P2–P6。
-- 推荐关键路径：P0 → P1 → P1.5 → P2 → P5a（本地 runner）→ P6（校准）→ P5b/P4（上传与云）→ P3（产品化）→ P7；P4/P5b/P3 不必早于 G6。
+- 推荐关键路径：P0 → P1 → P1.5 → P2 → P5a（本地 runner）→ P6（校准，已停止）→ P5b/P4（上传与云）→ P3（产品化）→ P7；P4/P5b/P3 不必早于 G6；P6 已停止后按 ADR 0008 直接启动。
 - 每个任务必须引用本文任务 ID，提交包含实现、测试、文档和验证证据。
 - 一个 PR 只做一个可回滚主题；公共契约变更单独 PR。
 - 未完成验收不得写“完成”；受阻时记录阻塞、复现命令和下一步。
@@ -21,6 +21,7 @@ src/runner/        batch-cli, checkpoint, rate-limit, budget, uploader
 migrations/        D1 追加式迁移
 test/              unit, property, integration, fixtures, golden, e2e
 scripts/           smoke-live, verify-backup, benchmark, export-d1
+deploy/            systemd unit、journald drop-in、磁盘守卫（docs/09 §6 的机器可读落地）
 docs/              本施工文档与 adr/
 ```
 
@@ -168,6 +169,8 @@ docs/              本施工文档与 adr/
 | P3-06 | 响应式、键盘和可访问性                 | P3-02~05 | 关键操作可键盘完成；图表不只靠颜色；移动端无功能缺失 |
 | P3-07 | 浏览器 E2E 与大数据渲染降采样          | P3-06    | 核心流程 E2E 通过；图表不逐点渲染全部历史            |
 
+**P3 进度记录（2026-11-18，changes/0070/0078/0083/0084/0087）**：P3-01～P3-07 已全部落地：`src/app` 的 12 态 RunController（时间片调度、generation、周期快照跳转 `jumpToSnapshot`、玩家化身手动出牌与单字段平行宇宙微扰分叉、IndexedDB v3 分块原子存储 + 同标签页刷新自动恢复）与 `src/ui` 双界面架构（「✦ 交互沙盒剧场」Canvas 五阶层动态舞台 + 「◈ 精密科研试验台」五工作区）。实验设置覆盖全部五阶层向量参数与制度滞回细节；总览含洛伦兹微图、对数财富切换、按发起方向竞争统计、剩余寿命直方图、区间缩放与窗口 CSV 导出；检查器含自我中心关系网与脱敏决策审计 JSON；回放对比支持双世界叠加与 `>=30` 配对种子森林图护栏。P3-07 已接入 LTTB 降采样、10 项 jsdom E2E（`pnpm test:e2e`）与 **Playwright 真实浏览器自动化 E2E**（`pnpm test:e2e:browser`，0 控制台错误），并在公网自定义域名 `https://stratify.logicc.top` 完成真实浏览器冒烟与同源 `/api/jev` Live 代理实测（5/5 成功、0 回退、零密钥落盘；changes/0087）。G6 未通过，界面仅用于运行/回放/检查，不是校准证据。
+
 **闸门 G3**：离线 mock、live 小额、导入回放三条路径均通过 E2E；控制台无未处理异常；刷新后的恢复行为明确。P3-06/P3-07 属产品化，可在 G6 后完成；P6 不依赖它们。
 
 ## 7. P4：Cloudflare 数据服务
@@ -182,6 +185,8 @@ docs/              本施工文档与 adr/
 | P4-06 | keyset 分页、限流、配额和维护任务          | P4-04,P4-05 | 所有列表硬 LIMIT；超限明确 429/413；保留策略可执行                         |
 | P4-07 | workerd+D1/R2 集成和部署冒烟               | P4-06       | 本地集成与预览环境通过；备份后部署，部署后验证                             |
 | P4-08 | Worker 同源 BYOK 代理与浏览器 live 冒烟    | P2-04,P4-01 | 浏览器只经同源 `/api/jev`；Key 不落库/日志/URL；模型 allowlist；成本有上限 |
+
+**P4 进度记录（2026-11-18，changes/0071/0073/0076/0077/0078/0079/0084/0085/0087）**：P4-01～P4-08 已全部落地并在 Cloudflare Preview 公网环境验证通过：`src/worker` Hono 应用、`migrations/0001_init.sql`～`0003_diagnostics_hash.sql`、`wrangler.jsonc` 三环境配置；覆盖统一错误/requestId、run 创建与 writeToken 哈希、tick/agent 幂等批写与 `/agents` 查询、R2 artifact（8 MiB、双 SHA-256、ETag/304）、complete（服务器复算 `artifactManifestHash`）、不可逆 verification 状态机、keyset 分页、固定窗口限流（含 `/api/jev` 按 `IP+sha256(Key)` 指纹限流、`jev:global` 小时保险丝、run 批写限流及统一 `Retry-After` 头）、Cron 保留策略（含 `running` 静默超时标记 `abandoned_timeout`、过期 run R2→D1 级联删除、超宽限期 R2 孤儿对象枚举清理）与 cancel/fail `diagnosticsHash`。**P4-07 本地 `workerd` 与远端 `https://stratify.logicc.top` 部署冒烟均已通过**；**P4-08 同源 `/api/jev` 真实上游 System One 小额冒烟已通过**（5/5 成功、0 回退，远端 D1 导出审计确认零明文 Key；changes/0087）。线上 Cron 因 Free 计划 5 槽位限制在 preview 显式置空；不改规则/schema，不构成校准或结构证据。
 
 **闸门 G4**：幂等、并发、越权、超限和损坏 artifact 测试通过；D1 无海量事件表；同源代理只接受白名单字段且无任意转发；无密钥泄漏。
 
@@ -201,6 +206,18 @@ P5 拆成两段，避免 P6 被云端依赖卡住：**P5a 只做本地批跑与�
 
 **闸门 G5a**：故障注入覆盖运行中 kill、磁盘写失败和预算耗尽；恢复后最终 hash 与不中断对照一致；无云端也能产出完整本地 artifact 供 P6 使用。
 
+**P5-02 完成记录（2026-11-05）**：`src/runner/budget.ts`（SharedBatchBudget——批内所有并发 live run 共享记账，总调用/总 token 不随 run 数放大，委托 AttemptBudget 复用 fail-closed 语义；MVP 单机单进程即调度进程，docs/09 §6）+ `src/runner/rate-limit.ts`（RateLimiter：maxConcurrent + minIntervalMs 双约束，rateLimitedFetch 包裹 JevClientDeps.fetchImpl）+ `src/runner/batch-live.ts`（runBatchWithPolicy：policyFactory 密钥只进闭包、并发池、共享 ledger 串行化、预算耗尽/认证/熔断/回退率停止批次且剩余任务按同因记录、取消传播）。AttemptBudget 增加只读 usage()。测试 `test/unit/runner/batch-live.test.ts` 12 项（含 G5a 预算耗尽注入），全套 649 单测 + 门禁全绿。详见 changes/0035。**边界**：live run 内进度检查点（异步路径）须在 P6-04 前补齐；跨进程 budget.sqlite 与 live 批跑 CLI 归 P4/P5b 集成。
+
+**至此 P5a（P5-01/02/03/04/06）全部完成；G5a 三项故障注入（kill、磁盘写失败、预算耗尽）均有实现与测试覆盖。**
+
+**P5-06 完成记录（2026-11-05）**：`deploy/` 三工件已落地——`stratify-runner.service`（oneshot 批跑 unit：ConditionPathExists 无 manifest 不自动启动、EnvironmentFile=/etc/stratify/runner.env、WorkingDirectory=/opt/stratify/current、专用用户非 root、Restart=on-failure + StartLimit 300s/5 次、ExecStart 固定 manifest + --resume + --checkpoint-ticks 500、ProtectSystem=strict + ReadWritePaths 加固）、`check-disk-space.sh`（ExecStartPre 磁盘守卫 2048MB）、`journald-stratify.conf`（200M/留 1G/14 天）。测试 `test/unit/deploy/systemd-unit.test.ts` 11 项（unit 契约静态断言 + 守卫行为）。详见 changes/0034。**边界**：VPS 真实 systemctl 安装演练未做（本机 Windows；正式发布前按 deploy/README 演练并记录）；常驻调度与 budget.sqlite 共享记账属 P5-02。
+
+**P5-04 完成记录（2026-11-05）**：`src/runner/perturbation.ts` 微扰配对执行入口已落地——param（相对扰动 value×(1+δ)）与 wealth_absolute（存活者 += ΔValue）两种声明；baseline/treatment 从同一预注册检查点快照克隆（07 §7.2 哈希一致由构造保证 + 单测）；「实验只改变声明变量」由叶子路径 diff 强制（changedPaths 恰为声明 field，population.* 拒绝）；round-trip 吸收标 invalid 不报「无敏感性」（07 §7.4）；产出 firstDivergenceTick 与 perturbation-summary-v1 摘要；同配对重复执行逐字一致。测试 `test/unit/runner/perturbation.test.ts` 11 项，全套 626 单测 + 门禁全绿。详见 changes/0033。**边界**：幅度阶梯、≥30 配对种子、事件级首次翻转与结构指纹偏离属 P6-03；固定决策日志重放接进微扰入口待 P5-02。
+
+**P5-03 完成记录（2026-11-05）**：run 内进度检查点已接入批跑——`src/runner/run-progress.ts`（`run-progress-v1` = `checkpoint-v1` 快照 + 部分窗口累计器，07 §5 窗口聚合依赖全程 tick 数据）+ `runSingle` 自动恢复（meta 的 cellKey/seed/configHash 三元组校验，不匹配抛错防跨 run 污染；损坏按不存在处理、从 tick 0 确定性重跑）+ 每 `everyTicks` 个已完成 tick 原子落盘 + run 正常结束后移除（maxTicks 护栏停止保留）。恢复 run 的窗口聚合/标签/终态哈希与不中断运行逐字一致（单测断言，G5a 口径）；磁盘写失败注入响亮报错且恢复一致。同步宿主 `SyncCheckpointHost`/`nodeCheckpointHostSync`（runSingle 循环为同步）；CLI `--checkpoint-ticks N`（缺省关闭）。测试：`test/unit/runner/run-progress.test.ts` 10 项，全套 615 单测 + 4 集成 + 门禁全绿。详见 changes/0032。**边界**：异步 live 路径（`runSingleWithPolicy`）的 run 内检查点与 G5a「预算耗尽」注入属 P5-02 范围，P6-04 Jev 对照开工前必须补齐。
+
+**P5-01 完成记录（2026-11-04）**：`src/runner/batch-cli.ts`（`runBatch` 执行器 + `batch-summary-v1` 机器可读摘要）与 `bin/stratify-batch.mjs`（`<manifest.json> --out <dir> [--resume]`，`package.json` 注册 `bin`/`batch` 脚本）已落地。单实验/矩阵/消融共用 `batch-v1` manifest 语义；stdout 只输出摘要 JSON、进度走 stderr，报告/审计 manifest/ledger 三文件原子落盘；mock/random 批跑只走 `runSingle` 同步路径，不依赖 P2。G5a 断点续跑：`batch-ledger-v1` ledger 逐任务原子落盘，`--resume` 跳过已完成 run，恢复后确定性指纹与不中断对照逐字一致（单测断言）；技术失败跨 resume 保留（07 §3），`totals.failed=due-ok` 决定退出码；不带 `--resume` 且 ledger 已存在时拒绝启动防覆盖。新增第 13 个 hash domain `stratify-batch-manifest-v1`（golden 向量同步）。测试：`test/unit/runner/batch-cli.test.ts` 12 项 + `test/integration/batch-cli.e2e.test.ts` 4 项（真实 spawn），全套 605 单测 + 4 集成 + 门禁全绿。详见 changes/0031。**边界**：R2 artifact 清单与 `metrics-v1` 分块属 P5b/P4；并发/共享预算属 P5-02；P5-01 完成不改变 P5a 其余项状态。
+
 ### 8.2 P5b：上传与云端对接（G6 后）
 
 | ID    | 工作                                      | 依赖     | 交付与验收                                                                   |
@@ -210,7 +227,9 @@ P5 拆成两段，避免 P6 被云端依赖卡住：**P5a 只做本地批跑与�
 
 **闸门 G5b**：故障注入覆盖网络断开、重复上传和服务器 409/5xx；不产生虚假 complete，不因上传失败重跑实验。
 
-P6 不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P5b 和 P3 可在 G6 通过后并行，避免云与 UI 先于科学前提投入。
+**P5b 进度记录（2026-11-18，changes/0072/0075/0080/0084/0085/0087）**：P5-05/P5-07 的上传器、断点续传、流式 `full` 导出、`--resume` 补导出与**独立验证器**已全部落地并通过远端 Cloudflare Preview 验证：`src/runner/uploader.ts` 完成创建 run、artifact 分块 PUT、tick/agent 批次与 complete；`upload-ledger-v1` 逐块原子确认；`createStreamingBundleWriter`（`ArtifactStreamSink`）逐 tick 将 decisions/events/snapshots 直接刷入磁盘 4 MiB 分块临时文件，消除大规模 `full` 导出内存驻留瓶颈，且 `stratify-batch --resume --upload-bundles` 自动为缺失 bundle 的已完成任务确定性补导出并校验 `finalStateHash` 一致；独立验证器 `src/runner/verifier.ts` + CLI `scripts/verify-run.mjs`（`pnpm verify:run`）已在公网 `https://stratify.logicc.top` 跑通 R2 5 分块流式上传、幂等二次重放与远端下载逐 tick 确定性回放核验（`status: "verified"`；changes/0087）。上传与验证通过只表示技术与回放完整，不构成校准或结构证据。
+
+P6 不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P5b 和 P3 原计划在 G6 通过后并行；P6 停止后按 ADR 0008 解除 G6 前置，可直接启动，但仍不得把工程产物表述为科学验收。
 
 ## 9. P6：校准与科学验收
 
@@ -222,9 +241,35 @@ P6 不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P
 | P6-04 | 五个消融（含 ψ=1）和 Jev/mock 对照    | P6-03,P2,P5-02   | β=0、O 固定（通过 P1-10 开关）、η=0、κ=0、ψ=1；真实 Jev 单独报告                                                                                                                      |
 | P6-05 | 冻结结构与规则预设并写校准报告        | P6-04            | 至少三类互不相同的结构指纹聚类（按预注册聚类协议，非三组预设/多标签）；未达标则记录失败并回到规则评审                                                                                 |
 
-**闸门 G6**：满足 `rule.md` 第 56–59 条；三类结构按指纹聚类验收，不按标签计数；预设带 ruleset hash 和证据链接；不得把单次结果写成普遍结论。
+**闸门 G6**：满足 `rule.md` 第 56–59 条；结构目标为**“2 体制 + 连续统”**（v14 目标修订，ADR 0006）：预注册 k=2 聚类稳定且 k=3 不产生稳定第三簇，按 `docs/07` §8.2 验收；旧 k=3 口径结果不得追认通过，新旧口径同报；预设带 ruleset hash 和证据链接；不得把单次结果写成普遍结论。
 
 P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02，不依赖 P4 Worker/D1/R2；校准结果可用本地 artifact 归档。P4、P5b 和 P3-06/P3-07 可在 G6 通过后并行，避免云与 UI 先于科学前提投入。
+
+**P6-01 进度记录（2026-11-05，严格口径收口）**：Stage A 预注册冻结后执行 840 run 全成功（changes/0037/0038）。按 07 主指标 `TV(P) ≥ 0.10` 严格重算，旧「任意指标」筛选的 12 个入选对中 11 个不达标；严格候选仅 3 个（`needThreshold=0.3@40` 边界、`needThreshold=0.9@40`、`needThreshold=0.9@200`），TV 方向按「每对主导阶级 + 同号 ≥90%」裁决淘汰 `needThreshold=0.3`（changes/0043）。D-04 预算按实测重冻结为 v2（480 min，changes/0039）。Stage B 六单元全部 60/60 跑完并按 07 严格判读：仅 `needThreshold=0.9` **确认**（TV(P)=0.1553，CI [0.1494,0.1587]）；`env0=expanded/compressed`、`crossDays=half/double`、`psi=1` 均**未确认/exploratory**，旧 changes/0040/0041 的 env0「确认」已由 changes/0042 撤回。详见 changes/0042/0043 与 `docs/research/2026-11-05-p6-01-stage-b-*.md`。**P6-01 现有 1 个确认效应；Stage B 是效应确认层，不是 P6-05 验收，也不是校准；G6 仍未通过（P6-05 的 ≥3 类结构未满足）。**
+
+**P6-02 进度记录（2026-11-05）**：多参数 factorial 已完成（`p6-factorial-eaf53b7b`，prereg `sha256:eaf53b7b…`）：五主导轴 2^5 全因子 32 cell × 30 新种子 × 200 人 × 730 tick，960/960 完成、0 失败/灭绝，wall 52.9 min（changes/0045/0046）。31 个非 baseline cell 全部 30 配对；baselineD95=0.0928；top 联合条件 `threshold=0.9+psi=flat+env0=expanded+crossDays=half` TV(P)=0.2484（CI [0.2376,0.2555]），不含 threshold 的格点最高 0.0988；`crossDays=half`/`decay=steeper` 单轴被吸收（0.0058/0.0064）。**仅 exploratory，不作单轴归因、不构成确认或校准（AGENTS #9、07 §6.3/§9）；下一轮细化需新 experimentId 与新种子。**
+
+**P6-03 进度记录（2026-11-05）**：微扰克隆与正常波动区间完成（`p6-perturbation-6bd61532`，prereg `sha256:6bd61532…`）：stable（默认）与 critical（P6-02 top 联合条件）两体制 × 10 个扰动 cell（control、wealth 绝对 1e-6/1e-4/1e-2、`need.threshold` 与 `need.needMultiplier[1]` 相对 1e-6/1e-4/1e-2）× 30 新种子 × 200 人 × 730 tick，检查点 365；60 任务/720 run 全部完成，600 对全部有效（0 invalid/0 extinct/0 fallback），wall 16.6 min；control 两体制 30/30 逐位一致（changes/0050）。baseline 正常波动区间：stable 窗口 TV p95 0.0477、D95 0.0855；critical 0.0423、0.0766。**无任何 cell 达到结构证据**：最大窗口 TV 0.00727、最大 D 0.0299，均低于 0.10 与各自 D95；唯一 30/30 均翻转事件的 `need.needMultiplier[1]×1e-2` 也只有 TV 0.000865/0.00162 → `trajectory-only`，其余 cell 零事件翻转 → `absorbed`（07 §7.5，只能判「被离散阈值吸收」，不能判「负反馈稳定」）。**仅 exploratory；不构成确认、校准或 P6-05 三类结构验收；G6 仍未通过。**
+
+**P6-04a 进度记录（2026-11-05）**：五个必跑消融完成（`p6-ablation-c46c2aff`，prereg `sha256:c46c2aff…`）：baseline + `β=0` / O 固定 / `η=0` / `κ=0` / `ψ=1` × 30 新种子 × 200 人 × 730 tick，180/180 完成、0 失败/灭绝/回退，wall 10.2 min（changes/0051）。D-04 消融预算按 6 cell 重冻结为 200 run / 240 min / 512 MiB。baseline D95=0.0668；TV(P) 中位数：beta=0 0.0195（超 D95 0.800）、openness=fixed 0.0080、eta=0 0.0063、kappa=0 0.0106、psi=1 0.0824（0.367）；**五个消融均未达到 `mechanismExplained`（TV<0.10）**。β=0 的 ΔG -0.0596、ΔMup +0.1382 仅为次要指标信号；ψ=1 的 P4 下降预测不成立（P4 +0.0045、同号率 3.3%），实际是 P0/P1 下降、P2/P3 上升。**仅 exploratory；不构成现实因果、确认或校准；P6-04b Jev/mock 因旧 Key 未轮换未运行；G6 仍未通过。**
+
+**P6-04b 前置进展（2026-11-05）**：Key 轮换后完成 20 次同 state 重测信度：20/20 有效、0 回退；top-1 **0.70**（临界）、ICC(2,1) **0.9886**、平均 TV **0.0565**，verdict=`reliable`（changes/0054）。仅支持进入正式 live/mock 对照，不构成结构证据；正式 live/mock 对照未运行。
+
+**P6-04b 1-seed pilot（2026-11-05）**：40 人 × 730 tick × `decision.interval=30`；993/993 成功、0 回退、993 exact，wall 18.6 min，p50 1048 ms；`liveVsMock` TV 0.0152/D 0.0186、`liveVsRandom` TV 0.3226/D 0.1619（`mockVsRandom` 0.3074/0.1582）。harness 通过；1 个 seed 仅为描述性 pilot，不构成正式对照或结构证据（changes/0055）。
+
+**P6-04b 正式 live 对照（2026-11-05）**：`p6-04b-formal-9a8febe2`，10 新 seed × {mock, random, live-neutral, live-survival_hint} = 40 run，**40/40 完成、0 失败、0 剔除**；live 19,799 决策、8 次 `upstream_5xx` 回退（0.04%）、单一模型，input 37.48M / output 2.45M，max 25.9 s（changes/0056）。TV(P) 中位数：neutral vs mock **0.0175**（CI 0.0106–0.0288）、vs random **0.3781**；survival vs mock **0.0248**、vs random **0.3839**；survival vs neutral 0.0311。baseline D95 mock 0.2156 / random 0.1183。五个比较均未同时满足 07 §8（方向一致率 0.50–0.90、BH 最小 p=0.1577），`verdict=no-structural-evidence`；`survival_hint` 的 Mup→0、S→0.354、O→0.143 强信号仅 exploratory。**单 seed 集不构成确认、校准或结构涌现。**
+
+**P6-05 全特征聚类（2026-11-05，未通过）**：`p6-05-9718860c`，6 个参数区域 × 30 新 seed × 10950 tick（40 人），终端 11 维全特征（P0..P4/G/top10/Mup/Mdown/S/O）；240/240 run 完成、0 排除、0 灭绝（changes/0057）。k=3 簇 **[30,118,32]**：A 单独一簇，其余 118 run 跨 B–F，第三簇 32 run 跨 B–F。ARI median **0.491**（min 0.242）、silhouette **0.344**、14600 同簇率 **0.667**，均未过线；`antiPreset=true`。k=2 诊断 [30,150]、silhouette **0.649**，二簇结构稳健；三簇不成立。W6 的 class-share 三类候选在加入 G/top10/Mup/Mdown/S/O 后未复现。verdict=`not-accepted-return-to-rule-review`，**G6 仍未通过**；不得调 k/换指标/事后挑 seed，需回规则评审寻找第三类稳定全特征结构。
+
+**P6-05b 机制筛选（2026-11-05，未通过）**：`p6-05b-4ba8dc0a`，θS∈{4,8,12} × H∈{0,180} 六 cell，固定 share=0.5/w=15，30 新 seed × 10950 tick（40 人）+ 60 个 14600；240/240 完成、0 排除、0 灭绝（changes/0058）。k=3 簇 [136,17,27]，**三簇都混合全部 6 个 cell**；ARI median 0.291、silhouette 0.297、14600 同簇率 0.550，均未过线；H1（提高 θS）与 H2（H=180）均不成立，非 A 区域只剩 S/O 连续细分。按预注册决策规则**停止参数扫描，转 rules-v12 ADR**（显式制度双稳态）；G6 仍未通过。
+
+**rules-v12 落记录（2026-11-05，ADR 0004）**：P6-05/P6-05b 均未产生稳定第三簇后，按 ADR 0004 给开放度目标加入自反馈项 `θH×(O_prev−0.5)`，新参数 `openness.selfReinforcement`（默认 0、域 [0,20]）；`θH=0` 与 rules-v11 逐位一致。版本升为 rules-v12 / engine-v0.10.0 / config schema v7（v6→v7 迁移补 0）；新增 6 项单测，config/engine/param golden 已前滚更新（changes/0060）。
+
+**P6-05c（2026-11-06，未通过）**：`p6-05c-f7f3cc91`，θH∈{0,6,10,14} × 30 新 seed × 10950 tick（40 人）+ 40 个 14600；160/160 完成、0 排除、0 灭绝（changes/0061）。k=3 簇 [72,39,9]、ARI median 0.182、silhouette 0.215、14600 同簇率 0.675，均未过线；k=2 诊断 [111,9]、silhouette 0.505，二簇稳健、第三簇不成立。θH 自反馈 **A 方案失败**，按 ADR 0004 转 B 方案（显式制度状态机）；G6 仍未通过。
+
+**rules-v13 与 P6-05d（2026-11-11，ADR 0005）**：新增显式制度状态 `society.institutionalRegime ∈ {closed, open}` 与滞回转移（`enterM/exitM/enterS/exitS`），`O_target` 增加 `θR·sign(regime)` 偏置；新参数 `openness.regimeMode/regimeBias/regimeEnterOpenMobility/regimeExitOpenMobility/regimeEnterOpenSegregation/regimeExitOpenSegregation`（默认 `continuous`/0，与 rules-v12 逐位一致）。版本升为 rules-v13 / engine-v0.11.0 / config schema v8 / state schema v4（v7→v8 迁移补默认值、v3 状态按 O 推断制度）；config/engine/param golden 已前滚更新（changes/0063）。P6-05d `p6-05d-5cb910dd` **160/160 完成、0 排除、0 灭绝**：k=3 簇 **[76,3,41]**、三簇均混全部 cell、ARI median **0.094**、silhouette **0.152**、同簇率 **0.650**，四项判据全部未过；θR>0 的终端 O 几乎全部塌到 0（closed 单态吸收），**B 方案失败**。按预注册决策规则停止制度机调参，转规则设计评审。评审建议的 D3 测量充分性检查已完成：P6-05e `p6-05e-1b652168`（规则不变、continuous 对照、人口 200/1000 × 30 新 seed）**80/80 完成、0 排除、0 灭绝**；k=3 簇 [41,13,6]，全部 30 个 pop1000 run 同簇，另两簇 13/6 仅来自 pop200；ARI median 0.527、silhouette 0.282、14600 同簇率 0.300，k=2 [47,13]。第三簇未随人口规模持续存在，更像有限样本噪声；支持“单吸引域/目标修订”方向，但**不构成 G6 确认**（changes/0064）。G6 仍未通过。
+
+**P6-06 目标修订确认轮（2026-11-11，未通过，ADR 0006）**：规则负责人选择 D1 后，G6 结构目标改为“2 体制 + 连续统”。`p6-06-a3c1624e` 240/240 完成、0 排除、0 灭绝：k=2 簇 **[30,150]**（A 单独 vs B–F），ARI median **1.000**、silhouette **0.661**、同簇率 **1.000**、`antiPreset=true`，序参量 `|ΔO|=0.556`、`|ΔS|=0.300`、`TV(P)=0.723`——两体制证据很强。但 k=3 簇 **[30,66,84]**、ARI median **0.768**、同簇率 **0.850**，三簇均 ≥5，按预注册“无稳定第三簇”规则判失败（第三簇是 B–F 内部分裂）。**P6-06 未通过，G6 仍未通过**；旧 k=3 结果不得追认。下一步需新 ADR 细化“第三簇”定义并用全新 seed 确认，或转 D2（行为/阶级异质性）；不得调 k/seed/阈值。详见 changes/0066。
 
 ## 10. P7：发布硬化
 
@@ -234,7 +279,25 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 - 用预览环境做小额真实 Jev 冒烟，再渐进发布；生产 budgets 默认保守。
 - 发布后核对错误率、Jev 回退率、D1/R2 增长、Runner 失败率和成本。
 
+**D2 与 P6-07（2026-11-11，探索，ADR 0007）**：P6-06 未通过后，规则负责人选择 D2。新增不可变行为特质 `riskTolerance`/`crossClassOpenness` 与 `mock-weighted-v2`（只改写 `compete` 权重），`rules-v15`/`engine-v0.12.0`/config v9/state v5；默认 `behavior.*=0` 与 v13/v14 逐位一致（changes/0067）。P6-07 固定 P6-05 B 区域，A 全零对照、B 特质安慰剂、C–F 逐步打开风险/跨层敏感性，6 cell × 30 新 seed × 40 人 × 10950 tick（前 10 续跑 14600），`mock-weighted-v2`。该轮**仅 exploratory**，`verdict.passes=null`，不是 G6 确认；D1 目标与 07 §8.2 不变，G6 仍未通过。 P6-07 `p6-07-eea8f47d` 已完成：240/240、0 排除、0 灭绝；A/B 安慰剂 30/30 逐位一致；C–F 相对 A 的 TV(P)≤0.026、|ΔO|≤0.053、|ΔS|≤0.087，均 <0.10；k=2 [130,50]、ARI 0.178、silhouette 0.175、同簇率 0.650，k=3 [101,50,29] 仍跨全部 cell；`verdict.passes=null`。行为异质性在本轮未产生可复现的参数区域分离或稳定第三簇；G6 仍未通过（changes/0068）。
+
+**P6 停止（2026-11-11，ADR 0008，changes/0069）**：规则负责人决定**停止 P6 结构目标**。不再新增 P6 预注册轮次，不再调 θH/θR/θS/H/share/w/k/seed/阈值或新增同类机制旋钮；**G6 保持未通过**，不追认任何旧结果，不声称已校准或结构已涌现。P3 前端、P4 Worker/D1/R2、P5b 上传、P7 发布硬化不再以 G6 通过为前置条件，可按 §9/§10 的依赖启动；工程产物不得表述为科学验收。全部 P6 产物与 `rules-v15` 代码保留。未来重启结构目标须新立 ADR、采用不同机制假设并使用全新预注册与 seed。
+
+**P6-08（2026-11-18，ADR 0009，changes/0088）**：按 ADR 0008 重新立项门槛，新立 ADR 0009 与 `rules-v16`（代际更替 `generationalMode='none'|'replace'`、`bequestRate`、`classInheritanceRate`；默认 `'none'` 与 v15 逐位一致；config schema v10 / engine-v0.13.0）。预注册确认轮 `p6-08-f32cf4b4`（6 cell × 30 新 seed × 40 人 × 10950 tick，前 10 续跑 14600，240/240 完成，**0 排除、0 灭绝**）：k=3 簇 `[60,115,5]`、`silhouette=0.4757`、`14600 同簇率=0.9167`、`antiPreset=true`，但 **`ARI median=0.5646 < 0.70`**（min `0.4564`），判定 `not-accepted-return-to-rule-review`（`passes=false`）。**G6 仍未通过**；不调参凑数，保留完整产物供后续研究。
+
+**P6-09（2026-11-18，阶段 R1 / ADR 0010，changes/0089）**：修正 `07 §8.2` 条件 4 连续统几何判据并扩大人口至 `N=200` 消除 40 人有限样本尾部噪声（`p6-09-193e28a0`，6 cell × 30 全新 seed × 10950 tick + 60 条 14600 followup，240/240 完成、**0 排除、0 灭绝**）：`k=2` 簇 `[30,150]`、`ARI=1.000`（min `1.000`）、`silhouette=0.6129`、`14600 同簇率=1.000`、`antiPreset=true`、`TV(P)=0.3471` / `|ΔS|=0.2410` / `|ΔO|=0.2290`；`k=3` 坍缩为 `[30,149,1]`（`ARI=0.4007`），**新旧条件 4 口径均判定无稳定第三簇**。**`verdict = 'two-regime-candidate'`（`passes=true`）**。
+
+**阶段 R4 收口与 D1 G6 校准冻结（2026-11-18，changes/0090）**：在 `N=200` 两体制上完成 `420` 项收口验证——（1）30 种子微扰吸收（`ΔValue=1e-4`）：两体制均实现 **30/30（100%）吸收**（`median D=0, max D=0`）；（2）30 种子五消融：体制 I 中 `O=fixed`（`|ΔO|=0.2818, |ΔMup|=0.0552`）与 `η=0`（`|ΔMup|=0.0728, |ΔO|=0.0540`）达到机制解释力，体制 II 中 `O=fixed`（`|ΔO|=0.4021`, `30/30` 超 `D95`）为主驱动。已在 `src/app/presets.ts` 冻结 `regime1_pyramid` 与 `regime2_continuum` 两套 D1 校准预设，**D1 目标（“2 体制 + 连续统”）正式通过 G6**；传统 `k≥3`（阶段 R2）与 Jev 因果实验（阶段 R3）待续。
+
+**P6-10（2026-11-18，阶段 R2-A / ADR 0011，changes/0091）**：按 ADR 0011 落地 `rules-v17`（`ascent.classCapacity` 默认全 1 与 v16 一致；`engine-v0.14.0` / `stratify-config-v11`），并以 30 个全新种子执行 240 run 正式 `k=3` 确认轮（`p6-10-80e12386`，240/240 完成、**0 排除、0 灭绝**）：`ARI median=0.8346`、`silhouette=0.5135`、`temporal=0.9833`、`antiPreset=true`，但 **`clusterSizes = [61, 117, 2]`（第三簇 `< 5`）**，判定 `not-accepted-return-to-rule-review`（`passes=false`）。D1 两体制已校准结论不变；传统 `k≥3` 离散结构仍未通过，不调参凑数。
+
+**阶段 R2-B 探索探针（2026-11-18，ADR 0012，changes/0092）**：落地 `rules-v18`（`population.talentInheritanceWeight` 默认 0 与 v17 一致；`engine-v0.15.0` / `stratify-config-v12`），完成 30-run 探索探针（`explore-r2b-seed-001..005` × 6 单元，30/30 有效、0 灭绝）：`k=2` `[10,20]` `ARI=1.000`、`silhouette=0.4576`；`k=3` `[10,16,4]` `ARI median=0.6145 < 0.85`、`silhouette=0.4302 < 0.45`，未达探索门槛并按纪律停止调参。
+
+**阶段 R3 因果确认（2026-11-20，ADR 0013，changes/0093）**：完成预注册 `P6-11`（`p6-11-d40835c4`，30 对全新独立种子 `p6-jev-seed-001..030` × 3 策略组 = `90` run，730 tick、`N=40`、决策间隔 30；**90/90 完成、0 排除、0 灭绝、最大回退率 0.32% $\ll 20\%$**）。`live(survival_hint) - live(neutral)` 实测：主指标 **$\Delta O = -0.3752$**（95% CI $[-0.4393, -0.3376]$，置换检验 $p=0.00006$，BH $q=0.00006 \le 0.05$），次指标 **$\Delta S = +0.2804$**（95% CI $[+0.2541, +0.2894]$，BH $q=0.00006$）、**$\Delta M\_{\text{up}} = -0.4097$**（95% CI $[-0.4423, -0.3721]$，BH $q=0.00006$，上升流动率归零），微观行动分布差异 $TV(P)=0.0255$。**`passesCausalClaim = true`**，阶段 R3 正式确认通过，科研路线图 R1/R2/R3/R4 全部闭环。
+
 **最终发布闸门**：G0–G6 均有可复现证据；P7 不设独立编号闸门，其验收即本节各项。若某非关键项豁免，必须记录负责人、理由、到期日和回滚条件。
+
+**P7 进度记录（2026-11-18，changes/0074/0085/0086/0087）**：本地与 Cloudflare Preview（`https://stratify.logicc.top`，版本 `bd6cadab`）发布前硬化演练已完成：`src/ops/smoke.ts` + `pnpm smoke:worker` 公网冒烟全绿；`src/ops/backup.ts` + `pnpm backup:d1`/`verify:backup --rehearse` 已对含真实业务数据的远端 `stratify-preview` D1 快照（`27,743` 字节、35 条 `INSERT`）完成导出、本地隔离 SQLite 外键回放与零明文密钥审计；Preview `wrangler rollback` 回滚/前滚演练、公网 R2 流式上传与独立验证器确定性回放、真实 `/api/jev` 小额 live 代理冒烟（5/5 成功、0 回退）及 `pnpm audit --prod --audit-level high` 零高危漏洞核验均已通过。**待生产立项执行**：`stratify-prod` 生产 D1/R2 资源尚未创建，线上 Cron 定时任务（受 Free 5 槽位限制）与生产发布后长期监控看板尚未开启，因此不得声称 Production 已发布。
 
 ## 11. 标准验证命令
 
@@ -262,13 +325,15 @@ CI 默认不运行 `smoke:live`，不保存真实 Key，不因外部模型不稳
 
 以下决策尚未定稿，**不得**在实现、预设或结论中当作已定口径。关闭方式：由对应负责人选择，补 ADR（架构/契约级）或修订 03/07/08，并在本表记录结论、日期与关联提交。未关闭前，相关实现只能保持现状或暂停，不得静默选择有利口径。
 
-| ID   | 决策                                 | 选项                                                                                                             | 影响                                                        | 关闭前阻断         | 负责人            | 关闭证据                                       |
-| ---- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------ | ----------------- | ---------------------------------------------- |
-| D-01 | `hardLifeFloor` 是否保留在 RunConfig | A 保留并维持关系约束；B 降为注册的实现常量（默认 0.5），移出配置面与关系约束；C 保留参数但改标 `affectsBehavior` | config schema、`configHash/paramsHash`、golden、P1 配置表单 | P1-02/P1-03 冻结前 | 核心/规则负责人   | ADR 或 03 修订 + golden 更新                   |
-| D-02 | sigma 上界是否保留                   | A 保留 `sigma<=ln(max/min)` / `max-min`；B 改用逆 CDF 截断采样并移除上界；C 保留宽松绝对上界 + 有界拒绝采样      | 03 §3.1 合法域、P1-01 采样器、校准域、golden                | P1-01 实现前       | 核心负责人        | 03 §4.2 采样方案 + 接线测试                    |
-| D-03 | 结构聚类默认算法                     | A Ward+Euclidean；B k-means；C 其他预注册方法                                                                    | 07 §8.1 聚类协议、P1.5-04/P6-05 验收、三类结构结论          | P1.5-04 预注册前   | 科学/实验负责人   | 预注册 manifest 中的算法/标准化/k/稳定性参数   |
-| D-04 | P6 真实预算数字                      | P1.5 基准后确定 `maxRuns/maxWallMinutes/maxStorageBytes`；不得沿用示例占位值                                     | 07 manifest、P6 扫描规模、存储与成本                        | P6-01 确认扫描前   | Runner/实验负责人 | P1.5 基准报告 + 冻结 manifest                  |
-| D-05 | rules-v5 旋转门修断方向              | A 被动跌落财富清偿（按比例罚没）；B 上升资格绑定持有能力裕度；C 积累承载上限/边际递减；D 组合                    | 03 §5/§6 行动与结算语义、rule.md 7/8/9、P1.5 全流程         | P1.5 重跑前        | 规则负责人        | rule.md/03 修订 + changes/0005 + P1.5 复跑报告 |
+| ID                                | 决策                                 | 选项                                                                                                             | 影响                                                                          | 关闭前阻断         | 负责人            | 关闭证据                                                        |
+| --------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------ | ----------------- | --------------------------------------------------------------- |
+| D-01                              | `hardLifeFloor` 是否保留在 RunConfig | A 保留并维持关系约束；B 降为注册的实现常量（默认 0.5），移出配置面与关系约束；C 保留参数但改标 `affectsBehavior` | config schema、`configHash/paramsHash`、golden、P1 配置表单                   | P1-02/P1-03 冻结前 | 核心/规则负责人   | ADR 或 03 修订 + golden 更新                                    |
+| D-02                              | sigma 上界是否保留                   | A 保留 `sigma<=ln(max/min)` / `max-min`；B 改用逆 CDF 截断采样并移除上界；C 保留宽松绝对上界 + 有界拒绝采样      | 03 §3.1 合法域、P1-01 采样器、校准域、golden                                  | P1-01 实现前       | 核心负责人        | 03 §4.2 采样方案 + 接线测试                                     |
+| D-03                              | 结构聚类默认算法                     | A Ward+Euclidean；B k-means；C 其他预注册方法                                                                    | 07 §8.1 聚类协议、P1.5-04/P6-05 验收、三类结构结论                            | P1.5-04 预注册前   | 科学/实验负责人   | 预注册 manifest 中的算法/标准化/k/稳定性参数                    |
+| D-04                              | P6 真实预算数字                      | P1.5 基准后确定 `maxRuns/maxWallMinutes/maxStorageBytes`；不得沿用示例占位值                                     | 07 manifest、P6 扫描规模、存储与成本                                          | P6-01 确认扫描前   | Runner/实验负责人 | P1.5 基准报告 + 冻结 manifest                                   |
+| **D-04（已关闭，2026-11-05 v1）** | 预算已按 VPS 2zhou 实测冻结          | Stage A 1200 run/180 min/256 MB；Stage B 60 run/240 min/512 MB；微扰 240/120/256 MB；消融 120/240/512 MB         | 见 docs/research/2026-11-05-d04-p6-budget-freeze.md（换预算=新 experimentId） | —                  | Runner/实验负责人 | docs/benchmarks/2026-11-05-p5a-engine.md                        |
+| **D-04 v2（2026-11-05 重冻结）**  | Stage B 预算按实测修正               | Stage B `maxWallMinutes` 240 → 480（60 run / 512 MB 不变；`statsStride=1` 全分辨率统计使 60 run ≈ 275 min）      | 6 个确认 manifest 以新 experimentId 重新冻结；旧 ID 的 11 个作废 run 留档     | —                  | Runner/实验负责人 | changes/0039 + docs/research/2026-11-05-d04-p6-budget-freeze.md |
+| D-05                              | rules-v5 旋转门修断方向              | A 被动跌落财富清偿（按比例罚没）；B 上升资格绑定持有能力裕度；C 积累承载上限/边际递减；D 组合                    | 03 §5/§6 行动与结算语义、rule.md 7/8/9、P1.5 全流程                           | P1.5 重跑前        | 规则负责人        | rule.md/03 修订 + changes/0005 + P1.5 复跑报告                  |
 
 | D-06 | rules-v6 的修断方向（需求参照系） | A 需求与上升费用统一以「阶级参照收入」计价（`refIncome[c]` 的 EMA）；B 阶级承载力配额；C 网络闭锁准入；D 组合 | 03 §6/§7 结算语义、`need` 与 `ascendCost` 公式、config schema v3、golden fixture | 确认轮预注册前 | 规则负责人 | 诊断报告 §3/§5 + changes/0008 + rules-v6 复跑报告 |
 
@@ -279,6 +344,6 @@ CI 默认不运行 `smoke:live`，不保存真实 Key，不因外部模型不稳
 | D-11 | 位移准入份额与「放松守恒能否产生参数选择结构」 | 落地 `ascent.displacementShare`（v9）；探索结论为负面，该参数不作离散化机制 | rule.md 9、03 §6、rule.md 57、G1.5 判定前提 | W3 判定后（用户确认） | 规则负责人 | changes/0012 + 探索产物 + 负面结论登记；后续占用锚定机制或 route C 另立决策 |
 | D-12 | 占用锚定（位置稀缺）能否产生参数区域多结构 | 落地 `ascent.scarcityWeight`（v10）；探索得到 A/B/C 三区域，但未证明双稳态 | rule.md 9、rule.md 57、07 §8.1 k=2 硬门槛 | D-11 负面结论后（用户选择占用锚定） | 规则负责人 | changes/0013 + 4 份探索产物；确认轮前须预注册 A/B/C 区域与聚类口径 |
 | D-13 | W4 确认轮预注册与判定口径 | A 两区域（A vs B∪C）、新种子 `p15r4-*`、cell 均值方向预测；B 继续连续扫描/运行级口径 | 01 §4.5、07 §8.1、G1.5 资格 | G1.5 W4 | 规则负责人 | `buildV10ConfirmationManifest()` + changes/0014 + `out/p15-v10-full.json` |
-**当前状态（事实，不是结论）**：D-01 的 P0 实现为选项 A；D-02 当前为选项 A；D-04 的 manifest 数字是占位值。D-01/D-02/D-04 未关闭。**D-03 已按 W0 交接单（2026-11-03）随预注册 manifest 冻结关闭（选项 A）**：`clustering.algorithm='ward-lw-v1'`（Lance–Williams 实现标识）、`distance='euclidean'`、`z-score(pooled)`、`k∈[2,5]`、`stabilityShuffles=20`（判定量 = median，必报 min）均已进入 `preregistrationHash`；07 §8.1 同批写明更换实现＝分析管线变更＝新 `experimentId`。D-05 由 P1.5 v4 复核（2026-11-03）登记：三轮预注册实验（1920 run）证明旋转门引擎与参数无关，必须由规则修订切断。用户已授权按方向 B 落地 changes/0005（rules-v5，`e531bab`），但 D-05 **仍未关闭**：G1.5 尚未通过，rules-v5 的效果分离与轮 2 证据链仍有缺口（见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`）；关闭证据仍要求 rule.md/03 修订 + changes/0005 + P1.5 复跑报告。（2026-11-04 补记：`rule.md` 头部沿革已补 v9–v11 三条、规则 55 增 v11 的期末占用压力派生步骤，规则 9 正文自 v9 起已随各轮落地；`docs/03` 自 v9 起同步。D-05 是否关闭仍由规则负责人按本条证据要求判定。） D-06 由 P1.5 轮 2 诊断（2026-11-03）登记并**已定**：用户授权修断机制，选 **A′**——需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价，并把「标尺高低」与「宽限期」拆开（`need` 不再乘 `buffer(classAge)`，改由 `graceDays` 只控判定计时），B 配额 / C 网络闭锁推后；D-06 的关闭条件仍是 rules-v6 落地 + `changes/0008` + 确认轮报告。同时定 **D-07**（确认轮新取 `p15r3-seed-001…030`，不沿用探索轮种子）与 **D-08**（位移准入**不与 W1 同批**，仅当 G-A/G-B 未过时作为独立预注册启动）；施工说明见 `docs/research/2026-11-03-p15-w0-w1-handoff.md`。至此 D-05/D-06 同源——D-05 修的是「升上去之后靠什么持有」，D-06 修的是「持有时按什么计价」，后者是前者的前置（参照系不对，裕度门槛只能起一半作用）。
+**当前状态（事实，不是结论）**：D-01 的 P0 实现为选项 A；D-02 当前为选项 A。D-01/D-02 未关闭。**D-04 已于 2026-11-05 按实测冻结关闭（v1；Stage B 预算按 changes/0039 重冻结为 v2）**：基准见 docs/benchmarks/2026-11-05-p5a-engine.md（开发机+VPS 双环境，rules-v11），冻结数字与使用纪律见 docs/research/2026-11-05-d04-p6-budget-freeze.md；07 示例占位值自此不得再被引用为预算口径。**D-03 已按 W0 交接单（2026-11-03）随预注册 manifest 冻结关闭（选项 A）**：`clustering.algorithm='ward-lw-v1'`（Lance–Williams 实现标识）、`distance='euclidean'`、`z-score(pooled)`、`k∈[2,5]`、`stabilityShuffles=20`（判定量 = median，必报 min）均已进入 `preregistrationHash`；07 §8.1 同批写明更换实现＝分析管线变更＝新 `experimentId`。D-05 由 P1.5 v4 复核（2026-11-03）登记：三轮预注册实验（1920 run）证明旋转门引擎与参数无关，必须由规则修订切断。用户已授权按方向 B 落地 changes/0005（rules-v5，`e531bab`），但 D-05 **仍未关闭**：G1.5 尚未通过，rules-v5 的效果分离与轮 2 证据链仍有缺口（见 `docs/reviews/2026-11-03-zcodes-nightly-audit.md`）；关闭证据仍要求 rule.md/03 修订 + changes/0005 + P1.5 复跑报告。（2026-11-04 补记：`rule.md` 头部沿革已补 v9–v11 三条、规则 55 增 v11 的期末占用压力派生步骤，规则 9 正文自 v9 起已随各轮落地；`docs/03` 自 v9 起同步。D-05 是否关闭仍由规则负责人按本条证据要求判定。） D-06 由 P1.5 轮 2 诊断（2026-11-03）登记并**已定**：用户授权修断机制，选 **A′**——需求与上升费用统一以「阶级参照收入」`refIncome[c]` 计价，并把「标尺高低」与「宽限期」拆开（`need` 不再乘 `buffer(classAge)`，改由 `graceDays` 只控判定计时），B 配额 / C 网络闭锁推后；D-06 的关闭条件仍是 rules-v6 落地 + `changes/0008` + 确认轮报告。同时定 **D-07**（确认轮新取 `p15r3-seed-001…030`，不沿用探索轮种子）与 **D-08**（位移准入**不与 W1 同批**，仅当 G-A/G-B 未过时作为独立预注册启动）；施工说明见 `docs/research/2026-11-03-p15-w0-w1-handoff.md`。至此 D-05/D-06 同源——D-05 修的是「升上去之后靠什么持有」，D-06 修的是「持有时按什么计价」，后者是前者的前置（参照系不对，裕度门槛只能起一半作用）。
 
 未关闭前：不得把 `hardLifeFloor`/sigma 当前域写成不可变契约；不得用示例预算运行正式 P6 扫描。

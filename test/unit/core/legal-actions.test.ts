@@ -4,12 +4,15 @@ import { createDemoConfig } from '../../../src/core/config/defaults.js';
 import { asSeed } from '../../../src/core/control/ids.js';
 import { createSimulation } from '../../../src/core/init/simulation.js';
 import {
+  classShareSnapshot,
   computeActionSetHash,
   computeAscendCost,
   computeAscendCushion,
   computeDescendCost,
   enumerateLegalActions,
+  occupancyPressureFromShares,
   parseActionKey,
+  scarcityTargetShares,
 } from '../../../src/core/legal-actions.js';
 import type { SimState } from '../../../src/core/model/state.js';
 
@@ -22,6 +25,99 @@ function makeState(): SimState {
   });
   return createSimulation(config, SEED);
 }
+
+describe('rules-v19 岗位容量硬门槛（ADR 0014）', () => {
+  const agent = { classIndex: 0, maxClassIndex: 4 };
+  const eByClass = [1, 1, 1, 1, 1];
+  const refIncome = [1, 1, 1, 1, 1];
+
+  it('hardGateStrength=0 时 gate 恒为 1（与 v18 逐位一致）', () => {
+    const config = createDemoConfig({ ascent: { hardGateStrength: 0 } });
+    const plain = computeAscendCost(config, agent, eByClass, 0.5, refIncome);
+    const withShares = computeAscendCost(
+      config,
+      agent,
+      eByClass,
+      0.5,
+      refIncome,
+      [0.4, 0.6, 0, 0, 0],
+    );
+    expect(withShares).toBe(plain);
+  });
+
+  it('成本按目标层占用率凸增：M_gate = 1 + g·o²/(1-o)', () => {
+    const config = createDemoConfig({ ascent: { hardGateStrength: 4 } });
+    const base = computeAscendCost(config, agent, eByClass, 0.5, refIncome);
+    if (base === null) throw new Error('底层个体应有上升费用');
+    const gated = computeAscendCost(config, agent, eByClass, 0.5, refIncome, [0.4, 0.6, 0, 0, 0]);
+    if (gated === null) throw new Error('底层个体应有上升费用');
+    expect(gated / base).toBeCloseTo(1 + (4 * 0.6 * 0.6) / 0.4, 12);
+    // 未传占比时不施加门槛：调用点必须显式接线，避免静默换语义。
+    expect(computeAscendCost(config, agent, eByClass, 0.5, refIncome)).toBe(base);
+  });
+
+  it('容量非正或占比数组缺项时 gate 保持 1（防御分支）', () => {
+    const zeroCap = createDemoConfig({
+      ascent: { hardGateStrength: 4, classCapacity: [1, 0, 1, 1, 1] },
+    });
+    const base = computeAscendCost(zeroCap, agent, eByClass, 0.5, refIncome);
+    expect(computeAscendCost(zeroCap, agent, eByClass, 0.5, refIncome, [0.5, 0.5, 0, 0, 0])).toBe(
+      base,
+    );
+    const missingShare = createDemoConfig({ ascent: { hardGateStrength: 4 } });
+    const plain = computeAscendCost(missingShare, agent, eByClass, 0.5, refIncome);
+    expect(computeAscendCost(missingShare, agent, eByClass, 0.5, refIncome, [])).toBe(plain);
+  });
+
+  it('占用率接近容量时成本发散但有界（clamp 到 1-1e-6）', () => {
+    const config = createDemoConfig({ ascent: { hardGateStrength: 1 } });
+    const base = computeAscendCost(config, agent, eByClass, 0.5, refIncome);
+    if (base === null) throw new Error('底层个体应有上升费用');
+    const gated = computeAscendCost(
+      config,
+      agent,
+      eByClass,
+      0.5,
+      refIncome,
+      [0.000001, 0.999999, 0, 0, 0],
+    );
+    if (gated === null) throw new Error('底层个体应有上升费用');
+    expect(Number.isFinite(gated)).toBe(true);
+    expect(gated / base).toBeGreaterThan(1e5);
+  });
+
+  it('门槛进入合法行动枚举：同一余额在高占用下失去 ascend', () => {
+    const makeCfg = (hardGateStrength: number) =>
+      createDemoConfig({
+        population: { initialPopulation: 12, classShares: [0.75, 0.25, 0, 0, 0] },
+        ascent: { hardGateStrength },
+      });
+    const low = createSimulation(makeCfg(0), SEED);
+    const high = createSimulation(makeCfg(4), SEED);
+    const lowAgent = low.society.agents[0];
+    const highAgent = high.society.agents[0];
+    if (lowAgent === undefined || highAgent === undefined) throw new Error('roster 过小');
+    lowAgent.value = 1e6;
+    highAgent.value = 1e6;
+    const shares = classShareSnapshot(high.society.agents, high.config.population.classCount);
+    const targetShare = shares[1] ?? 0;
+    const lowLegal = enumerateLegalActions(low, lowAgent.id);
+    const highLegal = enumerateLegalActions(high, highAgent.id);
+    const lowCost = lowLegal.ascendCost;
+    const highCost = highLegal.ascendCost;
+    if (lowCost === null || highCost === null) throw new Error('底层个体应有上升费用');
+    // g=4 → M_gate = 1 + 4·o²/(1-o)，o 为目标层期初占比。
+    expect(highCost / lowCost).toBeCloseTo(
+      1 + (4 * targetShare * targetShare) / (1 - targetShare),
+      12,
+    );
+    expect(lowLegal.actions).toContain('ascend');
+    // 余额卡在未门槛费用与门槛费用之间：低门槛可行、高门槛不可行。
+    highAgent.value = lowCost + (highCost - lowCost) / 2;
+    const gateLegal = enumerateLegalActions(high, highAgent.id);
+    expect(gateLegal.actions).not.toContain('ascend');
+  });
+});
 
 describe('合法行动枚举（03 §5）', () => {
   it('行动顺序固定：accumulate<ascend<descend<compete，同类按 id 升序', () => {
@@ -219,5 +315,59 @@ describe('合法行动枚举（03 §5）', () => {
     expect(cost).toBeCloseTo(7 * 2 * 2.2, 9);
     agent.classIndex = 0;
     expect(computeDescendCost(state.config, agent, state.society.eByClass)).toBeNull();
+  });
+});
+
+describe('classShareSnapshot（tick 级缓存，防 O(N²)）', () => {
+  it('同一 agents 数组重复调用返回相同值，且返回值互不共享引用', () => {
+    const state = makeState();
+    const first = classShareSnapshot(state.society.agents, 5);
+    const second = classShareSnapshot(state.society.agents, 5);
+    expect(second).toEqual(first);
+    expect(second).not.toBe(first);
+    second[0] = 0.99;
+    expect(classShareSnapshot(state.society.agents, 5)[0]).toBe(first[0]);
+  });
+
+  it('不同 agents 数组各自计算（缓存以数组身份为键）', () => {
+    const left = makeState();
+    const right = makeState();
+    const leftShares = classShareSnapshot(left.society.agents, 5);
+    const rightShares = classShareSnapshot(right.society.agents, 5);
+    expect(rightShares).toEqual(leftShares);
+    expect(rightShares).not.toBe(leftShares);
+  });
+});
+
+describe('机会隐含参照份额的退化输入（rules-v10）', () => {
+  it('env0 全 0 时退回等分目标', () => {
+    const base = createDemoConfig();
+    const zero = {
+      ...base,
+      opportunity: { ...base.opportunity, env0: [0, 0, 0, 0, 0] },
+    } as typeof base;
+    expect(scarcityTargetShares(zero)).toEqual([0.2, 0.2, 0.2, 0.2, 0.2]);
+  });
+
+  it('参照份额为 0 的阶级压力恒为 0', () => {
+    const base = createDemoConfig();
+    const mixed = {
+      ...base,
+      opportunity: { ...base.opportunity, env0: [0, 1, 1, 1, 1] },
+    } as typeof base;
+    const targets = scarcityTargetShares(mixed);
+    expect(targets[0]).toBe(0);
+    expect(occupancyPressureFromShares(mixed, [0.9, 0.1, 0, 0, 0])[0]).toBe(0);
+  });
+});
+
+describe('classShareSnapshot 缓存的 classCount 失配', () => {
+  it('classCount 变化时重新计算，不复用旧缓存', () => {
+    const state = makeState();
+    const five = classShareSnapshot(state.society.agents, 5);
+    const four = classShareSnapshot(state.society.agents, 4);
+    expect(five).toHaveLength(5);
+    expect(four).toHaveLength(4);
+    expect(four.reduce((sum, value) => sum + value, 0)).toBeCloseTo(1, 12);
   });
 });

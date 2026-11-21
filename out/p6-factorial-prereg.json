@@ -1,0 +1,1091 @@
+{
+  "experimentId": "p6-factorial-eaf53b7b",
+  "preregistrationHash": "sha256:eaf53b7b319e10831933de47d586038ca1fd37628f2df318c72a6f599a34d453",
+  "manifest": {
+    "schemaVersion": "experiment-v2",
+    "hypothesis": "P6-02 多参数探索：以 Stage A 单参数结果给出的高低水平（needThreshold/needMultiplier/env0/crossDays/decay）做 2^5 全因子，在 200 人 × 730 tick 视野定位结构变化较大的联合区域，并保留全默认稳定区作波动参照。主指标 TV(P) 对 baseline 的 30 配对中位数与 bootstrap 区间用于描述差异；interaction 格点只回答「该联合条件下结构是否可达/不可达」，不作单轴归因、不构成确认或校准。结论按 07 §6.3 与 §9 标 exploratory；预算 P6_FACTORIAL_BUDGET 进哈希，换预算即新 experimentId。",
+    "primaryMetric": "TV(P)",
+    "experimentType": "rule_sensitivity",
+    "rulesVersion": "rules-v11",
+    "engineVersion": "engine-v0.9.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
+    "promptVersion": "prompt-none-v1",
+    "promptStyle": "neutral",
+    "populationSize": 200,
+    "totalTicks": 730,
+    "baseConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e",
+    "artifactProfile": "metrics-only",
+    "seeds": [
+      "p6-factorial-seed-001",
+      "p6-factorial-seed-002",
+      "p6-factorial-seed-003",
+      "p6-factorial-seed-004",
+      "p6-factorial-seed-005",
+      "p6-factorial-seed-006",
+      "p6-factorial-seed-007",
+      "p6-factorial-seed-008",
+      "p6-factorial-seed-009",
+      "p6-factorial-seed-010",
+      "p6-factorial-seed-011",
+      "p6-factorial-seed-012",
+      "p6-factorial-seed-013",
+      "p6-factorial-seed-014",
+      "p6-factorial-seed-015",
+      "p6-factorial-seed-016",
+      "p6-factorial-seed-017",
+      "p6-factorial-seed-018",
+      "p6-factorial-seed-019",
+      "p6-factorial-seed-020",
+      "p6-factorial-seed-021",
+      "p6-factorial-seed-022",
+      "p6-factorial-seed-023",
+      "p6-factorial-seed-024",
+      "p6-factorial-seed-025",
+      "p6-factorial-seed-026",
+      "p6-factorial-seed-027",
+      "p6-factorial-seed-028",
+      "p6-factorial-seed-029",
+      "p6-factorial-seed-030"
+    ],
+    "pairing": "same-seed-derived-initial-population-and-addressed-random",
+    "warmupTicks": 365,
+    "warmupDiagnostic": "P6-02 探索：warmup=365 后的 [365,729] 单窗口日均值；w1 完整窗口超出 730 tick 视野，观测段覆盖是预注册取舍",
+    "windows": [
+      {
+        "label": "w1",
+        "start": 365,
+        "end": 1094
+      }
+    ],
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "clustering": {
+      "distance": "euclidean",
+      "algorithm": "ward-lw-v1",
+      "standardization": "z-score(pooled)",
+      "featureWindows": [
+        "w1"
+      ],
+      "kRange": [
+        2,
+        5
+      ],
+      "stabilityMinAri": 0.7,
+      "stabilityShuffles": 20,
+      "minClusterRuns": 5,
+      "temporalConsistencyMinRate": 0.8,
+      "d03Note": "P6-02 为多参数探索，不执行聚类判定；聚类块按 07 §3 权威字段清单保留并进哈希，口径与 D-03 冻结一致"
+    },
+    "differenceThresholds": {
+      "gini": 0.03,
+      "tv": 0.1,
+      "mUp": 0.05,
+      "segregation": 0.05,
+      "openness": 0.05
+    },
+    "budgets": {
+      "maxRuns": 1000,
+      "maxWallMinutes": 180,
+      "maxStorageBytes": 268435456
+    },
+    "exclusionRules": {
+      "excludeExtinctRuns": true,
+      "excludeUnavailableWindows": true,
+      "excludeNetworkEmptyFromSegregation": true,
+      "maxTechnicalRetries": 1
+    },
+    "cells": [
+      {
+        "cellKey": "baseline",
+        "design": "baseline",
+        "hypothesis": "P6-02 factorial 基准（全部默认）：稳定区参照与跨种子波动带",
+        "overrides": {},
+        "changedPaths": [],
+        "fullConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e"
+      },
+      {
+        "cellKey": "threshold=0.9",
+        "design": "single",
+        "hypothesis": "P6-02 单轴参照 threshold=0.9：与 Stage A 单参数方向对账（单轴可归因）",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          }
+        },
+        "changedPaths": [
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:ee15e06613ad6af459ba8786334d589dff002376124fcf7808f4d8273ae8ea30"
+      },
+      {
+        "cellKey": "psi=flat",
+        "design": "single",
+        "hypothesis": "P6-02 单轴参照 psi=flat：与 Stage A 单参数方向对账（单轴可归因）",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:be0a9257fb445857969bc4d743c3dbdda77f0848eabbef5c93b1d08622f44f7e"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier",
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:209df897889d5d594f20b5398627bccf008654e9699a7cd3d30a332dcec410f2"
+      },
+      {
+        "cellKey": "env0=expanded",
+        "design": "single",
+        "hypothesis": "P6-02 单轴参照 env0=expanded：与 Stage A 单参数方向对账（单轴可归因）",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          }
+        },
+        "changedPaths": [
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:bba63ebe00c4d355be09dc74006d6d76a03c361e32be10249b0ca99d3c2a2b20"
+      },
+      {
+        "cellKey": "threshold=0.9+env0=expanded",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+env0=expanded：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:81f2bdddac23fde978750cb9e058cc3c191a9cde2d2736d0f6aac617aba9940e"
+      },
+      {
+        "cellKey": "psi=flat+env0=expanded",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 psi=flat+env0=expanded：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:03e9296fab6793b8e14eabcf458077a3d9077b494837dcfa33d389176e89331c"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat+env0=expanded",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat+env0=expanded：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:51238e7238bcbadfe236e9cdaaa7cbc4ae9c2e23b03ff2c56f6c10d2c993fdb0"
+      },
+      {
+        "cellKey": "crossDays=half",
+        "design": "single",
+        "hypothesis": "P6-02 单轴参照 crossDays=half：与 Stage A 单参数方向对账（单轴可归因）",
+        "overrides": {
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays"
+        ],
+        "fullConfigHash": "sha256:7487f049a418f9d897227153cfe52bd6e293d4d4c34e786c3ef300f1fc59b4b0"
+      },
+      {
+        "cellKey": "threshold=0.9+crossDays=half",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+crossDays=half：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:57e6ec95bbbf0dce533608c77d62b4f991c93876765b0acf308a0828277db6b9"
+      },
+      {
+        "cellKey": "psi=flat+crossDays=half",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 psi=flat+crossDays=half：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:c8b87a3c6dab06d7b9d6cd8cdc8188c20863b34058dc4c7c02a9b874068ac5f2"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat+crossDays=half",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat+crossDays=half：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "need.needMultiplier",
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:9d4f87b570e947c2e1e3b6b8ceea191f0c958fe887fc70fc07f902af75554b8e"
+      },
+      {
+        "cellKey": "env0=expanded+crossDays=half",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 env0=expanded+crossDays=half：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:6c3527b6d1f00f57c8a18337b6a4989078358973ee24b8eb92fe84f7b56c2ccd"
+      },
+      {
+        "cellKey": "threshold=0.9+env0=expanded+crossDays=half",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+env0=expanded+crossDays=half：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:c795aac0adec496a4e06d2cfd380e0112a942539fc040f5c331eac80ba9936c7"
+      },
+      {
+        "cellKey": "psi=flat+env0=expanded+crossDays=half",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 psi=flat+env0=expanded+crossDays=half：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "need.needMultiplier",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:5adab9a229eec0e960a4b944d3391afdf8981daa1e22ca694bd1e94a2ac0deed"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat+env0=expanded+crossDays=half",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat+env0=expanded+crossDays=half：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "need.needMultiplier",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:4a8bac922b475950247443911bf6ebb151377bb523f229332cab6b7a3258972c"
+      },
+      {
+        "cellKey": "decay=steeper",
+        "design": "single",
+        "hypothesis": "P6-02 单轴参照 decay=steeper：与 Stage A 单参数方向对账（单轴可归因）",
+        "overrides": {
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay"
+        ],
+        "fullConfigHash": "sha256:0b6aba97b46c40a409d965a719ca71a8fdc4ed72d6c4720d835a7fd189ea4ec2"
+      },
+      {
+        "cellKey": "threshold=0.9+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay",
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:ba2d662d3fbe317c8e75cd7587a045c9bf4a67dbe03daf5a521c0a33f308246e"
+      },
+      {
+        "cellKey": "psi=flat+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 psi=flat+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay",
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:6dc51ec77e4c45a02b38908e6da661b6ccc4f017a8feab22439af4a4230d99ce"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay",
+          "need.needMultiplier",
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:58f8fdb59edf85b7b22bb7c5a98fe10cd5bdf39c6e00d4adf23a3ec8263f12ff"
+      },
+      {
+        "cellKey": "env0=expanded+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 env0=expanded+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:b26e8045cf84233ee4dc898c4320d99c58e60ef688fdfe88a4043565508bf0ea"
+      },
+      {
+        "cellKey": "threshold=0.9+env0=expanded+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+env0=expanded+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:e55ef4993940995645ba7c39e31f3b365b016776b081cca0c3f08d9318db7879"
+      },
+      {
+        "cellKey": "psi=flat+env0=expanded+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 psi=flat+env0=expanded+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay",
+          "need.needMultiplier",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:d3ffcd4958468df19f1558e38fcf7d2b5b9e7d5c96ef2b860ba6d6e6857a4c1b"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat+env0=expanded+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat+env0=expanded+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "lifespan.decay",
+          "need.needMultiplier",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:328a97bdc99cc49a6f0270cf9c51b049c56fbfbba96e4a0c278fae7f1983d4ff"
+      },
+      {
+        "cellKey": "crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay"
+        ],
+        "fullConfigHash": "sha256:d4bc1420b866d6da5cebe19ca9212a1b9727e03268762c7fedb663fc374bafea"
+      },
+      {
+        "cellKey": "threshold=0.9+crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay",
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:4b805c7656710d55bf695ea7c38b37b30116f83f8c95b3a6a0b62672bb3834d8"
+      },
+      {
+        "cellKey": "psi=flat+crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 psi=flat+crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay",
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:76e643a6017365e973aec8d06a4f5b966812db33cb84e33960e46aaf753fde1c"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat+crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat+crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay",
+          "need.needMultiplier",
+          "need.threshold"
+        ],
+        "fullConfigHash": "sha256:df6a9fc80bfdaa96bada0d2b709be03da9be954b6cf11b0d8a9c89c54d6aacf8"
+      },
+      {
+        "cellKey": "env0=expanded+crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 env0=expanded+crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:9cf921842204e569617584f599a510d1fbb586edda0e26227bcbad3eac7a6605"
+      },
+      {
+        "cellKey": "threshold=0.9+env0=expanded+crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+env0=expanded+crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:0683ae513c8d0b86a6f9f72b57c4b1050a9d73ae24fbaa09ea01a52dd9c034ba"
+      },
+      {
+        "cellKey": "psi=flat+env0=expanded+crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 psi=flat+env0=expanded+crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay",
+          "need.needMultiplier",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:0a41a6f6f1120dabb963909154ac74fd699a883135a2ddb87465fed5eb70690d"
+      },
+      {
+        "cellKey": "threshold=0.9+psi=flat+env0=expanded+crossDays=half+decay=steeper",
+        "design": "interaction",
+        "hypothesis": "P6-02 联合条件 threshold=0.9+psi=flat+env0=expanded+crossDays=half+decay=steeper：仅回答该组合下结构是否可达/不可达，不得单轴归因",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          },
+          "lifespan": {
+            "decay": [
+              2,
+              1.6,
+              1.2,
+              0.9,
+              0.7
+            ]
+          }
+        },
+        "changedPaths": [
+          "ascent.crossDays",
+          "lifespan.decay",
+          "need.needMultiplier",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:06e26c711a8f8c8517e6f5fa60d20a00fbc3cd2e645da2b4132523eca659fbbc"
+      }
+    ]
+  }
+}

@@ -3,7 +3,17 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'fixtures/**'],
+    ignores: [
+      'dist/**',
+      'dist-web/**',
+      '.wrangler/**',
+      '.wrangler-dry/**',
+      'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
+      'node_modules/**',
+      'fixtures/**',
+    ],
   },
   ...tseslint.configs.recommended,
   {
@@ -23,6 +33,29 @@ export default tseslint.config(
           property: 'random',
           message:
             '禁止使用 Math.random()；请使用可寻址随机源 R(seed, tick, agentId, eventTag, counter)。',
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/ui/**/*.ts'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Math',
+          property: 'random',
+          message: '禁止使用 Math.random()。',
+        },
+        {
+          object: 'window',
+          property: 'confirm',
+          message: '请使用 src/ui/components/dialog.ts 的 confirmDialog 替代 window.confirm。',
+        },
+        {
+          object: 'window',
+          property: 'alert',
+          message: '请使用 ToastStack 或 Dialog 替代 window.alert。',
         },
       ],
     },

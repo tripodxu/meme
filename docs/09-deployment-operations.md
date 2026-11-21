@@ -46,6 +46,40 @@ RUNNER_TOKEN=仅通过 wrangler secret 配置
 
 MVP 不配置公共 TYPESAFE_API_KEY；访客使用自己的 X-Api-Key。密钥通过 `wrangler secret put RUNNER_TOKEN` 的交互安全流程设置，不写入文件/命令历史。
 
+`/api/jev` 另有全局小时保险丝：D1 `rate_limits` bucket `jev:global`，默认 1000 次/小时，
+可用 `JEV_GLOBAL_HOURLY_LIMIT` 调整；耗尽返回 429。它与按 IP 的 60 次/分钟限流叠加，
+是固定窗口计数而非分布式令牌桶（changes/0079）。
+
+### 2.3 P4 代码落地范围与远程资源状态（2026-11-18，changes/0071/0081/0086/0087）
+
+仓库已提供 `wrangler.jsonc`（Static Assets `dist-web`、`/api/*` 走 Worker、D1/R2 binding、
+local/preview/production 三套环境）与 `migrations/0001_init.sql`、`0002_runtime_authority.sql`、
+`0003_diagnostics_hash.sql`；`RUNTIME_VERSION` 必须改为该环境实际运行时。
+脚本 `dev:worker`、`deploy:worker`、`db:migrate:local/preview/prod` 已登记。
+
+- preview：D1 `stratify-preview` 已创建（`WNAM`，ID 见 `wrangler.jsonc`），
+  0001–0003 已通过 `--remote` 应用；R2 `stratify-artifacts-preview` 已创建；
+  绑定公网自定义域名 `https://stratify.logicc.top`（固化于 `wrangler.jsonc` `env.preview.routes`），
+  2026-11-18 已部署版本 `bd6cadab-53b9-4b8e-a7a6-0df5c9dd3e7e`，并完成公网 `smoke:worker`、
+  真实浏览器在线运行、R2 5 分块 `full` 流式上传与独立回放验证（`verified`）、真实同源 `/api/jev`
+  小额 live 代理冒烟（5/5 成功、0 回退）、远端带数据 D1 导出隔离 SQLite 恢复演练与 `wrangler rollback`
+  回滚/前滚演练（changes/0086/0087）。2026-11-20 再次部署 P0 门禁修复后的版本
+  `1117ab11-db1d-4f25-94d5-0da855b40970`，完成 health/首页/创建读取取消冒烟、
+  匿名上传全链路（`run_1e1d74eabd7f8582d2f72b87`，completed，120 tick 行/40 agent 行，
+  metrics + final_state）、D1 导出与隔离恢复校验（203 条 INSERT），并再次完成
+  rollback 到 `bd6cadab` 与前滚演练（changes/0094）。独立回放验证需 `RUNNER_TOKEN`，
+  本次未执行。
+- Cron：账户 Workers Free 的 5 个槽位已满（API `10072`），preview 与 production 均显式
+  `triggers.crons = []`，暂不注册保留任务；生产升级 Workers Paid 或释放槽位后启用。
+- production：D1 `stratify-prod`（ID `b3ac7bff-9983-46ee-bfd4-14d1646405cd`）与
+  R2 `stratify-artifacts-prod` 已于 2026-11-20 创建，0001–0003 已应用；版本
+  `4b79128b` 部署在 `https://stratify-prod.logicc.top`，health/首页/创建读取取消冒烟
+  全绿；D1 导出 9,020 字节、6 条 INSERT，隔离恢复校验通过；rollback 到 `ac795270`
+  与前滚均健康（changes/0097）。`RUNNER_TOKEN`、Cron 保留、R2 孤儿清理与真实
+  Jev live 冒烟尚未在生产执行。
+- 本地 `wrangler dev --local` 与远端 `https://stratify.logicc.top` 均已跑通
+  health → 创建 run → artifact 上传/幂等 → tick/agent → complete → 独立回放验证全链路。
+
 ## 3. 数据库与 R2 初始化
 
 ```bash
@@ -55,18 +89,24 @@ wrangler d1 migrations apply stratify-prod --remote
 
 生产 apply 前必须先备份、核对迁移列表和 SQL；已应用迁移永不修改。R2 配置生命周期/保留策略要与 D1 `artifacts/runs` 一致，避免只删一边。清理任务先在 preview 对小数据演练。
 
+P4-06 已实现 Cron 保留任务（changes/0076）：`wrangler.jsonc` 的
+`triggers.crons = ["17 3 * * *"]` 每日触发 `runMaintenance`；browser run 默认
+7 天、runner 默认 90 天（`BROWSER_RUN_RETENTION_DAYS`/`RUNNER_RUN_RETENTION_DAYS`）。
+删除顺序是 R2 artifact → D1 run（tick/agent/artifact 级联）→ 2 天前 `rate_limits`；
+R2 删除失败会保留 D1 行，下一轮重试。**R2 孤儿对象枚举、线上 Cron 触发与真实
+删除演练尚未执行**，生产启用前必须按 §8 完成备份/恢复演练并记录。
+
 部署脚本至少提供：
 
 ```bash
 pnpm deploy:preview
 pnpm deploy:prod
-pnpm smoke:preview
-pnpm smoke:prod
-pnpm backup:d1
-pnpm verify:backup
+pnpm smoke:worker --base-url <url> --runtime-version <runtime>
+pnpm backup:d1 --database <name> --env preview --output <file>
+pnpm verify:backup <file>
 ```
 
-脚本未实现前不得声称这些命令可用；P4/P7 负责补齐。
+P7 已登记上述脚本并在 Cloudflare Preview（`https://stratify.logicc.top`）演练通过（changes/0074/0086/0087）：`smoke:worker` 完成公网 health/首页/创建/读取/取消；`backup:d1` 从远端 `stratify-preview` 导出含真实业务行的 SQL 快照后静态校验；`verify:backup --rehearse` 在隔离内存 SQLite 完成外键恢复回放，且 `wrangler rollback` 已完成版本回滚与前滚验证。**Production 环境尚未创建与执行上述流程**，正式上线前仍须在独立 `stratify-prod` 环境按 §4 完整复核。
 
 ## 4. 标准发布流程
 
@@ -94,10 +134,15 @@ pnpm verify:backup
 
 ## 6. VPS Runner 标准部署
 
+> **实验执行位置（2026-11-20 约定）**：全部实验（批量仿真、live 对照、聚类/微扰/消融）在**上海 VPS** 上执行。本地只允许编译、单元测试与对已归档产物的离线重算（`--reuse-raw` / `--analyze`）；本地不得启动批量仿真。
+
 > 本节是**目标形态**（systemd、路径、权限）。当前实际可用于跑实验的机器、连接方式、
 > 已实测的规格与「如何只推 dist 跑冒烟」见
 > [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md) §4；两者冲突时，本节的部署
 > 规范优先，实操手册只描述现状。
+
+> **机器可读落地**：本节的 systemd unit、journald drop-in 与磁盘守卫在仓库 `deploy/` 目录
+> （`deploy/README.md` 有安装步骤与语义对照表）；本节是唯一事实来源，两者冲突以本节为准。
 
 MVP 选择 **systemd**，不维护一套漂移的 Docker 配置。建议路径：
 
@@ -141,6 +186,8 @@ JEV_CONCURRENCY=4
 ```
 
 真实 Key 若由 VPS 直连 TypeSafe，使用单独 env 权限 600，不写 manifest/日志。若经 Worker，则按代理协议使用用户 Key；两种路径在同一正式对照实验中不可混用而不记录。
+
+**当前落地状态（2026-11-05）**：`2zhou` 已按本节与 `deploy/README.md` 完成非正式实验部署（只读代码、专用用户、600 env、unit/journald、磁盘守卫），live 冒烟与跨机器哈希已复核；操作细节与 runner 身份运行命令见 [Jev 接入与 VPS 实操手册](guides/jev-and-vps-runbook.md) §4.6。正式实验仍未启动。
 
 ## 7. Runner 启动、恢复与完成
 

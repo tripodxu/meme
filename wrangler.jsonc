@@ -1,0 +1,86 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stratify",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  // 静态前端：构建后输出到 dist-web；/api/* 先交给 Worker。
+  "assets": {
+    "directory": "./dist-web",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["17 3 * * *"] },
+  "vars": {
+    "ENVIRONMENT": "local",
+    "VERSION": "dev",
+    "RUNTIME_VERSION": "workerd-local",
+    "BROWSER_RUN_RETENTION_DAYS": "7",
+    "RUNNER_RUN_RETENTION_DAYS": "90",
+    "JEV_UPSTREAM_URL": "https://jev.logicc.top/v1/systemone",
+    "JEV_ALLOWED_MODELS": "jev-1.13.0,jev-small,jev-medium,jev-large",
+  },
+  // 本地默认 D1/R2 由 `wrangler dev` 自动创建；远程 ID 放各环境，不写死源码。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stratify-local",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "r2_buckets": [{ "binding": "ARTIFACTS", "bucket_name": "stratify-artifacts-local" }],
+  "env": {
+    "preview": {
+      "name": "stratify-preview",
+      "routes": [{ "pattern": "stratify.logicc.top", "custom_domain": true }],
+      // 账户 Workers Free 的 5 个 Cron 槽位已被其他 Worker 占用（API 10072）；
+      // preview 显式不注册保留任务，避免每次 deploy 触发部分更新失败。
+      "triggers": { "crons": [] },
+      "vars": {
+        "ENVIRONMENT": "preview",
+        "VERSION": "preview",
+        "RUNTIME_VERSION": "workerd-preview",
+        "BROWSER_RUN_RETENTION_DAYS": "7",
+        "RUNNER_RUN_RETENTION_DAYS": "90",
+        "JEV_UPSTREAM_URL": "https://jev.logicc.top/v1/systemone",
+        "JEV_ALLOWED_MODELS": "jev-1.13.0,jev-small,jev-medium,jev-large",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "stratify-preview",
+          "database_id": "3db883f2-c44a-4f30-8884-bbf5f7c3bddf",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "r2_buckets": [{ "binding": "ARTIFACTS", "bucket_name": "stratify-artifacts-preview" }],
+    },
+    "production": {
+      "name": "stratify-prod",
+      // 生产绑定独立自定义域名；workers.dev 在该账户不可用/不稳定。
+      "routes": [{ "pattern": "stratify-prod.logicc.top", "custom_domain": true }],
+      // 账户 Workers Free 的 5 个 Cron 槽位已满（API 10072），生产暂不注册保留任务；
+      // 升级 Workers Paid 或释放槽位后再启用每日 runMaintenance。
+      "triggers": { "crons": [] },
+      "vars": {
+        "ENVIRONMENT": "production",
+        "VERSION": "production",
+        "RUNTIME_VERSION": "workerd-production",
+        "BROWSER_RUN_RETENTION_DAYS": "7",
+        "RUNNER_RUN_RETENTION_DAYS": "90",
+        "JEV_UPSTREAM_URL": "https://jev.logicc.top/v1/systemone",
+        "JEV_ALLOWED_MODELS": "jev-1.13.0,jev-small,jev-medium,jev-large",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "stratify-prod",
+          "database_id": "b3ac7bff-9983-46ee-bfd4-14d1646405cd",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "r2_buckets": [{ "binding": "ARTIFACTS", "bucket_name": "stratify-artifacts-prod" }],
+    },
+  },
+}

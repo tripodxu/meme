@@ -18,6 +18,11 @@ describe('DEFAULT_RUN_CONFIG', () => {
       classShares: [0.45, 0.3, 0.15, 0.08, 0.02],
       initialValue: 0,
       initialAgeMode: 'uniform',
+      generationalMode: 'none',
+      bequestRate: 0,
+      classInheritanceRate: 0,
+      talentInheritanceWeight: 0,
+      lineageDiscount: 0,
     });
     expect(DEFAULT_RUN_CONFIG.opportunity).toEqual({
       dailyBase: 2,
@@ -37,6 +42,8 @@ describe('DEFAULT_RUN_CONFIG', () => {
       displacementShare: 1,
       scarcityWeight: 0,
       occupancyMemoryDays: 0,
+      classCapacity: [1, 1, 1, 1, 1],
+      hardGateStrength: 0,
     });
     expect(DEFAULT_RUN_CONFIG.schedule).toEqual({
       totalTicks: 3650,

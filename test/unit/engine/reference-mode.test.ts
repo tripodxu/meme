@@ -37,7 +37,7 @@ function minimalClassConfig(overrides: DeepPartialConfig = {}) {
       opportunity: { env0: [1, 1.5] },
       lifespan: { decay: [1.3, 1.15] },
       need: { needMultiplier: [1, 1.3] },
-      ascent: { crossDays: [30] },
+      ascent: { crossDays: [30], classCapacity: [1, 1] },
       network: { maxDegree: 0, initialDegree: 0 },
       decision: { interval: 10_000 },
       schedule: { totalTicks: 100, statsStride: 1, snapshotStride: 100 },
@@ -246,7 +246,7 @@ describe('ascendCost 参照系（rules-v6）', () => {
         opportunity: { env0: [1, 2, 4] },
         lifespan: { decay: [1.3, 1.15, 1.0] },
         need: { needMultiplier: [1, 1.3, 1.8], referenceMode: 'own' },
-        ascent: { crossDays: [30, 40] },
+        ascent: { crossDays: [30, 40], classCapacity: [1, 1, 1] },
         openness: { ascentCostWeight: 0 },
       }),
     );

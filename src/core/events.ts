@@ -70,6 +70,15 @@ export interface AgentDiedEvent extends EventBase {
   readonly cause: 'age';
 }
 
+/** rules-v16：代际更替产生的新生个体事件（不复用死亡者 ID）。 */
+export interface AgentBornEvent extends EventBase {
+  readonly type: 'agent_born';
+  readonly agentId: AgentId;
+  readonly parentId: AgentId;
+  readonly classIndex: number;
+  readonly value: number;
+}
+
 /** 决策失效（stale_invalid 等）；含原行动与稳定原因码（03 §9 / 04 §2.2）。 */
 export interface ActionInvalidEvent extends EventBase {
   readonly type: 'action_invalid';
@@ -94,6 +103,7 @@ export type TickEvent =
   | ClassDescendedEvent
   | CompetitionResolvedEvent
   | AgentDiedEvent
+  | AgentBornEvent
   | ActionInvalidEvent
   | NetworkRewiredEvent;
 

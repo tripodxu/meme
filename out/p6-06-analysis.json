@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "p6-05-cluster-analysis-v1",
+  "isExperimentalEvidence": false,
+  "experimentId": "p6-06-a3c1624e",
+  "preregistration": {
+    "path": "out/p6-06-prereg.json",
+    "designHash": "sha256:a3c1624e7b2c6f47db04f072a5e3d4249e383a244bc5301d5975244423a9e899",
+    "createdAt": "2026-11-11T10:53:25.819Z"
+  },
+  "runs": {
+    "total": 240,
+    "base": 180,
+    "usable": 180,
+    "excluded": [],
+    "followup": 60,
+    "temporalPairs": 60
+  },
+  "features": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "G",
+    "top10",
+    "Mup",
+    "Mdown",
+    "S",
+    "O"
+  ],
+  "clustering": {
+    "k": 2,
+    "sizes": [
+      30,
+      150
+    ],
+    "composition": [
+      {
+        "cluster": 0,
+        "total": 30,
+        "cells": {
+          "A-share100-w0": 30
+        }
+      },
+      {
+        "cluster": 1,
+        "total": 150,
+        "cells": {
+          "B-share50-w15": 30,
+          "C-share50-w60": 30,
+          "D-share50-w30": 30,
+          "E-share70-w15": 30,
+          "F-share30-w60": 30
+        }
+      }
+    ],
+    "silhouette": 0.6609670005542816,
+    "ariMedian": 1,
+    "ariMin": 1,
+    "stabilityAris": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "minimumCentroidDistance": 7.1702430461905955,
+    "rawCentroids": [
+      [
+        0.5481364553854882,
+        0.29182906837111783,
+        0.05647523291288208,
+        0.05197314199576237,
+        0.0515861013347491,
+        0.5749977926140492,
+        0.5365387402523538,
+        0.9595054610965145,
+        0.9611225255150937,
+        0.01906936872055253,
+        0.7960277483404767
+      ],
+      [
+        0,
+        0.11738218208804498,
+        0.4101162484541858,
+        0.30133703019402913,
+        0.17116453926373917,
+        0.4091494763551834,
+        0.336649634868792,
+        0.011496448024443776,
+        0.004370530831681979,
+        0.31906483601340097,
+        0.23978481250078493
+      ]
+    ],
+    "diagnostics": {
+      "k=3": {
+        "sizes": [
+          30,
+          66,
+          84
+        ],
+        "silhouette": 0.31387927331174403
+      },
+      "k=4": {
+        "sizes": [
+          30,
+          20,
+          84,
+          46
+        ],
+        "silhouette": 0.32629789281454763
+      },
+      "k=5": {
+        "sizes": [
+          16,
+          14,
+          20,
+          84,
+          46
+        ],
+        "silhouette": 0.2875750021802139
+      }
+    }
+  },
+  "twoRegime": {
+    "regimeDifference": 0.7225833416685608,
+    "orderParameter": {
+      "deltaO": 0.5562429358396919,
+      "deltaS": 0.29999546729284843,
+      "tvP": 0.7225833416685608
+    },
+    "k3": {
+      "sizes": [
+        30,
+        66,
+        84
+      ],
+      "ariMedian": 0.7678462424977033,
+      "temporalRate": 0.85,
+      "silhouette": 0.31387927331174403
+    }
+  },
+  "temporal": {
+    "sameClusterRate": 1,
+    "pairs": 60,
+    "minRate": 0.8
+  },
+  "extinctRate": 0,
+  "verdict": {
+    "passes": false,
+    "antiPreset": true,
+    "reasons": [
+      "k=3 仍形成稳定第三簇（ARI 0.768、同簇率 0.850）"
+    ],
+    "status": "not-accepted-return-to-rule-review"
+  },
+  "notes": [
+    "P6-05 只判定 mock 策略在 40 人 × 10950 tick 的终端全特征聚类（rules-v13）；不是校准、现实因果或结构涌现声明。",
+    "k=2 为预注册目标；k=3 用于检查是否形成稳定第三簇，不得用 k=3 的有利结果替代 k=2 验收。",
+    "簇编号任意，语义由 rawCentroids 的 P/G/Mup/Mdown/S/O 描述，不映射现实阶级结构。"
+  ]
+}

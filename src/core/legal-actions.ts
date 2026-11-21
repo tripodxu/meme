@@ -60,7 +60,12 @@ export function computeAscendCrossBase(
   return { nextClass, crossBase };
 }
 
-/** 存活者的阶级占比快照（tick 期初调用，禁止在行动循环内逐次重算）。 */
+/**
+ * 存活者的阶级占比快照（tick 期初调用，禁止在行动循环内逐次重算）。
+ *
+ * 纯函数：引擎在**同一个 working agents 数组**上会前后调用两次（行动前 / 死亡后），
+ * 因此这里绝不能按数组身份缓存，否则第二次会拿到行动前的旧值。
+ */
 export function classShareSnapshot(
   agents: readonly Pick<AgentState, 'classIndex' | 'alive'>[],
   classCount: number,
@@ -73,6 +78,32 @@ export function classShareSnapshot(
     alive += 1;
   }
   return counts.map((count) => (alive === 0 ? 0 : count / alive));
+}
+
+/**
+ * `SimState.society.agents` 的 tick 级缓存。
+ *
+ * 引擎每 tick 用新数组重建 society，且**不就地修改**它；而 `enumerateLegalActions`
+ * 会对每个到期个体读同一份期初占比。若每次都扫全量 agents，单个决策 tick 退化为
+ * O(N²)（rules-v17 引入 `classCapacity` 时踩过）。缓存键用数组身份，返回值仍复制，
+ * 调用方可安全持有/修改。
+ */
+const stateShareCache = new WeakMap<
+  readonly Pick<AgentState, 'classIndex' | 'alive'>[],
+  { classCount: number; shares: readonly number[] }
+>();
+
+export function cachedClassShareSnapshot(
+  agents: readonly Pick<AgentState, 'classIndex' | 'alive'>[],
+  classCount: number,
+): number[] {
+  const cached = stateShareCache.get(agents);
+  if (cached !== undefined && cached.classCount === classCount) {
+    return [...cached.shares];
+  }
+  const shares = classShareSnapshot(agents, classCount);
+  stateShareCache.set(agents, { classCount, shares });
+  return [...shares];
 }
 
 /** v10 机会隐含参照份额：`1/env0` 归一化（env0 越高，阶级目标占比越小）。 */
@@ -158,6 +189,7 @@ export function computeAscendCost(
   eByClass: readonly number[],
   openness: number,
   refIncome: readonly number[],
+  classShares?: readonly number[],
 ): number | null {
   const base = computeAscendCrossBase(config, agent, eByClass, refIncome);
   if (base === null) {
@@ -181,7 +213,21 @@ export function computeAscendCost(
     config.openness.multiplierMin,
     config.openness.multiplierMax,
   );
-  return crossBase * (1 - discount) * openMultiplier;
+  // rules-v19（ADR 0014）：岗位容量硬门槛。目标层占用率 o 越接近容量，成本凸增；
+  // g=0 时 gate 恒为 1，与 v18 逐位一致。占比必须来自同一 tick 期初快照。
+  let gate = 1;
+  if (config.ascent.hardGateStrength > 0 && classShares !== undefined) {
+    const target = agent.classIndex + 1;
+    const capacity = config.ascent.classCapacity[target] ?? 1;
+    const share = classShares[target] ?? 0;
+    if (capacity > 0) {
+      const occupancy = Math.min(share / capacity, 1 - 1e-6);
+      gate =
+        1 +
+        (config.ascent.hardGateStrength * occupancy * occupancy) / Math.max(1e-6, 1 - occupancy);
+    }
+  }
+  return crossBase * (1 - discount) * openMultiplier * gate;
 }
 
 /**
@@ -277,12 +323,19 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
     throw new StratifyError(errorCodes.INVARIANT_VIOLATED, `到期个体不存在或已死亡: ${agentId}`);
   }
   const eByClass = state.society.eByClass;
+  // 同一 tick 期初占比同时供 v10 占用压力、v17 容量门与 v19 硬门槛使用；
+  // 禁止按行动顺序逐次重算。
+  const classSharesStart = cachedClassShareSnapshot(
+    state.society.agents,
+    config.population.classCount,
+  );
   const ascendCost = computeAscendCost(
     config,
     agent,
     eByClass,
     state.society.openness,
     state.society.refIncome,
+    classSharesStart,
   );
   const descendCost = computeDescendCost(config, agent, eByClass);
   // v10 占用锚定：目标阶级占比超过机会隐含参照份额时抬升余额门槛。
@@ -300,8 +353,13 @@ export function enumerateLegalActions(state: SimState, agentId: AgentId): LegalA
           crossBaseInfo.crossBase,
           state.society.occupancyPressure,
         );
+  const targetCap =
+    ascendCost === null ? 1 : (config.ascent.classCapacity[agent.classIndex + 1] ?? 1);
+  const hasCapacity =
+    ascendCost !== null && (classSharesStart[agent.classIndex + 1] ?? 0) < targetCap;
   const canAscend =
     ascendCost !== null &&
+    hasCapacity &&
     agent.value >=
       ascendCost +
         computeAscendCushion(config, agent.classIndex + 1, eByClass, state.society.refIncome) +

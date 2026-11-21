@@ -31,6 +31,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: 文档链接
         run: pnpm check:docs
+      - name: 密钥扫描
+        run: pnpm check:secrets
       - name: 格式
         run: pnpm format
       - name: Lint
@@ -47,7 +49,15 @@ jobs:
         run: pnpm test:coverage:runner
       - name: 集成测试
         run: pnpm test:integration
-      - name: 端到端测试
+      - name: 端到端测试（jsdom）
         run: pnpm test:e2e
+      - name: 安装 Playwright Chromium 浏览器
+        run: pnpm exec playwright install --with-deps chromium
+      - name: 真实浏览器自动化 E2E（Playwright）
+        run: pnpm test:e2e:browser
       - name: 构建
         run: pnpm build
+      - name: 构建前端静态资源
+        run: pnpm build:web
+      - name: Worker 打包与绑定校验（不部署）
+        run: pnpm exec wrangler deploy --dry-run --outdir .wrangler-dry --env=""

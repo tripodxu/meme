@@ -260,6 +260,54 @@ describe('主动行动与失效（03 §5/§6 阶段 B）', () => {
     expect(a.value).toBeGreaterThanOrEqual(before);
   });
 
+  it('竞争目标不存在时抛 invariant；目标已死亡按 target_dead 失效', () => {
+    const config = makeConfig({
+      schedule: { totalTicks: 11, statsStride: 1, snapshotStride: 100 },
+    });
+
+    // 1) 目标 id 合法但不存在：引擎必须响亮报错，不得静默跳过。
+    const missingState = createSimulation(config, SEED);
+    const missingActor = missingState.society.agents[0];
+    if (missingActor === undefined) throw new Error('roster 过小');
+    const missingDecisions = new Map<AgentId, { selectedAction: string }>([
+      [missingActor.id, { selectedAction: 'compete:a-9999' }],
+    ]);
+    for (const agent of missingState.society.agents) {
+      if (agent.alive && !missingDecisions.has(agent.id)) {
+        missingDecisions.set(agent.id, { selectedAction: 'accumulate' });
+      }
+    }
+    expect(() => step(missingState, missingDecisions, { runId: 'local-engine-test' })).toThrowError(
+      /竞争目标缺失/,
+    );
+
+    // 2) 目标在决策后死亡：按 stale_invalid/target_dead 处理。
+    const deadState = createSimulation(config, SEED);
+    const actor = deadState.society.agents[0];
+    const deadTarget = deadState.society.agents[1];
+    if (actor === undefined || deadTarget === undefined) throw new Error('roster 过小');
+    for (const neighborId of [...deadTarget.ties]) {
+      const neighbor = deadState.society.agents.find((agent) => agent.id === neighborId);
+      if (neighbor !== undefined) {
+        neighbor.ties = neighbor.ties.filter((id) => id !== deadTarget.id);
+      }
+    }
+    deadTarget.ties = [];
+    deadTarget.alive = false;
+    const deadDecisions = new Map<AgentId, { selectedAction: string }>([
+      [actor.id, { selectedAction: `compete:${deadTarget.id}` }],
+    ]);
+    for (const agent of deadState.society.agents) {
+      if (agent.alive && !deadDecisions.has(agent.id)) {
+        deadDecisions.set(agent.id, { selectedAction: 'accumulate' });
+      }
+    }
+    const result = step(deadState, deadDecisions, { runId: 'local-engine-test' });
+    expect(result.executions.find((entry) => entry.agentId === actor.id)?.reason).toBe(
+      'target_dead',
+    );
+  });
+
   it('Value=0 竞争转移为 0 且无负数', () => {
     const config = makeConfig({
       schedule: { totalTicks: 11, statsStride: 1, snapshotStride: 100 },
@@ -407,6 +455,145 @@ describe('寿命与死亡（03 §6 阶段 E）', () => {
     expect(endReason).toBe('extinct');
     expect(state.society.agents.every((agent) => !agent.alive)).toBe(true);
     expect(() => step(state, new Map(), { runId: 'local-engine-test' })).toThrowError(/全死亡/);
+  });
+
+  it('rules-v16 replace 模式在死亡后生成继承个体、按遗产率折算财富并保持网络对称', () => {
+    const config = makeConfig({
+      population: {
+        initialPopulation: 10,
+        generationalMode: 'replace',
+        bequestRate: 0.5,
+        classInheritanceRate: 1.0,
+      },
+      schedule: { totalTicks: 20, statsStride: 1, snapshotStride: 100 },
+    });
+    const state = createSimulation(config, SEED);
+    const victim = state.society.agents.find((entry) => entry.alive && entry.classIndex > 0);
+    if (victim === undefined) throw new Error('缺少非底层个体');
+    victim.remainingLife = 0.2;
+    victim.value = 100;
+    const result = step(state, mockDecisions(state), { runId: 'local-engine-test' });
+    const bornEvent = result.events.find((event) => event.type === 'agent_born');
+    expect(bornEvent).toBeDefined();
+    if (bornEvent?.type !== 'agent_born') return;
+    expect(bornEvent.parentId).toBe(victim.id);
+    expect(bornEvent.classIndex).toBe(victim.classIndex);
+    const child = result.state.society.agents.find((entry) => entry.id === bornEvent.agentId);
+    expect(child?.alive).toBe(true);
+    const accEvent = result.events.find(
+      (e) => e.type === 'wealth_changed' && e.agentId === victim.id && e.cause === 'accumulate',
+    );
+    const delta = accEvent?.type === 'wealth_changed' ? accEvent.delta : 0;
+    expect(child?.value).toBeCloseTo((100 + delta) * 0.5, 6);
+    // 遗产守恒：继承额从死者遗产中扣除，二者之和等于死亡时的遗产总额。
+    const deadParent = result.state.society.agents.find((entry) => entry.id === victim.id);
+    expect(deadParent?.value).toBeCloseTo((100 + delta) * 0.5, 6);
+    expect((child?.value ?? 0) + (deadParent?.value ?? 0)).toBeCloseTo(100 + delta, 6);
+    expect(result.state.society.agents.filter((a) => a.alive)).toHaveLength(10);
+    // 关系对称性与死亡者零边不变量
+    for (const a of result.state.society.agents) {
+      if (!a.alive) expect(a.ties).toEqual([]);
+      for (const bId of a.ties) {
+        const b = result.state.society.agents.find((entry) => entry.id === bId);
+        expect(b?.alive).toBe(true);
+        expect(b?.ties).toContain(a.id);
+      }
+    }
+  });
+
+  it('rules-v17 ascent.classCapacity 达上限时拒绝上升（枚举与执行侧一致）', () => {
+    const config = makeConfig({
+      population: { initialPopulation: 10, classShares: [0.5, 0.5, 0, 0, 0] },
+      ascent: { classCapacity: [1, 0.4, 1, 1, 1] },
+      schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+    });
+    const state = createSimulation(config, SEED);
+    const c0 = state.society.agents.find((a) => a.alive && a.classIndex === 0);
+    if (c0 === undefined) throw new Error('缺少底层个体');
+    c0.value = 1e6;
+    const legal = enumerateLegalActions(state, c0.id);
+    expect(legal.actions).not.toContain('ascend');
+    const decisions = new Map(mockDecisions(state));
+    decisions.set(c0.id, { selectedAction: 'ascend' });
+    const result = step(state, decisions, { runId: 'local-cap-test' });
+    expect(
+      result.events.some(
+        (e) =>
+          e.type === 'action_invalid' && e.agentId === c0.id && e.reason === 'class_capacity_full',
+      ),
+    ).toBe(true);
+  });
+
+  it('rules-v18 talentInheritanceWeight>0 在低开放度下按亲代阶级调节新生儿天赋 ge', () => {
+    const baseCfg = makeConfig({
+      population: {
+        initialPopulation: 10,
+        generationalMode: 'replace',
+        talentInheritanceWeight: 0,
+      },
+      schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+    });
+    const weightedCfg = makeConfig({
+      population: {
+        initialPopulation: 10,
+        generationalMode: 'replace',
+        talentInheritanceWeight: 1.5,
+      },
+      schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+    });
+    const s0 = createSimulation(baseCfg, SEED);
+    const s1 = createSimulation(weightedCfg, SEED);
+    s0.society.openness = 0.2;
+    s1.society.openness = 0.2;
+    const target0 = s0.society.agents.find((a) => a.alive && a.classIndex === 0);
+    const target1 = s1.society.agents.find((a) => a.alive && a.classIndex === 0);
+    if (!target0 || !target1) throw new Error('缺少底层个体');
+    target0.remainingLife = 0.5;
+    target1.remainingLife = 0.5;
+    const r0 = step(s0, new Map(mockDecisions(s0)), { runId: 'r2b-base' });
+    const r1 = step(s1, new Map(mockDecisions(s1)), { runId: 'r2b-weighted' });
+    const child0 = r0.state.society.agents[r0.state.society.agents.length - 1];
+    const child1 = r1.state.society.agents[r1.state.society.agents.length - 1];
+    if (!child0 || !child1) throw new Error('缺少新生个体');
+    expect(child1.ge).toBeLessThanOrEqual(child0.ge);
+    expect(child1.ge).toBeGreaterThanOrEqual(weightedCfg.attributes.ge.min);
+  });
+
+  it('rules-v19 代际出身折损按亲代阶级压低新生儿天赋且不经过 O', () => {
+    const makeCfg = (lineageDiscount: number) =>
+      makeConfig({
+        population: {
+          initialPopulation: 10,
+          generationalMode: 'replace',
+          lineageDiscount,
+        },
+        schedule: { totalTicks: 10, statsStride: 1, snapshotStride: 100 },
+      });
+    const s0 = createSimulation(makeCfg(0), SEED);
+    const s1 = createSimulation(makeCfg(0.8), SEED);
+    const parent0 = s0.society.agents.find((a) => a.alive);
+    const parent1 = s1.society.agents.find((a) => a.alive);
+    if (!parent0 || !parent1) throw new Error('缺少亲代个体');
+    // 同一亲代、同一开放度：折损只读亲代阶级，不读 O。
+    for (const [state, parent] of [
+      [s0, parent0],
+      [s1, parent1],
+    ] as const) {
+      parent.classIndex = 0;
+      parent.maxClassIndex = 0;
+      parent.remainingLife = 0.5;
+      state.society.openness = 0.3;
+    }
+    const r0 = step(s0, new Map(mockDecisions(s0)), { runId: 'r2c-base' });
+    const r1 = step(s1, new Map(mockDecisions(s1)), { runId: 'r2c-discount' });
+    const child0 = r0.state.society.agents[r0.state.society.agents.length - 1];
+    const child1 = r1.state.society.agents[r1.state.society.agents.length - 1];
+    if (!child0 || !child1) throw new Error('缺少新生个体');
+    // 亲代处于最低层：折损因子为 (1-d)=0.2，公式完全不读 O。
+    expect(child1.ge).toBeLessThanOrEqual(child0.ge);
+    expect(child1.ge).toBeGreaterThanOrEqual(makeCfg(0.8).attributes.ge.min);
+    const cfg = makeCfg(0.8);
+    expect(child1.ge).toBeLessThanOrEqual(Math.max(child0.ge * 0.2, cfg.attributes.ge.min) + 1e-12);
   });
 });
 
