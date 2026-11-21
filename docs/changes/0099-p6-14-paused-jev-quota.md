@@ -51,6 +51,22 @@ node scripts/p6-11-jev-causal.mjs --run \
 续跑后已新增 2 个 live run：ledger 65 行（30 mock ok、14 live ok、21 live failed），
 剩余 46 个 live run，analysis 尚未生成。
 
+## 2026-11-21 20:15 再次暂停并预约 2026-11-22 08:05 CST
+
+用户指示把 P6-14 设为明天上海时间 08:05 开跑。当前进程已 `SIGTERM` 停止：
+ledger 95 行（30 mock ok、44 live ok、21 live failed），剩余 16 个 live run，
+检查点与 ledger 保留，未生成 analysis。
+
+VPS 预约方式：
+
+- `~/stratify-scale/p6-14-scheduled.sh`：从 600 权限的 `~/.stratify-jev.env`
+  读取 `JEV_API_KEY`（不写日志），以 `setsid nohup` 启动同一预注册与目录，
+  `oom_score_adj=1000`；启动成功后自删 crontab 条目，保证只跑一次。
+- crontab：`5 8 22 11 * /home/ubuntu/stratify-scale/p6-14-scheduled.sh ... # p6-14-scheduled-20261122`；
+  VPS 时区为 `Asia/Shanghai`，cron 服务 active。
+- 08:05 启动时若已存在同预注册进程，脚本会跳过并删除条目。
+- 密钥只存在于 `~/.stratify-jev.env`（mode 600），不进入日志、仓库或 D1。
+
 ## 其余实验
 
 `explore-r2c-hcg`（rules-v19，独立目录 `~/stratify-r2c`）、P6-12、P6-13 不受影响；
