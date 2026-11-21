@@ -43,6 +43,14 @@ node scripts/p6-11-jev-causal.mjs --run \
   --quota-wait-minutes 5 --max-resume-attempts 48
 ```
 
+## 2026-11-21 续跑
+
+配额恢复后按同一预注册与目录续跑（`--quota-wait-minutes 5 --max-resume-attempts 48`），
+进程继续使用原 ledger 与 6 个 seed 检查点，不重跑已完成 run；为规避 VPS 内存压力
+（P6-13 同时运行），续跑进程设置 `oom_score_adj=1000`，内存不足时优先牺牲 P6-14。
+续跑后已新增 2 个 live run：ledger 65 行（30 mock ok、14 live ok、21 live failed），
+剩余 46 个 live run，analysis 尚未生成。
+
 ## 其余实验
 
 `explore-r2c-hcg`（rules-v19，独立目录 `~/stratify-r2c`）、P6-12、P6-13 不受影响；
