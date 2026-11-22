@@ -535,11 +535,6 @@ if (!isMainThread) {
     );
   }
   parentPort.postMessage({ done: tasks.length });
-} else {
-  main().catch((err) => {
-    console.error(`r5-campaign 失败：${err instanceof Error ? err.stack : String(err)}`);
-    process.exit(1);
-  });
 }
 
 function designFor(exp) {
@@ -1060,4 +1055,11 @@ async function main() {
     return;
   }
   throw new Error('用法：--freeze | --run [expId] | --analyze <expId> | --status');
+}
+
+if (isMainThread) {
+  main().catch((err) => {
+    console.error(`r5-campaign 失败：${err instanceof Error ? err.stack : String(err)}`);
+    process.exit(1);
+  });
 }
