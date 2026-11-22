@@ -28,6 +28,12 @@
 `passesCausalClaim=true`：survival_hint 相对 neutral 显著压低开放度、抬高隔离度、
 压低向上流动性；ΔG 未达预注册阈值，仅作描述。
 
+## 复算校验
+
+在 VPS 上用同一 ledger/raw 再次执行 `--analyze`，输出文件与正式 analysis
+**逐字节相同**（`sha256=f13fcbe2a8b5db281d94f1349aa3ee4977f10ca470f12af5c45964230d6a7a9d`），
+bootstrap/置换检验的 analysis seed 均取自预注册，结果可离线复现。
+
 ## 边界
 
 - 请求模型 `jev-1.13-free`，实际返回也是 `jev-1.13-free`，本实验没有 P6-11 的
