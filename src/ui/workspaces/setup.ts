@@ -723,7 +723,7 @@ export function renderSetup(root: HTMLElement, app: StratifyApp): void {
           class: 'muted',
           id: 'lab-presets',
           style: 'margin-top:0',
-          text: 'P6-09 在 ADR 0010 口径下得到两体制候选，但 R4 消融按 07 §11 的 TV(P) ≥ 0.10 门槛重算后全部未达，结构闸门仍未通过。全部预设均为未校准演示（仅限 mock-weighted-v1 / N=200 的既冻结配置），修改任何字段会自动标记为自定义。',
+          text: '仅两套两体制代表预设（regime1_pyramid、regime2_continuum，N=40 / T=10950 / mock-weighted-v1）已按 P6-15 与 P6-15b 完成 D1 校准冻结；其余演示与消融预设均为未校准。修改任何字段会自动标记为自定义。',
         }),
         h(
           'div',

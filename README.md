@@ -6,7 +6,7 @@ Jev 负责从代码枚举的合法行动中做结构化选择，确定性 TypeSc
 
 > **当前状态（2026-11-24）：P0–P5a、P3/P4/P5b 工程交付已落地，Preview（[`https://stratify.logicc.top`](https://stratify.logicc.top)）与 Production（[`https://stratify-prod.logicc.top`](https://stratify-prod.logicc.top)）均已完成部署、冒烟、D1 备份恢复与回滚演练（Cron、`RUNNER_TOKEN`、R2 孤儿清理与生产 live 冒烟未完成，不得声称已正式发布或 P7 完成）。**
 > 版本轴：`rules-v19` / `engine-v0.16.0` / `stratify-config-v13` / `stratify-state-v5`（105 项注册参数，新机制均默认关闭保持向后逐位兼容）。
-> **科学边界（G6 仍未通过）**：`P6-09`（N=200）与 `P6-12`（N=1000）得到 `two-regime-candidate`（`share=1` vs `share<1` 单轴分裂），微扰吸收成立（60/60，`TV(P)=0`），但按 [docs/07](docs/07-experiment-calibration.md) §11 口径重算后五项消融全部未达 `median TV(P) ≥ 0.10`（最大 0.0740 / 0.0751，见 [changes/0090](docs/changes/0090-p6-r4-calibration-g6-closure.md)、[changes/0103](docs/changes/0103-p6-13-r4-n1000-result.md)），全部前端预设均为 `calibrated: false`。传统 `k≥3` 离散结构（`P6-05..08`/`P6-10`/R2-B）与 `rules-v19` R2-C 探针（[changes/0100](docs/changes/0100-explore-r2c-hcg-result.md)）均未通过。阶段 R3 真实 Jev 提示词因果实验 `P6-11`（30 对）与 `P6-14`（60/60 live，[changes/0104](docs/changes/0104-p6-14-completed-60-live.md)）已通过因果判读（`passesCausalClaim=true`），不关闭 G6。R5 探索战役已于上海 VPS 启动（[changes/0105](docs/changes/0105-r5-campaign-start.md)）。
+> **科学状态（G6 D1 两体制已收口）**：修复 `runSingle` 策略静默回落（[changes/0106](docs/changes/0106-runsingle-policy-fallthrough-audit.md)）后，在真实 `mock-weighted-v1` 与 `rules-v19` 默认配置下完成 [P6-15](docs/changes/0107-p6-15-true-mock-result.md)（`N=40`, 660/660）与 [P6-15b](docs/changes/0108-p6-15b-g6-d1-closure.md)（`N=600`, 60/60，官方 `evaluateStageB`）：聚类在旧条件 4（ADR 0006）与新条件 4（ADR 0010）双口径均通过（`k=2 [30,150]`、`ARI=1.000`、`sil=0.6602`、`TV(P)=0.7279`；`k=3 ARI=0.6115, sil=0.3163`），微扰跨规模（`N=40/200/1000`）100% 吸收，体制 II 阶级持有成本消融 `ψ=1` 独立确认（`w2b TV(P)=0.2425`、CI `[0.2358,0.2502]`、`100% > D95`、`30/30` 五阶级全同向）。详见 [校准报告](docs/research/2026-11-24-p6-15-g6-d1-calibration-report.md)；`src/app/presets.ts` 仅冻结两体制代表预设为 `calibrated: true`。**严守边界**：传统 `k≥3` 离散结构（`P6-05..08`/`P6-10`/R2-B/R2-C）仍未通过，`β/O/η/κ` 四项消融 `<0.10`，禁止声称「三态涌现」或现实因果。阶段 R3 真实 Jev 提示词因果实验 `P6-11` 与 `P6-14`（60/60 live，[changes/0104](docs/changes/0104-p6-14-completed-60-live.md)）已确认因果效应（`passesCausalClaim=true`）。
 
 ---
 
@@ -78,7 +78,7 @@ VPS Batch CLI ──> 同一 Pure Core + 同一 DecisionPolicy
 - **制度反馈与行为异质性（v12–v15）**：`openness.selfReinforcement`（θH=0）、显式制度状态机（`regimeMode='continuous'`, θR=0）及不可变个体特质 `riskTolerance`/`crossClassOpenness`（默认 `sigma=0`）均默认关闭以保持向后逐位一致。
 - **代际更替、阶级容量、天赋传递与 HCG（v16–v19）**：新增 `population.generationalMode`（默认 `'none'`）、`bequestRate`（0）、`classInheritanceRate`（0）、`ascent.classCapacity`（默认全 `1`）、`population.talentInheritanceWeight`（0），以及 `rules-v19` 的 `ascent.hardGateStrength`（0）与 `population.lineageDiscount`（0）；R2-C 探索探针未过消融门槛并按纪律停止（[changes/0100](docs/changes/0100-explore-r2c-hcg-result.md)），默认配置与 `rules-v15`–`v18` 保持逐位兼容。
 - **参数注册表**：全部 105 项业务常数集中注册（含单位、域、公式引用与接线测试），进入 `paramsHash`；`hardLifeFloor` 标记为 `guardOnly`。
-- **科学校准状态（G6 未通过）**：`P6-09`/`P6-12` 在 `N=200/1000` 上得到两体制候选，微扰 60/60 吸收，但 R4（[changes/0090](docs/changes/0090-p6-r4-calibration-g6-closure.md)）与 `P6-13`（[changes/0103](docs/changes/0103-p6-13-r4-n1000-result.md)）的五项消融按 `07 §11`（`median TV(P) ≥ 0.10`）全部未达门槛，因此 **G6 仍未通过**，`src/app/presets.ts` 全部预设均为 `calibrated: false`。传统 `k≥3` 离散结构亦未通过。
+- **科学校准状态（G6 D1 两体制已收口）**：修复策略静默回落（[changes/0106](docs/changes/0106-runsingle-policy-fallthrough-audit.md)）后，真实 `mock-weighted-v1` 下的 `P6-15`（`N=40`, 660/660，[changes/0107](docs/changes/0107-p6-15-true-mock-result.md)）与 `P6-15b`（`N=600`, 60/60，[changes/0108](docs/changes/0108-p6-15b-g6-d1-closure.md)）已完成聚类双口径确认、跨规模微扰吸收与体制 II `ψ=1` 消融独立确认（`w2b TV(P)=0.2425`、`100% > D95`）；`src/app/presets.ts` 仅冻结两体制代表预设 `regime1_pyramid` 与 `regime2_continuum`（`calibrated: true`）。传统 `k≥3` 离散结构与 `β/O/η/κ` 四项消融仍未通过。
 
 完整公式、字段、默认值和不变量见 [docs/03-rules-implementation.md](docs/03-rules-implementation.md)；版本沿革见 [docs/changes/](docs/changes/README.md)。
 
@@ -93,18 +93,18 @@ P0 → P1 → P1.5（Go/No-Go）→ P2 → P5a → P6（G6 校准）
                                       └→ P4 / P5b / P3（云端与产品化并行）→ P7
 ```
 
-| 阶段     | 目标                                                       | 闸门                                                              | 当前状态                                                                                                                                      |
-| -------- | ---------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **P0**   | 规格冻结、TS 骨架、配置校验、12 个 hash domain、参数注册表 | G0：配置可 round-trip；`paramsHash` 入 golden；零裸字面量         | 完成                                                                                                                                          |
-| **P1**   | 确定性核心：RNG、8 阶段结算、快照、微扰克隆                | G1：机制规则逐条测试；同输入最终哈希一致；10,000 tick soak 无 NaN | 完成（含 10,000 tick soak）                                                                                                                   |
-| **P1.5** | 涌现可达性预研（**阻断层**）                               | G1.5：至少 2 类非退化、可复现结构聚类；否则回改规则               | 部分：G1.5 过（2 类）；≥3 类仅 W6 候选                                                                                                        |
-| **P2**   | Jev 决策层：Choice 协议、重试、预算、重放                  | G2：故障注入覆盖超时/401/403/429/5xx/非法 JSON；预算与取消有效    | 完成 7/7：P2-07 冒烟经自建网关跑通（官方域名 451）                                                                                            |
-| **P3**   | 前端交互双界面（沙盒剧场 + 科研试验台）                    | G3：离线 mock、live 小额、导入回放、Chromium Playwright E2E 通过  | 完成（含 IndexedDB v3、LTTB 与 Playwright E2E）                                                                                               |
-| **P4**   | Cloudflare Worker / D1 / R2 数据服务与同源 BYOK 代理       | G4：幂等、并发、越权、超限测试通过；无密钥泄漏                    | 完成（Preview `stratify.logicc.top` 公网冒烟与 live 代理通过）                                                                                |
-| **P5a**  | 本地批量 Runner 与检查点                                   | G5a：kill 后恢复最终哈希一致；不依赖云端                          | 完成 5/5：CLI、tick 级检查点、微扰配对、共享预算、systemd 工件                                                                                |
-| **P5b**  | 分批流式上传、断点续传与独立确定性验证器                   | G5b：断网/重复上传不产生虚假 complete；回放篡改可拦截             | 完成（含 `full` 流式导出与公网 `verified` 闭环）                                                                                              |
-| **P6**   | 校准与科学验收                                             | G6：D1「2 体制 + 连续统」(`07 §8.2`) 与微扰/五消融 (`07 §11`)     | **未通过**：两体制候选与微扰吸收成立，但五消融全 `<0.10`；`k≥3` 与 R2-C 未通过；R3（`P6-11`/`P6-14` Jev 因果）已确认；R5 探索运行中           |
-| **P7**   | 发布硬化                                                   | 备份/回滚演练、安全扫描、渐进发布                                 | 部分完成：Preview 与 Production（`stratify-prod.logicc.top`）均已完成基础冒烟/备份恢复/回滚；Cron、`RUNNER_TOKEN`、生产 live 冒烟与监控未完成 |
+| 阶段     | 目标                                                       | 闸门                                                              | 当前状态                                                                                                                                       |
+| -------- | ---------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **P0**   | 规格冻结、TS 骨架、配置校验、12 个 hash domain、参数注册表 | G0：配置可 round-trip；`paramsHash` 入 golden；零裸字面量         | 完成                                                                                                                                           |
+| **P1**   | 确定性核心：RNG、8 阶段结算、快照、微扰克隆                | G1：机制规则逐条测试；同输入最终哈希一致；10,000 tick soak 无 NaN | 完成（含 10,000 tick soak）                                                                                                                    |
+| **P1.5** | 涌现可达性预研（**阻断层**）                               | G1.5：至少 2 类非退化、可复现结构聚类；否则回改规则               | 部分：G1.5 过（2 类）；≥3 类仅 W6 候选                                                                                                         |
+| **P2**   | Jev 决策层：Choice 协议、重试、预算、重放                  | G2：故障注入覆盖超时/401/403/429/5xx/非法 JSON；预算与取消有效    | 完成 7/7：P2-07 冒烟经自建网关跑通（官方域名 451）                                                                                             |
+| **P3**   | 前端交互双界面（沙盒剧场 + 科研试验台）                    | G3：离线 mock、live 小额、导入回放、Chromium Playwright E2E 通过  | 完成（含 IndexedDB v3、LTTB 与 Playwright E2E）                                                                                                |
+| **P4**   | Cloudflare Worker / D1 / R2 数据服务与同源 BYOK 代理       | G4：幂等、并发、越权、超限测试通过；无密钥泄漏                    | 完成（Preview `stratify.logicc.top` 公网冒烟与 live 代理通过）                                                                                 |
+| **P5a**  | 本地批量 Runner 与检查点                                   | G5a：kill 后恢复最终哈希一致；不依赖云端                          | 完成 5/5：CLI、tick 级检查点、微扰配对、共享预算、systemd 工件                                                                                 |
+| **P5b**  | 分批流式上传、断点续传与独立确定性验证器                   | G5b：断网/重复上传不产生虚假 complete；回放篡改可拦截             | 完成（含 `full` 流式导出与公网 `verified` 闭环）                                                                                               |
+| **P6**   | 校准与科学验收                                             | G6：D1「2 体制 + 连续统」(`07 §8.2`) 与微扰/五消融 (`07 §11`)     | **D1 已收口**：`P6-15`/`P6-15b` 聚类双口径、微扰与 `ψ=1` 独立确认全通过并冻结两体制预设；传统 `k≥3` 与 `β/O/η/κ` 消融未通过；R3 Jev 因果已确认 |
+| **P7**   | 发布硬化                                                   | 备份/回滚演练、安全扫描、渐进发布                                 | 部分完成：Preview 与 Production（`stratify-prod.logicc.top`）均已完成基础冒烟/备份恢复/回滚；Cron、`RUNNER_TOKEN`、生产 live 冒烟与监控未完成  |
 
 任务编号、依赖与验收标准见 [docs/01-implementation-plan.md](docs/01-implementation-plan.md)。
 
@@ -228,8 +228,8 @@ pnpm params:snapshot # 参数注册表契约快照，diff 需人工审查
 
 ## 9. 当前限制与已知风险
 
-- **科学验收（G6）未通过**：`P6-09`（N=200）与 `P6-12`（N=1000）得到 `two-regime-candidate`（`share=1` vs `share<1` 单轴分裂），微扰 60/60 吸收，但 R4（[changes/0090](docs/changes/0090-p6-r4-calibration-g6-closure.md)）与 `P6-13`（[changes/0103](docs/changes/0103-p6-13-r4-n1000-result.md)）的五项消融均未达 `median TV(P) ≥ 0.10`，全部预设均为 `calibrated: false`。传统 `k≥3` 与 `rules-v19` R2-C 探针均未通过；不得声称已校准或结构已涌现。
-- **Jev 因果边界**：`P6-11`（30 对）与 `P6-14`（60/60 live，[changes/0104](docs/changes/0104-p6-14-completed-60-live.md)）确认了 `survival_hint` vs `neutral` 对 `O/S/Mup` 的因果效应（`passesCausalClaim=true`），但仅适用于该提示词规范与单一模型 `jev-1.13-free`，不关闭 G6；真实 Jev 输出不承诺跨时间确定，复现依赖决策日志重放。
+- **科学验收边界（G6 D1 已收口、传统 `k≥3` 仍未通过）**：真实 `mock-weighted-v1` 下的 `P6-15`（`N=40`, 660/660，[changes/0107](docs/changes/0107-p6-15-true-mock-result.md)）与 `P6-15b`（`N=600`, 60/60，[changes/0108](docs/changes/0108-p6-15b-g6-d1-closure.md)）已完成 D1（「2 体制 + 连续统」）的聚类双口径确认、跨规模微扰吸收与体制 II `ψ=1` 消融独立确认，[校准报告](docs/research/2026-11-24-p6-15-g6-d1-calibration-report.md)已归档且 `src/app/presets.ts` 仅冻结两体制代表预设（`calibrated: true`）。传统 `k≥3`、`β/O/η/κ` 四项消融、`random-uniform-v1` 与 `generationalMode='replace'` 均未通过；不得声称「三态涌现」或现实因果。
+- **Jev 因果边界**：`P6-11`（30 对）与 `P6-14`（60/60 live，[changes/0104](docs/changes/0104-p6-14-completed-60-live.md)）确认了 `survival_hint` vs `neutral` 对 `O/S/Mup` 的因果效应（`passesCausalClaim=true`），但仅适用于该提示词规范与单一模型 `jev-1.13-free`；真实 Jev 输出不承诺跨时间确定，复现依赖决策日志重放。
 - **生产发布未收口**：Preview（`stratify.logicc.top`）与 Production（`stratify-prod.logicc.top`，[changes/0097](docs/changes/0097-production-deploy-backup-rollback.md)）均已完成部署、基础冒烟、D1 备份恢复与回滚演练，但 Cron 保留任务因 Workers Free 5 槽上限未注册，`RUNNER_TOKEN`、R2 孤儿清理、生产真实 Jev live 冒烟与监控看板均未完成，不得声称正式发布或 P7 完成。
 - **权威哈希仅承诺同运行时 V8**：Node >=22、workerd、Chromium（Node 与 workerd 间 `Math.exp/log/cos` 可有 1 ulp 差，按 ADR 0001 按 `runtimeVersion` 分组）；Safari/Firefox 标记 `nonAuthoritativeRuntime`。
 - **待议决策**：[docs/01](docs/01-implementation-plan.md) §12 的 D-01/D-02 仍开放（不得把 `hardLifeFloor`/sigma 当前域写成不可变契约）；更多细节见 [docs/reference/known-limitations.md](docs/reference/known-limitations.md)。
@@ -239,5 +239,5 @@ pnpm params:snapshot # 参数注册表契约快照，diff 需人工审查
 ## 10. 下一步
 
 1. 阅读 [AGENTS.md](AGENTS.md) 与 [docs/README.md](docs/README.md) 的效力规则。
-2. **科研轨道（G6 收口）**：跟进上海 VPS 上的 R5 探索战役与消融机制排查，严格遵循 [docs/07](docs/07-experiment-calibration.md) 预注册、全新独立种子与 `median TV(P) ≥ 0.10` 结构退化门槛，不追认旧结果、不静默放宽口径。
+2. **科研轨道（后续研究）**：若继续探索传统 `k≥3`、代际通道或微扰放大边界，需使用已修复 `changes/0106` 策略回落缺陷的新版 `r5-campaign.mjs` 清空旧分片后重跑，任何确认轮须另立 ADR、全新预注册与全新 seed。
 3. **运维轨道（P7 生产收口）**：在生产环境配置 `RUNNER_TOKEN`、执行正式上传与独立回放验证（`verified`）、补做生产小额 live 冒烟，并在释放 Cron 槽位或升级计划后启用保留策略与 R2 孤儿清理。

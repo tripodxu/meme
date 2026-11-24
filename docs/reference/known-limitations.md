@@ -1,13 +1,14 @@
 # 已知限制
 
 本页列出当前版本**明确未完成或未验证**的事项。不要把工程完成度当成科学验收：
-当前规则版本为 `rules-v19`（新机制默认关闭，与 `v15–v18` 逐位一致）。**G6 仍未通过**：`P6-09`（N=200）与 `P6-12`（N=1000）得到 `two-regime-candidate` 且微扰 60/60 吸收，但按 `07 §11` 结构退化口径（`median TV(P) ≥ 0.10`）重算后，R4（changes/0090 更正）与 `P6-13`（changes/0103）的五项消融全部未达门槛；`src/app/presets.ts` 中全部预设均为 `calibrated: false`。阶段 R3（`P6-11` 与 `P6-14` 60/60 live，changes/0093/0104）确认了 Jev 提示词因果效应（`passesCausalClaim: true`），但**不关闭 G6**；传统全特征 `k≥3` 与 `rules-v19` R2-C 探针（changes/0100）均未通过。
+当前规则版本为 `rules-v19`（新机制默认关闭，与 `v15–v18` 逐位一致）。**G6 在 D1（「2 体制 + 连续统」，`07 §8.2`）目标下已收口**（changes/0106–0108，校准报告 `docs/research/2026-11-24-p6-15-g6-d1-calibration-report.md`）：真实 `mock-weighted-v1` 下的 `P6-15`（`N=40`, 660/660）聚类在新旧条件 4 双口径均通过，微扰跨 `N=40/200/1000` 均 100% 吸收，`P6-15b`（`N=600`, 60/60）经官方 `evaluateStageB` 独立确认体制 II `ψ=1` 消融结构退化（`w2b TV(P)=0.2425`、`100% > D95`）；`src/app/presets.ts` 仅冻结 `regime1_pyramid` 与 `regime2_continuum` 为 `calibrated: true`，其余全部预设仍为 `calibrated: false`。阶段 R3（`P6-11` 与 `P6-14` 60/60 live，changes/0093/0104）确认了 Jev 提示词因果效应（`passesCausalClaim: true`）。
 
 ## 1. 科学结论
 
-- **G6 仍未通过**：不得声称“参数已校准”“结构已涌现”或“三类离散结构涌现”；`P6-05..08`/`P6-10`/R2-B/R2-C 均未通过；`regime1_pyramid` 与 `regime2_continuum` 仅保留为未校准演示预设（`calibrated: false`）。
-- 阶段 R3（`P6-11` 30 对与 `P6-14` 60/60 live）确认了微观 LLM 规范提示（`survival_hint` vs `neutral`）对制度开放度 $O$、网络隔离度 $S$ 与流动率 $M_{\text{up}}$ 的宏观因果效应（`passesCausalClaim: true`），但该结论依赖于特定提示词规范与单一模型 `jev-1.13-free`，不外推至任意提示或未测模型，也不关闭 G6。
-- D1 目标“2 体制 + 连续统”只是验收目标修订；`P6-09`/`P6-12` 的两体制仍是 `share=1` vs `share<1` 单轴分裂且未检验代际假设。
+- **G6 适用边界与未通过目标**：本次 G6 收口严格限定于 D1「2 体制 + 连续统」、`rules-v19` 默认配置（`generationalMode='none'`）与 `mock-weighted-v1` 策略。**传统全特征 `k≥3` 离散结构（`P6-05..08`/`P6-10`/R2-B/R2-C）仍未通过**；不得声称「三类离散结构涌现」「社会结构已涌现」或现实因果。
+- **消融覆盖边界**：五项必跑消融中仅阶级持有成本 `ψ=1` 达到 `TV(P) ≥ 0.10` 并通过 `P6-15b` 独立确认（且方向为 `P4` 上升而非旧文本注记的 `P4` 下降）；`β=0`、`O=fixed`、`η=0`、`κ=0` 四项反馈消融的 `median TV(P)` 均 `<0.10`，不得声称全部反馈轴均获结构消融支持。
+- **策略与代际边界**：`P6-15`/`P6-15b` 的两体制仍是 `share=1` vs `share<1` 单轴分裂且 `generationalMode='none'`，不外推至 `random-uniform-v1` 或 `generationalMode='replace'`；2026-11-18 后因策略回落实跑 `RandomPolicy` 的旧批次（changes/0106）不作 `mock-weighted-v1` 证据。
+- 阶段 R3（`P6-11` 30 对与 `P6-14` 60/60 live）确认了微观 LLM 规范提示（`survival_hint` vs `neutral`）对制度开放度 $O$、网络隔离度 $S$ 与流动率 $M_{\text{up}}$ 的宏观因果效应（`passesCausalClaim: true`），但该结论依赖于特定提示词规范与单一模型 `jev-1.13-free`，不外推至任意提示或未测模型。
 - 浏览器工作台、上传器和 Worker 都是工程工具，不产生科学证据。
 
 ## 2. 确定性边界

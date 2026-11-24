@@ -13,11 +13,11 @@ export const CLAIMS = {
   configSchemaVersion: CONFIG_SCHEMA_VERSION,
   stateSchemaVersion: STATE_SCHEMA_VERSION,
   schemaSummary: `${CONFIG_SCHEMA_VERSION} / ${STATE_SCHEMA_VERSION}`,
-  g6Badge: 'G6 未通过',
-  g6Detail: 'G6 未通过（R4 消融未达结构退化门槛）',
-  g6Footer: 'G6 未通过 · 未校准演示',
+  g6Badge: 'G6 (D1 两体制) 已收口',
+  g6Detail: 'G6 D1 两体制已校准（P6-15 / P6-15b，mock-weighted-v1；传统 k≥3 未通过）',
+  g6Footer: 'G6 D1 已收口 · 两体制预设已冻结（传统 k≥3 未通过）',
   g6BoundaryNote:
-    'P6-09 在 ADR 0010 口径下得到 two-regime-candidate（rules-v16 / N=200 / mock-weighted-v1），但 R4 五项消融按 07 §11 的 TV(P) ≥ 0.10 门槛重算后全部未达，G6 保持未通过；传统 k≥3 离散结构与 Jev 因果对照亦未通过，不得外推为“三态涌现”“已校准”或现实因果。',
+    'P6-15（N=40，660/660，真实 mock-weighted-v1）在新旧条件 4 双口径下确认两体制+连续统（k=2 ARI=1.000、sil=0.6602、TV(P)=0.7279），跨规模微扰 100% 吸收；P6-15b（N=600，官方 evaluateStageB）独立确认体制 II ψ=1 消融结构退化（w2b TV(P)=0.2425，100% 超 D95），仅两体制代表预设已冻结为 calibrated: true。适用边界：仅限 D1 两体制目标、rules-v19 默认 generationalMode=none 与 mock-weighted-v1；传统 k≥3、β/O/η/κ 消融与现实因果均未成立，不得表述为“三态涌现”。',
   calibratedPresetNotice: (name: string, rulesVersion: string): string =>
-    `已载入预设「${name}」（${rulesVersion}，未校准演示）。`,
+    `已载入已校准两体制预设「${name}」（${rulesVersion}，D1 两体制 mock-weighted-v1 冻结配置；修改任一参数将转为未校准自定义）。`,
 } as const;

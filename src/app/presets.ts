@@ -8,11 +8,16 @@ import type { RunConfig } from '../core/config/types.js';
 import type { OfflinePolicyId } from './types.js';
 
 /**
- * 浏览器预设。科学口径见 docs/07：
- * P6-09 在 ADR 0010 口径下得到 `two-regime-candidate`，但 R4 按 07 §11 的
- * **结构退化（TV(P) ≥ 0.10）** 口径重算后，五项消融均未达门槛（changes/0090 更正），
- * 因此 G6 仍未通过、**没有任何预设可标 `calibrated: true`**。
- * 全部预设（含两体制代表作）一律 `calibrated: false`，只能作为未校准演示。
+ * 浏览器预设。科学口径见 docs/07 与 docs/research/2026-11-24-p6-15-g6-d1-calibration-report.md：
+ * - 修复 runSingle 策略回落（changes/0106）后，在真实 mock-weighted-v1 与 rules-v19 默认配置下：
+ *   1) P6-15（p6-15-983b3698，N=40，660/660）聚类在旧条件 4（ADR 0006）与新条件 4（ADR 0010）
+ *      双口径下均通过（k=2 [30,150]、ARI=1.000、sil=0.6602、TV(P)=0.7279；k=3 ARI=0.6115, sil=0.3163）；
+ *   2) 微扰吸收在 N=40（P6-15）/ N=200（R4 Part A）/ N=1000（P6-13 Part A）均 100% 成立（TV=0, D≈1e-10）；
+ *   3) 体制 II 阶级持有成本消融 ψ=1 经独立确认轮 P6-15b（p6-15b-ea8fbe20，N=600，官方 evaluateStageB）
+ *      严格确认：w2b TV(P)=0.2425（CI [0.2358,0.2502]、p=0.00008）、100% 超 D95、五阶级 30/30 全同向。
+ * - 因此仅两套冻结的两体制代表预设（regime1_pyramid、regime2_continuum，configHash/paramsHash 与 P6-15
+ *   预注册逐位一致）标为 calibrated: true（严格限定于 D1 两体制目标、mock-weighted-v1、generationalMode='none'）；
+ * - 其余全部预设（demo/standard/structural/五消融/behavior-d2/沙盒剧本）继续保持 calibrated: false。
  */
 export interface WebPreset {
   readonly id: string;
@@ -127,29 +132,29 @@ export const WEB_PRESETS: readonly WebPreset[] = Object.freeze([
   ),
   build(
     'regime1_pyramid',
-    '未校准演示 · 体制 I（位移守恒金字塔）',
-    'P6-09 两体制候选之一（N=200, ARI=1.000；R4 微扰 30/30 吸收）。G6 未通过：消融未达结构退化门槛。',
+    '已校准（D1）· 体制 I（位移守恒金字塔）',
+    'P6-15 Cluster 0 代表（N=40, T=10950, k=2 ARI=1.000, sil=0.6602, 微扰 100% 吸收；仅限 D1 两体制 / mock-weighted-v1 / generationalMode=none）。',
     'mock-weighted-v1',
     {
-      population: { initialPopulation: 200 },
+      population: { initialPopulation: 40 },
       ascent: { displacementShare: 1.0, scarcityWeight: 0 },
-      schedule: { totalTicks: 3650 },
+      schedule: { totalTicks: 10950, statsStride: 1, snapshotStride: 10950 },
     },
     DEFAULT_RUN_CONFIG,
-    false,
+    true,
   ),
   build(
     'regime2_continuum',
-    '未校准演示 · 体制 II（开放连续统代表）',
-    'P6-09 两体制候选之一（N=200, TV(P)=0.3471；R4 微扰 30/30 吸收）。G6 未通过：消融未达结构退化门槛。',
+    '已校准（D1）· 体制 II（非守恒封闭连续统代表）',
+    'P6-15 Cluster 1 代表（N=40, T=10950, TV(P)=0.7279, 微扰 100% 吸收；P6-15b 确认 ψ=1 消融 TV(P)=0.2425 / 100% 超 D95；仅限 D1 两体制 / mock-weighted-v1）。',
     'mock-weighted-v1',
     {
-      population: { initialPopulation: 200 },
+      population: { initialPopulation: 40 },
       ascent: { displacementShare: 0.5, scarcityWeight: 15 },
-      schedule: { totalTicks: 3650 },
+      schedule: { totalTicks: 10950, statsStride: 1, snapshotStride: 10950 },
     },
     DEFAULT_RUN_CONFIG,
-    false,
+    true,
   ),
   build(
     'ablation-beta0',

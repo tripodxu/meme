@@ -1,8 +1,6 @@
 # R5 大规模实验战役计划（2026-11-22）
 
-> 状态：**已在上海 VPS 启动执行**（见 [changes/0105](../changes/0105-r5-campaign-start.md)）。G6 仍未通过；P6-13 十项消融 `median TV(P)` 全部 <0.10，
-> P6-12/P6-13 的两体制仍是 `share=1` vs `share<1` 的单轴分裂。本战役全部为
-> exploratory/characterization，任何确认轮都必须另立 ADR、全新预注册与全新 seed。
+> 状态：**2026-11-24 审计受策略回落影响（见 [changes/0106](../changes/0106-runsingle-policy-fallthrough-audit.md)）**。2026-11-22 启动的旧 VPS 进程实跑了 `RandomPolicy` 且 `r5-pert` 未执行配对；脚本现已修复，后续重跑需清空旧分片。另：真实 `mock-weighted-v1` 下的 `P6-15` + `P6-15b` 已完成 G6 D1（「2 体制 + 连续统」）收口（[changes/0107–0108](../changes/0108-p6-15b-g6-d1-closure.md)）；本战役全部为 exploratory/characterization（用于检验传统 `k≥3`、代际通道与微扰边界），任何确认轮都必须另立 ADR、全新预注册与全新 seed。
 > 全部实验在上海 VPS（`lhsh`）执行；本地只编译、单测、离线复算。
 
 ## 0. 目标
