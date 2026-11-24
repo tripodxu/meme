@@ -304,24 +304,27 @@ git worktree add /tmp/stratify-v4 192f551^
 此前 `.gitignore` 只白名单到 P6-07，P6-08..11 与 R4 的产物虽被 `changes/0088`–`0093` 引用，
 却全部被 `out/*` 忽略，**证据不在仓库内**。本次一并补登记；`.gitignore` 已同步。
 
-| 路径                                   |             大小 | sha256（文件级）                                                            | 说明                                                                                                     |
-| :------------------------------------- | ---------------: | :-------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- |
-| `out/p6-08-generational-result.json`   |            1,662 | `314634ba4fd4afa8099ef5195034050f6f8d46e22d677870c271a7f3ec86225f`          | P6-08 判读（未通过）                                                                                     |
-| `out/p6-08-raw.json`                   |           89,774 | `0f07655cd191d341a7e6c8429dc68a6814e4c1acb17388c890fe99b28f758090`          | P6-08 240 run 原始指标                                                                                   |
-| `out/p6-09-two-regime-result.json`     |           13,782 | `2836f9aa21ef39a40b8b60c3f61c4c27e16cf0031b80b020dce958d43df09df9`          | P6-09 判读                                                                                               |
-| `out/p6-09-raw.json`                   |           67,837 | `18befdf0891d7b29e2b8a1cb8217be9b365b0eaded346648bc4b91fcd3f6ff7a`          | P6-09 240 run 原始指标                                                                                   |
-| `out/p6-10-class-capacity-result.json` |            1,528 | `ba8bad155b0a0ef0cd5a355a084a954d25094ac8385f5d7f8e5a548662cc0558`          | P6-10 判读（未通过）                                                                                     |
-| `out/p6-10-raw.json`                   |           67,688 | `817e1a85686884966b0f555e2c8fc35bf734f09f092980d9a2bd1cce2a2371a3`          | P6-10 240 run 原始指标                                                                                   |
-| `out/p6-r4-closure-result.json`        |            3,911 | `d747b6ad06b2ea8d1439a3d1d3a76fa1610dfc6a55b2b0dea7964540a380a614`          | R4 判读（2026-11-20 按 07 §11 重算）                                                                     |
-| `out/p6-r4-raw.json`                   |          135,674 | `292987ffee9bd1a1f4372ee8408b0ca36ab79fb7e7f01e0ef8e90e5a7b28d34e`          | R4 420 条任务记录（60 微扰对 + 360 消融）原始指标                                                        |
-| `out/p6-11-jev-causal-prereg.json`     |            2,221 | `afc77edc9199660112591e78aa672d9bfa1b499d05af7beab6d521c3a9ab788d`          | P6-11 冻结预注册                                                                                         |
-| `out/p6-11-jev-causal-analysis.json`   |            2,384 | `7c1867f381ddd4256dca5af262b3fd8c49d42c72009b78012a6584ce53463a03`          | P6-11 判读（v2，含完整性/模型字段）                                                                      |
-| `out/p6-11-jev-causal/ledger.ndjson`   |           72,808 | `1038291ee660e5c218065d89e70b99d867739efd3dcdb0fe3e13da628794b063`          | P6-11 90 run 台账                                                                                        |
-| `out/p6-11-jev-causal/raw/*.ndjson.gz` | 60 个 / 10.3 MiB | 目录清单 `9744ad4f8f84ca25b066ddc2546fa14545d02dd932b7a525784dd3b3df8c4a78` | 60 组 live 逐决策原始记录                                                                                |
-| `out/p6-11-jev-causal-verify.json`     |              387 | `9d2845edb1186d1eec6417bb401c6a17333b02a177e499d9076df8ffd8b98707`          | P6-11 台账—原始记录核验（90 run / 58,992 决策，0 problem）                                               |
-| `out/p6-15-prereg.json`                |           14,672 | `8c06453b2d04340ba575f737f8d87337235d243b81135a79ca1b78a473e8f8fe`          | P6-15 冻结预注册（`p6-15-983b3698`，真实 `mock-weighted-v1`，`N=40`）                                    |
-| `out/p6-15-raw.json`                   |          486,825 | `ba247abd586700395b73040b6b289a7f2a16b224602f8342444f9cee74ec3b68`          | P6-15 660 条任务记录原始指标（360 消融 + 60 微扰对 + 240 聚类）                                          |
-| `out/p6-15-result.json`                |           21,268 | `045fb5c8c0b1c8089f562f2fb846e9a2853a31be9ca7705c0c0e05580e44b797`          | P6-15 离线判读（聚类双口径通过、微扰 60/60 吸收、`ψ=1` `TV=0.1110/0.1790`，`N=40` 未过严苛 `overD95=1`） |
+| 路径                                   |             大小 | sha256（文件级）                                                            | 说明                                                                                                                      |
+| :------------------------------------- | ---------------: | :-------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `out/p6-08-generational-result.json`   |            1,662 | `314634ba4fd4afa8099ef5195034050f6f8d46e22d677870c271a7f3ec86225f`          | P6-08 判读（未通过）                                                                                                      |
+| `out/p6-08-raw.json`                   |           89,774 | `0f07655cd191d341a7e6c8429dc68a6814e4c1acb17388c890fe99b28f758090`          | P6-08 240 run 原始指标                                                                                                    |
+| `out/p6-09-two-regime-result.json`     |           13,782 | `2836f9aa21ef39a40b8b60c3f61c4c27e16cf0031b80b020dce958d43df09df9`          | P6-09 判读                                                                                                                |
+| `out/p6-09-raw.json`                   |           67,837 | `18befdf0891d7b29e2b8a1cb8217be9b365b0eaded346648bc4b91fcd3f6ff7a`          | P6-09 240 run 原始指标                                                                                                    |
+| `out/p6-10-class-capacity-result.json` |            1,528 | `ba8bad155b0a0ef0cd5a355a084a954d25094ac8385f5d7f8e5a548662cc0558`          | P6-10 判读（未通过）                                                                                                      |
+| `out/p6-10-raw.json`                   |           67,688 | `817e1a85686884966b0f555e2c8fc35bf734f09f092980d9a2bd1cce2a2371a3`          | P6-10 240 run 原始指标                                                                                                    |
+| `out/p6-r4-closure-result.json`        |            3,911 | `d747b6ad06b2ea8d1439a3d1d3a76fa1610dfc6a55b2b0dea7964540a380a614`          | R4 判读（2026-11-20 按 07 §11 重算）                                                                                      |
+| `out/p6-r4-raw.json`                   |          135,674 | `292987ffee9bd1a1f4372ee8408b0ca36ab79fb7e7f01e0ef8e90e5a7b28d34e`          | R4 420 条任务记录（60 微扰对 + 360 消融）原始指标                                                                         |
+| `out/p6-11-jev-causal-prereg.json`     |            2,221 | `afc77edc9199660112591e78aa672d9bfa1b499d05af7beab6d521c3a9ab788d`          | P6-11 冻结预注册                                                                                                          |
+| `out/p6-11-jev-causal-analysis.json`   |            2,384 | `7c1867f381ddd4256dca5af262b3fd8c49d42c72009b78012a6584ce53463a03`          | P6-11 判读（v2，含完整性/模型字段）                                                                                       |
+| `out/p6-11-jev-causal/ledger.ndjson`   |           72,808 | `1038291ee660e5c218065d89e70b99d867739efd3dcdb0fe3e13da628794b063`          | P6-11 90 run 台账                                                                                                         |
+| `out/p6-11-jev-causal/raw/*.ndjson.gz` | 60 个 / 10.3 MiB | 目录清单 `9744ad4f8f84ca25b066ddc2546fa14545d02dd932b7a525784dd3b3df8c4a78` | 60 组 live 逐决策原始记录                                                                                                 |
+| `out/p6-11-jev-causal-verify.json`     |              387 | `9d2845edb1186d1eec6417bb401c6a17333b02a177e499d9076df8ffd8b98707`          | P6-11 台账—原始记录核验（90 run / 58,992 决策，0 problem）                                                                |
+| `out/p6-15-prereg.json`                |           14,672 | `8c06453b2d04340ba575f737f8d87337235d243b81135a79ca1b78a473e8f8fe`          | P6-15 冻结预注册（`p6-15-983b3698`，真实 `mock-weighted-v1`，`N=40`）                                                     |
+| `out/p6-15-raw.json`                   |          486,825 | `ba247abd586700395b73040b6b289a7f2a16b224602f8342444f9cee74ec3b68`          | P6-15 660 条任务记录原始指标（360 消融 + 60 微扰对 + 240 聚类）                                                           |
+| `out/p6-15-result.json`                |           21,268 | `045fb5c8c0b1c8089f562f2fb846e9a2853a31be9ca7705c0c0e05580e44b797`          | P6-15 离线判读（聚类双口径通过、微扰 60/60 吸收、`ψ=1` `TV=0.1110/0.1790`，`N=40` 未过严苛 `overD95=1`）                  |
+| `out/p6-15b-prereg.json`               |            3,708 | `1448e2c5a980f4461d34b55fb0e569d1acf1073a0795f09bf389c32eeb44cd1f`          | P6-15b 冻结预注册（`p6-15b-ea8fbe20`，体制 II `ψ=1` 独立确认轮，`N=600`，`w2b` 主窗）                                     |
+| `out/p6-15b-raw.json`                  |           66,554 | `f5626895577ebe8fd9f0e741c5047f096e118f7f64c2442730890ec48ba52221`          | P6-15b 60 run 原始窗口指标（30 对全新确认种子，真实 `mock-weighted-v1`）                                                  |
+| `out/p6-15b-result.json`               |            7,635 | `7c0ef92c027abc759b815671fc269e86e908d8ac8a424573af3fc3bca4bef6db`          | P6-15b 官方 `evaluateStageB` 判读：`TV(P)=0.2425` CI `[0.2358,0.2502]`、`p=0.00008`、`100% > D95`、`strictConfirmed=true` |
 
 目录清单哈希 = `sha256(按路径排序的 "path	sha256
 " 串接)`。重建命令：
@@ -330,4 +333,5 @@ git worktree add /tmp/stratify-v4 192f551^
 node scripts/p6-r4-closure.mjs          # 读取 out/p6-r4-raw.json 重算，不重跑 run
 node scripts/p6-11-jev-causal.mjs --analyze   # 读取 ledger 重算，不调用上游
 node scripts/p6-15-g6-closure.mjs --analyze   # 读取 out/p6-15-raw.json 离线重算，不跑仿真
+node scripts/p6-15b-ablation-confirm.mjs --analyze  # 读取 out/p6-15b-raw.json 离线重算，不跑仿真
 ```
