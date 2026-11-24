@@ -169,4 +169,7 @@ out/p6-14-jev-causal/*
 !out/p6-15-prereg.json
 !out/p6-15-raw.json
 !out/p6-15-result.json
+!out/p6-15b-prereg.json
+!out/p6-15b-raw.json
+!out/p6-15b-result.json
 !out/scale-runs-manifest.json
