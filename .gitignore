@@ -166,4 +166,7 @@ out/p6-14-jev-causal/*
 !out/p6-14-jev-causal/raw/*.ndjson.gz
 !out/p6-14-jev-causal-analysis.json
 !out/p6-14-jev-causal-verify.json
+!out/p6-15-prereg.json
+!out/p6-15-raw.json
+!out/p6-15-result.json
 !out/scale-runs-manifest.json
