@@ -96,7 +96,10 @@ if (!isMainThread) {
       population: { initialPopulation: 1000 },
       schedule: { totalTicks: task.totalTicks, statsStride: 1, snapshotStride: task.totalTicks },
     });
-    const out = runSingle(cfg, asSeed(task.seed), { artifactSink: NOOP_ARTIFACT_SINK });
+    const out = runSingle(cfg, asSeed(task.seed), {
+      policy: 'mock-weighted-v1',
+      artifactSink: NOOP_ARTIFACT_SINK,
+    });
     const [wStart, wEnd] = task.totalTicks === 10950 ? [10585, 10949] : [14235, 14599];
     results.push({
       kind: task.kind,

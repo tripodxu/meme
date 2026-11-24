@@ -124,6 +124,17 @@ describe('Policy 接线（P2-01/P2-06）', () => {
     expect(v2.decisions.every((entry) => entry.policyVersion === 'mock-weighted-v2')).toBe(true);
   });
 
+  it('runSingle 缺省或未知 policy 时 fail-closed 抛错，不静默回落 RandomPolicy（changes/0106）', () => {
+    expect(() =>
+      runSingle(CONFIG, SEED, {} as unknown as { policy: 'mock-weighted-v1' }),
+    ).toThrowError(StratifyError);
+    expect(() =>
+      runSingle(CONFIG, SEED, {
+        policy: 'unknown-policy' as unknown as 'mock-weighted-v1',
+      }),
+    ).toThrowError(StratifyError);
+  });
+
   it('RandomPolicy 在异步路径上确定：同种子两次运行终态一致', async () => {
     const options = {
       policy: new RandomPolicy(),

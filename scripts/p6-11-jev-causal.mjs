@@ -283,7 +283,7 @@ async function executeRun(options) {
       const runKey = runKeyOf('mock-weighted-v1', null, seed);
       if (ledger.has(runKey)) continue;
       const t0 = Date.now();
-      const outcome = runSingle(config, asSeed(seed), {});
+      const outcome = runSingle(config, asSeed(seed), { policy: 'mock-weighted-v1' });
       const record = {
         runKey,
         seed,

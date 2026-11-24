@@ -178,7 +178,10 @@ if (!isMainThread) {
         population: { initialPopulation: 1000 },
         schedule: { totalTicks: 3650, statsStride: 1, snapshotStride: 3650 },
       });
-      const out = runSingle(cfg, asSeed(task.seed), { artifactSink: NOOP_ARTIFACT_SINK });
+      const out = runSingle(cfg, asSeed(task.seed), {
+        policy: 'mock-weighted-v1',
+        artifactSink: NOOP_ARTIFACT_SINK,
+      });
       results.push({
         kind: 'abl',
         regimeKey: task.regimeKey,

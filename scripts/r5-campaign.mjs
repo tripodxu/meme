@@ -482,11 +482,16 @@ function windowFeatures(report, classCount = 5) {
 
 function runSingleTask(task) {
   const config = buildConfig(task);
-  const out = runSingle(config, asSeed(task.seed), { artifactSink: NOOP_ARTIFACT_SINK });
+  const policy = task.policy ?? 'mock-weighted-v1';
+  const out = runSingle(config, asSeed(task.seed), {
+    policy,
+    artifactSink: NOOP_ARTIFACT_SINK,
+  });
   return {
     key: taskKey(task),
     expId: task.expId,
     kind: 'single',
+    policy,
     cellKey: task.cellKey,
     seed: task.seed,
     ticks: task.ticks,
@@ -528,7 +533,8 @@ if (!isMainThread) {
   const { tasks } = workerData;
   for (let i = 0; i < tasks.length; i += 1) {
     const task = tasks[i];
-    const result = task.kind === 'pair' ? runPairTask(task) : runSingleTask(task);
+    const result =
+      task.kind === 'pair' || task.kind === 'pert' ? runPairTask(task) : runSingleTask(task);
     persistPart(task, result);
     process.stderr.write(
       `[r5] ${task.expId} ${i + 1}/${tasks.length} ${task.cellKey} ${task.seed}\n`,

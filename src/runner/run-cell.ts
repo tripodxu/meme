@@ -183,6 +183,30 @@ function assertCheckpointSnapshot(state: SimState, config: RunConfig, seed: Seed
  * 个已完成 tick 原子落盘一次，run 正常结束后移除检查点文件。恢复路径不重建
  * 前段 `decisions` 决策日志（批量摘要不消费它；live 决策日志经 P2 管线另行落盘）。
  */
+/**
+ * 同步策略解析（fail-closed，changes/0106）：
+ * 未提供 `policyImpl` 时必须显式传入合法内置策略名，禁止在未做类型检查的 JS 脚本
+ * 漏传 `options.policy` 时静默回落到 `RandomPolicy`。
+ */
+function resolveSyncPolicy(options: RunOptions): DecisionPolicy {
+  if (options.policyImpl !== undefined) {
+    return options.policyImpl;
+  }
+  switch (options.policy) {
+    case 'mock-weighted-v1':
+      return new MockPolicy();
+    case 'mock-weighted-v2':
+      return new MockPolicyV2();
+    case 'random-uniform-v1':
+      return new RandomPolicy();
+    default:
+      throw new StratifyError(
+        errorCodes.CONFIG_INVALID,
+        `runSingle 缺少有效 policy（收到 ${String(options.policy)}）；必须显式传入 mock-weighted-v1 / mock-weighted-v2 / random-uniform-v1 或 policyImpl`,
+      );
+  }
+}
+
 export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): RunOutcome {
   const validatedSeed = asSeed(seed);
   const runCheckpoint = options.runCheckpoint;
@@ -256,14 +280,9 @@ export function runSingle(config: RunConfig, seed: Seed, options: RunOptions): R
   }
   const checkpointConfigHash = runCheckpoint !== undefined ? computeConfigHash(config) : null;
   const maxTicks = options.maxTicks ?? config.schedule.totalTicks;
-  // P2-01：同步路径只接受同步策略；缺省按 policy 字符串选择内置实现。
-  const policy: DecisionPolicy =
-    options.policyImpl ??
-    (options.policy === 'mock-weighted-v1'
-      ? new MockPolicy()
-      : options.policy === 'mock-weighted-v2'
-        ? new MockPolicyV2()
-        : new RandomPolicy());
+  // P2-01：同步路径只接受同步策略；缺少显式合法 policy 时必须 fail-closed 抛错，
+  // 严禁在 JS 脚本漏传 options.policy 时静默回落到 RandomPolicy（changes/0106）。
+  const policy: DecisionPolicy = resolveSyncPolicy(options);
   const decisionRecords: DecisionRecord[] = [];
   // 恢复路径必须把检查点之前已完成的到期数计入，否则 complete 清单的
   // `expectedDueDecisions` 会只统计恢复之后的段（见 upload-export）。

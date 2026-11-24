@@ -94,7 +94,7 @@ if (!isMainThread) {
   const { task } = workerData;
   const config = cellConfig(task.cell, task.variant);
   const t0 = Date.now();
-  const res = runSingle(config, asSeed(task.seed), {});
+  const res = runSingle(config, asSeed(task.seed), { policy: 'mock-weighted-v1' });
   const feat = windowFeatures(res.stats, TOTAL_TICKS - 365, TOTAL_TICKS - 1);
   parentPort.postMessage({
     variant: task.variant.variant,

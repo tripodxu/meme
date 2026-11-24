@@ -126,7 +126,7 @@ if (!isMainThread) {
     schedule: { totalTicks: 10950, statsStride: 1, snapshotStride: 10950 },
   });
   const t0 = Date.now();
-  const res = runSingle(config, asSeed(task.seed), {});
+  const res = runSingle(config, asSeed(task.seed), { policy: 'mock-weighted-v1' });
   const f10950 = windowFeatures(res.stats, 10585, 10949);
   parentPort.postMessage({
     cellKey: task.cellKey,

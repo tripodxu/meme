@@ -117,7 +117,7 @@ if (!isMainThread) {
         population: { initialPopulation: 200 },
         schedule: { totalTicks: 3650, statsStride: 1, snapshotStride: 3650 },
       });
-      const out = runSingle(cfg, asSeed(task.seed), {});
+      const out = runSingle(cfg, asSeed(task.seed), { policy: 'mock-weighted-v1' });
       results.push({
         kind: 'abl',
         regimeKey: task.regimeKey,
