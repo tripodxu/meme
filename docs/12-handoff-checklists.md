@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-11，rev 54）
+## 1. 当前交接状态（2026-11-24，rev 55）
+
+- rev 55（2026-11-24，**口径统一与最新工程/科研状态**）：权威口径与 [AGENTS.md](../AGENTS.md) 对齐——版本轴 `rules-v19` / `engine-v0.16.0` / `stratify-config-v13` / `stratify-state-v5`（105 项注册参数，新机制均默认关闭兼容）；工程端 P0–P5b（含双界面前端、Playwright E2E、Worker/D1/R2、流式 `full` 检查点续跑上传、独立回放验证器）均已落地，Preview（`stratify.logicc.top`，`95a4fb2f`）与 Production（`stratify-prod.logicc.top`，`4b79128b`）均完成部署、基础冒烟、D1 备份恢复与回滚演练（changes/0083–0087、0094–0097），但 Cron 保留、`RUNNER_TOKEN`、R2 孤儿清理、生产 live 冒烟与监控看板未完成，P7 未收口。科研端 **G6 仍未通过**：`P6-09`/`P6-12` 得到两体制候选且微扰 60/60 吸收，但 R4（changes/0090 2026-11-20 更正）与 `P6-13`（changes/0103）五消融 `median TV(P)` 全 `<0.10`，全部预设均为 `calibrated: false`；`P6-08`/`P6-10`/R2-B/`rules-v19` R2-C（changes/0100）均未通过；`P6-11`/`P6-14` 60/60 live 确认提示词因果效应（`passesCausalClaim=true`，changes/0093/0104），不关闭 G6；R5 探索战役已在上海 VPS 启动（changes/0105）。下方 rev 54 及更早条目为历史交接沿革，仅作追溯，不再代表当前状态。
 
 - rev 54（2026-11-11，**P5b full profile**）：`runSingle`/`runSingleWithPolicy` 新增 `captureArtifacts`（全部 events、每 tick executions、周期快照；与 checkpoint 禁止组合）；`writeUploadBundle` 支持 full，导出 decision-v1/event-v1/snapshot-v1 并按 4 MiB 分块；CLI 新增 `--artifact-profile full`/`--snapshot-stride`。full 导出→workerd 上传 complete（5 chunks）冒烟通过。**边界**：full 捕获内存高、resume 不补导出、preview/独立验证器未执行。不改规则/schema，不构成校准或结构证据（changes/0080）。
 

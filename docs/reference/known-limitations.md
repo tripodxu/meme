@@ -1,13 +1,13 @@
 # 已知限制
 
 本页列出当前版本**明确未完成或未验证**的事项。不要把工程完成度当成科学验收：
-`rules-v18` 延续并保持 D1 目标“2 体制 + 连续统”的 G6 校准闭环（`P6-09` + 阶段 R4，changes/0089/0090），且阶段 R3 `P6-11`（changes/0093）已正式通过 30 种子真实 Jev 提示词规范诱导宏观相变因果实验确认；但**传统全特征 `k≥3` 离散结构（`P6-10` 与 R2-B 探索探针均未通过）仍未实现，不声称三类离散结构涌现**。
+当前规则版本为 `rules-v19`（新机制默认关闭，与 `v15–v18` 逐位一致）。**G6 仍未通过**：`P6-09`（N=200）与 `P6-12`（N=1000）得到 `two-regime-candidate` 且微扰 60/60 吸收，但按 `07 §11` 结构退化口径（`median TV(P) ≥ 0.10`）重算后，R4（changes/0090 更正）与 `P6-13`（changes/0103）的五项消融全部未达门槛；`src/app/presets.ts` 中全部预设均为 `calibrated: false`。阶段 R3（`P6-11` 与 `P6-14` 60/60 live，changes/0093/0104）确认了 Jev 提示词因果效应（`passesCausalClaim: true`），但**不关闭 G6**；传统全特征 `k≥3` 与 `rules-v19` R2-C 探针（changes/0100）均未通过。
 
 ## 1. 科学结论
 
-- 不声称“三类离散结构涌现”、全局多稳态或现实因果成立；P6-05/P6-06/P6-07/P6-08/P6-10 均未通过，已校准预设（`regime1_pyramid`/`regime2_continuum`）仅限 D1 两体制与 `mock-weighted-v1` / `N=200`。
-- 阶段 R3（`P6-11`，30 对种子）确认了微观 LLM 规范提示（`survival_hint` vs `neutral`）对制度开放度 $O$ 和流动率 $M_{\text{up}}$ 具有统计显著的宏观相变因果效应（`passesCausalClaim: true`），但该结论依赖于特定提示词规范，不应过度外推至任意通用提示或未测 LLM 模型。
-- D1 目标“2 体制 + 连续统”只是验收目标修订，不是已实现的结论。
+- **G6 仍未通过**：不得声称“参数已校准”“结构已涌现”或“三类离散结构涌现”；`P6-05..08`/`P6-10`/R2-B/R2-C 均未通过；`regime1_pyramid` 与 `regime2_continuum` 仅保留为未校准演示预设（`calibrated: false`）。
+- 阶段 R3（`P6-11` 30 对与 `P6-14` 60/60 live）确认了微观 LLM 规范提示（`survival_hint` vs `neutral`）对制度开放度 $O$、网络隔离度 $S$ 与流动率 $M_{\text{up}}$ 的宏观因果效应（`passesCausalClaim: true`），但该结论依赖于特定提示词规范与单一模型 `jev-1.13-free`，不外推至任意提示或未测模型，也不关闭 G6。
+- D1 目标“2 体制 + 连续统”只是验收目标修订；`P6-09`/`P6-12` 的两体制仍是 `share=1` vs `share<1` 单轴分裂且未检验代际假设。
 - 浏览器工作台、上传器和 Worker 都是工程工具，不产生科学证据。
 
 ## 2. 确定性边界
@@ -21,8 +21,8 @@
 
 ## 3. Worker / 数据服务
 
-- **preview 公网全链路已验证，production 资源尚未创建**：
-  preview D1/R2 已应用 0001–0003 并绑定自定义域名 `https://stratify.logicc.top`（版本 `bd6cadab`），已完成公网 HTTP `smoke:worker`、真实浏览器在线运行、R2 5 分块 `full` 流式上传与独立回放验证（`verified`）、同源 `/api/jev` 真实上游小额冒烟（5/5 成功、0 回退）、带数据远端 D1 导出隔离恢复演练与 `wrangler rollback` 演练（changes/0086/0087）。preview 的 Cron 保留任务因 Free 计划 5 槽上限未注册（显式 `crons: []`）；`stratify-prod` 生产资源尚未创建。
+- **preview 与 production 基础链路已部署冒烟，P7 仍未完成**：
+  preview（`https://stratify.logicc.top`，`95a4fb2f`）已完成公网冒烟、匿名上传、D1 备份恢复、回滚与小额 `/api/jev` live 代理验证（changes/0086/0087/0094）；production 的 D1 `stratify-prod` 与 R2 `stratify-artifacts-prod` 已创建并应用 0001–0003，版本 `4b79128b` 部署在 `https://stratify-prod.logicc.top`，完成基础冒烟、D1 导出隔离恢复与回滚演练（changes/0097）。两环境的 Cron 保留任务因 Workers Free 5 槽上限未注册（`crons: []`）；production 尚未配置 `RUNNER_TOKEN`、未演练 R2 孤儿清理、未跑独立回放验证与真实 Jev live 代理冒烟。
 - 保留策略与维护任务已实现（browser 7d / runner 90d、静默超时标记 `abandoned_timeout`、R2→D1 级联删除、超宽限期 R2 孤儿对象枚举清理；changes/0076/0085），但**线上 Cron 定时触发与云端自动删除演练尚未开启**。
 - `artifactManifestHash` 已由服务器从 D1 清单复算（changes/0077）；Worker `complete` 阶段不解压 R2 大块复算 `expectedDueDecisions`，由**独立验证器**（`src/runner/verifier.ts` / `pnpm verify:run`，changes/0084/0087）下载解压并逐 tick 确定性回放后将 `verificationStatus` 从 `uploaded` 更新为 `verified` 或 `rejected`（回写服务端状态需配置 `RUNNER_TOKEN`）。`verificationStatus=uploaded` 仍只代表上传技术完整，正式实验只接受 `verified`。
 - `diagnosticsHash` 与 `verification_report_hash` 已持久化并在详情校验，作为诊断摘要（未注册独立核心回放 domain 前不参与核心状态哈希）。
@@ -51,4 +51,4 @@
 ## 6. 发布与运维
 
 - 云端隔离 D1 新建库导入尚未执行；已完成含真实业务行的远端 `stratify-preview` D1 导出、本地 `rehearseD1Restore` 隔离 SQLite 外键回放演练、Preview `wrangler rollback` 回滚/前滚演练与 `pnpm audit --prod` 依赖审计（changes/0085/0086/0087）。
-- 生产环境（`stratify-prod`）尚未创建与发布，部署后长期错误率、Jev 回退率、D1/R2 增长、Runner 失败率和成本监控看板尚未接入。
+- 生产环境（`stratify-prod.logicc.top`）已完成初始化部署、基础冒烟、D1 导出恢复与回滚演练（changes/0097），但 Cron 保留、`RUNNER_TOKEN`、R2 孤儿清理、生产独立回放验证、真实 Jev live 冒烟与发布后监控看板尚未完成，不得声称已正式发布或 P7 完成。
