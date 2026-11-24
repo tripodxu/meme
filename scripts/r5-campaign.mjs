@@ -49,11 +49,6 @@ import {
 } from '../dist/runner/cluster.js';
 
 const OUT_ROOT = process.env['R5_DIR'] ?? 'out/r5';
-const NOOP_ARTIFACT_SINK = {
-  onInitialSnapshot() {},
-  onTickSettled() {},
-  onFinalState() {},
-};
 
 const CANONICAL_CELLS = [
   {
@@ -432,10 +427,30 @@ function buildConfig(task) {
     statsStride: 1,
     snapshotStride: task.ticks,
   };
-  if (task.policy !== undefined) {
-    overrides.decision = { ...(task.overrides?.decision ?? {}), policy: task.policy };
-  }
   return mergeConfig(DEFAULT_RUN_CONFIG, overrides);
+}
+
+function createPolicyVerifyingSink(expectedPolicy) {
+  let observedPolicy = null;
+  return {
+    sink: {
+      onInitialSnapshot() {},
+      onTickSettled({ decisions }) {
+        for (const d of decisions) {
+          if (observedPolicy === null) {
+            observedPolicy = d.policyVersion;
+          } else if (d.policyVersion !== observedPolicy) {
+            throw new Error(`策略漂移：期望 ${observedPolicy}，收到 ${d.policyVersion}`);
+          }
+          if (d.policyVersion !== expectedPolicy) {
+            throw new Error(`策略校验失败：期望 ${expectedPolicy}，实际执行 ${d.policyVersion}`);
+          }
+        }
+      },
+      onFinalState() {},
+    },
+    observedPolicy: () => observedPolicy,
+  };
 }
 
 function coarseShares(counts, classCount) {
@@ -469,12 +484,14 @@ function featuresFromStats(stats, classCount = 5) {
 
 function windowFeatures(report, classCount = 5) {
   const window = report.windows.find((w) => w.label === 'w3') ?? report.windows.at(-1);
-  if (!window || window.classShares.length === 0) return null;
+  if (!window || window.missingTicks > 0 || window.classShares.length === 0) return null;
   const vec = new Array(11).fill(0);
   const shares = coarseShares(window.classShares, classCount);
   for (let c = 0; c < 5; c += 1) vec[c] = shares[c];
   vec[5] = window.gini;
+  vec[6] = window.topWealthShare;
   vec[7] = window.mUp;
+  vec[8] = window.mDown;
   vec[9] = window.segregation;
   vec[10] = window.openness;
   return vec;
@@ -483,15 +500,17 @@ function windowFeatures(report, classCount = 5) {
 function runSingleTask(task) {
   const config = buildConfig(task);
   const policy = task.policy ?? 'mock-weighted-v1';
+  const verifier = createPolicyVerifyingSink(policy);
   const out = runSingle(config, asSeed(task.seed), {
     policy,
-    artifactSink: NOOP_ARTIFACT_SINK,
+    artifactSink: verifier.sink,
   });
   return {
     key: taskKey(task),
     expId: task.expId,
     kind: 'single',
     policy,
+    observedPolicy: verifier.observedPolicy(),
     cellKey: task.cellKey,
     seed: task.seed,
     ticks: task.ticks,
@@ -505,8 +524,9 @@ function runSingleTask(task) {
 
 function runPairTask(task) {
   const config = buildConfig(task);
+  const policy = task.policy ?? 'mock-weighted-v1';
   const pair = runPerturbationPair(config, asSeed(task.seed), {
-    policy: 'mock-weighted-v1',
+    policy,
     checkpointTick: 365,
     declared: { kind: 'wealth_absolute', delta: task.magnitude },
   });
@@ -515,6 +535,7 @@ function runPairTask(task) {
     key: taskKey(task),
     expId: task.expId,
     kind: 'pair',
+    policy,
     cellKey: task.cellKey,
     regimeKey: task.regimeKey,
     magnitude: task.magnitude,
@@ -547,14 +568,16 @@ function designFor(exp) {
   const cells = cellsFor(exp).map((cell) => ({
     key: cell.key,
     variant: cell.variant ?? null,
+    policy: cell.policy ?? 'mock-weighted-v1',
     ticks: cell.ticks ?? null,
     magnitude: cell.magnitude ?? null,
     overrides: cellOverrides(cell),
   }));
   return {
-    schemaVersion: 'r5-prereg-v1',
+    schemaVersion: 'r5-prereg-v2',
     experimentId: exp.id,
     rulesVersion: RULES_VERSION,
+    defaultPolicy: 'mock-weighted-v1',
     analysis: exp.analysis,
     kind: exp.kind ?? 'single',
     population: exp.population,
@@ -606,7 +629,7 @@ function freezeExperiment(exp) {
   }
   writeFileSync(
     path,
-    `${JSON.stringify({ schemaVersion: 'r5-prereg-v1', designHash, design }, null, 2)}\n`,
+    `${JSON.stringify({ schemaVersion: 'r5-prereg-v2', designHash, design }, null, 2)}\n`,
     'utf8',
   );
   return { design, designHash, path, existed: false };
@@ -713,6 +736,9 @@ async function runTasks(exp, tasks) {
           const worker = new Worker(selfPath, { workerData: { tasks: chunk } });
           worker.on('message', resolve);
           worker.on('error', reject);
+          worker.on('exit', (code) => {
+            if (code !== 0) reject(new Error(`r5 worker exited with code ${code}`));
+          });
         }),
     ),
   );
