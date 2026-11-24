@@ -300,7 +300,7 @@ P6 的 mock 校准只依赖 P1.5/P1/P5-01/P5-03；Jev 对照另依赖 P2/P5-02�
 - `rules-v19`（`engine-v0.16.0` / `stratify-config-v13`，105 参数）落地 `ascent.hardGateStrength` 与 `population.lineageDiscount`（默认 0）；R2-C 探索探针（`explore-r2c-hcg`，90/90）两单参消融 `median TV(P)` 仅 `0.0332 / 0.0259`（均 `<0.10`），判 `stop-mechanism`，ADR 0014 标 `rejected`，`rules-v19` 保持默认关闭。
 - `P6-12`（`N=1000` 两体制复验，240/240）：`k=2 [30,150]` `ARI=1.000`、`sil=0.7226`、`TV(P)=0.3583`，`k=3` 第三簇仅 2 run，`verdict=two-regime-candidate`（仍为 `share=1` vs `share<1` 单轴分裂，未检验代际假设）。
 - `P6-13`（`N=1000` R4 收口，420 task）：微扰 60/60 吸收（`TV(P)=0`、`D≈1e-10`），但 Part B 消融因策略回落实跑 `RandomPolicy`，十项 `median TV(P)` 全 `<0.10`（最大 `0.0751`）。
-- R5 大规模探索战役（[plans/r5-campaign.md](plans/r5-campaign.md)）于 2026-11-22 启动，2026-11-24 审计发现其旧脚本同受策略回落与 `kind==='pert'` 缺陷影响（changes/0106 已修复）。
+- R5 大规模探索战役（[plans/r5-campaign.md](plans/r5-campaign.md)）于 2026-11-22 启动，2026-11-24 审计发现旧脚本同受策略回落与 `kind==='pert'` 缺陷影响（changes/0106）；已停止旧进程并归档旧分片，以硬化版 `scripts/r5-campaign.mjs`（`r5-prereg-v2`、逐决策 `observedPolicy` 校验、10 项实验共 3,660 任务）在上海 VPS 重启并完成首批真 `mock-weighted-v1` 分片验真（changes/0109，全部为 exploratory）。
 
 **策略回落审计与 G6 D1 正式收口（`P6-15` / `P6-15b`，2026-11-24，changes/0106–0108）**：
 

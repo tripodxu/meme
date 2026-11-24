@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-24，rev 56）
+## 1. 当前交接状态（2026-11-24，rev 57）
+
+- rev 57（2026-11-24，**R5 战役脚本硬化、停旧归档与 `r5-prereg-v2` 重启**）：在 `changes/0106` 修复基础上硬化 `scripts/r5-campaign.mjs`（移除污染 `configHash` 的无效 `decision.policy`、逐决策校验 `observedPolicy`、补齐 `topWealthShare`/`mDown` 与缺窗守卫、worker 非零退出守卫、升级 `r5-prereg-v2` 绑定策略）；停止上海 VPS（`lhsh:~/stratify-r5`）受 `RandomPolicy` 影响的旧进程并将旧产物与日志归档至 `~/stratify-r5/archive-random-bug-2026-11-24/`；冻结全部 10 项实验（3,660 任务）并通过既有 15 分钟 cron 看门狗重启，首批完成分片已验证 `observedPolicy="mock-weighted-v1"` 与 11 维真实特征（changes/0109）。本战役全部为 exploratory，不改变已收口的 G6 D1 校准口径（changes/0107–0108）与 P7 工程未完成边界。下方 rev 56 及更早条目为历史交接沿革，仅作追溯。
 
 - rev 56（2026-11-24，**策略回落审计与 G6 D1 正式收口**）：审计发现 `src/runner/run-cell.ts` 原缺省三元链在 `.mjs` 脚本漏传 `options.policy` 时会静默回落 `RandomPolicy`，导致 2026-11-18 后 `P6-08..13`/`R4 Part B`/`R5` 实跑 `random`；已改为 fail-closed 并修复 10 份脚本（changes/0106）。随后在真实 `mock-weighted-v1` + `rules-v19` 默认配置下用全新独立种子在上海 VPS 执行 `P6-15`（`N=40`, 660/660，changes/0107）与 `P6-15b`（`N=600`, 60/60，changes/0108）：聚类在旧条件 4（ADR 0006）与新条件 4（ADR 0010）双口径均通过（`k=2 [30,150]`、`ARI=1.000`、`sil=0.6602`、`TV(P)=0.7279`；`k=3 ARI=0.6115, sil=0.3163`）；微扰在 `N=40/200/1000` 均 100% 吸收；体制 II 阶级持有成本消融 `ψ=1` 经官方 `evaluateStageB` 严格确认（`w2b TV(P)=0.2425`、CI `[0.2358,0.2502]`、`p=0.00008`、`100% > D95`、五阶级 `30/30` 全同向）。**G6 在 D1（「2 体制 + 连续统」）目标下已正式收口**，归档校准报告 `docs/research/2026-11-24-p6-15-g6-d1-calibration-report.md` 并在 `src/app/presets.ts` 仅冻结 `regime1_pyramid` 与 `regime2_continuum` 为 `calibrated: true`；传统 `k≥3`、`β/O/η/κ` 消融与工程 P7（生产 Cron、`RUNNER_TOKEN`、R2 孤儿清理、生产 live 冒烟与独立回放验证）仍保持未通过/未完成。下方 rev 55 及更早条目为历史交接沿革，仅作追溯。
 

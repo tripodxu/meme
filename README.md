@@ -239,5 +239,5 @@ pnpm params:snapshot # 参数注册表契约快照，diff 需人工审查
 ## 10. 下一步
 
 1. 阅读 [AGENTS.md](AGENTS.md) 与 [docs/README.md](docs/README.md) 的效力规则。
-2. **科研轨道（后续研究）**：若继续探索传统 `k≥3`、代际通道或微扰放大边界，需使用已修复 `changes/0106` 策略回落缺陷的新版 `r5-campaign.mjs` 清空旧分片后重跑，任何确认轮须另立 ADR、全新预注册与全新 seed。
+2. **科研轨道（后续研究）**：探索传统 `k≥3`、代际通道与微扰放大边界的 R5 战役已完成旧 `RandomPolicy` 分片归档、脚本硬化与 `r5-prereg-v2` 全量重跑启动（上海 VPS `lhsh:~/stratify-r5`，10 项实验共 3,660 任务，[changes/0109](docs/changes/0109-r5-campaign-hardening-and-restart.md)）；待各波次完成后在本地做离线复算与归档，任何确认轮仍须另立 ADR、全新预注册与全新 seed。
 3. **运维轨道（P7 生产收口）**：在生产环境配置 `RUNNER_TOKEN`、执行正式上传与独立回放验证（`verified`）、补做生产小额 live 冒烟，并在释放 Cron 槽位或升级计划后启用保留策略与 R2 孤儿清理。
