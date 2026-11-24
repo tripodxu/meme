@@ -1,6 +1,6 @@
 # R5 大规模实验战役计划（2026-11-22）
 
-> 状态：**2026-11-24 审计受策略回落影响（见 [changes/0106](../changes/0106-runsingle-policy-fallthrough-audit.md)）**。2026-11-22 启动的旧 VPS 进程实跑了 `RandomPolicy` 且 `r5-pert` 未执行配对；脚本现已修复，后续重跑需清空旧分片。另：真实 `mock-weighted-v1` 下的 `P6-15` + `P6-15b` 已完成 G6 D1（「2 体制 + 连续统」）收口（[changes/0107–0108](../changes/0108-p6-15b-g6-d1-closure.md)）；本战役全部为 exploratory/characterization（用于检验传统 `k≥3`、代际通道与微扰边界），任何确认轮都必须另立 ADR、全新预注册与全新 seed。
+> 状态：**2026-11-24 已停旧归档并按修复版重新启动（`r5-prereg-v2`，提交 `8e2d7d7`）**。2026-11-22 启动的旧 VPS 进程经审计受策略回落影响（见 [changes/0106](../changes/0106-runsingle-policy-fallthrough-audit.md)），实跑了 `RandomPolicy` 且 `r5-pert` 未执行配对；已停止旧进程并将旧产物与日志归档至 VPS `~/stratify-r5/archive-random-bug-2026-11-24/`。现已同步硬化后的 `scripts/r5-campaign.mjs`（显式透传策略、逐决策校验 `observedPolicy`、`r5-pert` 配对修复、补齐 `topWealthShare`/`mDown`、`r5-prereg-v2` 绑定 `defaultPolicy` 与逐 cell `policy`），冻结全部 10 项实验（3,660 任务）并在上海 VPS（`lhsh`）重跑，首批完成分片已验证 `observedPolicy="mock-weighted-v1"`。另：真实 `mock-weighted-v1` 下的 `P6-15` + `P6-15b` 已完成 G6 D1（「2 体制 + 连续统」）收口（[changes/0107–0108](../changes/0108-p6-15b-g6-d1-closure.md)）；本战役全部为 exploratory/characterization（用于检验传统 `k≥3`、代际通道与微扰边界），任何确认轮都必须另立 ADR、全新预注册与全新 seed。
 > 全部实验在上海 VPS（`lhsh`）执行；本地只编译、单测、离线复算。
 
 ## 0. 目标
@@ -19,7 +19,7 @@
 
 ## 1. 通用协议
 
-- 规则：`rules-v18`（P6-12/P6-13 基线），`mock-weighted-v1`，除非实验显式改策略。
+- 规则：`rules-v19` 默认配置（`lineageDiscount=0` 时逐位等价 `rules-v18`），`mock-weighted-v1`，除非实验显式改策略。
 - 初始人口/网络/年龄仍由 `(config, seed)` 派生；所有 seed 为全新命名空间。
 - 特征：11 维（P0..P4、G、top10、Mup、Mdown、S、O），末 365 天均值；
   聚类 Ward-LW + pooled z-score + 20 次二分洗牌。
