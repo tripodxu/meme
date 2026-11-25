@@ -1,6 +1,8 @@
 # 12 执行与交接清单
 
-## 1. 当前交接状态（2026-11-24，rev 57）
+## 1. 当前交接状态（2026-11-25，rev 58）
+
+- rev 58（2026-11-25，**轨道 A 双环境刷新部署 + 轨道 B R5 Wave A 全部 6 项中期收口**）：推送 `zcodes11.4` 10 个本地提交至远端，PR #2 GitHub Actions CI（`45581200882`）21 项步骤全绿（4m4s）；刷新部署 Preview（`stratify.logicc.top`，版本 `774c12e9`）与 Production（`stratify-prod.logicc.top`，版本 `d7ccfae6`），两端公网 `smoke:worker` 全 5 项通过并核验线上前端 `/assets/index-kHxbrbA_.js` 已含新冻结的 `regime1_pyramid` / `regime2_continuum` 预设（P7 仍未收口）。同时完成 R5 Wave A 全部 6 项 `N=200` 实验（`2,820/2,820`、`0` 策略失配）的完整性审计与中期分析归档（[2026-11-25 Wave A 中期报告](research/2026-11-25-r5-wave-a-interim-analysis.md)、[changes/0110](changes/0110-deploy-refresh-and-r5-wave-a.md)），Wave B `r5-gen-n1000` 已推进至 `167/320`。下方 rev 57 及更早条目为历史交接沿革，仅作追溯。
 
 - rev 57（2026-11-24，**R5 战役脚本硬化、停旧归档与 `r5-prereg-v2` 重启**）：在 `changes/0106` 修复基础上硬化 `scripts/r5-campaign.mjs`（移除污染 `configHash` 的无效 `decision.policy`、逐决策校验 `observedPolicy`、补齐 `topWealthShare`/`mDown` 与缺窗守卫、worker 非零退出守卫、升级 `r5-prereg-v2` 绑定策略）；停止上海 VPS（`lhsh:~/stratify-r5`）受 `RandomPolicy` 影响的旧进程并将旧产物与日志归档至 `~/stratify-r5/archive-random-bug-2026-11-24/`；冻结全部 10 项实验（3,660 任务）并通过既有 15 分钟 cron 看门狗重启，首批完成分片已验证 `observedPolicy="mock-weighted-v1"` 与 11 维真实特征（changes/0109）。本战役全部为 exploratory，不改变已收口的 G6 D1 校准口径（changes/0107–0108）与 P7 工程未完成边界。下方 rev 56 及更早条目为历史交接沿革，仅作追溯。
 
