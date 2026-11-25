@@ -6,6 +6,7 @@ import { errorCodes, StratifyError } from '../control/errors.js';
 import { asSeed, type Seed } from '../control/ids.js';
 import { STATE_SCHEMA_VERSION } from '../control/versions.js';
 import { computeGini, computeSegregation } from '../macros/metrics.js';
+import { readNumericConstant } from '../params.js';
 import type { SocietyState } from '../model/society.js';
 import type { SimState } from '../model/state.js';
 import { deriveInitialPopulation } from './population.js';
@@ -17,6 +18,8 @@ import { deriveInitialPopulation } from './population.js';
  * `seed` 不进入 `configHash/paramsHash`。初始宏观值在网络完成后计算，
  * 保证 `S/edgeCount` 与初始网络一致（03 §4.3 步骤 6–7 的实现澄清）。
  */
+const OPENNESS_INITIAL_REGIME_THRESHOLD = readNumericConstant('OPENNESS_INITIAL_REGIME_THRESHOLD');
+
 export function createSimulation(config: RunConfig, seed: Seed): SimState {
   const result = validateRunConfig(config);
   if (!result.ok) {
@@ -48,6 +51,10 @@ export function createSimulation(config: RunConfig, seed: Seed): SimState {
       (env) => validConfig.opportunity.dailyBase * env,
     ),
     openness: validConfig.openness.initial,
+    institutionalRegime:
+      validConfig.openness.initial >= OPENNESS_INITIAL_REGIME_THRESHOLD
+        ? ('open' as const)
+        : ('closed' as const),
     initialClassShares,
     // rules-v11：tick 0 的记忆由初始占比派生；H=0 时即瞬时压力（v10 语义）。
     occupancyPressure: updateOccupancyPressure(

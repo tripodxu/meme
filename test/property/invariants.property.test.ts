@@ -45,6 +45,7 @@ function arbitraryConfig(): fc.Arbitrary<RunConfig> {
       const decay = Array.from({ length: classCount }, () => 0.5);
       const needMultiplier = Array.from({ length: classCount }, (_, c) => 1 + 0.3 * c);
       const crossDays = Array.from({ length: classCount - 1 }, (_, c) => 10 + 10 * c);
+      const classCapacity = Array.from({ length: classCount }, () => 1);
       const overrides: DeepPartialConfig = {
         population: {
           initialPopulation: raw.population,
@@ -53,7 +54,7 @@ function arbitraryConfig(): fc.Arbitrary<RunConfig> {
           initialAgeMode: raw.ageMode,
         },
         opportunity: { env0 },
-        ascent: { crossDays },
+        ascent: { crossDays, classCapacity },
         lifespan: {
           decay,
           initialLife: { mean: 300, sigma: 60, min: 30, max: 2000 },

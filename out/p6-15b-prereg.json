@@ -1,0 +1,107 @@
+{
+  "experimentId": "p6-15b-ea8fbe20",
+  "preregistrationHash": "sha256:ea8fbe20fe3542cf78ad8f809217c87cf1c2325b16497b3670b3ee22f5ba54c2",
+  "manifest": {
+    "schemaVersion": "p6-15b-ablation-confirm-prereg-v1",
+    "experimentType": "ablation_stageB_confirmation",
+    "hypothesis": "在真实 mock-weighted-v1 策略与 rules-v19 体制 II（B-share50-w15，N=600，3650 tick）下，移除阶级持有成本（ψ=1，need.needMultiplier=[1,1,1,1,1]）在独立确认种子集 p6-15b-conf-001..030 上于主窗口 w2b=[1825,2554] 产生结构退化：主指标 TV(P) 中位数 ≥ 0.10、10,000 次配对 bootstrap 95% 区间不跨 0、100% 配对种子 D 超出同配置 baseline D95 波动带，且主导变化阶级 P[1] 下降方向在 ≥ 90% 种子上一致（07 §8/§11）。w3=[2555,3284] 仅作相邻窗口描述，不参与确认。",
+    "primaryMetric": "TV(P)",
+    "primaryWindow": "w2b",
+    "adjacentWindow": "w3",
+    "rulesVersion": "rules-v19",
+    "engineVersion": "engine-v0.16.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
+    "population": 600,
+    "totalTicks": 3650,
+    "regimeKey": "R2_B_share50_w15",
+    "regimeOverrides": {
+      "ascent": {
+        "displacementShare": 0.5,
+        "scarcityWeight": 15
+      }
+    },
+    "baseConfigHash": "sha256:8c070a511fa8f0d6ed56a026f27e7fabc321493bfb1e2f154df5441a4f250b7c",
+    "baseParamsHash": "sha256:3e3bbe66cd04e7e333d205c8d67cd0f05dc366757cbf2b3edd5ebb84ba132868",
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "seeds": [
+      "p6-15b-conf-001",
+      "p6-15b-conf-002",
+      "p6-15b-conf-003",
+      "p6-15b-conf-004",
+      "p6-15b-conf-005",
+      "p6-15b-conf-006",
+      "p6-15b-conf-007",
+      "p6-15b-conf-008",
+      "p6-15b-conf-009",
+      "p6-15b-conf-010",
+      "p6-15b-conf-011",
+      "p6-15b-conf-012",
+      "p6-15b-conf-013",
+      "p6-15b-conf-014",
+      "p6-15b-conf-015",
+      "p6-15b-conf-016",
+      "p6-15b-conf-017",
+      "p6-15b-conf-018",
+      "p6-15b-conf-019",
+      "p6-15b-conf-020",
+      "p6-15b-conf-021",
+      "p6-15b-conf-022",
+      "p6-15b-conf-023",
+      "p6-15b-conf-024",
+      "p6-15b-conf-025",
+      "p6-15b-conf-026",
+      "p6-15b-conf-027",
+      "p6-15b-conf-028",
+      "p6-15b-conf-029",
+      "p6-15b-conf-030"
+    ],
+    "differenceThresholds": {
+      "tv": 0.1,
+      "gini": 0.03,
+      "mUp": 0.05,
+      "segregation": 0.05,
+      "openness": 0.05
+    },
+    "statistics": {
+      "evaluator": "evaluateStageB",
+      "bootstrapIterations": 10000,
+      "permutationIterations": 100000,
+      "analysisSeed": 20261124,
+      "beyondBandMinRate": 1,
+      "dominantClassDirectionMinRate": 0.9,
+      "expectedDominantClass": 1,
+      "expectedDominantSign": -1
+    },
+    "cells": [
+      {
+        "cellKey": "baseline",
+        "design": "baseline",
+        "overrides": {},
+        "fullConfigHash": "sha256:8c070a511fa8f0d6ed56a026f27e7fabc321493bfb1e2f154df5441a4f250b7c",
+        "paramsHash": "sha256:3e3bbe66cd04e7e333d205c8d67cd0f05dc366757cbf2b3edd5ebb84ba132868"
+      },
+      {
+        "cellKey": "psi_1",
+        "design": "single",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "fullConfigHash": "sha256:6bae729247f627e6c0de33bb045d2fec61bbc6671d756b21b2800d7930949b63",
+        "paramsHash": "sha256:79eb73da336e614344993ce9cb570c379ecefba693124e15160e0e8609693a00"
+      }
+    ],
+    "budgets": {
+      "totalRuns": 60
+    }
+  }
+}

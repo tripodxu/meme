@@ -100,6 +100,32 @@ describe('初始人口派生（03 §4.3）', () => {
     expect(degreeSum).toBe(2 * ties.length);
   });
 
+  it('v15 行为特质：默认 sigma=0 时全部为 0.5，且确定性派生', () => {
+    const { agents } = deriveInitialPopulation(DEFAULT_RUN_CONFIG, SEED);
+    for (const agent of agents) {
+      expect(agent.riskTolerance).toBe(0.5);
+      expect(agent.crossClassOpenness).toBe(0.5);
+    }
+    const heterogeneous = createDemoConfig({
+      behavior: { riskTraitSigma: 0.4, crossClassTraitSigma: 0.3 },
+    });
+    const a = deriveInitialPopulation(heterogeneous, SEED);
+    const b = deriveInitialPopulation(heterogeneous, SEED);
+    expect(a.agents.map((agent) => agent.riskTolerance)).toEqual(
+      b.agents.map((agent) => agent.riskTolerance),
+    );
+    const risks = new Set(a.agents.map((agent) => agent.riskTolerance));
+    expect(risks.size).toBeGreaterThan(1);
+    for (const agent of a.agents) {
+      expect(agent.riskTolerance).toBeGreaterThanOrEqual(0);
+      expect(agent.riskTolerance).toBeLessThanOrEqual(1);
+      expect(agent.crossClassOpenness).toBeGreaterThanOrEqual(0);
+      expect(agent.crossClassOpenness).toBeLessThanOrEqual(1);
+    }
+    // 特质进入 configHash（sigma 是业务参数）。
+    expect(computeConfigHash(heterogeneous)).not.toBe(computeConfigHash(DEFAULT_RUN_CONFIG));
+  });
+
   it('maxDegree=0 或 initialDegree=0 时网络为空', () => {
     const noNetwork = createDemoConfig({ network: { maxDegree: 0, initialDegree: 0 } });
     const { ties, agents } = deriveInitialPopulation(noNetwork, SEED);

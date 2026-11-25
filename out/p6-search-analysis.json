@@ -1,0 +1,774 @@
+{
+  "schemaVersion": "p6-search-analysis-v1",
+  "isExperimentalEvidence": false,
+  "experimentId": "p6-search-90893363",
+  "preregistration": {
+    "path": "out/p6-search-prereg.json",
+    "designHash": "sha256:90893363a7a72b769dd23479eef946280a40fe87c6bbc78de60350407d0d3ee8"
+  },
+  "runs": 9600,
+  "candidatesEvaluated": 800,
+  "top": [
+    {
+      "candidateId": "c0607",
+      "params": {
+        "ascent.displacementShare": 0.8591005781665444,
+        "ascent.scarcityWeight": 7.0138636557385325,
+        "ascent.occupancyMemoryDays": 365,
+        "openness.segregationWeight": 6.2039398406632245,
+        "openness.mobilityWeight": 6.789423209382221,
+        "openness.ascentCostWeight": 1.129512174287811,
+        "openness.timeConstantDays": 103.78775733523071,
+        "networkOpportunity.beta": 0.274595203390345,
+        "network.rewireProb": 0.030435943300835787,
+        "dynamics.congestionExponent": 0.3826487759128213,
+        "dynamics.polarizationExponent": 0.8359738236293197,
+        "need.threshold": 0.6087748057325371
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        3,
+        3
+      ],
+      "silhouette": 0.3522817104736175,
+      "ariMedian": 1,
+      "ariMin": 0.03669724770642201,
+      "minSize": 3,
+      "score": 1.3522817104736176
+    },
+    {
+      "candidateId": "c0473",
+      "params": {
+        "ascent.displacementShare": 0.8880704179406167,
+        "ascent.scarcityWeight": 0.059911832213401794,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 6.320694042835385,
+        "openness.mobilityWeight": 2.0107745903078467,
+        "openness.ascentCostWeight": 3.3586109990719706,
+        "openness.timeConstantDays": 75.26503910310566,
+        "networkOpportunity.beta": 0.44377651140093805,
+        "network.rewireProb": 0.14770070384955034,
+        "dynamics.congestionExponent": 0.540935539919883,
+        "dynamics.polarizationExponent": 0.8577254990115761,
+        "need.threshold": 0.6609928713180124
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        7,
+        3,
+        2
+      ],
+      "silhouette": 0.40407194481512687,
+      "ariMedian": 0.9324324324324325,
+      "ariMin": 0.4117647058823529,
+      "minSize": 2,
+      "score": 1.3365043772475593
+    },
+    {
+      "candidateId": "c0211",
+      "params": {
+        "ascent.displacementShare": 0.7705135673284531,
+        "ascent.scarcityWeight": 0.8428795589134097,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 6.4224339770153165,
+        "openness.mobilityWeight": 7.443686524173245,
+        "openness.ascentCostWeight": 2.9418042795732617,
+        "openness.timeConstantDays": 175.08135051000863,
+        "networkOpportunity.beta": 0.7361274273600429,
+        "network.rewireProb": 0.11220288619864732,
+        "dynamics.congestionExponent": 0.29244265127927066,
+        "dynamics.polarizationExponent": 1.1755184641107916,
+        "need.threshold": 0.8743707087822259
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        4,
+        6,
+        2
+      ],
+      "silhouette": 0.42909176991828657,
+      "ariMedian": 0.7853736089030208,
+      "ariMin": 0.24242424242424246,
+      "minSize": 2,
+      "score": 1.2144653788213073
+    },
+    {
+      "candidateId": "c0305",
+      "params": {
+        "ascent.displacementShare": 0.7902004448696971,
+        "ascent.scarcityWeight": 1.5003177244216204,
+        "ascent.occupancyMemoryDays": 90,
+        "openness.segregationWeight": 11.269220007117838,
+        "openness.mobilityWeight": 7.622933437116444,
+        "openness.ascentCostWeight": 2.8715402593370527,
+        "openness.timeConstantDays": 84.36754954280332,
+        "networkOpportunity.beta": 0.9101065518800169,
+        "network.rewireProb": 0.14691844267304985,
+        "dynamics.congestionExponent": 0.4272391742095351,
+        "dynamics.polarizationExponent": 0.6796307399868965,
+        "need.threshold": 0.887569010257721
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        2,
+        4
+      ],
+      "silhouette": 0.4099524705810389,
+      "ariMedian": 0.7935779816513762,
+      "ariMin": 0,
+      "minSize": 2,
+      "score": 1.203530452232415
+    },
+    {
+      "candidateId": "c0437",
+      "params": {
+        "ascent.displacementShare": 0.6257919939234853,
+        "ascent.scarcityWeight": 1.8068177159875631,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 8.156341342721134,
+        "openness.mobilityWeight": 7.587761112721637,
+        "openness.ascentCostWeight": 3.3985328025883064,
+        "openness.timeConstantDays": 88.11913199722767,
+        "networkOpportunity.beta": 0.46902044378221036,
+        "network.rewireProb": 0.1309622017177753,
+        "dynamics.congestionExponent": 0.2809965254738927,
+        "dynamics.polarizationExponent": 0.675307548418641,
+        "need.threshold": 0.6327060788986273
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        5,
+        3,
+        4
+      ],
+      "silhouette": 0.37566007935958456,
+      "ariMedian": 0.7058823529411765,
+      "ariMin": -0.02272727272727272,
+      "minSize": 3,
+      "score": 1.0815424323007612
+    },
+    {
+      "candidateId": "c0600",
+      "params": {
+        "ascent.displacementShare": 0.8994608735665679,
+        "ascent.scarcityWeight": 1.2031793547794223,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 7.725303268991411,
+        "openness.mobilityWeight": 1.6068811502773315,
+        "openness.ascentCostWeight": 3.3160790908150375,
+        "openness.timeConstantDays": 92.52022896660492,
+        "networkOpportunity.beta": 0.29530024020932616,
+        "network.rewireProb": 0.13831516440026462,
+        "dynamics.congestionExponent": 0.46448646401986476,
+        "dynamics.polarizationExponent": 1.0560026440769432,
+        "need.threshold": 0.7065151569666341
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        4,
+        2
+      ],
+      "silhouette": 0.4949159668386403,
+      "ariMedian": 0.5158002038735984,
+      "ariMin": -0.1538461538461538,
+      "minSize": 2,
+      "score": 1.0107161707122387
+    },
+    {
+      "candidateId": "c0442",
+      "params": {
+        "ascent.displacementShare": 0.8637038471177221,
+        "ascent.scarcityWeight": 36.410738630220294,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 7.0366279552690685,
+        "openness.mobilityWeight": 3.30825456045568,
+        "openness.ascentCostWeight": 3.282801424153149,
+        "openness.timeConstantDays": 94.4971753237769,
+        "networkOpportunity.beta": 0.7816776303108781,
+        "network.rewireProb": 0.09720790237654,
+        "dynamics.congestionExponent": 0.42757978569716215,
+        "dynamics.polarizationExponent": 0.8166029933840036,
+        "need.threshold": 0.7621540964231825
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        5,
+        4,
+        3
+      ],
+      "silhouette": 0.26457047796852246,
+      "ariMedian": 0.7058823529411765,
+      "ariMin": -0.17647058823529416,
+      "minSize": 3,
+      "score": 0.9704528309096989
+    },
+    {
+      "candidateId": "c0553",
+      "params": {
+        "ascent.displacementShare": 0.9540301427245141,
+        "ascent.scarcityWeight": 57.49424196314067,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 6.585744962096214,
+        "openness.mobilityWeight": 3.669109772425145,
+        "openness.ascentCostWeight": 2.134932762826793,
+        "openness.timeConstantDays": 124.29602497257292,
+        "networkOpportunity.beta": 0.5810721097979694,
+        "network.rewireProb": 0.10669994762632996,
+        "dynamics.congestionExponent": 0.36446121223270894,
+        "dynamics.polarizationExponent": 0.4018438339233399,
+        "need.threshold": 0.9268255383009091
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        4,
+        2
+      ],
+      "silhouette": 0.26247047836188026,
+      "ariMedian": 0.6590909090909091,
+      "ariMin": 0.03669724770642201,
+      "minSize": 2,
+      "score": 0.9215613874527893
+    },
+    {
+      "candidateId": "c0678",
+      "params": {
+        "ascent.displacementShare": 0.6433193426579238,
+        "ascent.scarcityWeight": 27.006432926282287,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 6.196620457805693,
+        "openness.mobilityWeight": 7.459465438034385,
+        "openness.ascentCostWeight": 0.607534570270218,
+        "openness.timeConstantDays": 147.42145250318572,
+        "networkOpportunity.beta": 0.9236883430741727,
+        "network.rewireProb": 0.03237280528759584,
+        "dynamics.congestionExponent": 0.34989251801744103,
+        "dynamics.polarizationExponent": 0.9899503882974386,
+        "need.threshold": 0.9033270839834585
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        2,
+        6,
+        4
+      ],
+      "silhouette": 0.32515689871262266,
+      "ariMedian": 0.5871559633027523,
+      "ariMin": 0.11764705882352938,
+      "minSize": 2,
+      "score": 0.912312862015375
+    },
+    {
+      "candidateId": "c0394",
+      "params": {
+        "ascent.displacementShare": 0.21262445207685232,
+        "ascent.scarcityWeight": 21.19827522430569,
+        "ascent.occupancyMemoryDays": 365,
+        "openness.segregationWeight": 9.935127841774374,
+        "openness.mobilityWeight": 4.120986749185249,
+        "openness.ascentCostWeight": 2.557388842338696,
+        "openness.timeConstantDays": 30.313592876773328,
+        "networkOpportunity.beta": 0.5333078804425895,
+        "network.rewireProb": 0.047284173683729024,
+        "dynamics.congestionExponent": 0.28497839961200955,
+        "dynamics.polarizationExponent": 0.4735566141083837,
+        "need.threshold": 0.8159837307292037
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        3,
+        3,
+        6
+      ],
+      "silhouette": 0.2857247530518911,
+      "ariMedian": 0.6231234361968307,
+      "ariMin": 0.24242424242424246,
+      "minSize": 3,
+      "score": 0.9088481892487219
+    },
+    {
+      "candidateId": "c0686",
+      "params": {
+        "ascent.displacementShare": 0.5667229736223818,
+        "ascent.scarcityWeight": 22.00203659478575,
+        "ascent.occupancyMemoryDays": 365,
+        "openness.segregationWeight": 10.473517000675201,
+        "openness.mobilityWeight": 4.387370876502246,
+        "openness.ascentCostWeight": 2.419581580790691,
+        "openness.timeConstantDays": 78.74726539710537,
+        "networkOpportunity.beta": 0.840204954193905,
+        "network.rewireProb": 0.08884398228954525,
+        "dynamics.congestionExponent": 0.26945392061024903,
+        "dynamics.polarizationExponent": 0.7109095562249422,
+        "need.threshold": 0.8101267712190747
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        7,
+        2,
+        3
+      ],
+      "silhouette": 0.3206981265889173,
+      "ariMedian": 0.5871559633027523,
+      "ariMin": -0.17647058823529416,
+      "minSize": 2,
+      "score": 0.9078540898916696
+    },
+    {
+      "candidateId": "c0518",
+      "params": {
+        "ascent.displacementShare": 0.9234654324129223,
+        "ascent.scarcityWeight": 1.2663435470312834,
+        "ascent.occupancyMemoryDays": 365,
+        "openness.segregationWeight": 7.199007953051478,
+        "openness.mobilityWeight": 3.258670915849507,
+        "openness.ascentCostWeight": 0.5904637448256835,
+        "openness.timeConstantDays": 77.58312364574522,
+        "networkOpportunity.beta": 1.1292546168435365,
+        "network.rewireProb": 0.07835132786538453,
+        "dynamics.congestionExponent": 0.5446957470849156,
+        "dynamics.polarizationExponent": 0.5630831127986312,
+        "need.threshold": 0.9410152363008819
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        4,
+        5,
+        3
+      ],
+      "silhouette": 0.45530146816793743,
+      "ariMedian": 0.4444444444444444,
+      "ariMin": 0,
+      "minSize": 3,
+      "score": 0.8997459126123819
+    },
+    {
+      "candidateId": "c0221",
+      "params": {
+        "ascent.displacementShare": 0.5091800933703781,
+        "ascent.scarcityWeight": 16.751007637940347,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 2.533281380776316,
+        "openness.mobilityWeight": 5.577846152707934,
+        "openness.ascentCostWeight": 3.8572477304842323,
+        "openness.timeConstantDays": 125.57766120415181,
+        "networkOpportunity.beta": 0.7131028569303453,
+        "network.rewireProb": 0.11497653677128256,
+        "dynamics.congestionExponent": 0.5886715695261955,
+        "dynamics.polarizationExponent": 1.1387046076357366,
+        "need.threshold": 0.7629710250999778
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        4,
+        5,
+        3
+      ],
+      "silhouette": 0.26505251407566605,
+      "ariMedian": 0.6231234361968307,
+      "ariMin": 0,
+      "minSize": 3,
+      "score": 0.8881759502724969
+    },
+    {
+      "candidateId": "c0297",
+      "params": {
+        "ascent.displacementShare": 0.4665219407528639,
+        "ascent.scarcityWeight": 3.793036169372499,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 10.409530995413661,
+        "openness.mobilityWeight": 7.669150349451229,
+        "openness.ascentCostWeight": 1.2158810223918408,
+        "openness.timeConstantDays": 46.18291471386328,
+        "networkOpportunity.beta": 0.3032244774978608,
+        "network.rewireProb": 0.12080475946189836,
+        "dynamics.congestionExponent": 0.24085306860506536,
+        "dynamics.polarizationExponent": 0.6522932898253202,
+        "need.threshold": 0.6783781796460971
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        3,
+        4,
+        5
+      ],
+      "silhouette": 0.4108943580404209,
+      "ariMedian": 0.4444444444444444,
+      "ariMin": 0.24242424242424246,
+      "minSize": 3,
+      "score": 0.8553388024848654
+    },
+    {
+      "candidateId": "c0002",
+      "params": {
+        "ascent.displacementShare": 0.49591789413243537,
+        "ascent.scarcityWeight": 14.261693358421326,
+        "ascent.occupancyMemoryDays": 90,
+        "openness.segregationWeight": 3.010169128421694,
+        "openness.mobilityWeight": 3.5771473618224263,
+        "openness.ascentCostWeight": 1.8535151010146365,
+        "openness.timeConstantDays": 99.75289051188156,
+        "networkOpportunity.beta": 0.8112154417205601,
+        "network.rewireProb": 0.10852936638286338,
+        "dynamics.congestionExponent": 0.23227537572383883,
+        "dynamics.polarizationExponent": 1.1720940358936787,
+        "need.threshold": 0.5684312179801054
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        2,
+        4
+      ],
+      "silhouette": 0.3282647417952156,
+      "ariMedian": 0.5158002038735984,
+      "ariMin": -0.1538461538461538,
+      "minSize": 2,
+      "score": 0.844064945668814
+    },
+    {
+      "candidateId": "c0515",
+      "params": {
+        "ascent.displacementShare": 0.9757773606106639,
+        "ascent.scarcityWeight": 50.66795886028558,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 9.317550440784544,
+        "openness.mobilityWeight": 1.0631942385807633,
+        "openness.ascentCostWeight": 1.8885877141728997,
+        "openness.timeConstantDays": 144.29716204293072,
+        "networkOpportunity.beta": 1.0251470625400543,
+        "network.rewireProb": 0.146460330595728,
+        "dynamics.congestionExponent": 0.2064442505128682,
+        "dynamics.polarizationExponent": 1.0498181974515317,
+        "need.threshold": 0.8889424097142182
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        3,
+        6,
+        3
+      ],
+      "silhouette": 0.24565093200127364,
+      "ariMedian": 0.5871559633027523,
+      "ariMin": -0.02272727272727272,
+      "minSize": 3,
+      "score": 0.832806895304026
+    },
+    {
+      "candidateId": "c0681",
+      "params": {
+        "ascent.displacementShare": 0.4912815250456333,
+        "ascent.scarcityWeight": 21.080536739900708,
+        "ascent.occupancyMemoryDays": 365,
+        "openness.segregationWeight": 11.447500160895288,
+        "openness.mobilityWeight": 4.0376174377743155,
+        "openness.ascentCostWeight": 1.935943818767555,
+        "openness.timeConstantDays": 143.37098056683317,
+        "networkOpportunity.beta": 0.5116416148841381,
+        "network.rewireProb": 0.14401979985646904,
+        "dynamics.congestionExponent": 0.5903277046047151,
+        "dynamics.polarizationExponent": 0.7211130261421204,
+        "need.threshold": 0.871892500622198
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        3,
+        5,
+        4
+      ],
+      "silhouette": 0.2872745804895183,
+      "ariMedian": 0.5435779816513762,
+      "ariMin": 0.03669724770642201,
+      "minSize": 3,
+      "score": 0.8308525621408944
+    },
+    {
+      "candidateId": "c0516",
+      "params": {
+        "ascent.displacementShare": 0.7100643970072269,
+        "ascent.scarcityWeight": 3.953794687986374,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 8.086139951366931,
+        "openness.mobilityWeight": 2.2980587710626423,
+        "openness.ascentCostWeight": 2.7652266564546153,
+        "openness.timeConstantDays": 89.5708500710316,
+        "networkOpportunity.beta": 1.0308320671785622,
+        "network.rewireProb": 0.08770331186475233,
+        "dynamics.congestionExponent": 0.5939184225164353,
+        "dynamics.polarizationExponent": 1.1678597647696733,
+        "need.threshold": 0.8965356516535393
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        2,
+        7,
+        3
+      ],
+      "silhouette": 0.4100072163479119,
+      "ariMedian": 0.4117647058823529,
+      "ariMin": -0.3636363636363636,
+      "minSize": 2,
+      "score": 0.8217719222302649
+    },
+    {
+      "candidateId": "c0252",
+      "params": {
+        "ascent.displacementShare": 0.9872571235522629,
+        "ascent.scarcityWeight": 23.55723151937127,
+        "ascent.occupancyMemoryDays": 365,
+        "openness.segregationWeight": 9.02421881025657,
+        "openness.mobilityWeight": 2.433613145723939,
+        "openness.ascentCostWeight": 3.66198505659122,
+        "openness.timeConstantDays": 178.88562307460234,
+        "networkOpportunity.beta": 0.5655254009645432,
+        "network.rewireProb": 0.14889617812121286,
+        "dynamics.congestionExponent": 0.3367639796808362,
+        "dynamics.polarizationExponent": 0.6742027416825295,
+        "need.threshold": 0.7950042611686512
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        3,
+        7,
+        2
+      ],
+      "silhouette": 0.35626495304866085,
+      "ariMedian": 0.45588235294117646,
+      "ariMin": -0.23853211009174313,
+      "minSize": 2,
+      "score": 0.8121473059898373
+    },
+    {
+      "candidateId": "c0068",
+      "params": {
+        "ascent.displacementShare": 0.3042517779394984,
+        "ascent.scarcityWeight": 22.47262312564999,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 10.312157685868442,
+        "openness.mobilityWeight": 5.1473660913761705,
+        "openness.ascentCostWeight": 2.050658256513998,
+        "openness.timeConstantDays": 143.44003927661106,
+        "networkOpportunity.beta": 0.3118387191090733,
+        "network.rewireProb": 0.10082518782000989,
+        "dynamics.congestionExponent": 0.2303049024194479,
+        "dynamics.polarizationExponent": 0.819633313268423,
+        "need.threshold": 0.5663545943447389
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        4,
+        2,
+        6
+      ],
+      "silhouette": 0.27505449379854774,
+      "ariMedian": 0.5158002038735984,
+      "ariMin": 0.16666666666666669,
+      "minSize": 2,
+      "score": 0.7908546976721461
+    }
+  ],
+  "selectedForValidation": [
+    {
+      "candidateId": "c0607",
+      "params": {
+        "ascent.displacementShare": 0.8591005781665444,
+        "ascent.scarcityWeight": 7.0138636557385325,
+        "ascent.occupancyMemoryDays": 365,
+        "openness.segregationWeight": 6.2039398406632245,
+        "openness.mobilityWeight": 6.789423209382221,
+        "openness.ascentCostWeight": 1.129512174287811,
+        "openness.timeConstantDays": 103.78775733523071,
+        "networkOpportunity.beta": 0.274595203390345,
+        "network.rewireProb": 0.030435943300835787,
+        "dynamics.congestionExponent": 0.3826487759128213,
+        "dynamics.polarizationExponent": 0.8359738236293197,
+        "need.threshold": 0.6087748057325371
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        3,
+        3
+      ],
+      "silhouette": 0.3522817104736175,
+      "ariMedian": 1,
+      "ariMin": 0.03669724770642201,
+      "minSize": 3,
+      "score": 1.3522817104736176
+    },
+    {
+      "candidateId": "c0473",
+      "params": {
+        "ascent.displacementShare": 0.8880704179406167,
+        "ascent.scarcityWeight": 0.059911832213401794,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 6.320694042835385,
+        "openness.mobilityWeight": 2.0107745903078467,
+        "openness.ascentCostWeight": 3.3586109990719706,
+        "openness.timeConstantDays": 75.26503910310566,
+        "networkOpportunity.beta": 0.44377651140093805,
+        "network.rewireProb": 0.14770070384955034,
+        "dynamics.congestionExponent": 0.540935539919883,
+        "dynamics.polarizationExponent": 0.8577254990115761,
+        "need.threshold": 0.6609928713180124
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        7,
+        3,
+        2
+      ],
+      "silhouette": 0.40407194481512687,
+      "ariMedian": 0.9324324324324325,
+      "ariMin": 0.4117647058823529,
+      "minSize": 2,
+      "score": 1.3365043772475593
+    },
+    {
+      "candidateId": "c0211",
+      "params": {
+        "ascent.displacementShare": 0.7705135673284531,
+        "ascent.scarcityWeight": 0.8428795589134097,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 6.4224339770153165,
+        "openness.mobilityWeight": 7.443686524173245,
+        "openness.ascentCostWeight": 2.9418042795732617,
+        "openness.timeConstantDays": 175.08135051000863,
+        "networkOpportunity.beta": 0.7361274273600429,
+        "network.rewireProb": 0.11220288619864732,
+        "dynamics.congestionExponent": 0.29244265127927066,
+        "dynamics.polarizationExponent": 1.1755184641107916,
+        "need.threshold": 0.8743707087822259
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        4,
+        6,
+        2
+      ],
+      "silhouette": 0.42909176991828657,
+      "ariMedian": 0.7853736089030208,
+      "ariMin": 0.24242424242424246,
+      "minSize": 2,
+      "score": 1.2144653788213073
+    },
+    {
+      "candidateId": "c0305",
+      "params": {
+        "ascent.displacementShare": 0.7902004448696971,
+        "ascent.scarcityWeight": 1.5003177244216204,
+        "ascent.occupancyMemoryDays": 90,
+        "openness.segregationWeight": 11.269220007117838,
+        "openness.mobilityWeight": 7.622933437116444,
+        "openness.ascentCostWeight": 2.8715402593370527,
+        "openness.timeConstantDays": 84.36754954280332,
+        "networkOpportunity.beta": 0.9101065518800169,
+        "network.rewireProb": 0.14691844267304985,
+        "dynamics.congestionExponent": 0.4272391742095351,
+        "dynamics.polarizationExponent": 0.6796307399868965,
+        "need.threshold": 0.887569010257721
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        2,
+        4
+      ],
+      "silhouette": 0.4099524705810389,
+      "ariMedian": 0.7935779816513762,
+      "ariMin": 0,
+      "minSize": 2,
+      "score": 1.203530452232415
+    },
+    {
+      "candidateId": "c0437",
+      "params": {
+        "ascent.displacementShare": 0.6257919939234853,
+        "ascent.scarcityWeight": 1.8068177159875631,
+        "ascent.occupancyMemoryDays": 180,
+        "openness.segregationWeight": 8.156341342721134,
+        "openness.mobilityWeight": 7.587761112721637,
+        "openness.ascentCostWeight": 3.3985328025883064,
+        "openness.timeConstantDays": 88.11913199722767,
+        "networkOpportunity.beta": 0.46902044378221036,
+        "network.rewireProb": 0.1309622017177753,
+        "dynamics.congestionExponent": 0.2809965254738927,
+        "dynamics.polarizationExponent": 0.675307548418641,
+        "need.threshold": 0.6327060788986273
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        5,
+        3,
+        4
+      ],
+      "silhouette": 0.37566007935958456,
+      "ariMedian": 0.7058823529411765,
+      "ariMin": -0.02272727272727272,
+      "minSize": 3,
+      "score": 1.0815424323007612
+    },
+    {
+      "candidateId": "c0600",
+      "params": {
+        "ascent.displacementShare": 0.8994608735665679,
+        "ascent.scarcityWeight": 1.2031793547794223,
+        "ascent.occupancyMemoryDays": 0,
+        "openness.segregationWeight": 7.725303268991411,
+        "openness.mobilityWeight": 1.6068811502773315,
+        "openness.ascentCostWeight": 3.3160790908150375,
+        "openness.timeConstantDays": 92.52022896660492,
+        "networkOpportunity.beta": 0.29530024020932616,
+        "network.rewireProb": 0.13831516440026462,
+        "dynamics.congestionExponent": 0.46448646401986476,
+        "dynamics.polarizationExponent": 1.0560026440769432,
+        "need.threshold": 0.7065151569666341
+      },
+      "usable": 12,
+      "total": 12,
+      "sizes": [
+        6,
+        4,
+        2
+      ],
+      "silhouette": 0.4949159668386403,
+      "ariMedian": 0.5158002038735984,
+      "ariMin": -0.1538461538461538,
+      "minSize": 2,
+      "score": 1.0107161707122387
+    }
+  ],
+  "notes": [
+    "粗筛只用 search seed；top 候选必须用全新 validation seed 复验。",
+    "验证通过只说明参数区域值得独立确认，不是校准或结构涌现。",
+    "不得把 search seed 的结果直接写入正式对照。"
+  ]
+}

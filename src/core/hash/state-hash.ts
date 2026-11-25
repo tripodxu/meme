@@ -20,6 +20,8 @@ export function computeInitialPopulationHash(seed: Seed, population: InitialPopu
       value: agent.value,
       ge: agent.ge,
       hard: agent.hard,
+      riskTolerance: agent.riskTolerance,
+      crossClassOpenness: agent.crossClassOpenness,
       initialLife: agent.initialLife,
       remainingLife: agent.remainingLife,
       classAge: agent.classAge,

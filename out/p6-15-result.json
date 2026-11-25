@@ -1,0 +1,908 @@
+{
+  "experimentId": "p6-15-983b3698",
+  "preregistrationHash": "sha256:983b36987495e4bf40f0a064907daf07362c918287a3879dba910214305412b7",
+  "rulesVersion": "rules-v19",
+  "engineVersion": "engine-v0.16.0",
+  "policyVersion": "mock-weighted-v1",
+  "population": 40,
+  "progress": {
+    "abl": "360/360",
+    "pert": "60/60",
+    "cluster": "240/240",
+    "total": "660/660",
+    "allComplete": true
+  },
+  "cumulativeTaskCpuSeconds": 5478.669,
+  "clustering": {
+    "complete": true,
+    "runs": {
+      "base": 180,
+      "followup": 60,
+      "excluded": 0,
+      "extinctCount": 0,
+      "fallbackDecisions": 0,
+      "observedPolicies": [
+        "mock-weighted-v1"
+      ]
+    },
+    "perCellMeans": {
+      "A-share100-w0": {
+        "P0": 0.5293,
+        "P1": 0.3133,
+        "P2": 0.0632,
+        "P3": 0.0492,
+        "P4": 0.045,
+        "G": 0.5375,
+        "top10": 0.4931,
+        "Mup": 0.9538,
+        "Mdown": 0.9517,
+        "S": 0.0016,
+        "O": 0.8269
+      },
+      "B-share50-w15": {
+        "P0": 0,
+        "P1": 0.0025,
+        "P2": 0.4117,
+        "P3": 0.3803,
+        "P4": 0.2054,
+        "G": 0.3838,
+        "top10": 0.3094,
+        "Mup": 0.0144,
+        "Mdown": 0.0028,
+        "S": 0.3306,
+        "O": 0.2576
+      },
+      "C-share50-w60": {
+        "P0": 0,
+        "P1": 0.2508,
+        "P2": 0.3771,
+        "P3": 0.222,
+        "P4": 0.1501,
+        "G": 0.4049,
+        "top10": 0.3318,
+        "Mup": 0.0083,
+        "Mdown": 0.002,
+        "S": 0.2622,
+        "O": 0.2741
+      },
+      "D-share50-w30": {
+        "P0": 0,
+        "P1": 0.0668,
+        "P2": 0.5023,
+        "P3": 0.2639,
+        "P4": 0.167,
+        "G": 0.4039,
+        "top10": 0.3313,
+        "Mup": 0.0055,
+        "Mdown": 0.0032,
+        "S": 0.3154,
+        "O": 0.2482
+      },
+      "E-share70-w15": {
+        "P0": 0,
+        "P1": 0.0014,
+        "P2": 0.4097,
+        "P3": 0.3839,
+        "P4": 0.205,
+        "G": 0.386,
+        "top10": 0.3117,
+        "Mup": 0.0086,
+        "Mdown": 0.0026,
+        "S": 0.3137,
+        "O": 0.266
+      },
+      "F-share30-w60": {
+        "P0": 0,
+        "P1": 0.2515,
+        "P2": 0.3729,
+        "P3": 0.2251,
+        "P4": 0.1505,
+        "G": 0.4036,
+        "top10": 0.3204,
+        "Mup": 0.0084,
+        "Mdown": 0.0036,
+        "S": 0.3079,
+        "O": 0.2449
+      }
+    },
+    "k2": {
+      "clusterSizes": [
+        30,
+        150
+      ],
+      "clusterComposition": [
+        {
+          "A-share100-w0": 30
+        },
+        {
+          "B-share50-w15": 30,
+          "C-share50-w60": 30,
+          "D-share50-w30": 30,
+          "E-share70-w15": 30,
+          "F-share30-w60": 30
+        }
+      ],
+      "centroidsRaw": [
+        [
+          0.5293,
+          0.3133,
+          0.0632,
+          0.0492,
+          0.045,
+          0.5375,
+          0.4931,
+          0.9538,
+          0.9517,
+          0.0016,
+          0.8269
+        ],
+        [
+          0,
+          0.1146,
+          0.4147,
+          0.295,
+          0.1756,
+          0.3964,
+          0.3209,
+          0.009,
+          0.0029,
+          0.306,
+          0.2582
+        ]
+      ],
+      "ariMedian": 1,
+      "ariMin": 1,
+      "ariMax": 1,
+      "silhouette": 0.6602,
+      "temporalConsistency": 1,
+      "antiPreset": true
+    },
+    "k3": {
+      "clusterSizes": [
+        30,
+        93,
+        57
+      ],
+      "clusterComposition": [
+        {
+          "A-share100-w0": 30
+        },
+        {
+          "B-share50-w15": 30,
+          "C-share50-w60": 2,
+          "D-share50-w30": 28,
+          "E-share70-w15": 30,
+          "F-share30-w60": 3
+        },
+        {
+          "C-share50-w60": 28,
+          "D-share50-w30": 2,
+          "F-share30-w60": 27
+        }
+      ],
+      "centroidsRaw": [
+        [
+          0.5293,
+          0.3133,
+          0.0632,
+          0.0492,
+          0.045,
+          0.5375,
+          0.4931,
+          0.9538,
+          0.9517,
+          0.0016,
+          0.8269
+        ],
+        [
+          0,
+          0.0335,
+          0.4356,
+          0.3392,
+          0.1917,
+          0.3882,
+          0.3136,
+          0.0099,
+          0.0028,
+          0.3054,
+          0.2723
+        ],
+        [
+          0,
+          0.2469,
+          0.3807,
+          0.223,
+          0.1494,
+          0.4098,
+          0.3328,
+          0.0076,
+          0.003,
+          0.3069,
+          0.2352
+        ]
+      ],
+      "ariMedian": 0.6115,
+      "ariMin": 0.4012,
+      "ariMax": 0.8137,
+      "silhouette": 0.3163,
+      "temporalConsistency": 0.8333,
+      "antiPreset": true
+    },
+    "regimeDiff": {
+      "tvP": 0.7279,
+      "deltaS": 0.3044,
+      "deltaO": 0.5687,
+      "directionMatchesPrereg": true
+    },
+    "continuity": {
+      "note": "07 §8.2 描述性报告：不设阈值、不参与 passes；仅用于描述两体制内部/之间的连续程度。",
+      "featureNames": [
+        "P0",
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "G",
+        "top10",
+        "Mup",
+        "Mdown",
+        "S",
+        "O"
+      ],
+      "perCluster": [
+        {
+          "cluster": 0,
+          "size": 30,
+          "cells": [
+            "A-share100-w0"
+          ],
+          "featureIqr": [
+            {
+              "feature": "P0",
+              "q1": 0.4821,
+              "q3": 0.5692,
+              "iqr": 0.0871,
+              "min": 0.3651,
+              "max": 0.7222
+            },
+            {
+              "feature": "P1",
+              "q1": 0.2665,
+              "q3": 0.356,
+              "iqr": 0.0895,
+              "min": 0.1111,
+              "max": 0.4607
+            },
+            {
+              "feature": "P2",
+              "q1": 0.0497,
+              "q3": 0.0659,
+              "iqr": 0.0163,
+              "min": 0.0413,
+              "max": 0.1851
+            },
+            {
+              "feature": "P3",
+              "q1": 0.0452,
+              "q3": 0.058,
+              "iqr": 0.0128,
+              "min": 0,
+              "max": 0.0696
+            },
+            {
+              "feature": "P4",
+              "q1": 0.0423,
+              "q3": 0.056,
+              "iqr": 0.0137,
+              "min": 0,
+              "max": 0.0783
+            },
+            {
+              "feature": "G",
+              "q1": 0.4976,
+              "q3": 0.5885,
+              "iqr": 0.0909,
+              "min": 0.3371,
+              "max": 0.7228
+            },
+            {
+              "feature": "top10",
+              "q1": 0.4347,
+              "q3": 0.5576,
+              "iqr": 0.1229,
+              "min": 0.243,
+              "max": 0.7251
+            },
+            {
+              "feature": "Mup",
+              "q1": 0.9356,
+              "q3": 0.9843,
+              "iqr": 0.0487,
+              "min": 0.8577,
+              "max": 1
+            },
+            {
+              "feature": "Mdown",
+              "q1": 0.9312,
+              "q3": 0.9787,
+              "iqr": 0.0475,
+              "min": 0.8577,
+              "max": 1
+            },
+            {
+              "feature": "S",
+              "q1": -0.1315,
+              "q3": 0.0936,
+              "iqr": 0.225,
+              "min": -0.2403,
+              "max": 0.4537
+            },
+            {
+              "feature": "O",
+              "q1": 0.7775,
+              "q3": 0.9234,
+              "iqr": 0.1459,
+              "min": 0.339,
+              "max": 0.952
+            }
+          ]
+        },
+        {
+          "cluster": 1,
+          "size": 150,
+          "cells": [
+            "B-share50-w15",
+            "C-share50-w60",
+            "D-share50-w30",
+            "E-share70-w15",
+            "F-share30-w60"
+          ],
+          "featureIqr": [
+            {
+              "feature": "P0",
+              "q1": 0,
+              "q3": 0,
+              "iqr": 0,
+              "min": 0,
+              "max": 0
+            },
+            {
+              "feature": "P1",
+              "q1": 0,
+              "q3": 0.2395,
+              "iqr": 0.2395,
+              "min": 0,
+              "max": 0.3674
+            },
+            {
+              "feature": "P2",
+              "q1": 0.3609,
+              "q3": 0.461,
+              "iqr": 0.1001,
+              "min": 0.2353,
+              "max": 0.6207
+            },
+            {
+              "feature": "P3",
+              "q1": 0.2273,
+              "q3": 0.36,
+              "iqr": 0.1327,
+              "min": 0.169,
+              "max": 0.5294
+            },
+            {
+              "feature": "P4",
+              "q1": 0.1453,
+              "q3": 0.2,
+              "iqr": 0.0547,
+              "min": 0.1014,
+              "max": 0.3158
+            },
+            {
+              "feature": "G",
+              "q1": 0.354,
+              "q3": 0.4305,
+              "iqr": 0.0766,
+              "min": 0.2569,
+              "max": 0.5559
+            },
+            {
+              "feature": "top10",
+              "q1": 0.2728,
+              "q3": 0.3633,
+              "iqr": 0.0905,
+              "min": 0.193,
+              "max": 0.5108
+            },
+            {
+              "feature": "Mup",
+              "q1": 0,
+              "q3": 0.0068,
+              "iqr": 0.0068,
+              "min": 0,
+              "max": 0.1315
+            },
+            {
+              "feature": "Mdown",
+              "q1": 0,
+              "q3": 0,
+              "iqr": 0,
+              "min": 0,
+              "max": 0.066
+            },
+            {
+              "feature": "S",
+              "q1": 0.2171,
+              "q3": 0.417,
+              "iqr": 0.2,
+              "min": -0.1488,
+              "max": 0.59
+            },
+            {
+              "feature": "O",
+              "q1": 0.1526,
+              "q3": 0.3229,
+              "iqr": 0.1703,
+              "min": 0.0625,
+              "max": 0.6758
+            }
+          ]
+        }
+      ],
+      "centroidDistanceZ": 7.1847,
+      "centroidDistanceRaw": 1.6671,
+      "assignmentMargin": {
+        "min": 2.9751,
+        "median": 5.7246,
+        "max": 6.7668
+      },
+      "intermediateBand": {
+        "definition": "分配裕度 |d0-d1| 最低 10% 的 base run（报告分位，非阈值）",
+        "count": 18,
+        "cells": [
+          "A-share100-w0",
+          "B-share50-w15",
+          "C-share50-w60",
+          "D-share50-w30",
+          "F-share30-w60"
+        ]
+      }
+    },
+    "checks": {
+      "policyValid": true,
+      "k2Stable": true,
+      "directionMatchesPrereg": true,
+      "hasDiscreteThirdClusterLegacy": false,
+      "hasDiscreteThirdClusterAdr0010": false
+    },
+    "passesLegacy": true,
+    "passesAdr0010": true,
+    "verdict": "two-regime-candidate"
+  },
+  "perturbation": {
+    "complete": true,
+    "passes": true,
+    "regimes": {
+      "R1_A_share100_w0": {
+        "pairs": 30,
+        "valid": 30,
+        "invalid": 0,
+        "extinctCount": 0,
+        "divergedTrajectories": 30,
+        "baselineD95": 0.118997,
+        "medianD": 2.2336236749076478e-10,
+        "maxD": 4.733639591414374e-10,
+        "medianTvP": 0,
+        "maxTvP": 0,
+        "absorbedCount": 30,
+        "absorbedRate": 1,
+        "passes": true
+      },
+      "R2_B_share50_w15": {
+        "pairs": 30,
+        "valid": 30,
+        "invalid": 0,
+        "extinctCount": 0,
+        "divergedTrajectories": 30,
+        "baselineD95": 0.183396,
+        "medianD": 1.3524839720391312e-10,
+        "maxD": 2.5041100304434847e-10,
+        "medianTvP": 0,
+        "maxTvP": 0,
+        "absorbedCount": 30,
+        "absorbedRate": 1,
+        "passes": true
+      }
+    }
+  },
+  "ablations": {
+    "complete": true,
+    "policyValid": true,
+    "observedPolicies": [
+      "mock-weighted-v1"
+    ],
+    "totalFallbacks": 0,
+    "totalExtinct": 0,
+    "explainedCount": 2,
+    "strictExplainedCount": 0,
+    "regimes": {
+      "R1_A_share100_w0": {
+        "baseline": {
+          "runs": 30,
+          "medianP": [
+            0.5482,
+            0.3626,
+            0.0294,
+            0.0284,
+            0.0285
+          ],
+          "medianG": 0.5997,
+          "medianMup": 0.9568,
+          "medianS": 0.0136,
+          "medianO": 0.8262,
+          "labelCounts": {
+            "highFlowNetwork": 30,
+            "pyramid": 27,
+            "bipolar": 7
+          },
+          "baselineD95": 0.100553
+        },
+        "ablations": {
+          "beta_0": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.0293,
+            "tvCi95": [
+              0.0264,
+              0.0348
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0378,
+              "dMup": 0.011,
+              "dS": 0.032,
+              "dO": 0.0363,
+              "D": 0.0353
+            },
+            "signedDeltas": {
+              "P": [
+                -0.0007,
+                0.0007,
+                0,
+                0,
+                0
+              ],
+              "G": -0.0197,
+              "Mup": -0.0033,
+              "S": 0.0111,
+              "O": 0.0225
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "openness_fixed": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.0282,
+            "tvCi95": [
+              0.0262,
+              0.0324
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0412,
+              "dMup": 0.0168,
+              "dS": 0.0379,
+              "dO": 0.3262,
+              "D": 0.0674
+            },
+            "signedDeltas": {
+              "P": [
+                0.0077,
+                -0.0001,
+                0,
+                0,
+                0
+              ],
+              "G": 0.0397,
+              "Mup": -0.0108,
+              "S": 0.0362,
+              "O": -0.3262
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "eta_0": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.0281,
+            "tvCi95": [
+              0.0245,
+              0.0326
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0324,
+              "dMup": 0.0162,
+              "dS": 0.0226,
+              "dO": 0.0282,
+              "D": 0.0275
+            },
+            "signedDeltas": {
+              "P": [
+                0.0001,
+                -0.0104,
+                0,
+                0,
+                0
+              ],
+              "G": -0.0033,
+              "Mup": -0.0149,
+              "S": 0.0047,
+              "O": -0.0148
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "kappa_0": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.029,
+            "tvCi95": [
+              0.0267,
+              0.0329
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0323,
+              "dMup": 0.0181,
+              "dS": 0.0257,
+              "dO": 0.034,
+              "D": 0.0323
+            },
+            "signedDeltas": {
+              "P": [
+                0.0027,
+                -0.0002,
+                0,
+                0,
+                0
+              ],
+              "G": -0.0317,
+              "Mup": -0.0045,
+              "S": -0.0006,
+              "O": 0.0306
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "psi_1": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.111,
+            "tvCi95": [
+              0.0889,
+              0.1166
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0692,
+              "dMup": 0.0238,
+              "dS": 0.0434,
+              "dO": 0.0613,
+              "D": 0.0661
+            },
+            "signedDeltas": {
+              "P": [
+                -0.0544,
+                -0.0472,
+                0.0923,
+                0,
+                -0.0001
+              ],
+              "G": -0.0639,
+              "Mup": 0.0238,
+              "S": -0.0231,
+              "O": 0.0602
+            },
+            "psi1Check": {
+              "p4DeltaMedian": -0.0001,
+              "p4DecreaseRate": 0.6333,
+              "predictionHolds": false
+            },
+            "mechanismExplained": true,
+            "passesStrict07": false
+          }
+        }
+      },
+      "R2_B_share50_w15": {
+        "baseline": {
+          "runs": 30,
+          "medianP": [
+            0,
+            0.2772,
+            0.4279,
+            0.2181,
+            0.0967
+          ],
+          "medianG": 0.4823,
+          "medianMup": 0.1518,
+          "medianS": 0.2456,
+          "medianO": 0.2864,
+          "labelCounts": {
+            "olive": 27
+          },
+          "baselineD95": 0.150101
+        },
+        "ablations": {
+          "beta_0": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.084,
+            "tvCi95": [
+              0.0639,
+              0.0946
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0447,
+              "dMup": 0.0639,
+              "dS": 0.0864,
+              "dO": 0.0781,
+              "D": 0.0692
+            },
+            "signedDeltas": {
+              "P": [
+                0,
+                -0.0237,
+                -0.0153,
+                0.0193,
+                0.0186
+              ],
+              "G": -0.0447,
+              "Mup": -0.0391,
+              "S": -0.0021,
+              "O": 0.0293
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "openness_fixed": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.0854,
+            "tvCi95": [
+              0.0614,
+              0.107
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0159,
+              "dMup": 0.0585,
+              "dS": 0.0773,
+              "dO": 0.2136,
+              "D": 0.0783
+            },
+            "signedDeltas": {
+              "P": [
+                0,
+                -0.0369,
+                0.0075,
+                0.0162,
+                0.0159
+              ],
+              "G": -0.0024,
+              "Mup": 0.0135,
+              "S": -0.0529,
+              "O": 0.2136
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "eta_0": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.0561,
+            "tvCi95": [
+              0.0449,
+              0.0706
+            ],
+            "overD95Rate": 0.0333,
+            "absMedians": {
+              "dG": 0.0298,
+              "dMup": 0.0406,
+              "dS": 0.0643,
+              "dO": 0.0966,
+              "D": 0.0619
+            },
+            "signedDeltas": {
+              "P": [
+                0,
+                0.0364,
+                -0.0312,
+                -0.0081,
+                0.0004
+              ],
+              "G": 0.028,
+              "Mup": -0.0252,
+              "S": 0.0504,
+              "O": -0.0933
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "kappa_0": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.0857,
+            "tvCi95": [
+              0.0539,
+              0.0967
+            ],
+            "overD95Rate": 0,
+            "absMedians": {
+              "dG": 0.0323,
+              "dMup": 0.0772,
+              "dS": 0.0529,
+              "dO": 0.0987,
+              "D": 0.0752
+            },
+            "signedDeltas": {
+              "P": [
+                0,
+                -0.0539,
+                -0.0006,
+                0.0134,
+                0.023
+              ],
+              "G": -0.0302,
+              "Mup": 0.0028,
+              "S": -0.0077,
+              "O": 0.015
+            },
+            "mechanismExplained": false,
+            "passesStrict07": false
+          },
+          "psi_1": {
+            "pairs": 30,
+            "extinctCount": 0,
+            "medianTvP": 0.179,
+            "tvCi95": [
+              0.1529,
+              0.1981
+            ],
+            "overD95Rate": 0.0333,
+            "absMedians": {
+              "dG": 0.0235,
+              "dMup": 0.0518,
+              "dS": 0.0617,
+              "dO": 0.077,
+              "D": 0.084
+            },
+            "signedDeltas": {
+              "P": [
+                0,
+                -0.1716,
+                0.0285,
+                0.0638,
+                0.0816
+              ],
+              "G": -0.0235,
+              "Mup": -0.0518,
+              "S": 0.0448,
+              "O": -0.032
+            },
+            "psi1Check": {
+              "p4DeltaMedian": 0.0816,
+              "p4DecreaseRate": 0,
+              "predictionHolds": false
+            },
+            "mechanismExplained": true,
+            "passesStrict07": false
+          }
+        }
+      }
+    }
+  },
+  "overallVerdict": "two-regime-candidate-ablation-failed"
+}

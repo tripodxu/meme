@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "p6-11-jev-causal-prereg-v1",
+  "experimentId": "p6-11-d40835c4",
+  "createdAt": "2026-11-18T17:24:14.387Z",
+  "designHash": "sha256:d40835c4b47f2bb2b8064cb072995f7a2d4f9edc8ea5c0751751215eabe5f953",
+  "design": {
+    "schemaVersion": "p6-11-jev-causal-prereg-v1",
+    "adr": "ADR 0013",
+    "rulesVersion": "rules-v18",
+    "population": 40,
+    "ticks": 730,
+    "decisionInterval": 30,
+    "window": {
+      "label": "w1",
+      "start": 365,
+      "end": 729,
+      "tickCount": 365
+    },
+    "seeds": [
+      "p6-jev-seed-001",
+      "p6-jev-seed-002",
+      "p6-jev-seed-003",
+      "p6-jev-seed-004",
+      "p6-jev-seed-005",
+      "p6-jev-seed-006",
+      "p6-jev-seed-007",
+      "p6-jev-seed-008",
+      "p6-jev-seed-009",
+      "p6-jev-seed-010",
+      "p6-jev-seed-011",
+      "p6-jev-seed-012",
+      "p6-jev-seed-013",
+      "p6-jev-seed-014",
+      "p6-jev-seed-015",
+      "p6-jev-seed-016",
+      "p6-jev-seed-017",
+      "p6-jev-seed-018",
+      "p6-jev-seed-019",
+      "p6-jev-seed-020",
+      "p6-jev-seed-021",
+      "p6-jev-seed-022",
+      "p6-jev-seed-023",
+      "p6-jev-seed-024",
+      "p6-jev-seed-025",
+      "p6-jev-seed-026",
+      "p6-jev-seed-027",
+      "p6-jev-seed-028",
+      "p6-jev-seed-029",
+      "p6-jev-seed-030"
+    ],
+    "groups": [
+      {
+        "policyVersion": "mock-weighted-v1",
+        "promptStyle": null,
+        "runs": 30
+      },
+      {
+        "policyVersion": "jev_live",
+        "promptStyle": "neutral",
+        "runs": 30
+      },
+      {
+        "policyVersion": "jev_live",
+        "promptStyle": "survival_hint",
+        "runs": 30
+      }
+    ],
+    "requestedModel": "jev-1.13.0",
+    "promptVersion": "prompt-v3",
+    "endpoint": "https://jev.logicc.top/v1/systemone",
+    "primaryComparison": "live(survival_hint) vs live(neutral)",
+    "primaryMetric": "deltaO",
+    "effectThreshold": 0.05,
+    "secondaryMetrics": [
+      "deltaS",
+      "deltaMup"
+    ],
+    "analysis": {
+      "bootstrapIterations": 10000,
+      "permutationIterations": 100000,
+      "analysisSeed": 20261118,
+      "bhQ": 0.05
+    },
+    "budgets": {
+      "maxCalls": 75000,
+      "maxInputTokens": 120000000,
+      "maxWallMinutes": 600
+    }
+  }
+}

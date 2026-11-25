@@ -95,6 +95,108 @@ describe('validateRunConfig', () => {
     expect(codesOf(config)).toContain(errorCodes.CONFIG_INVALID);
   });
 
+  it('migrates a v7 config with frozen regime defaults (rules-v13, 不读 DEFAULT_RUN_CONFIG)', () => {
+    const v7 = cloneConfig();
+    v7['schemaVersion'] = 'stratify-config-v7';
+    const openness = v7['openness'] as Record<string, unknown>;
+    for (const key of [
+      'regimeMode',
+      'regimeBias',
+      'regimeEnterOpenMobility',
+      'regimeExitOpenMobility',
+      'regimeEnterOpenSegregation',
+      'regimeExitOpenSegregation',
+    ]) {
+      delete openness[key];
+    }
+    const result = validateRunConfig(v7);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.openness.regimeMode).toBe('continuous');
+      expect(result.config.openness.regimeBias).toBe(0);
+      expect(result.config.openness.regimeEnterOpenMobility).toBe(0.25);
+      expect(result.config.openness.regimeExitOpenMobility).toBe(0.15);
+      expect(result.config.openness.regimeEnterOpenSegregation).toBe(0.2);
+      expect(result.config.openness.regimeExitOpenSegregation).toBe(0.3);
+    }
+  });
+
+  it('migrates a v8 config by filling behavior defaults=0 (D2, rules-v15)', () => {
+    const v8 = cloneConfig();
+    v8['schemaVersion'] = 'stratify-config-v8';
+    delete v8['behavior'];
+    const result = validateRunConfig(v8);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.behavior).toEqual({
+        riskTraitSigma: 0,
+        crossClassTraitSigma: 0,
+        riskCompeteSensitivity: 0,
+        crossClassCompeteSensitivity: 0,
+      });
+    }
+  });
+
+  it('migrates a v9 config by filling generationalMode=none/bequestRate=0/classInheritanceRate=0 (rules-v16)', () => {
+    const v9 = cloneConfig();
+    v9['schemaVersion'] = 'stratify-config-v9';
+    const pop = v9['population'] as Record<string, unknown>;
+    delete pop['generationalMode'];
+    delete pop['bequestRate'];
+    delete pop['classInheritanceRate'];
+    const result = validateRunConfig(v9);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.population.generationalMode).toBe('none');
+      expect(result.config.population.bequestRate).toBe(0);
+      expect(result.config.population.classInheritanceRate).toBe(0);
+    }
+  });
+
+  it('migrates a v10 config by filling ascent.classCapacity=[1..1] (rules-v17)', () => {
+    const v10 = cloneConfig();
+    v10['schemaVersion'] = 'stratify-config-v10';
+    const ascent = v10['ascent'] as Record<string, unknown>;
+    delete ascent['classCapacity'];
+    const result = validateRunConfig(v10);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.ascent.classCapacity).toEqual([1, 1, 1, 1, 1]);
+    }
+  });
+
+  it('migrates a v11 config by filling population.talentInheritanceWeight=0 (rules-v18)', () => {
+    const v11 = cloneConfig();
+    v11['schemaVersion'] = 'stratify-config-v11';
+    const pop = v11['population'] as Record<string, unknown>;
+    delete pop['talentInheritanceWeight'];
+    const result = validateRunConfig(v11);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.population.talentInheritanceWeight).toBe(0);
+    }
+  });
+
+  it('migrates a v12 config by filling hardGateStrength=0 / lineageDiscount=0 (rules-v19)', () => {
+    const v12 = cloneConfig();
+    v12['schemaVersion'] = 'stratify-config-v12';
+    const ascent = v12['ascent'] as Record<string, unknown>;
+    const pop = v12['population'] as Record<string, unknown>;
+    delete ascent['hardGateStrength'];
+    delete pop['lineageDiscount'];
+    const result = validateRunConfig(v12);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.issues)).toBe(true);
+    if (result.ok) {
+      expect(result.config.schemaVersion).toBe(CONFIG_SCHEMA_VERSION);
+      expect(result.config.ascent.hardGateStrength).toBe(0);
+      expect(result.config.population.lineageDiscount).toBe(0);
+    }
+  });
+
   it('migrates a v1 config by filling openness.updateMode=dynamic (P1-10)', () => {
     const v1 = JSON.parse(JSON.stringify(DEFAULT_RUN_CONFIG)) as Record<string, unknown>;
     v1['schemaVersion'] = 'stratify-config-v1';

@@ -5,7 +5,9 @@
 export const HASH_DOMAINS = {
   config: 'stratify-config-v1',
   params: 'stratify-params-v1',
-  initialPopulation: 'stratify-initial-population-v1',
+  // v2：rules-v15 起载荷新增 riskTolerance/crossClassOpenness（changes/0067）。
+  // 覆盖字段变化必须升版本，否则旧 run 记录的 hash 会与新实现静默不可比。
+  initialPopulation: 'stratify-initial-population-v2',
   decisionState: 'stratify-decision-state-v1',
   actionSet: 'stratify-action-set-v1',
   tickRow: 'stratify-tick-row-v1',
@@ -15,6 +17,7 @@ export const HASH_DOMAINS = {
   artifactManifest: 'stratify-artifact-manifest-v1',
   preregistration: 'stratify-preregistration-v1',
   labelThresholds: 'stratify-label-thresholds-v1',
+  batchManifest: 'stratify-batch-manifest-v1',
 } as const;
 
 export type HashDomainName = keyof typeof HASH_DOMAINS;

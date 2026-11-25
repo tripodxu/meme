@@ -4,8 +4,11 @@ import { CONFIG_SCHEMA_VERSION } from '../control/versions.js';
 /** 初始年龄模式。`uniform` 产生年龄结构；`newborn` 仅用于演示。 */
 export type InitialAgeMode = 'uniform' | 'newborn';
 
+/** rules-v16 代际更替模式。`none` 关闭出生与继承，与 v15 逐位一致；`replace` 按 1:1 替补死亡个体。 */
+export type GenerationalMode = 'none' | 'replace';
+
 /** 决策策略标识。真实 live 策略在 P2 接入，P0 只冻结标识。 */
-export type PolicyId = 'mock-weighted-v1' | 'random-uniform-v1' | 'jev_live';
+export type PolicyId = 'mock-weighted-v1' | 'mock-weighted-v2' | 'random-uniform-v1' | 'jev_live';
 
 /** 截断对数正态先验；`median` 为 ln 均值对应的中位数。 */
 export interface TruncatedLognormalSpec {
@@ -29,6 +32,16 @@ export interface PopulationConfig {
   readonly classShares: readonly number[];
   readonly initialValue: number;
   readonly initialAgeMode: InitialAgeMode;
+  /** rules-v16：代际更替模式，默认 'none'（与 v15 逐位一致）。 */
+  readonly generationalMode: GenerationalMode;
+  /** rules-v16：遗产折算率 ∈ [0,1]，默认 0。 */
+  readonly bequestRate: number;
+  /** rules-v16：出身阶级继承概率 ∈ [0,1]，默认 0。 */
+  readonly classInheritanceRate: number;
+  /** rules-v18（R2-B）：代际天赋传递权重 γ ∈ [0,2]，默认 0（不生效）。 */
+  readonly talentInheritanceWeight: number;
+  /** rules-v19（R2-C）：代际出身折损 d ∈ [0,0.8]，默认 0（不生效）。 */
+  readonly lineageDiscount: number;
 }
 
 export interface OpportunityConfig {
@@ -107,6 +120,13 @@ export interface AscentConfig {
    * H 越大，阶级占比回落后壁垒衰减越慢。
    */
   readonly occupancyMemoryDays: number;
+  /**
+   * rules-v17（ADR 0011）：各阶级结构性容量上限 ∈ (0, 1]；
+   * 期初存活占比 P[target] >= classCapacity[target] 时禁止上升。默认全 1 与 v16 逐位一致。
+   */
+  readonly classCapacity: readonly number[];
+  /** rules-v19（R2-C）：岗位容量硬门槛强度 g ∈ [0,4]，默认 0（与 v18 逐位一致）。 */
+  readonly hardGateStrength: number;
 }
 
 export interface CompetitionConfig {
@@ -152,6 +172,12 @@ export interface DynamicsConfig {
 /** O 更新模式（P1-10）：`dynamic` 为默认反馈；`fixed` 为 P6-04 消融开关。 */
 export type OpennessUpdateMode = 'dynamic' | 'fixed';
 
+/** rules-v13：显式制度状态。 */
+export type InstitutionalRegime = 'closed' | 'open';
+
+/** rules-v13：制度状态机模式；`continuous` 与 rules-v12 逐位一致。 */
+export type InstitutionalRegimeMode = 'continuous' | 'hysteresis';
+
 export interface OpennessConfig {
   readonly initial: number;
   readonly updateMode: OpennessUpdateMode;
@@ -163,6 +189,20 @@ export interface OpennessConfig {
   readonly segregationWeight: number;
   readonly segregationReference: number;
   readonly ascentCostWeight: number;
+  /** rules-v12：O 目标的自反馈/迟滞权重 θH；0 与 rules-v11 逐位一致。 */
+  readonly selfReinforcement: number;
+  /** rules-v13：显式制度状态机；默认 `continuous` 与 rules-v12 逐位一致。 */
+  readonly regimeMode: InstitutionalRegimeMode;
+  /** rules-v13：制度对 O_target 的偏置 θR（open +θR，closed −θR）。 */
+  readonly regimeBias: number;
+  /** 进入 open 所需的最低 Mup。 */
+  readonly regimeEnterOpenMobility: number;
+  /** 退出 open 的 Mup 下界（迟滞带）。 */
+  readonly regimeExitOpenMobility: number;
+  /** 进入 open 所需的最高 S。 */
+  readonly regimeEnterOpenSegregation: number;
+  /** 退出 open 的 S 上界（迟滞带）。 */
+  readonly regimeExitOpenSegregation: number;
   readonly multiplierMin: number;
   readonly multiplierMax: number;
 }
@@ -190,6 +230,25 @@ export interface MetricsConfig {
  * 冻结后的运行配置。`seed` 不是 RunConfig 字段，也不进入 `configHash`；
  * 它与 config 一起作为 `createSimulation(config, seed)` 的独立入参。
  */
+/**
+ * rules-v15 / D2：个体行为异质性（ADR 0007）。
+ *
+ * 每个个体在初始化时由 `(config, seed)` 派生两个不可变行为特质：
+ * `riskTolerance` 与 `crossClassOpenness`，均以 0.5 为均值、按 sigma 扩张到 [0,1]。
+ * 特质只进入 `mock-weighted-v2` 的竞争权重；sigma=0 时特质恒为 0.5，
+ * 权重与 `mock-weighted-v1` 逐位一致。结算规则不读取这些特质。
+ */
+export interface BehaviorConfig {
+  /** 风险特质离散度；0 = 所有个体 riskTolerance=0.5（无行为异质性）。 */
+  readonly riskTraitSigma: number;
+  /** 跨层意愿特质离散度；0 = 所有个体 crossClassOpenness=0.5。 */
+  readonly crossClassTraitSigma: number;
+  /** 风险特质对竞争权重的敏感度 θrisk；0 = 不读取风险特质。 */
+  readonly riskCompeteSensitivity: number;
+  /** 跨层意愿对跨层竞争权重的敏感度 θcross；0 = 不读取跨层特质。 */
+  readonly crossClassCompeteSensitivity: number;
+}
+
 export interface RunConfig {
   readonly schemaVersion: typeof CONFIG_SCHEMA_VERSION;
   readonly rulesVersion: RulesVersion;
@@ -197,6 +256,8 @@ export interface RunConfig {
   readonly opportunity: OpportunityConfig;
   readonly lifespan: LifespanConfig;
   readonly attributes: AttributesConfig;
+  /** rules-v15 / D2：个体行为异质性配置；默认全 0，与 rules-v13 逐位一致。 */
+  readonly behavior: BehaviorConfig;
   readonly effort: EffortConfig;
   readonly need: NeedConfig;
   readonly descent: DescentConfig;

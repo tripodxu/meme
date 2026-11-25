@@ -30,7 +30,7 @@
       "hash": "sha256:3da035e443b4e5bfee4b08b4bc63134c7ccdb0ff4fc11f205aca898d8272bd30"
     },
     {
-      "domain": "stratify-initial-population-v1",
+      "domain": "stratify-initial-population-v2",
       "value": {
         "seed": "demo",
         "agents": [
@@ -50,7 +50,9 @@
             "lastAscentTick": null,
             "lastDescentTick": null,
             "deathTick": null,
-            "deathReason": null
+            "deathReason": null,
+            "riskTolerance": 0.5,
+            "crossClassOpenness": 0.5
           },
           {
             "id": "a-0002",
@@ -68,12 +70,14 @@
             "lastAscentTick": null,
             "lastDescentTick": null,
             "deathTick": null,
-            "deathReason": null
+            "deathReason": null,
+            "riskTolerance": 0.5,
+            "crossClassOpenness": 0.5
           }
         ],
         "ties": [["a-0001", "a-0002"]]
       },
-      "hash": "sha256:8c97ac3e0017b93807ec990032e278cca47a5280b50aff0b65f2657597139bd7"
+      "hash": "sha256:7a822c3657014937f76d3fdba8c5992d401b98b0d3087c2bcb0e5a9977d1acdc"
     },
     {
       "domain": "stratify-decision-state-v1",
@@ -390,6 +394,25 @@
         }
       },
       "hash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168"
+    },
+    {
+      "domain": "stratify-batch-manifest-v1",
+      "value": {
+        "schemaVersion": "batch-v1",
+        "rulesVersion": "rules-v11",
+        "engineVersion": "engine-v0.9.0",
+        "populationSize": 40,
+        "totalTicks": 40,
+        "policy": "mock-weighted-v1",
+        "seeds": ["s1", "s2"],
+        "cells": [
+          {
+            "cellKey": "baseline",
+            "overrides": {}
+          }
+        ]
+      },
+      "hash": "sha256:b752cabd5570640af75f9ec7db31f2c0824ee4cec75b31be736b192199f218e6"
     }
   ]
 }

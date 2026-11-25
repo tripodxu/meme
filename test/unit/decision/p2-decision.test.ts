@@ -918,12 +918,17 @@ describe('上游端点可配置（P2-07）', () => {
     expect(resolveEndpoint(gateway)).toBe(gateway);
   });
 
-  it.each([
-    ['http://jev.example.test/v1/systemone', '远端明文'],
-    ['http://127.0.0.1:8080/v1/systemone', '本地明文'],
-  ])('拒绝明文端点，避免 Bearer Key 走明文：%s', (endpoint) => {
-    expect(() => resolveEndpoint(endpoint)).toThrowError(StratifyError);
-    expect(() => resolveEndpoint(endpoint)).toThrowError(/https/);
+  it.each([['http://jev.example.test/v1/systemone', '远端明文']])(
+    '拒绝明文端点，避免 Bearer Key 走明文：%s',
+    (endpoint) => {
+      expect(() => resolveEndpoint(endpoint)).toThrowError(StratifyError);
+      expect(() => resolveEndpoint(endpoint)).toThrowError(/https/);
+    },
+  );
+
+  it('允许 loopback http（本地同源代理，密钥不出本机）', () => {
+    expect(resolveEndpoint('http://127.0.0.1:8787/api/jev')).toBe('http://127.0.0.1:8787/api/jev');
+    expect(resolveEndpoint('http://localhost:8787/api/jev')).toBe('http://localhost:8787/api/jev');
   });
 
   it('拒绝内嵌凭据的端点（Key 只经 Authorization 头）', () => {

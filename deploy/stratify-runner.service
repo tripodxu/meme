@@ -1,0 +1,52 @@
+# Stratify VPS Runner systemd unit（P5-06，01 §8.1）。
+#
+# 唯一事实来源是 docs/09-deployment-operations.md §6「VPS Runner 标准部署」；
+# 本文件是该节的机器可读落地，两者冲突时以 docs/09 为准并同步修改本文件。
+# 安装步骤见 deploy/README.md；不得另维护第二套 Docker/ supervisord 配置。
+#
+# 语义要点（docs/09 §6）：
+# - EnvironmentFile=/etc/stratify/runner.env（权限 600，仅 token/URL/预算）；
+# - WorkingDirectory=/opt/stratify/current（只读发布代码）；
+# - Restart=on-failure 且限制重启频率；
+# - 「没有 manifest 不自动启动」：ConditionPathExists 挡住无 manifest 的自动启动；
+# - 每批 manifest 独立；服务重启经 --resume 读取 ledger/检查点续跑（P5-01/P5-03）；
+# - 不以 root 运行；目录最小权限。
+
+[Unit]
+Description=Stratify batch runner (manifest: /var/lib/stratify/manifests/current.json)
+Documentation=https://github.com/stratify/stratify#docs/09-deployment-operations.md
+ConditionPathExists=/var/lib/stratify/manifests/current.json
+StartLimitIntervalSec=300
+StartLimitBurst=5
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# oneshot + RemainAfterExit=no：每批 manifest 是一个有限批跑；结束即退出，
+# 常驻调度属 P5-02（多 worker 共享队列）。
+User=stratify-runner
+Group=stratify-runner
+EnvironmentFile=/etc/stratify/runner.env
+WorkingDirectory=/opt/stratify/current
+# 磁盘到阈值时停止新批次（docs/09 §6）：启动前守卫，可用空间不足即拒绝启动。
+# 经 /bin/bash 调用，避免发布目录因权限位丢失（如 zip/文件系统）导致无法执行。
+ExecStartPre=/bin/bash /opt/stratify/current/deploy/check-disk-space.sh /var/lib/stratify 2048
+ExecStart=/usr/bin/env node bin/stratify-batch.mjs /var/lib/stratify/manifests/current.json --out /var/lib/stratify/exports/current --resume --checkpoint-ticks 500
+# 退出码 0 = 批跑完成（含历史失败已被重试成功）；1 = 仍有任务未完成；2 = 用法/配置错误。
+# 1 与 2 都触发 Restart=on-failure；重启后 --resume 从 ledger/检查点续跑。
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=0
+TimeoutStopSec=120
+
+# 目录最小权限与进程加固（docs/09 §6）。
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/stratify
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

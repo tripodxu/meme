@@ -1,0 +1,92 @@
+{
+  "experimentId": "p6-08-f32cf4b4",
+  "preregistrationHash": "sha256:f32cf4b41b8ebaa6ab05549c9dd8c21d441de149128210569f43e72de215f225",
+  "wallSeconds": 471.99,
+  "runs": {
+    "base": 180,
+    "followup": 60,
+    "excluded": 0,
+    "extinctCount": 0
+  },
+  "k3": {
+    "clusterSizes": [
+      60,
+      115,
+      5
+    ],
+    "clusterComposition": [
+      {
+        "A1_pyramid_beq0": 30,
+        "A2_pyramid_beq50": 30
+      },
+      {
+        "B1_top_open_fresh": 28,
+        "B2_top_open_dynasty": 29,
+        "C1_olive_w30_fresh": 29,
+        "C2_olive_w60_dynasty": 29
+      },
+      {
+        "B1_top_open_fresh": 2,
+        "B2_top_open_dynasty": 1,
+        "C1_olive_w30_fresh": 1,
+        "C2_olive_w60_dynasty": 1
+      }
+    ],
+    "centroidsRaw": [
+      [
+        0.9697,
+        0.0264,
+        0.0038,
+        0,
+        0,
+        0.4125,
+        0.3084,
+        0.6522,
+        0.6516,
+        0.1663,
+        0.7314
+      ],
+      [
+        0.5075,
+        0.3156,
+        0.1665,
+        0.0104,
+        0,
+        0.4456,
+        0.3225,
+        0.9223,
+        0.9184,
+        -0.0296,
+        0.9205
+      ],
+      [
+        0.4958,
+        0.3048,
+        0.1717,
+        0.0229,
+        0.0048,
+        0.5012,
+        0.3874,
+        0.9416,
+        0.9418,
+        -0.0116,
+        0.9025
+      ]
+    ],
+    "ariMedian": 0.5646,
+    "ariMin": 0.4564,
+    "ariMax": 0.9689,
+    "silhouette": 0.4757,
+    "temporalConsistency": 0.9167,
+    "antiPreset": true
+  },
+  "k2Diagnostic": {
+    "clusterSizes": [
+      60,
+      120
+    ],
+    "silhouette": 0.4623
+  },
+  "verdict": "not-accepted-return-to-rule-review",
+  "passes": false
+}

@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "p6-05b-scan-prereg-v1",
+  "experimentId": "p6-05b-4ba8dc0a",
+  "createdAt": "2026-11-05T13:31:21.564Z",
+  "hashDomain": "stratify-preregistration-v1",
+  "hashPreimage": "JCS(design)",
+  "designHash": "sha256:4ba8dc0a1c9ad7359ee8b43073eabc93514872eace7a5244000cb55a607c7e3a",
+  "design": {
+    "schemaVersion": "p6-05b-scan-prereg-v1",
+    "hypothesis": "P6-05b：P6-05 的三簇失败被诊断为非 A 体制内沿 S/O 的相位漂移（changes/0057、docs/reviews/2026-11-05-p6-05-rule-review.md）。本轮检验两个机制假设：H1 开放度–网络迟滞（提高 openness.segregationWeight θS，使 O 出现两个稳定区间）与 H2 占用记忆锁定（ascent.occupancyMemoryDays H>0 提供迟滞）。固定 displacementShare=0.5、scarcityWeight=15，θS∈{4,8,12} × H∈{0,180} 共 6 cell，30 个全新 seed × 10950 tick（40 人），终端 11 维全特征、k=3、同一稳定性/时序判据。若 6 个 cell 均无稳定第三簇，则停止调参、转 rules-v12 ADR；即使通过也只是 mock 候选，不是校准或结构涌现声明。",
+    "rulesVersion": "rules-v11",
+    "policy": "mock-weighted-v1",
+    "population": 40,
+    "horizon": 10950,
+    "terminalWindow": {
+      "start": 10585,
+      "end": 10949,
+      "days": 365
+    },
+    "followupHorizon": 14600,
+    "followupWindow": {
+      "start": 14235,
+      "end": 14599,
+      "days": 365
+    },
+    "followupSeedsPerCell": 10,
+    "seeds": [
+      "p6-05b-seed-001",
+      "p6-05b-seed-002",
+      "p6-05b-seed-003",
+      "p6-05b-seed-004",
+      "p6-05b-seed-005",
+      "p6-05b-seed-006",
+      "p6-05b-seed-007",
+      "p6-05b-seed-008",
+      "p6-05b-seed-009",
+      "p6-05b-seed-010",
+      "p6-05b-seed-011",
+      "p6-05b-seed-012",
+      "p6-05b-seed-013",
+      "p6-05b-seed-014",
+      "p6-05b-seed-015",
+      "p6-05b-seed-016",
+      "p6-05b-seed-017",
+      "p6-05b-seed-018",
+      "p6-05b-seed-019",
+      "p6-05b-seed-020",
+      "p6-05b-seed-021",
+      "p6-05b-seed-022",
+      "p6-05b-seed-023",
+      "p6-05b-seed-024",
+      "p6-05b-seed-025",
+      "p6-05b-seed-026",
+      "p6-05b-seed-027",
+      "p6-05b-seed-028",
+      "p6-05b-seed-029",
+      "p6-05b-seed-030"
+    ],
+    "cells": [
+      {
+        "cellKey": "thetaS4-H0",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15,
+            "occupancyMemoryDays": 0
+          },
+          "openness": {
+            "segregationWeight": 4
+          }
+        }
+      },
+      {
+        "cellKey": "thetaS8-H0",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15,
+            "occupancyMemoryDays": 0
+          },
+          "openness": {
+            "segregationWeight": 8
+          }
+        }
+      },
+      {
+        "cellKey": "thetaS12-H0",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15,
+            "occupancyMemoryDays": 0
+          },
+          "openness": {
+            "segregationWeight": 12
+          }
+        }
+      },
+      {
+        "cellKey": "thetaS4-H180",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15,
+            "occupancyMemoryDays": 180
+          },
+          "openness": {
+            "segregationWeight": 4
+          }
+        }
+      },
+      {
+        "cellKey": "thetaS8-H180",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15,
+            "occupancyMemoryDays": 180
+          },
+          "openness": {
+            "segregationWeight": 8
+          }
+        }
+      },
+      {
+        "cellKey": "thetaS12-H180",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15,
+            "occupancyMemoryDays": 180
+          },
+          "openness": {
+            "segregationWeight": 12
+          }
+        }
+      }
+    ],
+    "fixed": {
+      "displacementShare": 0.5,
+      "scarcityWeight": 15
+    },
+    "axes": {
+      "segregationWeight": [
+        4,
+        8,
+        12
+      ],
+      "occupancyMemoryDays": [
+        0,
+        180
+      ]
+    },
+    "features": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "G",
+      "top10",
+      "Mup",
+      "Mdown",
+      "S",
+      "O"
+    ],
+    "clustering": {
+      "algorithm": "ward-lw-v1",
+      "distance": "euclidean",
+      "standardization": "z-score(pooled)",
+      "k": 3,
+      "stabilityShuffles": 20,
+      "stabilitySeed": 20261105,
+      "ariMedianMin": 0.7,
+      "silhouetteMin": 0.35,
+      "minClusterRuns": 5
+    },
+    "temporal": {
+      "minSameClusterRate": 0.8
+    },
+    "antiPreset": {
+      "minCellsInAnyCluster": 2
+    },
+    "exclusion": {
+      "excludeExtinct": true,
+      "maxExtinctRate": 0.1
+    },
+    "budgets": {
+      "runs": 240,
+      "wallMinutes": 120
+    },
+    "prediction": "H1：θS 越高，非 A 区域的 S/O 双峰越清晰，第三簇 14600 同簇率 >=0.80；H2：H=180 的同簇率显著高于 H=0。若两者都不成立，停止参数扫描。",
+    "confirmationStatus": "P6-05b scan only; not calibration"
+  }
+}

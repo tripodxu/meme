@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "p6-12-prereg-v1",
+  "experimentId": "p6-12-3f68f043",
+  "preregistrationHash": "sha256:3f68f043d850c6d5e2ca543c45ad57e94c41d84526e79b60108787630b26605b",
+  "prereg": {
+    "experimentType": "p6-12-two-regime-continuum-n1000",
+    "rulesVersion": "rules-v18",
+    "baseConfigHash": "sha256:5e8eab0aa2cab17cf63cb7b044e108c7c2da910b5bd285b8a8ee9ee94c93a740",
+    "population": 1000,
+    "cells": [
+      {
+        "cellKey": "A-share100-w0",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 1,
+            "scarcityWeight": 0
+          }
+        }
+      },
+      {
+        "cellKey": "B-share50-w15",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 15
+          }
+        }
+      },
+      {
+        "cellKey": "C-share50-w60",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 60
+          }
+        }
+      },
+      {
+        "cellKey": "D-share50-w30",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.5,
+            "scarcityWeight": 30
+          }
+        }
+      },
+      {
+        "cellKey": "E-share70-w15",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.7,
+            "scarcityWeight": 15
+          }
+        }
+      },
+      {
+        "cellKey": "F-share30-w60",
+        "overrides": {
+          "ascent": {
+            "displacementShare": 0.3,
+            "scarcityWeight": 60
+          }
+        }
+      }
+    ],
+    "seeds": [
+      "p6-12-seed-001",
+      "p6-12-seed-002",
+      "p6-12-seed-003",
+      "p6-12-seed-004",
+      "p6-12-seed-005",
+      "p6-12-seed-006",
+      "p6-12-seed-007",
+      "p6-12-seed-008",
+      "p6-12-seed-009",
+      "p6-12-seed-010",
+      "p6-12-seed-011",
+      "p6-12-seed-012",
+      "p6-12-seed-013",
+      "p6-12-seed-014",
+      "p6-12-seed-015",
+      "p6-12-seed-016",
+      "p6-12-seed-017",
+      "p6-12-seed-018",
+      "p6-12-seed-019",
+      "p6-12-seed-020",
+      "p6-12-seed-021",
+      "p6-12-seed-022",
+      "p6-12-seed-023",
+      "p6-12-seed-024",
+      "p6-12-seed-025",
+      "p6-12-seed-026",
+      "p6-12-seed-027",
+      "p6-12-seed-028",
+      "p6-12-seed-029",
+      "p6-12-seed-030"
+    ],
+    "followupSeeds": [
+      "p6-12-seed-001",
+      "p6-12-seed-002",
+      "p6-12-seed-003",
+      "p6-12-seed-004",
+      "p6-12-seed-005",
+      "p6-12-seed-006",
+      "p6-12-seed-007",
+      "p6-12-seed-008",
+      "p6-12-seed-009",
+      "p6-12-seed-010"
+    ],
+    "baseTicks": 10950,
+    "followupTicks": 14600,
+    "clustering": {
+      "algorithm": "ward-lw-v1",
+      "standardization": "z-score-pooled",
+      "shuffles": 20
+    }
+  }
+}

@@ -6,8 +6,51 @@ import {
   CONFIG_SCHEMA_VERSION_V3,
   CONFIG_SCHEMA_VERSION_V4,
   CONFIG_SCHEMA_VERSION_V5,
+  CONFIG_SCHEMA_VERSION_V6,
+  CONFIG_SCHEMA_VERSION_V7,
+  CONFIG_SCHEMA_VERSION_V8,
+  CONFIG_SCHEMA_VERSION_V9,
+  CONFIG_SCHEMA_VERSION_V10,
+  CONFIG_SCHEMA_VERSION_V11,
+  CONFIG_SCHEMA_VERSION_V12,
   RULES_VERSION,
 } from '../control/versions.js';
+/**
+ * 历史迁移默认值必须**冻结为字面量**，不得读取 `DEFAULT_RUN_CONFIG`：
+ * 默认值将来一旦调整，旧 schema 的迁移语义必须保持不变，否则同一份旧配置
+ * 会在不同版本下迁移出不同轨迹，而 `configHash` 无法暴露这一点。
+ */
+const MIGRATION_DEFAULTS = Object.freeze({
+  /** v7 → v8（rules-v13 制度状态机）：历史默认与 ADR 0005 冻结值一致。 */
+  v7Regime: Object.freeze({
+    regimeMode: 'continuous',
+    regimeBias: 0,
+    regimeEnterOpenMobility: 0.25,
+    regimeExitOpenMobility: 0.15,
+    regimeEnterOpenSegregation: 0.2,
+    regimeExitOpenSegregation: 0.3,
+  }),
+  /** v8 → v9（rules-v15 行为异质性）：历史默认全 0。 */
+  v8Behavior: Object.freeze({
+    riskTraitSigma: 0,
+    crossClassTraitSigma: 0,
+    riskCompeteSensitivity: 0,
+    crossClassCompeteSensitivity: 0,
+  }),
+  /** v9 → v10（rules-v16 代际更替）：历史默认关闭。 */
+  v9Population: Object.freeze({
+    generationalMode: 'none',
+    bequestRate: 0,
+    classInheritanceRate: 0,
+  }),
+  /** v11 → v12（rules-v18 天赋传递）：历史默认 0。 */
+  v11TalentInheritanceWeight: 0,
+  /** v12 → v13（rules-v19 岗位硬门槛与出身折损）：历史默认 0/0。 */
+  v12R2C: Object.freeze({
+    lineageDiscount: 0,
+    hardGateStrength: 0,
+  }),
+});
 import { errorCodes, type ErrorCode } from '../control/errors.js';
 import { getParamDefinition, readNumericConstant } from '../params.js';
 import type { ArrayDomain, ParamDefinition, ParamDomain } from '../params.js';
@@ -255,6 +298,8 @@ function checkPairOrder(
 
 function requireDefinition(name: string): ParamDefinition {
   const definition = getParamDefinition(name);
+  // 注册表缺失属于构建期错误（改 params.ts 才会发生），运行时输入无法触发。
+  /* v8 ignore next 3 */
   if (definition === undefined) {
     throw new Error(`PARAM_DEFINITIONS 缺少登记项：${name}`);
   }
@@ -263,6 +308,8 @@ function requireDefinition(name: string): ParamDefinition {
 
 function requireNumberDomain(name: string): NumericDomain {
   const domain = requireDefinition(name).domain;
+  // 同上：域种类由注册表静态决定。
+  /* v8 ignore next 3 */
   if (domain.kind !== 'number') {
     throw new Error(`参数 ${name} 不是数值域`);
   }
@@ -286,6 +333,8 @@ function checkRegisteredEnum(
   name: string,
 ): string | undefined {
   const domain = requireDefinition(name).domain;
+  // 同上：域种类由注册表静态决定。
+  /* v8 ignore next 3 */
   if (domain.kind !== 'enum') {
     throw new Error(`参数 ${name} 不是枚举域`);
   }
@@ -312,6 +361,8 @@ function checkRegisteredNumberArray(
   classCount?: number,
 ): readonly number[] | undefined {
   const domain = requireDefinition(name).domain;
+  // 同上：域种类由注册表静态决定。
+  /* v8 ignore next 3 */
   if (domain.kind !== 'array') {
     throw new Error(`参数 ${name} 不是数组域`);
   }
@@ -407,7 +458,112 @@ function migrateConfigInput(input: unknown): unknown {
     if (ascent['occupancyMemoryDays'] === undefined) {
       ascent['occupancyMemoryDays'] = 0;
     }
-    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, ascent };
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V6, ascent };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V6) {
+    const rawOpenness = record['openness'];
+    const openness =
+      typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
+        ? { ...(rawOpenness as Record<string, unknown>) }
+        : {};
+    if (openness['selfReinforcement'] === undefined) {
+      openness['selfReinforcement'] = 0;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V7, openness };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V7) {
+    const rawOpenness = record['openness'];
+    const openness =
+      typeof rawOpenness === 'object' && rawOpenness !== null && !Array.isArray(rawOpenness)
+        ? { ...(rawOpenness as Record<string, unknown>) }
+        : {};
+    const regimeDefaults: Record<string, unknown> = { ...MIGRATION_DEFAULTS.v7Regime };
+    for (const [key, value] of Object.entries(regimeDefaults)) {
+      if (openness[key] === undefined) {
+        openness[key] = value;
+      }
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V8, openness };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V8) {
+    const rawBehavior = record['behavior'];
+    const behavior =
+      typeof rawBehavior === 'object' && rawBehavior !== null && !Array.isArray(rawBehavior)
+        ? { ...(rawBehavior as Record<string, unknown>) }
+        : {};
+    const defaults = MIGRATION_DEFAULTS.v8Behavior;
+    for (const [key, value] of Object.entries(defaults)) {
+      if (behavior[key] === undefined) {
+        behavior[key] = value;
+      }
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V9, behavior };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V9) {
+    const rawPopulation = record['population'];
+    const population =
+      typeof rawPopulation === 'object' && rawPopulation !== null && !Array.isArray(rawPopulation)
+        ? { ...(rawPopulation as Record<string, unknown>) }
+        : {};
+    const defaults = MIGRATION_DEFAULTS.v9Population;
+    if (population['generationalMode'] === undefined) {
+      population['generationalMode'] = defaults.generationalMode;
+    }
+    if (population['bequestRate'] === undefined) {
+      population['bequestRate'] = defaults.bequestRate;
+    }
+    if (population['classInheritanceRate'] === undefined) {
+      population['classInheritanceRate'] = defaults.classInheritanceRate;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V10, population };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V10) {
+    const rawAscent = record['ascent'];
+    const ascent =
+      typeof rawAscent === 'object' && rawAscent !== null && !Array.isArray(rawAscent)
+        ? { ...(rawAscent as Record<string, unknown>) }
+        : {};
+    const rawPop = record['population'];
+    const popCount =
+      typeof rawPop === 'object' && rawPop !== null && !Array.isArray(rawPop)
+        ? (rawPop as Record<string, unknown>)['classCount']
+        : undefined;
+    const len =
+      typeof popCount === 'number' && Number.isInteger(popCount) && popCount >= 2 ? popCount : 5;
+    if (ascent['classCapacity'] === undefined) {
+      ascent['classCapacity'] = Array.from({ length: len }, () => 1);
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V11, ascent };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V11) {
+    const rawPopulation = record['population'];
+    const population =
+      typeof rawPopulation === 'object' && rawPopulation !== null && !Array.isArray(rawPopulation)
+        ? { ...(rawPopulation as Record<string, unknown>) }
+        : {};
+    if (population['talentInheritanceWeight'] === undefined) {
+      population['talentInheritanceWeight'] = MIGRATION_DEFAULTS.v11TalentInheritanceWeight;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION_V12, population };
+  }
+  if (record['schemaVersion'] === CONFIG_SCHEMA_VERSION_V12) {
+    const rawPopulation = record['population'];
+    const population =
+      typeof rawPopulation === 'object' && rawPopulation !== null && !Array.isArray(rawPopulation)
+        ? { ...(rawPopulation as Record<string, unknown>) }
+        : {};
+    if (population['lineageDiscount'] === undefined) {
+      population['lineageDiscount'] = MIGRATION_DEFAULTS.v12R2C.lineageDiscount;
+    }
+    const rawAscent = record['ascent'];
+    const ascent =
+      typeof rawAscent === 'object' && rawAscent !== null && !Array.isArray(rawAscent)
+        ? { ...(rawAscent as Record<string, unknown>) }
+        : {};
+    if (ascent['hardGateStrength'] === undefined) {
+      ascent['hardGateStrength'] = MIGRATION_DEFAULTS.v12R2C.hardGateStrength;
+    }
+    record = { ...record, schemaVersion: CONFIG_SCHEMA_VERSION, population, ascent };
   }
   return record;
 }
@@ -424,6 +580,7 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'opportunity',
       'lifespan',
       'attributes',
+      'behavior',
       'effort',
       'need',
       'descent',
@@ -465,6 +622,11 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'classShares',
       'initialValue',
       'initialAgeMode',
+      'generationalMode',
+      'bequestRate',
+      'classInheritanceRate',
+      'talentInheritanceWeight',
+      'lineageDiscount',
     ])
   ) {
     checkRegisteredNumber(
@@ -490,6 +652,36 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       population['initialAgeMode'],
       '$.population.initialAgeMode',
       'population.initialAgeMode',
+    );
+    checkRegisteredEnum(
+      collector,
+      population['generationalMode'],
+      '$.population.generationalMode',
+      'population.generationalMode',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['bequestRate'],
+      '$.population.bequestRate',
+      'population.bequestRate',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['classInheritanceRate'],
+      '$.population.classInheritanceRate',
+      'population.classInheritanceRate',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['talentInheritanceWeight'],
+      '$.population.talentInheritanceWeight',
+      'population.talentInheritanceWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      population['lineageDiscount'],
+      '$.population.lineageDiscount',
+      'population.lineageDiscount',
     );
     if (classCount !== undefined) {
       checkRegisteredNumberArray(
@@ -583,6 +775,41 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
     }
   }
 
+  if (
+    checkObject(collector, root['behavior'], '$.behavior', [
+      'riskTraitSigma',
+      'crossClassTraitSigma',
+      'riskCompeteSensitivity',
+      'crossClassCompeteSensitivity',
+    ])
+  ) {
+    const behavior = root['behavior'];
+    checkRegisteredNumber(
+      collector,
+      behavior['riskTraitSigma'],
+      '$.behavior.riskTraitSigma',
+      'behavior.riskTraitSigma',
+    );
+    checkRegisteredNumber(
+      collector,
+      behavior['crossClassTraitSigma'],
+      '$.behavior.crossClassTraitSigma',
+      'behavior.crossClassTraitSigma',
+    );
+    checkRegisteredNumber(
+      collector,
+      behavior['riskCompeteSensitivity'],
+      '$.behavior.riskCompeteSensitivity',
+      'behavior.riskCompeteSensitivity',
+    );
+    checkRegisteredNumber(
+      collector,
+      behavior['crossClassCompeteSensitivity'],
+      '$.behavior.crossClassCompeteSensitivity',
+      'behavior.crossClassCompeteSensitivity',
+    );
+  }
+
   if (checkObject(collector, root['effort'], '$.effort', ['shape'])) {
     checkRegisteredNumber(collector, root['effort']['shape'], '$.effort.shape', 'effort.shape');
   }
@@ -645,6 +872,8 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'displacementShare',
       'scarcityWeight',
       'occupancyMemoryDays',
+      'classCapacity',
+      'hardGateStrength',
     ])
   ) {
     const ascent = root['ascent'];
@@ -672,7 +901,20 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       '$.ascent.occupancyMemoryDays',
       'ascent.occupancyMemoryDays',
     );
+    checkRegisteredNumber(
+      collector,
+      ascent['hardGateStrength'],
+      '$.ascent.hardGateStrength',
+      'ascent.hardGateStrength',
+    );
     if (classCount !== undefined) {
+      checkRegisteredNumberArray(
+        collector,
+        ascent['classCapacity'],
+        '$.ascent.classCapacity',
+        'ascent.classCapacity',
+        classCount,
+      );
       checkRegisteredNumberArray(
         collector,
         ascent['crossDays'],
@@ -962,6 +1204,13 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       'segregationWeight',
       'segregationReference',
       'ascentCostWeight',
+      'selfReinforcement',
+      'regimeMode',
+      'regimeBias',
+      'regimeEnterOpenMobility',
+      'regimeExitOpenMobility',
+      'regimeEnterOpenSegregation',
+      'regimeExitOpenSegregation',
       'multiplierMin',
       'multiplierMax',
     ])
@@ -1021,6 +1270,62 @@ export function validateRunConfig(rawInput: unknown): ValidationResult {
       openness['ascentCostWeight'],
       '$.openness.ascentCostWeight',
       'openness.ascentCostWeight',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['selfReinforcement'],
+      '$.openness.selfReinforcement',
+      'openness.selfReinforcement',
+    );
+    checkRegisteredEnum(
+      collector,
+      openness['regimeMode'],
+      '$.openness.regimeMode',
+      'openness.regimeMode',
+    );
+    checkRegisteredNumber(
+      collector,
+      openness['regimeBias'],
+      '$.openness.regimeBias',
+      'openness.regimeBias',
+    );
+    const regimeExitOpenMobility = checkRegisteredNumber(
+      collector,
+      openness['regimeExitOpenMobility'],
+      '$.openness.regimeExitOpenMobility',
+      'openness.regimeExitOpenMobility',
+    );
+    const regimeEnterOpenMobility = checkRegisteredNumber(
+      collector,
+      openness['regimeEnterOpenMobility'],
+      '$.openness.regimeEnterOpenMobility',
+      'openness.regimeEnterOpenMobility',
+    );
+    checkPairOrder(
+      collector,
+      regimeExitOpenMobility,
+      regimeEnterOpenMobility,
+      '$.openness.regimeEnterOpenMobility',
+      'regimeExitOpenMobility 必须 <= regimeEnterOpenMobility（迟滞带不得倒置）',
+    );
+    const regimeEnterOpenSegregation = checkRegisteredNumber(
+      collector,
+      openness['regimeEnterOpenSegregation'],
+      '$.openness.regimeEnterOpenSegregation',
+      'openness.regimeEnterOpenSegregation',
+    );
+    const regimeExitOpenSegregation = checkRegisteredNumber(
+      collector,
+      openness['regimeExitOpenSegregation'],
+      '$.openness.regimeExitOpenSegregation',
+      'openness.regimeExitOpenSegregation',
+    );
+    checkPairOrder(
+      collector,
+      regimeEnterOpenSegregation,
+      regimeExitOpenSegregation,
+      '$.openness.regimeExitOpenSegregation',
+      'regimeEnterOpenSegregation 必须 <= regimeExitOpenSegregation（迟滞带不得倒置）',
     );
     const min = checkRegisteredNumber(
       collector,

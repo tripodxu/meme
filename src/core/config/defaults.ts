@@ -15,6 +15,12 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     classShares: [0.45, 0.3, 0.15, 0.08, 0.02],
     initialValue: 0,
     initialAgeMode: 'uniform',
+    generationalMode: 'none',
+    bequestRate: 0,
+    classInheritanceRate: 0,
+    talentInheritanceWeight: 0,
+    // rules-v19：0 = 无代际出身折损（逐位退回 v18）。
+    lineageDiscount: 0,
   },
   opportunity: {
     dailyBase: 2,
@@ -29,6 +35,12 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
   attributes: {
     ge: { sigma: 0.5, median: 1, min: 0.2, max: 3.0 },
     hard: { sigma: 0.5, median: 1, min: 0.2, max: 3.0 },
+  },
+  behavior: {
+    riskTraitSigma: 0,
+    crossClassTraitSigma: 0,
+    riskCompeteSensitivity: 0,
+    crossClassCompeteSensitivity: 0,
   },
   effort: {
     shape: 1.2,
@@ -56,6 +68,10 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     scarcityWeight: 0,
     // rules-v11：0 = 无占用压力记忆（逐位退回 v10）。
     occupancyMemoryDays: 0,
+    // rules-v17：全 1 = 无容量上限（逐位退回 v16）。
+    classCapacity: [1, 1, 1, 1, 1],
+    // rules-v19：0 = 无岗位容量硬门槛（逐位退回 v18）。
+    hardGateStrength: 0,
   },
   competition: {
     powerValueExponent: 0.35,
@@ -104,6 +120,13 @@ export const DEFAULT_RUN_CONFIG: RunConfig = deepFreeze({
     segregationWeight: 4,
     segregationReference: 0.3,
     ascentCostWeight: 2,
+    selfReinforcement: 0,
+    regimeMode: 'continuous',
+    regimeBias: 0,
+    regimeEnterOpenMobility: 0.25,
+    regimeExitOpenMobility: 0.15,
+    regimeEnterOpenSegregation: 0.2,
+    regimeExitOpenSegregation: 0.3,
     multiplierMin: 0.5,
     multiplierMax: 2.5,
   },

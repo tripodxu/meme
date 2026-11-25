@@ -69,6 +69,65 @@
       "affectsBehavior": true
     },
     {
+      "name": "population.generationalMode",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 E（rules-v16，ADR 0009）",
+      "domain": {
+        "kind": "enum",
+        "values": ["none", "replace"]
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.bequestRate",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 E（rules-v16，ADR 0009）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.classInheritanceRate",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 E（rules-v16，ADR 0009）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.talentInheritanceWeight",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 E（rules-v18，R2-B）：ge_child = clamp(ge_raw*(1+γ*z[parentClass]*(1-O)), min, max)",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 2
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "population.lineageDiscount",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 E（rules-v19，ADR 0014）：ge_child = ge_raw * (1 - d * (1 - parentClass/(C-1)))",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 0.8
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "opportunity.dailyBase",
       "unit": "value",
       "formulaRef": "03 §6 阶段 C / rule.md 3",
@@ -262,6 +321,54 @@
       "domain": {
         "kind": "number",
         "exclusiveMin": 0
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "behavior.riskTraitSigma",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 行为异质性 / rule.md（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "behavior.crossClassTraitSigma",
+      "unit": "dimensionless",
+      "formulaRef": "03 §3 行为异质性 / rule.md（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "behavior.riskCompeteSensitivity",
+      "unit": "dimensionless",
+      "formulaRef": "04 §2.1 mock-weighted-v2（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 10
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "behavior.crossClassCompeteSensitivity",
+      "unit": "dimensionless",
+      "formulaRef": "04 §2.1 mock-weighted-v2（rules-v15，ADR 0007）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 10
       },
       "guardOnly": false,
       "affectsBehavior": true
@@ -468,6 +575,34 @@
         "min": 0,
         "max": 365,
         "integer": true
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "ascent.classCapacity",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 B / rule.md 9（rules-v17，ADR 0011）：P[target] >= classCapacity[target] 时禁止上升",
+      "domain": {
+        "kind": "array",
+        "length": "classCount",
+        "element": {
+          "kind": "number",
+          "exclusiveMin": 0,
+          "max": 1
+        }
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "ascent.hardGateStrength",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 B（rules-v19，ADR 0014）：M_gate = 1 + g * o^2/(1-o)，o = min(P[target]/classCapacity[target], 1-1e-6)",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 4
       },
       "guardOnly": false,
       "affectsBehavior": true
@@ -919,6 +1054,89 @@
       "affectsBehavior": true
     },
     {
+      "name": "openness.selfReinforcement",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v12）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 20
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.regimeMode",
+      "unit": "enum",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v13）",
+      "domain": {
+        "kind": "enum",
+        "values": ["continuous", "hysteresis"]
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.regimeBias",
+      "unit": "dimensionless",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v13）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 20
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.regimeEnterOpenMobility",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v13）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.regimeExitOpenMobility",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v13）",
+      "domain": {
+        "kind": "number",
+        "min": 0,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.regimeEnterOpenSegregation",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v13）",
+      "domain": {
+        "kind": "number",
+        "min": -1,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
+      "name": "openness.regimeExitOpenSegregation",
+      "unit": "ratio",
+      "formulaRef": "03 §6 阶段 H / rule.md 42、45（rules-v13）",
+      "domain": {
+        "kind": "number",
+        "min": -1,
+        "max": 1
+      },
+      "guardOnly": false,
+      "affectsBehavior": true
+    },
+    {
       "name": "openness.multiplierMin",
       "unit": "ratio",
       "formulaRef": "03 §3 跨越动态乘子 / rule.md 44",
@@ -971,7 +1189,7 @@
       "formulaRef": "04 §2.1 默认 mock 与 random 策略",
       "domain": {
         "kind": "enum",
-        "values": ["mock-weighted-v1", "random-uniform-v1", "jev_live"]
+        "values": ["mock-weighted-v1", "mock-weighted-v2", "random-uniform-v1", "jev_live"]
       },
       "guardOnly": false,
       "affectsBehavior": true

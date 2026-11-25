@@ -70,7 +70,7 @@ describe('hashValue', () => {
       expect.arrayContaining([
         'stratify-config-v1',
         'stratify-params-v1',
-        'stratify-initial-population-v1',
+        'stratify-initial-population-v2',
         'stratify-decision-state-v1',
         'stratify-action-set-v1',
         'stratify-tick-row-v1',

@@ -1,0 +1,564 @@
+{
+  "schemaVersion": "jev-reliability-report-v1",
+  "isExperimentalEvidence": false,
+  "purpose": "07 §11 test-retest reliability: same state repeated, no simulation rollout",
+  "experimentId": "p6-04b-reliability",
+  "endpoint": "https://jev.logicc.top/v1/systemone",
+  "requestedModel": "jev-1.13.0",
+  "promptStyle": "neutral",
+  "repeats": 20,
+  "state": {
+    "tick": 365,
+    "agentId": "a-0010",
+    "legalActions": [
+      "accumulate",
+      "ascend",
+      "descend",
+      "compete:a-0015",
+      "compete:a-0019",
+      "compete:a-0024",
+      "compete:a-0026",
+      "compete:a-0027",
+      "compete:a-0032"
+    ],
+    "stateHash": "sha256:acf7c83d80fe3e2c4a7e3ea9023c72976a8680d8a7d97789b960842d569808cf",
+    "actionSetHash": "sha256:eda3763901014f4c4c3103741d13d52133de75ebd7ffea79472ead9c43198a44",
+    "population": 40,
+    "seed": "p6-04b-reliability"
+  },
+  "tokenEstimator": "utf8-three-quarter-v1",
+  "budget": {
+    "maxCalls": 60,
+    "maxInputTokens": 2000000,
+    "callsUsed": 20,
+    "tokensSpent": 30520,
+    "tokensReserved": 0,
+    "overageDetected": false,
+    "exhausted": false
+  },
+  "elapsedMs": 23669,
+  "usage": {
+    "inputTokens": 30520,
+    "outputTokens": 2546,
+    "missingRecords": 0
+  },
+  "latencyMs": {
+    "min": 898,
+    "p50": 1025,
+    "max": 2238,
+    "samples": 20
+  },
+  "summary": {
+    "schemaVersion": "jev-reliability-v1",
+    "repeats": 20,
+    "validRepeats": 20,
+    "fallbacks": 0,
+    "fallbackReasons": {},
+    "probabilitySources": {
+      "exact": 20,
+      "derived": 0,
+      "none": 0
+    },
+    "optionDistribution": {
+      "accumulate": 6,
+      "ascend": 14
+    },
+    "top1Agreement": 0.7,
+    "meanTv": 0.056473684210526245,
+    "icc21": 0.9886198825587432,
+    "responseModels": [
+      "jev-1.13-free"
+    ],
+    "thresholds": {
+      "top1Agreement": 0.7,
+      "icc21": 0.5,
+      "meanTv": 0.15,
+      "minRepeats": 20
+    },
+    "verdict": "reliable",
+    "passed": true,
+    "detail": "重测信度通过：top-1、ICC(2,1) 与平均 TV 均达 07 §11 门槛。"
+  },
+  "records": [
+    {
+      "selectedAction": "accumulate",
+      "probabilities": {
+        "accumulate": 0.3999999999999999,
+        "ascend": 0.32999999999999996,
+        "descend": 0,
+        "compete:a-0015": 0.04999999999999999,
+        "compete:a-0019": 0.019999999999999997,
+        "compete:a-0024": 0.039999999999999994,
+        "compete:a-0026": 0.06999999999999999,
+        "compete:a-0027": 0.04999999999999999,
+        "compete:a-0032": 0.039999999999999994
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 128
+      },
+      "latencyMs": 2238,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.33,
+        "ascend": 0.37,
+        "descend": 0,
+        "compete:a-0015": 0.06,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.05,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.04
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 988,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "accumulate",
+      "probabilities": {
+        "accumulate": 0.36,
+        "ascend": 0.34,
+        "descend": 0,
+        "compete:a-0015": 0.05,
+        "compete:a-0019": 0.02,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.1,
+        "compete:a-0027": 0.06,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 128
+      },
+      "latencyMs": 1038,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.33,
+        "ascend": 0.43,
+        "descend": 0,
+        "compete:a-0015": 0.03,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 1093,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.35999999999999993,
+        "ascend": 0.3799999999999999,
+        "descend": 0,
+        "compete:a-0015": 0.039999999999999994,
+        "compete:a-0019": 0.019999999999999997,
+        "compete:a-0024": 0.04999999999999999,
+        "compete:a-0026": 0.06999999999999999,
+        "compete:a-0027": 0.039999999999999994,
+        "compete:a-0032": 0.039999999999999994
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 1607,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "accumulate",
+      "probabilities": {
+        "accumulate": 0.37,
+        "ascend": 0.36,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.02,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.06,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 128
+      },
+      "latencyMs": 1003,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "accumulate",
+      "probabilities": {
+        "accumulate": 0.4,
+        "ascend": 0.33,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.05,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 128
+      },
+      "latencyMs": 1267,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.35,
+        "ascend": 0.39,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.06,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 960,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.35,
+        "ascend": 0.37,
+        "descend": 0,
+        "compete:a-0015": 0.05,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.06,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 2221,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.36,
+        "ascend": 0.38,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.05,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 941,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.33,
+        "ascend": 0.4,
+        "descend": 0,
+        "compete:a-0015": 0.05,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.06,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 1035,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "accumulate",
+      "probabilities": {
+        "accumulate": 0.4,
+        "ascend": 0.32,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.07,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 128
+      },
+      "latencyMs": 898,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.31,
+        "ascend": 0.44,
+        "descend": 0,
+        "compete:a-0015": 0.05,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.03,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.06,
+        "compete:a-0032": 0.02
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 915,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.34,
+        "ascend": 0.41,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.05,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.04,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 1420,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.35,
+        "ascend": 0.4,
+        "descend": 0,
+        "compete:a-0015": 0.05,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.08,
+        "compete:a-0027": 0.04,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 1025,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.35,
+        "ascend": 0.4,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.02
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 940,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.32,
+        "ascend": 0.4,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.02,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.1,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 1010,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.32,
+        "ascend": 0.41,
+        "descend": 0,
+        "compete:a-0015": 0.05,
+        "compete:a-0019": 0.02,
+        "compete:a-0024": 0.03,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 1164,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "accumulate",
+      "probabilities": {
+        "accumulate": 0.4,
+        "ascend": 0.34,
+        "descend": 0,
+        "compete:a-0015": 0.04,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.05,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 128
+      },
+      "latencyMs": 940,
+      "attempts": 1
+    },
+    {
+      "selectedAction": "ascend",
+      "probabilities": {
+        "accumulate": 0.36,
+        "ascend": 0.37,
+        "descend": 0,
+        "compete:a-0015": 0.06,
+        "compete:a-0019": 0.01,
+        "compete:a-0024": 0.04,
+        "compete:a-0026": 0.09,
+        "compete:a-0027": 0.04,
+        "compete:a-0032": 0.03
+      },
+      "probabilitySource": "exact",
+      "source": "jev_live",
+      "fallbackReason": null,
+      "responseModel": "jev-1.13-free",
+      "usage": {
+        "inputTokens": 1526,
+        "outputTokens": 127
+      },
+      "latencyMs": 947,
+      "attempts": 1
+    }
+  ]
+}

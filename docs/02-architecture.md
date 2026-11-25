@@ -128,7 +128,7 @@ hash(domain,value) = "sha256:" + lowercaseHex(SHA-256(UTF-8(domain + "\0" + JCS(
 - 输入只含 JSON 数据；对象键按 JCS 排序，数组顺序具有语义，不得随意排序。非有限数、undefined、bigint、函数在 canonicalization 前拒绝；`-0` 统一为 0，Unicode 不先做不兼容的本地化转换。
 - `configHash`：domain `stratify-config-v1`，覆盖完整冻结 RunConfig，排除 `seed`、Key/token、wall-clock 和上传状态。注意该域前缀是**哈希契约**，与配置字段的 `CONFIG_SCHEMA_VERSION`（如 `stratify-config-v3`）是两条独立的轴：配置加字段只升后者，改前者会作废全部历史向量。
 - `paramsHash`：domain `stratify-params-v1`，覆盖参数注册表解析后的全部业务参数名、值与单位；同样排除 seed、Key/token 和 wall-clock。用于 golden fixture 和“参数变化是否影响行为”的对照。
-- `initialPopulationHash`：domain `stratify-initial-population-v1`，覆盖按 id 排序的初始 agents、初始 ties 和 seed。
+- `initialPopulationHash`：domain `stratify-initial-population-v2`（v2 起覆盖 `riskTolerance`/`crossClassOpenness`；v1 产物按旧 domain 归档、不复算），覆盖按 id 排序的初始 agents、初始 ties 和 seed。
 - `stateHash`（决策）：domain `stratify-decision-state-v1`，覆盖 04 定义的完整序列化 state，不是整个 SimState。
 - `actionSetHash`：domain `stratify-action-set-v1`，覆盖按请求顺序排列的 legalActions 字符串数组。
 - `payloadHash`：domain `stratify-tick-row-v1` 或 `stratify-agent-row-v1`，覆盖除 payloadHash 自身外的完整行。

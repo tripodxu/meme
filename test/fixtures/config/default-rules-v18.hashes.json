@@ -1,0 +1,6 @@
+{
+  "rulesVersion": "rules-v18",
+  "fixture": "test/fixtures/config/default-rules-v18.json",
+  "configHash": "sha256:5e8eab0aa2cab17cf63cb7b044e108c7c2da910b5bd285b8a8ee9ee94c93a740",
+  "paramsHash": "sha256:351600b79855d64c3af04bf19c8c3637e8073c2cd7fc14bf8d621fa391124084"
+}

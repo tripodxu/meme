@@ -123,8 +123,15 @@ export function resolveEndpoint(endpoint: string | undefined): string {
   } catch {
     throw jevConfigError('Jev 端点不是合法 URL');
   }
-  if (parsed.protocol !== 'https:') {
-    throw jevConfigError('Jev 端点必须使用 https（Bearer Key 不得经明文传输）');
+  const loopback =
+    parsed.hostname === 'localhost' ||
+    parsed.hostname === '127.0.0.1' ||
+    parsed.hostname === '[::1]' ||
+    parsed.hostname === '::1';
+  if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && loopback)) {
+    throw jevConfigError(
+      'Jev 端点必须使用 https（仅 loopback 允许 http；Bearer Key 不得经明文传输）',
+    );
   }
   if (parsed.username !== '' || parsed.password !== '') {
     throw jevConfigError('Jev 端点不得内嵌用户信息（Key 只经 Authorization 头传递）');

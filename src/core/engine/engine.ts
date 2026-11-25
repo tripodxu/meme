@@ -2,15 +2,26 @@ import type { RunConfig } from '../config/types.js';
 import { errorCodes, StratifyError } from '../control/errors.js';
 import type { AgentId, Seed } from '../control/ids.js';
 import { compareAgentId, type FlowWindowEntry } from '../model/society.js';
+import { agentIdFromIndex } from '../model/agent.js';
 import type { SimState } from '../model/state.js';
 import { createDraw } from '../rng/rng.js';
+import {
+  sampleTruncatedLognormal,
+  sampleTruncatedNormal,
+  weightedSampleIndex,
+} from '../rng/sampling.js';
 import { RNG_EVENT_TAGS } from '../rng/tags.js';
 import { EventSequence, type TickEvent } from '../events.js';
 import type { ExecutionRecord } from '../../decision/types.js';
 import { parseActionKey } from '../legal-actions.js';
 import { attemptRewire } from '../network/rewire.js';
+import { clamp } from './arith.js';
 import { computeTickStats, type TickStats } from '../macros/tick-metrics.js';
-import { maybeUpdateOpenness, updateClassEnvironment } from '../feedback/slow-variables.js';
+import {
+  maybeUpdateOpenness,
+  nextInstitutionalRegime,
+  updateClassEnvironment,
+} from '../feedback/slow-variables.js';
 import {
   classShareSnapshot,
   computeAscendBarrier,
@@ -66,6 +77,8 @@ interface WorkingAgent {
   value: number;
   readonly ge: number;
   readonly hard: number;
+  readonly riskTolerance: number;
+  readonly crossClassOpenness: number;
   readonly initialLife: number;
   remainingLife: number;
   classAge: number;
@@ -133,6 +146,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   const flowCounts: number[][] = Array.from({ length: classCount }, () =>
     new Array<number>(classCount).fill(0),
   );
+  const classSharesStart = classShareSnapshot(agents, classCount);
 
   if (isDecisionTick) {
     for (const agent of actionOrder(state.seed, tick, agents)) {
@@ -155,6 +169,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
         eByClass,
         openness: opennessStart,
         occupancyPressure: occupancyPressureStart,
+        classSharesStart,
         events,
         executions,
         activeChanged,
@@ -307,6 +322,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
 
   // ---- 阶段 E：寿命与死亡 ----
   let deathCount = 0;
+  const diedThisTick: WorkingAgent[] = [];
   for (const agent of agents) {
     if (!agent.alive) {
       continue;
@@ -318,6 +334,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       agent.deathTick = tick;
       agent.deathReason = 'age';
       deathCount += 1;
+      diedThisTick.push(agent);
       for (const neighborId of agent.ties) {
         const neighbor = agentMap.get(neighborId);
         if (neighbor === undefined) {
@@ -331,6 +348,20 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       agent.ties = [];
       events.emit({ type: 'agent_died', agentId: agent.id, cause: 'age' });
     }
+  }
+
+  // rules-v16（ADR 0009）：代际更替；'none' 模式不消费随机数、与 v15 逐位一致。
+  if (config.population.generationalMode === 'replace' && diedThisTick.length > 0) {
+    spawnSuccessorsForDeaths(
+      config,
+      state.seed,
+      tick,
+      diedThisTick,
+      agents,
+      agentMap,
+      opennessStart,
+      events,
+    );
   }
 
   const aliveCount = agents.reduce((count, agent) => count + (agent.alive ? 1 : 0), 0);
@@ -363,6 +394,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
   // ---- 阶段 H：慢变量更新（全死亡时不再执行，run 即将结束）----
   let nextE = eByClass;
   let nextOpenness = opennessStart;
+  let nextRegime = state.society.institutionalRegime;
   let lastOpennessUpdateTick = state.society.lastOpennessUpdateTick;
   if (aliveCount > 0) {
     const classShares = stats.classCounts.map((count) => count / aliveCount);
@@ -374,6 +406,17 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       stats.gini,
     );
     if (isDecisionTick) {
+      // rules-v13：先按本 tick 的宏观量推进制度状态，再用新制度计算 O 目标偏置。
+      // `updateMode='fixed'` 或 `regimeMode='continuous'` 时制度保持不变。
+      nextRegime =
+        config.openness.updateMode === 'fixed'
+          ? state.society.institutionalRegime
+          : nextInstitutionalRegime(
+              config,
+              state.society.institutionalRegime,
+              stats.mUp,
+              stats.segregation,
+            );
       // 仅决策周期更新 O（03 §6 阶段 H）；Δt=tick-lastOpennessUpdateTick。
       const opennessUpdate = maybeUpdateOpenness(config, {
         tick,
@@ -382,6 +425,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
         mUp: stats.mUp,
         gini: stats.gini,
         segregation: stats.segregation,
+        regime: nextRegime,
       });
       nextOpenness = opennessUpdate.openness;
       lastOpennessUpdateTick = opennessUpdate.lastOpennessUpdateTick;
@@ -411,6 +455,7 @@ export function step(state: SimState, decisions: StepDecisions, context: StepCon
       eByClass: nextE,
       refIncome: nextRefIncome,
       openness: nextOpenness,
+      institutionalRegime: nextRegime,
       initialClassShares: state.society.initialClassShares,
       occupancyPressure: nextOccupancyPressure,
       gini: stats.gini,
@@ -477,6 +522,8 @@ interface ExecuteActionInput {
   readonly openness: number;
   /** v11：本 tick 的占用压力记忆（v10 时为瞬时阶级占比压力，由状态携带）。 */
   readonly occupancyPressure: readonly number[];
+  /** v17：本 tick 期初存活阶级占比快照（与枚举侧共享）。 */
+  readonly classSharesStart: readonly number[];
   readonly events: EventSequence;
   readonly executions: ExecutionRecord[];
   readonly activeChanged: Set<string>;
@@ -501,6 +548,7 @@ function executeAction(input: ExecuteActionInput): void {
     eByClass,
     openness,
     occupancyPressure,
+    classSharesStart,
     events,
     executions,
     activeChanged,
@@ -533,7 +581,14 @@ function executeAction(input: ExecuteActionInput): void {
   }
   if (parsed.type === 'ascend') {
     // 执行前复核：费用 + 持有裕度与当前 Value（前序竞争可能已消耗）。
-    const cost = computeAscendCost(config, agent, eByClass, openness, state.society.refIncome);
+    const cost = computeAscendCost(
+      config,
+      agent,
+      eByClass,
+      openness,
+      state.society.refIncome,
+      classSharesStart,
+    );
     const cushion =
       cost === null
         ? 0
@@ -562,6 +617,17 @@ function executeAction(input: ExecuteActionInput): void {
         reason: 'insufficient_cushion',
       });
       record(null, 'stale_invalid', 'insufficient_cushion');
+      return;
+    }
+    const targetCap = config.ascent.classCapacity[agent.classIndex + 1] ?? 1;
+    if ((classSharesStart[agent.classIndex + 1] ?? 0) >= targetCap) {
+      events.emit({
+        type: 'action_invalid',
+        agentId: agent.id,
+        action: decision.selectedAction,
+        reason: 'class_capacity_full',
+      });
+      record(null, 'stale_invalid', 'class_capacity_full');
       return;
     }
     // rules-v8 位移准入（D-09，diagnosis §8）：仅 'class' 参照系——上升需击败目标阶级
@@ -812,4 +878,141 @@ function executeAction(input: ExecuteActionInput): void {
     gain: outcome.gain,
   });
   record(decision.selectedAction, 'executed', null);
+}
+
+/**
+ * rules-v16（ADR 0009）：在阶段 E 末按 1:1 替补本 tick 死亡个体。
+ * 死亡者 ID 永不复用，新生个体使用单调递增的 `a-xxxx` 并通过 `(seed, tick, childId)`
+ * 独立地址抽样天赋、努力、寿命、行为特质、初始阶级与初始网络关系。
+ */
+function spawnSuccessorsForDeaths(
+  config: RunConfig,
+  seed: Seed,
+  tick: number,
+  diedThisTick: readonly WorkingAgent[],
+  agents: WorkingAgent[],
+  agentMap: Map<string, WorkingAgent>,
+  openness: number,
+  events: EventSequence,
+): void {
+  const degreeTarget = Math.min(config.network.initialDegree, config.network.maxDegree);
+  const maxDegree = config.network.maxDegree;
+  for (const parent of diedThisTick) {
+    const childId = agentIdFromIndex(agents.length);
+    const draw = createDraw(seed, tick, childId);
+    const geRaw = sampleTruncatedLognormal(config.attributes.ge, (counter) =>
+      draw(RNG_EVENT_TAGS.initGe, counter),
+    );
+    // rules-v19（ADR 0014）：代际出身折损，不经过 O。d=0 时直接沿用 geRaw，
+    // 保证与 rules-v18 逐位一致。
+    const lineageDiscount = config.population.lineageDiscount;
+    const geBase =
+      lineageDiscount === 0
+        ? geRaw
+        : clamp(
+            geRaw *
+              (1 -
+                lineageDiscount *
+                  (1 - parent.classIndex / Math.max(1, config.population.classCount - 1))),
+            config.attributes.ge.min,
+            config.attributes.ge.max,
+          );
+    const ge =
+      config.population.talentInheritanceWeight === 0
+        ? geBase
+        : clamp(
+            geBase *
+              (1 +
+                config.population.talentInheritanceWeight *
+                  (parent.classIndex / Math.max(1, config.population.classCount - 1) - 0.5) *
+                  (1 - openness)),
+            config.attributes.ge.min,
+            config.attributes.ge.max,
+          );
+    const hard = sampleTruncatedLognormal(config.attributes.hard, (counter) =>
+      draw(RNG_EVENT_TAGS.initHard, counter),
+    );
+    const initialLife = sampleTruncatedNormal(config.lifespan.initialLife, (counter) =>
+      draw(RNG_EVENT_TAGS.initLife, counter),
+    );
+    const riskTolerance = clamp(
+      0.5 + config.behavior.riskTraitSigma * (2 * draw(RNG_EVENT_TAGS.initRiskTrait, 0) - 1),
+      0,
+      1,
+    );
+    const crossClassOpenness = clamp(
+      0.5 +
+        config.behavior.crossClassTraitSigma *
+          (2 * draw(RNG_EVENT_TAGS.initCrossClassTrait, 0) - 1),
+      0,
+      1,
+    );
+    const uClass = draw(RNG_EVENT_TAGS.birthClass, 0);
+    const classIndex = uClass < config.population.classInheritanceRate ? parent.classIndex : 0;
+    // rules-v16：遗产是**从死者遗产中转移**，不是凭空增发。
+    // 先把等额从 parent.value 扣除（死者已退出存活统计），再把同一笔给继承者，
+    // 因此全体个体（含死者）的 Value 总和在出生步骤前后守恒。
+    const bequest = parent.value * config.population.bequestRate;
+    parent.value -= bequest;
+    const value = bequest;
+    const child: WorkingAgent = {
+      id: childId,
+      alive: true,
+      classIndex,
+      maxClassIndex: classIndex,
+      value,
+      ge,
+      hard,
+      riskTolerance,
+      crossClassOpenness,
+      initialLife,
+      remainingLife: initialLife,
+      classAge: 0,
+      baselineSum: 0,
+      belowNeedStreak: 0,
+      lastAscentTick: null,
+      lastDescentTick: null,
+      ties: [],
+      deathTick: null,
+      deathReason: null,
+    };
+    agents.push(child);
+    agentMap.set(childId, child);
+    const childLogValue = Math.log(1 + child.value);
+    for (let edgeIdx = 0; edgeIdx < degreeTarget; edgeIdx += 1) {
+      const candidates = agents.filter(
+        (candidate) =>
+          candidate.alive &&
+          candidate.id !== child.id &&
+          !child.ties.includes(candidate.id) &&
+          candidate.ties.length < maxDegree,
+      );
+      if (candidates.length === 0) break;
+      const weights = candidates.map((candidate) => {
+        const classDiff = Math.abs(child.classIndex - candidate.classIndex);
+        const logValueDiff = Math.abs(childLogValue - Math.log(1 + candidate.value));
+        return Math.exp(
+          -config.network.classWeight * (1 - openness) * classDiff -
+            config.network.valueWeight * logValueDiff,
+        );
+      });
+      const r = draw(RNG_EVENT_TAGS.networkBirth, edgeIdx);
+      let chosenIdx = weightedSampleIndex(weights, r);
+      if (chosenIdx < 0) {
+        chosenIdx = Math.floor(r * candidates.length);
+      }
+      const partner = candidates[chosenIdx] as WorkingAgent;
+      child.ties.push(partner.id);
+      partner.ties.push(child.id);
+      child.ties.sort(compareAgentId);
+      partner.ties.sort(compareAgentId);
+    }
+    events.emit({
+      type: 'agent_born',
+      agentId: childId,
+      parentId: parent.id,
+      classIndex,
+      value,
+    });
+  }
 }

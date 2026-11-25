@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "scale-runs-manifest-v1",
+  "host": "lhsh (Tencent Shanghai, 43.142.160.84)",
+  "startedAt": "2026-11-20T16:57+08:00",
+  "note": "P6-12 正在运行；P6-13 排队待 P6-12/P6-14 退出后以 4 worker 启动；P6-14 因上游免费额度耗尽暂停，未产出 live 结果，待额度恢复后续跑。密钥仅进程环境，未落盘。",
+  "experiments": {
+    "p6-12": {
+      "path": "~/stratify-scale",
+      "script": "scripts/p6-12-scale-n1000.mjs",
+      "scriptSha256": "sha256:0e2c90640f403682a991982a09e9a20e891320b6f6c70e43d18802599c88e944",
+      "prereg": "out/p6-12-prereg.json",
+      "preregSha256": "sha256:e235795c1ec94bd202d7f816846c43863ab747553bbfe36f2707a7ffee60718f",
+      "experimentId": "p6-12-3f68f043",
+      "population": 1000,
+      "runs": 240,
+      "repoScriptSha256": "sha256:5305178ac8894634acaf4966ec85a5eea7cb74be7aabdf939a94dd439e5d2c4f"
+    },
+    "p6-13": {
+      "script": "scripts/p6-13-scale-r4-n1000.mjs",
+      "scriptSha256": "sha256:ad106ef211b0d7ec41b33724adb1696f663f99685ca965dec0c3c218ab5fb009",
+      "prereg": "out/p6-13-prereg.json",
+      "preregSha256": "sha256:c7a4b9fe794fdcc3f690ff6e591d18b634c48a945e58e6dac98d4ef1be2c3ff4",
+      "experimentId": "p6-13-d9547738",
+      "population": 1000,
+      "repoScriptSha256": "sha256:1f9a9e25b5584fcf4b0ec002977fcbd873b6eaee41c3934dc2964065faf82af3",
+      "tasks": 420,
+      "taskBreakdown": "60 个微扰对（每对含 tick 365 检查点与 baseline/treatment 两段续跑）+ 360 个消融 run"
+    },
+    "p6-14": {
+      "script": "scripts/p6-11-jev-causal.mjs",
+      "scriptSha256": "sha256:4bfb5b1bd4b77da89594335651c3db2b280966e1a693b50fdd8336613a1e3a94",
+      "prereg": "out/p6-14-prereg.json",
+      "preregSha256": "sha256:2fd351cafd52fadcc756e6c2543b723a63f283eab1bf10a6b8cbce0226f4e774",
+      "experimentId": "p6-14-c6e7eff3",
+      "status": "blocked: 上游 429 FreeUsageLimitError（免费额度用尽，26 个出口冷却），0/60 live 完成；30/30 mock 已完成；台账/检查点保留，可续跑",
+      "repoScriptSha256": "sha256:4bfb5b1bd4b77da89594335651c3db2b280966e1a693b50fdd8336613a1e3a94",
+      "executedScriptSha256": "sha256:4ef0bdc0b275ddf3050e56a2cef9faf2aec5ccde08db2810ecf0e8b9cde24c86",
+      "note": "运行副本与当前脚本仅 verify 输出路径不同（已改为按实验前缀命名），run 模式行为一致。",
+      "blockedAt": "2026-11-20T18:05+08:00",
+      "blockedEvidence": "probe-live.mjs 以真实决策请求体连续探测均返回 429；冷却约 100s 后仍为 429"
+    }
+  }
+}

@@ -1,0 +1,432 @@
+{
+  "experimentId": "p6-15-983b3698",
+  "preregistrationHash": "sha256:983b36987495e4bf40f0a064907daf07362c918287a3879dba910214305412b7",
+  "manifest": {
+    "schemaVersion": "p6-15-g6-closure-prereg-v1",
+    "experimentType": "g6_two_regime_closure_true_mock",
+    "hypothesis": "在真实 mock-weighted-v1 策略与 rules-v19 默认配置（generationalMode=none、N=40 按 07 §8.2 规范口径）下：(1) A–F 六单元按 07 §8.2（ADR 0010 条件 4，新旧口径同报）在 k=2 上稳定分离为两体制，且体制 I（A: share=1, w=0）较体制 II（B–F: share<1）具有更高 P0、更高 Mup、更高 O 与更低 S；(2) 两体制代表作（A 与 B）在 tick 365 注入 wealth_absolute Δ=1e-4 后在 w3=[2555,3284] 吸收微扰；(3) 五个必跑消融（β=0、O 固定、η=0、κ=0、ψ=1）严格按 07 §11 结构退化门槛（median TV(P) ≥ 0.10、10,000 次配对 bootstrap 95% CI > 0、对照 baseline D95）判读机制解释力，ψ=1 另检验 P4 下降方向。",
+    "rulesVersion": "rules-v19",
+    "engineVersion": "engine-v0.16.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
+    "population": 40,
+    "baseConfigHash": "sha256:35034060bfb189d0e53e5c283e7487816c51b72039bce9d2fcff257b2c6f4a47",
+    "baseParamsHash": "sha256:8821d6a53f7e3276c863a400e54748036b4065353050a6df9b709e5c094f4243",
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "clustering": {
+      "cells": [
+        {
+          "cellKey": "A-share100-w0",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 1,
+              "scarcityWeight": 0
+            }
+          },
+          "fullConfigHash": "sha256:7a949e85c745823ded2b669e846c3fc3de5a9a355cee37a85cc73c53fd09d3ca",
+          "paramsHash": "sha256:f018c84296444b0ace541ac8c36cea6ea24c065351855c9635d26493af74961c"
+        },
+        {
+          "cellKey": "B-share50-w15",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 0.5,
+              "scarcityWeight": 15
+            }
+          },
+          "fullConfigHash": "sha256:0460d81605c29795316e84e9413df92b306667c2fdb23b6332077b4fa73ababe",
+          "paramsHash": "sha256:9e5fcac280188febee7571f102c25e760c61a50a56bc1a084cbd1aa185b10451"
+        },
+        {
+          "cellKey": "C-share50-w60",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 0.5,
+              "scarcityWeight": 60
+            }
+          },
+          "fullConfigHash": "sha256:4f345db6f6aab6a02a07d6e49d06ba871ec75a981199c2c758843037ab529d43",
+          "paramsHash": "sha256:35ff78d63393b7037613d03835699c28841e109434ff482f19e6056eebcb0d30"
+        },
+        {
+          "cellKey": "D-share50-w30",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 0.5,
+              "scarcityWeight": 30
+            }
+          },
+          "fullConfigHash": "sha256:44f169bf6ec83b946d17122725911f9ecfb470a783246929b5847be9a4377bf2",
+          "paramsHash": "sha256:a77d130ab0e16efff252fce2ad0cf8ac026fb7ae8e6f5769ef864757ba6da025"
+        },
+        {
+          "cellKey": "E-share70-w15",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 0.7,
+              "scarcityWeight": 15
+            }
+          },
+          "fullConfigHash": "sha256:60f56b0a31b4a1039b8d9b64ba0e3d06975dbea7243e2543f68342eacf70b5a5",
+          "paramsHash": "sha256:6e4ac3932eaeff8ecedecc744cc7a0d6efaa43bb6841dabe7ea847db709cfbcf"
+        },
+        {
+          "cellKey": "F-share30-w60",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 0.3,
+              "scarcityWeight": 60
+            }
+          },
+          "fullConfigHash": "sha256:71c6abb985267d9c35934c53a80acaf095f0e0a74a2a4fdf27bce8ce9dc13385",
+          "paramsHash": "sha256:b99787239c227ffbc4c89e7fa48d76d1fce138a4b224d95b92c1f893aa2463b5"
+        }
+      ],
+      "seeds": [
+        "p6-15-clu-001",
+        "p6-15-clu-002",
+        "p6-15-clu-003",
+        "p6-15-clu-004",
+        "p6-15-clu-005",
+        "p6-15-clu-006",
+        "p6-15-clu-007",
+        "p6-15-clu-008",
+        "p6-15-clu-009",
+        "p6-15-clu-010",
+        "p6-15-clu-011",
+        "p6-15-clu-012",
+        "p6-15-clu-013",
+        "p6-15-clu-014",
+        "p6-15-clu-015",
+        "p6-15-clu-016",
+        "p6-15-clu-017",
+        "p6-15-clu-018",
+        "p6-15-clu-019",
+        "p6-15-clu-020",
+        "p6-15-clu-021",
+        "p6-15-clu-022",
+        "p6-15-clu-023",
+        "p6-15-clu-024",
+        "p6-15-clu-025",
+        "p6-15-clu-026",
+        "p6-15-clu-027",
+        "p6-15-clu-028",
+        "p6-15-clu-029",
+        "p6-15-clu-030"
+      ],
+      "followupSeeds": [
+        "p6-15-clu-001",
+        "p6-15-clu-002",
+        "p6-15-clu-003",
+        "p6-15-clu-004",
+        "p6-15-clu-005",
+        "p6-15-clu-006",
+        "p6-15-clu-007",
+        "p6-15-clu-008",
+        "p6-15-clu-009",
+        "p6-15-clu-010"
+      ],
+      "baseTicks": 10950,
+      "followupTicks": 14600,
+      "baseWindow": [
+        10585,
+        10949
+      ],
+      "followupWindow": [
+        14235,
+        14599
+      ],
+      "algorithm": "ward-lw-v1",
+      "distance": "euclidean",
+      "standardization": "z-score(pooled)",
+      "shuffles": 20,
+      "shuffleSeedBase": 20261124,
+      "minClusterRuns": 5,
+      "minAri": 0.7,
+      "minSilhouette": 0.35,
+      "minTemporalRate": 0.8,
+      "regimeDiffThreshold": 0.1,
+      "expectedDirection": "A_higher_P0_Mup_O_lower_S_than_BF"
+    },
+    "perturbation": {
+      "regimes": [
+        {
+          "key": "R1_A_share100_w0",
+          "cellKey": "A-share100-w0",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 1,
+              "scarcityWeight": 0
+            }
+          },
+          "fullConfigHash": "sha256:a28b0b3a01e5e88ee92cb8241c97c691aa84e937542319ce69d3fa9f424b95fb",
+          "paramsHash": "sha256:277900ee87b6d8e7575c31d7e346e38cf9e244fff3dcafdda69bef2a00424291"
+        },
+        {
+          "key": "R2_B_share50_w15",
+          "cellKey": "B-share50-w15",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 0.5,
+              "scarcityWeight": 15
+            }
+          },
+          "fullConfigHash": "sha256:df1e5bc8f6a281f67f592408809363041ad6bc93ac632582fa739361f88af1e3",
+          "paramsHash": "sha256:455b9a866b29f852b4bfe0b2d7a1e078ca40326a615372cbdbad3737f973f7b3"
+        }
+      ],
+      "seeds": [
+        "p6-15-pert-001",
+        "p6-15-pert-002",
+        "p6-15-pert-003",
+        "p6-15-pert-004",
+        "p6-15-pert-005",
+        "p6-15-pert-006",
+        "p6-15-pert-007",
+        "p6-15-pert-008",
+        "p6-15-pert-009",
+        "p6-15-pert-010",
+        "p6-15-pert-011",
+        "p6-15-pert-012",
+        "p6-15-pert-013",
+        "p6-15-pert-014",
+        "p6-15-pert-015",
+        "p6-15-pert-016",
+        "p6-15-pert-017",
+        "p6-15-pert-018",
+        "p6-15-pert-019",
+        "p6-15-pert-020",
+        "p6-15-pert-021",
+        "p6-15-pert-022",
+        "p6-15-pert-023",
+        "p6-15-pert-024",
+        "p6-15-pert-025",
+        "p6-15-pert-026",
+        "p6-15-pert-027",
+        "p6-15-pert-028",
+        "p6-15-pert-029",
+        "p6-15-pert-030"
+      ],
+      "totalTicks": 3650,
+      "window": "w3",
+      "checkpointTick": 365,
+      "declared": {
+        "kind": "wealth_absolute",
+        "delta": 0.0001
+      },
+      "tvThreshold": 0.1
+    },
+    "ablations": {
+      "regimes": [
+        {
+          "key": "R1_A_share100_w0",
+          "cellKey": "A-share100-w0",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 1,
+              "scarcityWeight": 0
+            }
+          },
+          "fullConfigHash": "sha256:a28b0b3a01e5e88ee92cb8241c97c691aa84e937542319ce69d3fa9f424b95fb",
+          "paramsHash": "sha256:277900ee87b6d8e7575c31d7e346e38cf9e244fff3dcafdda69bef2a00424291"
+        },
+        {
+          "key": "R2_B_share50_w15",
+          "cellKey": "B-share50-w15",
+          "overrides": {
+            "ascent": {
+              "displacementShare": 0.5,
+              "scarcityWeight": 15
+            }
+          },
+          "fullConfigHash": "sha256:df1e5bc8f6a281f67f592408809363041ad6bc93ac632582fa739361f88af1e3",
+          "paramsHash": "sha256:455b9a866b29f852b4bfe0b2d7a1e078ca40326a615372cbdbad3737f973f7b3"
+        }
+      ],
+      "items": [
+        {
+          "regimeKey": "R1_A_share100_w0",
+          "ablationKey": "baseline",
+          "patch": {},
+          "fullConfigHash": "sha256:a28b0b3a01e5e88ee92cb8241c97c691aa84e937542319ce69d3fa9f424b95fb",
+          "paramsHash": "sha256:277900ee87b6d8e7575c31d7e346e38cf9e244fff3dcafdda69bef2a00424291"
+        },
+        {
+          "regimeKey": "R1_A_share100_w0",
+          "ablationKey": "beta_0",
+          "patch": {
+            "networkOpportunity": {
+              "beta": 0
+            }
+          },
+          "fullConfigHash": "sha256:b94a6af11d3be093a53e55160ed0f0469f28743ce7b72c3a8a1981907317b90d",
+          "paramsHash": "sha256:ccdc1f9b6b8e5399579874f80de59d259bd883bd038505f167dd5c9dfaa7600b"
+        },
+        {
+          "regimeKey": "R1_A_share100_w0",
+          "ablationKey": "openness_fixed",
+          "patch": {
+            "openness": {
+              "updateMode": "fixed"
+            }
+          },
+          "fullConfigHash": "sha256:61f4ac767a562f3619485d1475c96f816bc9d10878b91c39c5c021fce8599800",
+          "paramsHash": "sha256:111197de702e971266b07b873959406c745e27ca9e8f38fb7f2d44795e348282"
+        },
+        {
+          "regimeKey": "R1_A_share100_w0",
+          "ablationKey": "eta_0",
+          "patch": {
+            "dynamics": {
+              "congestionExponent": 0
+            }
+          },
+          "fullConfigHash": "sha256:701bda3ed6f6b8369301b7a805e671d0ee99dd1529ccc06d53f7cbe21f21bd86",
+          "paramsHash": "sha256:590d8400cf5e9d81e24c9036b446f9fcfedcca6ccf1cfb09787b0b5e78b30cef"
+        },
+        {
+          "regimeKey": "R1_A_share100_w0",
+          "ablationKey": "kappa_0",
+          "patch": {
+            "dynamics": {
+              "polarizationExponent": 0
+            }
+          },
+          "fullConfigHash": "sha256:d57129f927f14bd0067b8a3529a2d19d10161230f631cfd760f90550e0f85c76",
+          "paramsHash": "sha256:dfbfe2302260f2240ad29c1642ff9cc42fa3794bc2b93b47052de288439ae6d4"
+        },
+        {
+          "regimeKey": "R1_A_share100_w0",
+          "ablationKey": "psi_1",
+          "patch": {
+            "need": {
+              "needMultiplier": [
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            }
+          },
+          "fullConfigHash": "sha256:aa8cb5c7f15b6faceafcfe43f1740bb3eee3b8cef9896fc50b464bc342babded",
+          "paramsHash": "sha256:11261940c9fba395d50a05a4811f22d05b5220c20ac0df84ce1e66cdf9e7263e"
+        },
+        {
+          "regimeKey": "R2_B_share50_w15",
+          "ablationKey": "baseline",
+          "patch": {},
+          "fullConfigHash": "sha256:df1e5bc8f6a281f67f592408809363041ad6bc93ac632582fa739361f88af1e3",
+          "paramsHash": "sha256:455b9a866b29f852b4bfe0b2d7a1e078ca40326a615372cbdbad3737f973f7b3"
+        },
+        {
+          "regimeKey": "R2_B_share50_w15",
+          "ablationKey": "beta_0",
+          "patch": {
+            "networkOpportunity": {
+              "beta": 0
+            }
+          },
+          "fullConfigHash": "sha256:2321746e308f2f7532389cee9e53bb8694d959b3f688603d9cacd411a417731b",
+          "paramsHash": "sha256:b965c75d53fd19cbd1072e7ed66268b6b7ed97fa4eb2a18b14f538dcd0d84d44"
+        },
+        {
+          "regimeKey": "R2_B_share50_w15",
+          "ablationKey": "openness_fixed",
+          "patch": {
+            "openness": {
+              "updateMode": "fixed"
+            }
+          },
+          "fullConfigHash": "sha256:c4eb1ad3d94aa2b040d65dcad099086165cbaf7f42de9f888ff6cf3f83b175f9",
+          "paramsHash": "sha256:b1f2a47f4279aeee950aceb3fb6034c12dbef4673fe93c62356ee3062c9baf02"
+        },
+        {
+          "regimeKey": "R2_B_share50_w15",
+          "ablationKey": "eta_0",
+          "patch": {
+            "dynamics": {
+              "congestionExponent": 0
+            }
+          },
+          "fullConfigHash": "sha256:5740af9df6d19f7d26bc799e38ad420ca7e1602ec2c8890dc9e394ce18009ccb",
+          "paramsHash": "sha256:bbb136e3a50ea478fe1c42079e9e23ae66bf68fc2a6d8d05c4e8890b61b9c6e4"
+        },
+        {
+          "regimeKey": "R2_B_share50_w15",
+          "ablationKey": "kappa_0",
+          "patch": {
+            "dynamics": {
+              "polarizationExponent": 0
+            }
+          },
+          "fullConfigHash": "sha256:e8235ef213d11fac60d091b2cbc90e2a47a633e297581b59822ceec4ddcda271",
+          "paramsHash": "sha256:0258dbe7b067915d84bc7c7cc7bfe507ac4492f4b49c7605063fe90024250f54"
+        },
+        {
+          "regimeKey": "R2_B_share50_w15",
+          "ablationKey": "psi_1",
+          "patch": {
+            "need": {
+              "needMultiplier": [
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            }
+          },
+          "fullConfigHash": "sha256:a85deb3321a29ddcaa380bd10e3b31934905d7ed4e222d41234f5d503202c457",
+          "paramsHash": "sha256:56e732a6cbeaa86fe8e0cb7175c0907bb3eddca34a98b8a7dec1792b06fc8c5c"
+        }
+      ],
+      "seeds": [
+        "p6-15-abl-001",
+        "p6-15-abl-002",
+        "p6-15-abl-003",
+        "p6-15-abl-004",
+        "p6-15-abl-005",
+        "p6-15-abl-006",
+        "p6-15-abl-007",
+        "p6-15-abl-008",
+        "p6-15-abl-009",
+        "p6-15-abl-010",
+        "p6-15-abl-011",
+        "p6-15-abl-012",
+        "p6-15-abl-013",
+        "p6-15-abl-014",
+        "p6-15-abl-015",
+        "p6-15-abl-016",
+        "p6-15-abl-017",
+        "p6-15-abl-018",
+        "p6-15-abl-019",
+        "p6-15-abl-020",
+        "p6-15-abl-021",
+        "p6-15-abl-022",
+        "p6-15-abl-023",
+        "p6-15-abl-024",
+        "p6-15-abl-025",
+        "p6-15-abl-026",
+        "p6-15-abl-027",
+        "p6-15-abl-028",
+        "p6-15-abl-029",
+        "p6-15-abl-030"
+      ],
+      "totalTicks": 3650,
+      "window": "w3",
+      "primaryMetric": "TV(P)",
+      "tvThreshold": 0.1,
+      "bootstrapIterations": 10000,
+      "bootstrapSeedBase": 20261124,
+      "psi1Prediction": "classShare4_decrease"
+    },
+    "budgets": {
+      "totalTasks": 660,
+      "ablTasks": 360,
+      "pertTasks": 60,
+      "clusterTasks": 240
+    }
+  }
+}

@@ -50,6 +50,25 @@ mock 与 live 冒烟，且 `finalStateHash` 与本地逐字相同。
 - 日志脱敏已实现：决策记录只落 `requestedModel`、真实 `model`、`usage`、`fallbackReason`，
   不落 Authorization 头。
 
+#### 2.3.1 轮换步骤（旧 Key 泄露时）
+
+> 本机 `.env` 的 Key 创建于泄露披露之前，按**已泄露**处理；轮换完成前不得再发起 live 调用。
+
+1. **吊销旧 Key**：在密钥页把上一轮 `jv-…` 置为 revoked，确认状态；不要只新建不吊销。
+2. **新建 Key**：新 Key 通常只显示一次；不要粘贴到对话、issue、commit、命令行参数或日志。
+3. **本机更新**：编辑仓库根 `.env`（`chmod 600`），只替换 `JEV_API_KEY=` 一行；
+   `git check-ignore -v .env` 必须命中 `.gitignore` 第 19 行。
+4. **VPS 更新**：`/etc/stratify/runner.env` 用 `install -m 600` 创建/覆盖，或经 `ssh` stdin
+   传入（§4.3）；不得出现在 `ps`、shell history 或 systemd unit 文件。
+5. **仓库与历史扫描**：`pnpm check:secrets` 必须通过；
+   `git log --all -G 'jv-[A-Za-z0-9]{20,}'` 应无命中。
+6. **无请求校验**：`node --env-file=.env scripts/smoke-live.mjs --dry-run`，确认
+   `apiKeyPresent=true` 且端点仍是 `https://jev.logicc.top/v1/systemone`。
+7. **最小 live 冒烟**：6 人 / 1 tick（§4.3）；确认 0 个 401、0 回退；再跑 8 人 / 30 tick 基线。
+8. **留痕**：在仓库外的安全运维记录写下轮换日期、新 Key 的不可逆指纹（如 sha256 前 8 位）、
+   旧 Key 吊销确认；检查旧 Key 在泄露期间的费用与调用。
+9. **禁止**：把新 Key 写入 manifest/artifact/日志/issue/对话；轮换后不得继续使用旧 Key。
+
 ### 2.4 模型名与计费
 
 - 网关会把请求模型名归一化：请求 `jev-1.13.0`，响应 `model` 为 **`jev-1.13-free`**。
@@ -182,6 +201,38 @@ rm -f /tmp/meme-smoke.tgz
 ```
 
 磁盘只有 11 GiB，`out/` 全量产物（约 10 MiB 已入库版）以外的调试文件不要留在上面。
+
+### 4.6 当前部署状态（2026-11-05）
+
+按 `deploy/README.md` 完成 runner 标准部署（尚未跑正式实验）：
+
+| 项        | 现状                                                                       |
+| --------- | -------------------------------------------------------------------------- |
+| 代码      | `/opt/stratify/current` = `d30aa08` 的 `git archive`，root:root 只读，158M |
+| 运行用户  | `stratify-runner`（系统用户，`/var/lib/stratify`）                         |
+| 数据目录  | `/var/lib/stratify/{checkpoints,manifests,exports}`，750                   |
+| 环境文件  | `/etc/stratify/runner.env`，600 root:stratify-runner（Key 经 stdin 写入）  |
+| systemd   | unit + journald drop-in 已装；`disabled` + oneshot，无 manifest 时条件跳过 |
+| 磁盘守卫  | 实测 10,275 MB ≥ 2048 MB，通过                                             |
+| 构建/测试 | VPS 上 install/build/typecheck/741 单测全绿                                |
+| live 冒烟 | 6/6、0 回退、usage 6772/660、p50 1001 ms、哈希与本地逐字相同               |
+
+以 runner 身份跑一次脚本（密钥由 systemd 从 600 文件注入，不经 shell/`ps`）：
+
+```bash
+ssh 2zhou 'sudo install -d -o stratify-runner -g stratify-runner -m 750 \
+  /var/lib/stratify/exports/p6-04b'
+ssh 2zhou 'sudo systemd-run --wait --pipe --quiet --uid=stratify-runner \
+  --property=EnvironmentFile=/etc/stratify/runner.env \
+  --property=WorkingDirectory=/opt/stratify/current \
+  /usr/local/bin/node scripts/p6-04b-live-pilot.mjs \
+  --seed p6-04b-live-seed-001 \
+  --out /var/lib/stratify/exports/p6-04b/pilot.json \
+  --raw-out /var/lib/stratify/exports/p6-04b/pilot-decisions.ndjson.gz'
+```
+
+注意：`/opt/stratify/current` 为 root 只读，更新代码需整目录替换后重新 `chown/chmod` 并重跑构建；
+正式多 seed 对照仍需先按 07 §11 冻结预注册（seeds/promptStyle/预算），再逐 seed 调用。
 
 ## 5. 故障速查
 

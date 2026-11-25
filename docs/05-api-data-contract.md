@@ -92,7 +92,7 @@ running -> completed | failed | cancelled
 
 调度字段只认一个来源：`totalTicks/statsStride/snapshotStride` 属于 `RunConfig.schedule`；`metrics.flowWindowDays/metrics.mobilityWindowDays` 属于 `RunConfig.metrics`；二者都进 `configHash`。顶层 `schedule` 只镜像前三个字段，必须与 `config.schedule` 完全相等；缺失、多余或数值不同一律 422 `validation_failed`，不得以顶层值覆盖 config。`identity.seed` 不进入 `configHash`/`paramsHash`，服务端把它与 `config` 一起用于重算 `initialPopulationHash`；`identity.configHash` 和 `identity.paramsHash` 必须分别等于服务端对 `config` 算出的值，否则 422。服务端还必须校验 `identity.rulesVersion === config.rulesVersion` 与 `identity.policyVersion === config.decision.policy`；`configHash` 只证明 config 未被篡改，不能替代这些跨字段一致性检查。
 
-`GET /api/runs/:id`：返回元数据、状态、endReason、进度、版本、预算用量、逐决策观测去重后的 responseModels、verificationStatus 和 artifact manifest，不返回 writeTokenHash 完整值。
+`GET /api/runs/:id`：返回元数据、状态、endReason、进度、版本、预算用量、逐决策观测去重后的 responseModels、verificationStatus 和 artifact manifest，不返回 writeTokenHash 完整值。`runtimeAuthority` 标记该 run 的 `runtimeVersion` 是否与服务器 `RUNTIME_VERSION` 相同：不同时服务器不在 workerd 复算 `initialPopulationHash`（ADR 0001 只承诺同运行时一致），正式对照必须按 `runtimeVersion` 分组。
 
 `GET /api/runs?cursor=&limit=50&source=runner&status=completed`：按外部 `(createdAt,id)`（数据库 `(created_at,run_id)`）降序 keyset；limit 默认 50、最大 100。游标只编码排序键和过滤 hash，过滤变化时拒绝旧游标。
 
@@ -186,7 +186,7 @@ X-Start-Tick / X-End-Tick: 可选范围
 }
 ```
 
-所有 run 的 manifest 必须列出 config/identity、`artifactProfile`、初始权威快照与最终 final_state、全分辨率 tick metrics（`metrics-v1`；或该 run 设置 `statsStride=1` 的 `tick_stats`）。`artifactProfile=full` 时还必须列出完整 decisions 和 events 范围块；`metrics-only` 可省略 decisions/events，但 `replayable` 必须为 false，且不得声明可回放。仅声明 `replayable=true` 还要求初始快照加全部到期决策能够逐 `(tick,agentId)` 覆盖。`expectedDueDecisions` 是实际到期决策数 `Σ_{t%decisionInterval=0} aliveAtTickStart(t)`，不是 `initialPopulation×ceil(totalTicks/decisionInterval)` 的理论上界；出现死亡或提前 extinct 时必须用实际值，理论上界只用于预算（04 §7 的 `maxDueDecisions`）。同类范围块不得重叠，决策/事件按 tick/seq 连续；快照必须含 initial/final，周期快照按 schedule 覆盖。
+所有 run 的 manifest 必须列出 config/identity、`artifactProfile`、初始权威快照与最终 final_state、全分辨率 tick metrics（`metrics-v1`；或该 run 设置 `statsStride=1` 的 `tick_stats`）。`artifactProfile=full` 时还必须列出完整 decisions 和 events 范围块；`metrics-only` 可省略 decisions/events，但 `replayable` 必须为 false，且不得声明可回放。仅声明 `replayable=true` 还要求初始快照加全部到期决策能够逐 `(tick,agentId)` 覆盖。`expectedDueDecisions` 是实际到期决策数 `Σ_{t%decisionInterval=0} aliveAtTickStart(t)`，不是 `initialPopulation×ceil(totalTicks/decisionInterval)` 的理论上界；出现死亡或提前 extinct 时必须用实际值，理论上界只用于预算（04 §7 的 `maxDueDecisions`）。同类范围块不得重叠，决策/事件按 tick/seq 连续；快照必须含 initial/final，周期快照按 schedule 覆盖。`complete` 时服务器按 `agent_final.death_tick` 复算该值（tick `t` 期初存活 = `death_tick IS NULL OR death_tick >= t`），与声明不一致返回 `409 state_conflict`，不接受客户端自报。
 
 服务端核对 run 状态、stats 计划、agent 数、必需 artifact 类型/范围、上传计数和清单自洽性后原子完成；按 manifest 的 `artifactProfile` 核对必需块：`full` 需 decisions/events，`metrics-only` 需 `metrics-v1`，缺失不得 complete。`manifest hash` 只证明清单未被篡改，不证明内容已由服务端认证，内容认证由独立验证器完成。相同 complete 重试返回 200，不同摘要 409。`endReason=scheduled|extinct`：`extinct` 要求 finalTick 严格小于 `totalTicks-1` 且 finalAliveCount=0；若全死亡恰好发生在最后一个计划 tick，则记 `scheduled`，但 finalAliveCount 必须为 0 并置 `structurallyUsable=false`，该类 run 不参与结构判异。
 

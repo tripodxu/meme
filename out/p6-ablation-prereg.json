@@ -1,0 +1,185 @@
+{
+  "experimentId": "p6-ablation-c46c2aff",
+  "preregistrationHash": "sha256:c46c2aff831f7298228bf3e7fcef6154b0b9dc9d8f17d02f7a20f9993911110a",
+  "manifest": {
+    "schemaVersion": "experiment-v2",
+    "hypothesis": "P6-04 五消融：β=0、O 固定、η=0、κ=0、ψ=1 分别移除一个反馈机制，以 30 个新配对种子与 baseline 比较 200 人 × 730 tick 的 w1 结构。只有消融后结构显著退化（TV(P)≥0.10、CI 不跨 0、100% 超出 baseline D95）才可说该机制在本实验范围内有解释力；ψ=1 另检验 07 §11 的 P4 下降方向。结果仅 exploratory，不构成现实因果、确认或校准（07 §11、AGENTS #9）。预算 P6_ABLATION_BUDGET 为 D-04 重冻结（6 cell × 30 seed = 180 run），进哈希。",
+    "primaryMetric": "TV(P)",
+    "experimentType": "rule_sensitivity",
+    "rulesVersion": "rules-v11",
+    "engineVersion": "engine-v0.9.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
+    "promptVersion": "prompt-none-v1",
+    "promptStyle": "neutral",
+    "populationSize": 200,
+    "totalTicks": 730,
+    "baseConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e",
+    "artifactProfile": "metrics-only",
+    "seeds": [
+      "p6-ablation-seed-001",
+      "p6-ablation-seed-002",
+      "p6-ablation-seed-003",
+      "p6-ablation-seed-004",
+      "p6-ablation-seed-005",
+      "p6-ablation-seed-006",
+      "p6-ablation-seed-007",
+      "p6-ablation-seed-008",
+      "p6-ablation-seed-009",
+      "p6-ablation-seed-010",
+      "p6-ablation-seed-011",
+      "p6-ablation-seed-012",
+      "p6-ablation-seed-013",
+      "p6-ablation-seed-014",
+      "p6-ablation-seed-015",
+      "p6-ablation-seed-016",
+      "p6-ablation-seed-017",
+      "p6-ablation-seed-018",
+      "p6-ablation-seed-019",
+      "p6-ablation-seed-020",
+      "p6-ablation-seed-021",
+      "p6-ablation-seed-022",
+      "p6-ablation-seed-023",
+      "p6-ablation-seed-024",
+      "p6-ablation-seed-025",
+      "p6-ablation-seed-026",
+      "p6-ablation-seed-027",
+      "p6-ablation-seed-028",
+      "p6-ablation-seed-029",
+      "p6-ablation-seed-030"
+    ],
+    "pairing": "same-seed-derived-initial-population-and-addressed-random",
+    "warmupTicks": 365,
+    "warmupDiagnostic": "P6-04 消融：warmup=365 后的 [365,729] 单窗口日均值；w1 完整窗口超出 730 tick 视野，观测段覆盖是预注册取舍",
+    "windows": [
+      {
+        "label": "w1",
+        "start": 365,
+        "end": 1094
+      }
+    ],
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "clustering": {
+      "distance": "euclidean",
+      "algorithm": "ward-lw-v1",
+      "standardization": "z-score(pooled)",
+      "featureWindows": [
+        "w1"
+      ],
+      "kRange": [
+        2,
+        5
+      ],
+      "stabilityMinAri": 0.7,
+      "stabilityShuffles": 20,
+      "minClusterRuns": 5,
+      "temporalConsistencyMinRate": 0.8,
+      "d03Note": "P6-04 为消融实验，不执行聚类判定；聚类块按 07 §3 权威字段清单保留并进哈希，口径与 D-03 冻结一致"
+    },
+    "differenceThresholds": {
+      "gini": 0.03,
+      "tv": 0.1,
+      "mUp": 0.05,
+      "segregation": 0.05,
+      "openness": 0.05
+    },
+    "budgets": {
+      "maxRuns": 200,
+      "maxWallMinutes": 240,
+      "maxStorageBytes": 536870912
+    },
+    "exclusionRules": {
+      "excludeExtinctRuns": true,
+      "excludeUnavailableWindows": true,
+      "excludeNetworkEmptyFromSegregation": true,
+      "maxTechnicalRetries": 1
+    },
+    "cells": [
+      {
+        "cellKey": "baseline",
+        "design": "baseline",
+        "hypothesis": "P6-04 消融基准：默认规则与参数，作为五个消融的单轴对照。",
+        "overrides": {},
+        "changedPaths": [],
+        "fullConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e"
+      },
+      {
+        "cellKey": "beta=0",
+        "design": "single",
+        "hypothesis": "无网络机会（β=0）：Opportunity 恒为 1；网络关系、网络竞争与 S 保留。报告 TV(P) 与 G/Mup/Mdown/S/O 分项；不预设方向。",
+        "overrides": {
+          "networkOpportunity": {
+            "beta": 0
+          }
+        },
+        "changedPaths": [
+          "networkOpportunity.beta"
+        ],
+        "fullConfigHash": "sha256:02513247c7ab470cf84a5d0b16fbc8e87c8b188af88e3af44df61fae75692ad2"
+      },
+      {
+        "cellKey": "openness=fixed",
+        "design": "single",
+        "hypothesis": "O 固定（openness.updateMode=fixed）：停止制度更新；跨越/网络中的 O 乘子仍在但恒定。报告 O 与跨层流动；不预设结构方向。",
+        "overrides": {
+          "openness": {
+            "updateMode": "fixed"
+          }
+        },
+        "changedPaths": [
+          "openness.updateMode"
+        ],
+        "fullConfigHash": "sha256:17b5aedfd8ebf5e69165e94207cdd40c36b79080594e7c7d9509b0d498c631a6"
+      },
+      {
+        "cellKey": "eta=0",
+        "design": "single",
+        "hypothesis": "η=0（congestionExponent=0）：Congestion=1，其他反馈保留；报告 TV(P) 与流动性分项；不预设方向。",
+        "overrides": {
+          "dynamics": {
+            "congestionExponent": 0
+          }
+        },
+        "changedPaths": [
+          "dynamics.congestionExponent"
+        ],
+        "fullConfigHash": "sha256:627bdbf4cf48f4ebbfcc00c21b754ed55fa9fc622df49483f260b97c1605e7a1"
+      },
+      {
+        "cellKey": "kappa=0",
+        "design": "single",
+        "hypothesis": "κ=0（polarizationExponent=0）：Polarization=1，其他反馈保留；报告 TV(P) 与 G/M 分项；不预设方向。",
+        "overrides": {
+          "dynamics": {
+            "polarizationExponent": 0
+          }
+        },
+        "changedPaths": [
+          "dynamics.polarizationExponent"
+        ],
+        "fullConfigHash": "sha256:4eab25f7a5a397434ef38cfe2cb6bdd96387bcd6a6b6ceba28fb00e6d2fc0f3d"
+      },
+      {
+        "cellKey": "psi=1",
+        "design": "single",
+        "hypothesis": "ψ=1（needMultiplier=[1,1,1,1,1]）：移除阶级持有成本；07 §11 预测顶层塌缩显著增强（P4 下降），同时报告 TV(P) 与 G/M 分项。",
+        "overrides": {
+          "need": {
+            "needMultiplier": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "changedPaths": [
+          "need.needMultiplier"
+        ],
+        "fullConfigHash": "sha256:14dc53decc71320c63fd4c446f9cfda274973510796570cc8a5178d2c854c3c2"
+      }
+    ]
+  }
+}

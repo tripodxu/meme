@@ -1,0 +1,223 @@
+{
+  "experimentId": "p6-perturbation-6bd61532",
+  "preregistrationHash": "sha256:6bd61532a7f475a3b16600cd5ef3513abd012779ce74da01244a5fc149484bca",
+  "manifest": {
+    "schemaVersion": "p6-perturbation-v1",
+    "hypothesis": "P6-03 微扰克隆：在同一检查点对 stable（默认）与 critical（P6-02 最大联合条件）两个体制施加财富绝对扰动与两个模型参数的相对扰动（幅度 1e-6/1e-4/1e-2），用 30 个新配对种子回答：小扰动是只改变轨迹，还是越过离散阈值改变窗口结构（TV(P)≥0.10 且超出 baseline 跨种子 D95）；同时报告 baseline 正常波动区间与首次事件翻转/结构偏离 tick。结果仅 exploratory，不构成确认或校准。",
+    "primaryMetric": "TV(P)",
+    "experimentType": "perturbation",
+    "rulesVersion": "rules-v11",
+    "engineVersion": "engine-v0.9.0",
+    "decisionSchemaVersion": "stratify-decision-v1",
+    "policyVersion": "mock-weighted-v1",
+    "promptVersion": "prompt-none-v1",
+    "promptStyle": "neutral",
+    "populationSize": 200,
+    "totalTicks": 730,
+    "checkpointTick": 365,
+    "baseConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e",
+    "artifactProfile": "metrics-only",
+    "regimes": [
+      {
+        "regimeKey": "stable",
+        "design": "baseline",
+        "overrides": {},
+        "hypothesis": "稳定区：默认配置；预注册预期小扰动主要被离散阈值或负反馈吸收。",
+        "changedPaths": [],
+        "fullConfigHash": "sha256:17d77c957e5a55c30a6f1fa5c1e6fe6af0c49c4e94e0ad37a0b626c3f7808b3e"
+      },
+      {
+        "regimeKey": "critical",
+        "design": "interaction",
+        "overrides": {
+          "need": {
+            "threshold": 0.9,
+            "needMultiplier": [
+              1,
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "opportunity": {
+            "env0": [
+              1,
+              2,
+              3.5,
+              5,
+              7
+            ]
+          },
+          "ascent": {
+            "crossDays": [
+              15,
+              20,
+              25,
+              30
+            ]
+          }
+        },
+        "hypothesis": "临界区：P6-02 中 TV(P) 最大的联合条件；预注册预期同一幅度扰动更易被放大。该体制是 interaction，差异不得归因到单一参数（07 §6.3）。",
+        "changedPaths": [
+          "ascent.crossDays",
+          "need.needMultiplier",
+          "need.threshold",
+          "opportunity.env0"
+        ],
+        "fullConfigHash": "sha256:4a8bac922b475950247443911bf6ebb151377bb523f229332cab6b7a3258972c"
+      }
+    ],
+    "cells": [
+      {
+        "cellKey": "control=0",
+        "kind": "control",
+        "field": null,
+        "delta": 0,
+        "hypothesis": "克隆对照：δ=0 时两侧应逐位一致（检查点克隆与续跑确定性）。"
+      },
+      {
+        "cellKey": "wealth_absolute=1e-6",
+        "kind": "wealth_absolute",
+        "field": null,
+        "delta": 0.000001,
+        "hypothesis": "财富绝对扰动 ΔValue=1e-6：每个存活者在检查点加同一绝对量（07 §7.3）。"
+      },
+      {
+        "cellKey": "wealth_absolute=1e-4",
+        "kind": "wealth_absolute",
+        "field": null,
+        "delta": 0.0001,
+        "hypothesis": "财富绝对扰动 ΔValue=1e-4：每个存活者在检查点加同一绝对量（07 §7.3）。"
+      },
+      {
+        "cellKey": "wealth_absolute=1e-2",
+        "kind": "wealth_absolute",
+        "field": null,
+        "delta": 0.01,
+        "hypothesis": "财富绝对扰动 ΔValue=1e-2：每个存活者在检查点加同一绝对量（07 §7.3）。"
+      },
+      {
+        "cellKey": "param:need.threshold×1e-6",
+        "kind": "param_relative",
+        "field": "need.threshold",
+        "delta": 0.000001,
+        "hypothesis": "需求线阈值相对扰动 1e-6：检验连续阈值附近的事件翻转与结构偏离。"
+      },
+      {
+        "cellKey": "param:need.threshold×1e-4",
+        "kind": "param_relative",
+        "field": "need.threshold",
+        "delta": 0.0001,
+        "hypothesis": "需求线阈值相对扰动 1e-4：检验连续阈值附近的事件翻转与结构偏离。"
+      },
+      {
+        "cellKey": "param:need.threshold×1e-2",
+        "kind": "param_relative",
+        "field": "need.threshold",
+        "delta": 0.01,
+        "hypothesis": "需求线阈值相对扰动 1e-2：检验连续阈值附近的事件翻转与结构偏离。"
+      },
+      {
+        "cellKey": "param:need.needMultiplier[1]×1e-6",
+        "kind": "param_relative",
+        "field": "need.needMultiplier[1]",
+        "delta": 0.000001,
+        "hypothesis": "第二阶级持有乘子相对扰动 1e-6：检验主导阶级参数的传播。"
+      },
+      {
+        "cellKey": "param:need.needMultiplier[1]×1e-4",
+        "kind": "param_relative",
+        "field": "need.needMultiplier[1]",
+        "delta": 0.0001,
+        "hypothesis": "第二阶级持有乘子相对扰动 1e-4：检验主导阶级参数的传播。"
+      },
+      {
+        "cellKey": "param:need.needMultiplier[1]×1e-2",
+        "kind": "param_relative",
+        "field": "need.needMultiplier[1]",
+        "delta": 0.01,
+        "hypothesis": "第二阶级持有乘子相对扰动 1e-2：检验主导阶级参数的传播。"
+      }
+    ],
+    "seeds": [
+      "p6-perturb-seed-001",
+      "p6-perturb-seed-002",
+      "p6-perturb-seed-003",
+      "p6-perturb-seed-004",
+      "p6-perturb-seed-005",
+      "p6-perturb-seed-006",
+      "p6-perturb-seed-007",
+      "p6-perturb-seed-008",
+      "p6-perturb-seed-009",
+      "p6-perturb-seed-010",
+      "p6-perturb-seed-011",
+      "p6-perturb-seed-012",
+      "p6-perturb-seed-013",
+      "p6-perturb-seed-014",
+      "p6-perturb-seed-015",
+      "p6-perturb-seed-016",
+      "p6-perturb-seed-017",
+      "p6-perturb-seed-018",
+      "p6-perturb-seed-019",
+      "p6-perturb-seed-020",
+      "p6-perturb-seed-021",
+      "p6-perturb-seed-022",
+      "p6-perturb-seed-023",
+      "p6-perturb-seed-024",
+      "p6-perturb-seed-025",
+      "p6-perturb-seed-026",
+      "p6-perturb-seed-027",
+      "p6-perturb-seed-028",
+      "p6-perturb-seed-029",
+      "p6-perturb-seed-030"
+    ],
+    "pairing": "same-seed-derived-initial-population-and-addressed-random",
+    "warmupTicks": 365,
+    "warmupDiagnostic": "P6-03 微扰：warmup=365 后从检查点克隆并续跑 [365,729]；幅度阶梯与事件翻转按 07 §7 预注册",
+    "windows": [
+      {
+        "label": "w1",
+        "start": 365,
+        "end": 1094
+      }
+    ],
+    "labelThresholdVersion": "labels-v3",
+    "labelThresholdsHash": "sha256:e9dd3407fa9aa889222a839f4a39437c92e2edaff1ebbf52066b0f58f9b12168",
+    "clustering": {
+      "distance": "euclidean",
+      "algorithm": "ward-lw-v1",
+      "standardization": "z-score(pooled)",
+      "featureWindows": [
+        "w1"
+      ],
+      "kRange": [
+        2,
+        5
+      ],
+      "stabilityMinAri": 0.7,
+      "stabilityShuffles": 20,
+      "minClusterRuns": 5,
+      "temporalConsistencyMinRate": 0.8,
+      "d03Note": "P6-03 为微扰实验，不执行聚类判定；聚类块按 07 §3 权威字段清单保留并进哈希，口径与 D-03 冻结一致"
+    },
+    "differenceThresholds": {
+      "gini": 0.03,
+      "tv": 0.1,
+      "mUp": 0.05,
+      "segregation": 0.05,
+      "openness": 0.05
+    },
+    "budgets": {
+      "maxRuns": 800,
+      "maxWallMinutes": 90,
+      "maxStorageBytes": 134217728
+    },
+    "exclusionRules": {
+      "excludeExtinctRuns": true,
+      "excludeUnavailableWindows": true,
+      "excludeNetworkEmptyFromSegregation": true,
+      "maxTechnicalRetries": 1
+    }
+  }
+}

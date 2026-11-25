@@ -1,4 +1,9 @@
-import { decideMockWeighted, POLICY_VERSION_MOCK } from './mock.js';
+import {
+  decideMockWeighted,
+  decideMockWeightedV2,
+  POLICY_VERSION_MOCK,
+  POLICY_VERSION_MOCK_V2,
+} from './mock.js';
 import type { DecisionInput, DecisionPolicy } from './policy.js';
 import { decideRandomUniform, POLICY_VERSION_RANDOM } from './random.js';
 import type { DecisionRecord } from './types.js';
@@ -16,6 +21,22 @@ export class MockPolicy implements DecisionPolicy {
 
   decide(input: DecisionInput): DecisionRecord {
     return decideMockWeighted({
+      runId: input.runId,
+      seed: input.seed,
+      state: input.simState,
+      agentId: input.agentId,
+      stateHash: input.stateHash,
+      actionSetHash: input.actionSetHash,
+      legal: input.legal,
+    });
+  }
+}
+
+export class MockPolicyV2 implements DecisionPolicy {
+  readonly policyVersion = POLICY_VERSION_MOCK_V2;
+
+  decide(input: DecisionInput): DecisionRecord {
+    return decideMockWeightedV2({
       runId: input.runId,
       seed: input.seed,
       state: input.simState,

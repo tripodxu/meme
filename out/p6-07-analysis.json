@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "p6-05-cluster-analysis-v1",
+  "isExperimentalEvidence": false,
+  "experimentId": "p6-07-eea8f47d",
+  "preregistration": {
+    "path": "out/p6-07-prereg.json",
+    "designHash": "sha256:eea8f47d4ff81bf539f490624e64260fe300cb36f9d1643a705fb2efafd83f0b",
+    "createdAt": "2026-11-11T11:56:32.690Z"
+  },
+  "runs": {
+    "total": 240,
+    "base": 180,
+    "usable": 180,
+    "excluded": [],
+    "followup": 60,
+    "temporalPairs": 60
+  },
+  "features": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "G",
+    "top10",
+    "Mup",
+    "Mdown",
+    "S",
+    "O"
+  ],
+  "clustering": {
+    "k": 2,
+    "sizes": [
+      130,
+      50
+    ],
+    "composition": [
+      {
+        "cluster": 0,
+        "total": 130,
+        "cells": {
+          "A-control": 20,
+          "B-risk-traits-only": 20,
+          "C-risk-behavior": 24,
+          "D-cross-behavior": 23,
+          "E-both-moderate": 26,
+          "F-both-strong": 17
+        }
+      },
+      {
+        "cluster": 1,
+        "total": 50,
+        "cells": {
+          "A-control": 10,
+          "B-risk-traits-only": 10,
+          "D-cross-behavior": 7,
+          "E-both-moderate": 4,
+          "F-both-strong": 13,
+          "C-risk-behavior": 6
+        }
+      }
+    ],
+    "silhouette": 0.175185360668667,
+    "ariMedian": 0.17805752003719985,
+    "ariMin": -0.01307622060166481,
+    "stabilityAris": [
+      -0.01307622060166481,
+      -0.011412836273089028,
+      -0.002309219156265802,
+      0.007075291784270252,
+      0.062434727330518,
+      0.11484060597951054,
+      0.1336137930346969,
+      0.14757560670362319,
+      0.15111478950715093,
+      0.16965985099449146,
+      0.18645518907990824,
+      0.236690826800057,
+      0.3016262256727531,
+      0.38010464948484085,
+      0.4381204525090584,
+      0.45783849915113123,
+      0.4692404268675456,
+      0.5655512551889945,
+      0.5658200789555266,
+      0.6004294012127791
+    ],
+    "minimumCentroidDistance": 2.9953445244144556,
+    "rawCentroids": [
+      [
+        0,
+        0.002220502598069878,
+        0.3774006474678405,
+        0.39685000917576435,
+        0.2235288407583251,
+        0.38678093570117134,
+        0.3164663050610505,
+        0.007496662682643933,
+        0.0026372727859329402,
+        0.29439049100124187,
+        0.2741922298378639
+      ],
+      [
+        0,
+        0,
+        0.47955479767147813,
+        0.3288744029415956,
+        0.19157079938692553,
+        0.4545971061537822,
+        0.37019607710864455,
+        0.005009163730188136,
+        0.0002382370458606318,
+        0.47156106515059126,
+        0.11183333117488652
+      ]
+    ],
+    "diagnostics": {
+      "k=3": {
+        "sizes": [
+          101,
+          50,
+          29
+        ],
+        "silhouette": 0.20599731765350734
+      },
+      "k=4": {
+        "sizes": [
+          101,
+          50,
+          21,
+          8
+        ],
+        "silhouette": 0.23187079277939793
+      },
+      "k=5": {
+        "sizes": [
+          81,
+          50,
+          21,
+          20,
+          8
+        ],
+        "silhouette": 0.20092479155735168
+      }
+    }
+  },
+  "twoRegime": {
+    "regimeDifference": 0.1771705741493494,
+    "orderParameter": {
+      "deltaO": 0.16235889866297737,
+      "deltaS": 0.1771705741493494,
+      "tvP": 0.10215415020363791
+    },
+    "k3": {
+      "sizes": [
+        101,
+        50,
+        29
+      ],
+      "ariMedian": 0.2702284615844667,
+      "temporalRate": 0.36666666666666664,
+      "silhouette": 0.20599731765350734
+    }
+  },
+  "temporal": {
+    "sameClusterRate": 0.65,
+    "pairs": 60,
+    "minRate": 0.8
+  },
+  "extinctRate": 0,
+  "verdict": {
+    "passes": null,
+    "antiPreset": true,
+    "reasons": [
+      "ARI median 0.178 < 0.7",
+      "silhouette 0.175 < 0.35",
+      "temporal same-cluster 0.650 < 0.8"
+    ],
+    "status": "exploratory-not-g6-confirmation"
+  },
+  "notes": [
+    "P6-05 只判定 mock 策略在 40 人 × 10950 tick 的终端全特征聚类（rules-v15）；不是校准、现实因果或结构涌现声明。",
+    "k=2 为预注册目标；k=3 用于检查是否形成稳定第三簇，不得用 k=3 的有利结果替代 k=2 验收。",
+    "簇编号任意，语义由 rawCentroids 的 P/G/Mup/Mdown/S/O 描述，不映射现实阶级结构。"
+  ]
+}
